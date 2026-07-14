@@ -71,34 +71,52 @@ export default function LoginPage() {
       }, 800)
     } else {
       // Live Supabase email/password login
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password
-      })
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: loginEmail,
+          password
+        })
 
-      if (error) {
-        setMessage({ type: 'error', text: error.message })
-        setLoading(false)
-        return
-      }
-
-      if (data?.user) {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single()
-
-        if (prof?.must_change_password) {
-          router.push('/reset-password')
-        } else {
-          const role = prof?.role
-          const path = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
-          router.push(path)
-          router.refresh()
+        if (error) {
+          console.error('Supabase Auth Error:', error)
+          let errorText = error.message
+          if (!errorText || errorText === '{}' || (typeof error === 'object' && Object.keys(error).length === 0)) {
+            errorText = 'Invalid username or password. Please verify your credentials and database connection.'
+          }
+          setMessage({ type: 'error', text: errorText })
+          setLoading(false)
+          return
         }
-      } else {
-        setMessage({ type: 'error', text: 'Authentication failed.' })
+
+        if (data?.user) {
+          const { data: prof, error: dbErr } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single()
+
+          if (dbErr) {
+            console.error('Database Profile Read Error:', dbErr)
+            setMessage({ type: 'error', text: `Authentication succeeded, but failed to load user profile: ${dbErr.message}` })
+            setLoading(false)
+            return
+          }
+
+          if (prof?.must_change_password) {
+            router.push('/reset-password')
+          } else {
+            const role = prof?.role
+            const path = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
+            router.push(path)
+            router.refresh()
+          }
+        } else {
+          setMessage({ type: 'error', text: 'Authentication failed. No user session returned.' })
+          setLoading(false)
+        }
+      } catch (err: any) {
+        console.error('Login Exception:', err)
+        setMessage({ type: 'error', text: err.message || String(err) || 'An unexpected error occurred during login.' })
         setLoading(false)
       }
     }
