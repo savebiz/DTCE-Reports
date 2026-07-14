@@ -113,7 +113,8 @@ end;
 $$ language plpgsql security definer;
 
 -- Trigger execution
-create or replace trigger on_auth_user_created
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
 
@@ -126,7 +127,8 @@ begin
 end;
 $$ language plpgsql;
 
-create or replace trigger on_daily_report_updated
+drop trigger if exists on_daily_report_updated on public.daily_reports;
+create trigger on_daily_report_updated
   before update on public.daily_reports
   for each row execute procedure public.handle_update_timestamp();
 
@@ -141,36 +143,54 @@ alter table public.department_narratives enable row level security;
 alter table public.report_versions enable row level security;
 
 -- Public read access policies for events, event_days, departments
+drop policy if exists "Allow public read access to events" on public.events;
 create policy "Allow public read access to events" on public.events for select using (true);
+
+drop policy if exists "Allow public read access to event_days" on public.event_days;
 create policy "Allow public read access to event_days" on public.event_days for select using (true);
+
+drop policy if exists "Allow public read access to departments" on public.departments;
 create policy "Allow public read access to departments" on public.departments for select using (true);
 
 -- Profiles policies
+drop policy if exists "Allow users to read all profiles" on public.profiles;
 create policy "Allow users to read all profiles" on public.profiles for select using (true);
+
+drop policy if exists "Allow users to update their own profile" on public.profiles;
 create policy "Allow users to update their own profile" on public.profiles for update using (auth.uid() = id);
 
 -- Assignments policies
+drop policy if exists "Allow public read access to assignments" on public.hod_assignments;
 create policy "Allow public read access to assignments" on public.hod_assignments for select using (true);
+
+drop policy if exists "Allow admins to manage assignments" on public.hod_assignments;
 create policy "Allow admins to manage assignments" on public.hod_assignments for all using (
   exists (select 1 from public.profiles where id = auth.uid() and role in ('super_admin', 'coordinator'))
 );
 
 -- Daily Reports policies
+drop policy if exists "Allow admins/coordinators to view all reports" on public.daily_reports;
 create policy "Allow admins/coordinators to view all reports" on public.daily_reports for select using (
   exists (select 1 from public.profiles where id = auth.uid() and role in ('super_admin', 'coordinator'))
 );
+
+drop policy if exists "Allow HODs/assistants to view their assigned department reports" on public.daily_reports;
 create policy "Allow HODs/assistants to view their assigned department reports" on public.daily_reports for select using (
   exists (
     select 1 from public.hod_assignments
     where profile_id = auth.uid() and department_id = daily_reports.department_id and event_id = daily_reports.event_id
   )
 );
+
+drop policy if exists "Allow assigned HODs/assistants to insert reports" on public.daily_reports;
 create policy "Allow assigned HODs/assistants to insert reports" on public.daily_reports for insert with check (
   exists (
     select 1 from public.hod_assignments
     where profile_id = auth.uid() and department_id = daily_reports.department_id and event_id = daily_reports.event_id
   )
 );
+
+drop policy if exists "Allow assigned HODs/assistants to update their draft reports" on public.daily_reports;
 create policy "Allow assigned HODs/assistants to update their draft reports" on public.daily_reports for update using (
   exists (
     select 1 from public.hod_assignments
@@ -180,9 +200,12 @@ create policy "Allow assigned HODs/assistants to update their draft reports" on 
 );
 
 -- Department Narratives policies
+drop policy if exists "Allow read access based on report access" on public.department_narratives;
 create policy "Allow read access based on report access" on public.department_narratives for select using (
   exists (select 1 from public.daily_reports where id = daily_report_id)
 );
+
+drop policy if exists "Allow narrative modification based on report write access" on public.department_narratives;
 create policy "Allow narrative modification based on report write access" on public.department_narratives for all using (
   exists (
     select 1 from public.daily_reports
@@ -197,9 +220,12 @@ create policy "Allow narrative modification based on report write access" on pub
 );
 
 -- Report Versions policies
+drop policy if exists "Allow view access to report versions based on report access" on public.report_versions;
 create policy "Allow view access to report versions based on report access" on public.report_versions for select using (
   exists (select 1 from public.daily_reports where id = daily_report_id)
 );
+
+drop policy if exists "Allow insert version based on report write access" on public.report_versions;
 create policy "Allow insert version based on report write access" on public.report_versions for insert with check (
   exists (
     select 1 from public.daily_reports
