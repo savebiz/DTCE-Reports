@@ -357,13 +357,22 @@ export default function MyDepartmentDashboard() {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {!isFormOpen ? (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-                {department?.name || 'Department'} Reporting Checklist
-              </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Days of the DTCE 2026 Event. Please fill out reporting metrics daily.
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                  {department?.name || 'Department'} Reporting Checklist
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Days of the DTCE 2026 Event. Please fill out reporting metrics daily.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 shrink-0 font-semibold h-10"
+                onClick={() => router.push('/my-department/narrative')}
+              >
+                📝 End-of-Event Narrative
+              </Button>
             </div>
 
             {/* Stark checklist row - Linear Style */}

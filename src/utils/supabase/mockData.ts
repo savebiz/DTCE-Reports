@@ -46,12 +46,20 @@ export interface DailyReport {
 
 export interface DepartmentNarrative {
   id: string
-  daily_report_id: string
-  key_achievements: string
-  challenges: string
-  solutions: string
-  plans_for_tomorrow: string
-  feedback: string
+  daily_report_id?: string
+  event_id?: string
+  department_id?: string
+  is_end_of_event?: boolean
+  status?: 'draft' | 'submitted' | 'reviewed' | 'approved'
+  overview?: string
+  highlights?: string
+  challenges_json?: Array<{ id: string, text: string }>
+  recommendations_json?: Array<{ text: string, linked_challenge_id?: string }>
+  key_achievements?: string
+  challenges?: string
+  solutions?: string
+  plans_for_tomorrow?: string
+  feedback?: string
 }
 
 export interface ReportVersion {
@@ -310,5 +318,37 @@ export const mockDepartmentNarratives: DepartmentNarrative[] = [
     solutions: 'Used offline spreadsheets and logged details locally.',
     plans_for_tomorrow: 'Secure a secondary cellular router.',
     feedback: 'System runs very fast offline.'
+  },
+  {
+    id: 'eoe-narrative-med',
+    event_id: 'event-1',
+    department_id: 'dept-10',
+    is_end_of_event: true,
+    status: 'submitted',
+    overview: 'The Medical Department was fully active throughout the convention, running consultations and administering first aid treatment.',
+    highlights: 'Successfully handled 170+ patient cases with zero referrals or casualties. Setup double consulting tables to reduce wait times during peak intervals.',
+    challenges_json: [
+      { "id": "med-c1", "text": "Insufficient stock of basic analgesics (paracetamol) on Day 2" },
+      { "id": "med-c2", "text": "Poor lighting at the triage deck during evening sessions" }
+    ],
+    recommendations_json: [
+      { "text": "Increase procurement quantities of pediatric and adult analgesics by 50%", "linked_challenge_id": "med-c1" },
+      { "text": "Provide high-intensity rechargeable LED lamps for evening shift desk lighting", "linked_challenge_id": "med-c2" }
+    ]
+  },
+  {
+    id: 'eoe-narrative-reg',
+    event_id: 'event-1',
+    department_id: 'dept-21',
+    is_end_of_event: true,
+    status: 'approved',
+    overview: 'The Registration Department completed the checking and physical tag printing for all delegates.',
+    highlights: 'Over 850 delegates successfully registered. Live online dashboard database synced with local offline cache without packet loss.',
+    challenges_json: [
+      { "id": "reg-c1", "text": "Cramped layout of the main lobby registration tables" }
+    ],
+    recommendations_json: [
+      { "text": "Move tag printing machines to a separate backroom; keep front desk only for collection", "linked_challenge_id": "reg-c1" }
+    ]
   }
 ]

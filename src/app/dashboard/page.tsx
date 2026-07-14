@@ -250,18 +250,27 @@ export default function SecretariatDashboard() {
               </p>
             </div>
             
-            <div className="flex items-center space-x-2">
-              <Label htmlFor="kpi-day-select" className="text-sm font-semibold shrink-0">Focus Day KPI:</Label>
-              <select
-                id="kpi-day-select"
-                value={selectedKPIDay}
-                onChange={(e) => setSelectedKPIDay(e.target.value)}
-                className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="kpi-day-select" className="text-sm font-semibold shrink-0">Focus Day KPI:</Label>
+                <select
+                  id="kpi-day-select"
+                  value={selectedKPIDay}
+                  onChange={(e) => setSelectedKPIDay(e.target.value)}
+                  className="h-9 rounded-md border border-slate-200 bg-white px-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                >
+                  {eventDays.map(d => (
+                    <option key={d.id} value={d.id}>Day {d.day_number} ({new Date(d.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})})</option>
+                  ))}
+                </select>
+              </div>
+              <Button
+                variant="outline"
+                className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 shrink-0 font-semibold h-9"
+                onClick={() => router.push('/dashboard/reports')}
               >
-                {eventDays.map(d => (
-                  <option key={d.id} value={d.id}>Day {d.day_number} ({new Date(d.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})})</option>
-                ))}
-              </select>
+                📄 Preview & Export Report
+              </Button>
             </div>
           </div>
 

@@ -68,12 +68,20 @@ create table if not exists public.daily_reports (
 -- 7. Department Narratives Table
 create table if not exists public.department_narratives (
   id uuid primary key default gen_random_uuid(),
-  daily_report_id uuid references public.daily_reports(id) on delete cascade not null unique,
-  key_achievements text,
-  challenges text,
-  solutions text,
-  plans_for_tomorrow text,
-  feedback text,
+  daily_report_id uuid references public.daily_reports(id) on delete cascade unique, -- optional for end-of-event reports
+  event_id uuid references public.events(id) on delete cascade,
+  department_id uuid references public.departments(id) on delete cascade,
+  is_end_of_event boolean default false not null,
+  status text default 'draft'::text not null check (status in ('draft', 'submitted', 'reviewed', 'approved')),
+  overview text,
+  highlights text,
+  challenges_json jsonb default '[]'::jsonb not null,
+  recommendations_json jsonb default '[]'::jsonb not null,
+  key_achievements text, -- for daily reports backward compatibility
+  challenges text, -- for daily reports backward compatibility
+  solutions text, -- for daily reports backward compatibility
+  plans_for_tomorrow text, -- for daily reports backward compatibility
+  feedback text, -- for daily reports backward compatibility
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
