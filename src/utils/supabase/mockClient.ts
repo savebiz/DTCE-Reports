@@ -94,6 +94,13 @@ class MockSupabaseStore {
   set auditLogs(val: AuditLog[]) {
     setStorageItem('dtce_mock_audit_logs', val)
   }
+
+  get assignments(): any[] {
+    return getStorageItem('dtce_mock_assignments', [])
+  }
+  set assignments(val: any[]) {
+    setStorageItem('dtce_mock_assignments', val)
+  }
 }
 
 export const store = new MockSupabaseStore()
@@ -150,6 +157,8 @@ class MockQueryBuilder {
       data = [...store.auditLogs]
     } else if (this.table === 'notification_logs') {
       data = [...store.notificationLogs]
+    } else if (this.table === 'hod_assignments') {
+      data = [...store.assignments]
     }
 
     // Apply filters
@@ -259,6 +268,83 @@ class MockInsertBuilder {
   }
 }
 
+// Thenable Mock Upsert Builder
+class MockUpsertBuilder {
+  private table: string
+  private data: any
+
+  constructor(table: string, data: any) {
+    this.table = table
+    this.data = data
+  }
+
+  async execute() {
+    let result: any = null
+    const row = Array.isArray(this.data) ? this.data[0] : this.data
+    
+    if (this.table === 'profiles') {
+      const idx = store.profiles.findIndex(p => p.id === row.id)
+      if (idx !== -1) {
+        store.profiles[idx] = { ...store.profiles[idx], ...row }
+        result = store.profiles[idx]
+      } else {
+        result = {
+          id: row.id || 'user-' + Math.random().toString(36).substr(2, 9),
+          email: row.email || '',
+          full_name: row.full_name || '',
+          role: row.role || 'assistant',
+          is_active: true,
+          ...row
+        }
+        store.profiles.push(result)
+      }
+    } else if (this.table === 'daily_reports') {
+      const idx = store.dailyReports.findIndex(r => r.id === row.id || (r.event_day_id === row.event_day_id && r.department_id === row.department_id))
+      if (idx !== -1) {
+        store.dailyReports[idx] = { ...store.dailyReports[idx], ...row }
+        result = store.dailyReports[idx]
+      } else {
+        result = {
+          id: row.id || 'report-' + Math.random().toString(36).substr(2, 9),
+          status: 'draft',
+          ...row
+        }
+        store.dailyReports.push(result)
+      }
+    } else if (this.table === 'department_narratives') {
+      const idx = store.narratives.findIndex(n => n.id === row.id || (row.daily_report_id && n.daily_report_id === row.daily_report_id) || (row.is_end_of_event && n.department_id === row.department_id && n.is_end_of_event === true))
+      if (idx !== -1) {
+        store.narratives[idx] = { ...store.narratives[idx], ...row }
+        result = store.narratives[idx]
+      } else {
+        result = {
+          id: row.id || 'narrative-' + Math.random().toString(36).substr(2, 9),
+          ...row
+        }
+        store.narratives.push(result)
+      }
+    } else if (this.table === 'hod_assignments') {
+      result = {
+        id: row.id || 'assign-' + Math.random().toString(36).substr(2, 9),
+        ...row
+      }
+      if (!store.assignments) {
+        store.assignments = []
+      }
+      const idx = store.assignments.findIndex((a: any) => a.event_id === row.event_id && a.profile_id === row.profile_id && a.department_id === row.department_id)
+      if (idx === -1) {
+        store.assignments.push(result)
+      }
+    }
+
+    return { data: result ? [result] : [], error: null }
+  }
+
+  then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
+    return this.execute().then(onfulfilled, onrejected)
+  }
+}
+
 // Thenable Mock Update Builder
 class MockUpdateBuilder {
   private table: string
@@ -323,6 +409,27 @@ export const mockSupabaseClient = {
       return { data: { user: { id: profile.id, email } }, error: null }
     },
 
+    async signInWithPassword({ email, password }: { email: string; password?: string }) {
+      const profile = store.profiles.find(p => 
+        p.username?.toLowerCase() === email.toLowerCase() ||
+        p.email.toLowerCase() === email.toLowerCase()
+      )
+      if (!profile) {
+        return { data: { user: null }, error: new Error('User account not found') }
+      }
+      store.currentUser = profile
+      return {
+        data: {
+          user: {
+            id: profile.id,
+            email: profile.email,
+            user_metadata: { role: profile.role, full_name: profile.full_name }
+          }
+        },
+        error: null
+      }
+    },
+
     async signInWithMockUser(email: string) {
       const profile = store.profiles.find(p => p.email.toLowerCase() === email.toLowerCase())
       if (!profile) {
@@ -369,6 +476,10 @@ export const mockSupabaseClient = {
 
       update(data: any) {
         return new MockUpdateBuilder(table, data)
+      },
+
+      upsert(data: any) {
+        return new MockUpsertBuilder(table, data)
       }
     }
   }

@@ -194,19 +194,18 @@ export default function SecretariatDashboard() {
   // Cell status colors
   const getCellStatusClass = (deptId: string, dayId: string) => {
     const report = reports.find(r => r.department_id === deptId && r.event_day_id === dayId)
-    if (!report) return 'bg-slate-100 hover:bg-slate-200 text-slate-400 dark:bg-slate-900/50 dark:hover:bg-slate-900 dark:text-slate-500' // missing
+    if (!report) return 'bg-flag-amber text-white font-bold text-center' // missing
     
     switch (report.status) {
       case 'draft':
-        return 'bg-yellow-100 hover:bg-yellow-200 text-yellow-800 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30 dark:text-yellow-400'
+        return 'bg-hairline text-charcoal font-semibold text-center hover:bg-slate-200'
       case 'submitted':
-        return 'bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-950/20 dark:hover:bg-blue-950/30 dark:text-blue-400'
+        return 'bg-convention-gold text-white font-bold text-center hover:opacity-90'
       case 'reviewed':
-        return 'bg-purple-100 hover:bg-purple-200 text-purple-800 dark:bg-purple-950/20 dark:hover:bg-purple-950/30 dark:text-purple-400'
       case 'approved':
-        return 'bg-green-100 hover:bg-green-200 text-green-800 dark:bg-green-950/20 dark:hover:bg-green-950/30 dark:text-green-400'
+        return 'bg-ledger-green text-white font-bold text-center hover:opacity-90'
       default:
-        return 'bg-slate-100 text-slate-400'
+        return 'bg-hairline text-charcoal text-center'
     }
   }
 
@@ -233,19 +232,19 @@ export default function SecretariatDashboard() {
   const kpis = getKPICounts()
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-paper text-charcoal font-sans">
       <DashboardHeader />
 
       <main className="container mx-auto px-6 py-8">
         <div className="flex flex-col space-y-6">
           
           {/* Header & KPI Day Focus Selector */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 border-b border-hairline pb-4">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+              <h2 className="text-2xl font-display font-semibold text-ink-navy">
                 Secretariat Reporting Overview
               </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-slate-500">
                 Check reporting status across all 40 departments in real-time.
               </p>
             </div>

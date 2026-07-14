@@ -16,8 +16,11 @@ export async function updateSession(request: NextRequest) {
   if (!hasSupabaseEnv) {
     const mockToken = request.cookies.get('sb-mock-token')?.value
     if (mockToken) {
-      const profile = mockProfiles.find((p) => p.id === mockToken)
-      if (profile) {
+      // Safely access store to track newly provisioned mock accounts
+      const { store } = require('./mockClient')
+      const profile = store.profiles.find((p: any) => p.id === mockToken) || mockProfiles.find((p) => p.id === mockToken)
+      
+      if (profile && profile.is_active !== false) {
         const user = {
           id: profile.id,
           email: profile.email,
@@ -26,10 +29,10 @@ export async function updateSession(request: NextRequest) {
             full_name: profile.full_name,
           },
         }
-        return { supabaseResponse, user, role: profile.role }
+        return { supabaseResponse, user, role: profile.role, mustChangePassword: !!profile.must_change_password }
       }
     }
-    return { supabaseResponse, user: null, role: null }
+    return { supabaseResponse, user: null, role: null, mustChangePassword: false }
   }
 
   const supabase = createServerClient(
@@ -56,20 +59,26 @@ export async function updateSession(request: NextRequest) {
   // Refresh session if expired
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Get user profile role if logged in
+  // Get user profile role and status if logged in
   let role = null
+  let mustChangePassword = false
+
   if (user) {
-    role = user.user_metadata?.role
-    if (!role) {
-      // Fallback: Query the profiles table if not in metadata
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-      role = profile?.role || 'assistant'
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, must_change_password, is_active')
+      .eq('id', user.id)
+      .single()
+
+    // Enforce deactivation checks
+    if (profile && profile.is_active === false) {
+      // Clear cookies by returning null session
+      return { supabaseResponse, user: null, role: null, mustChangePassword: false }
     }
+
+    role = profile?.role || user.user_metadata?.role || 'assistant'
+    mustChangePassword = !!profile?.must_change_password
   }
 
-  return { supabaseResponse, user, role }
+  return { supabaseResponse, user, role, mustChangePassword }
 }

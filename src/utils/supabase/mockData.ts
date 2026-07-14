@@ -28,6 +28,10 @@ export interface Profile {
   full_name: string
   role: 'super_admin' | 'coordinator' | 'hod' | 'assistant'
   department_id?: string
+  username?: string
+  must_change_password?: boolean
+  created_by?: string
+  is_active?: boolean
 }
 
 export interface DailyReport {
@@ -276,13 +280,13 @@ export const mockEventDays: EventDay[] = [
 ]
 
 export const mockProfiles: Profile[] = [
-  { id: 'user-admin', email: 'admin@dtce.org', full_name: 'Admin Chief', role: 'super_admin' },
-  { id: 'user-coord', email: 'coordinator@dtce.org', full_name: 'Coordinator Jane', role: 'coordinator' },
-  { id: 'user-hod-med', email: 'hod@dtce.org', full_name: 'Dr. Smith (HOD)', role: 'hod', department_id: 'dept-10' },
-  { id: 'user-asst-med', email: 'assistant@dtce.org', full_name: 'Nurse Kelly (Asst)', role: 'assistant', department_id: 'dept-10' },
-  { id: 'user-hod-reg', email: 'reg_hod@dtce.org', full_name: 'Elder Robert (Registration)', role: 'hod', department_id: 'dept-21' },
-  { id: 'user-hod-ush', email: 'ush_hod@dtce.org', full_name: 'Deacon John (Ushering)', role: 'hod', department_id: 'dept-33' },
-  { id: 'user-hod-wel', email: 'wel_hod@dtce.org', full_name: 'Sister Mary (Welfare)', role: 'hod', department_id: 'dept-34' }
+  { id: 'user-admin', email: 'admin@dtce.org', username: 'admin.secretariat', full_name: 'Admin Chief', role: 'super_admin', must_change_password: false, is_active: true },
+  { id: 'user-coord', email: 'coordinator@dtce.org', username: 'jane.coordinator', full_name: 'Coordinator Jane', role: 'coordinator', must_change_password: false, is_active: true },
+  { id: 'user-hod-med', email: 'hod@dtce.org', username: 'smith.medical', full_name: 'Dr. Smith (HOD)', role: 'hod', department_id: 'dept-10', must_change_password: false, is_active: true },
+  { id: 'user-asst-med', email: 'assistant@dtce.org', username: 'kelly.medical', full_name: 'Nurse Kelly (Asst)', role: 'assistant', department_id: 'dept-10', must_change_password: false, is_active: true },
+  { id: 'user-hod-reg', email: 'reg_hod@dtce.org', username: 'robert.registration', full_name: 'Elder Robert (Registration)', role: 'hod', department_id: 'dept-21', must_change_password: false, is_active: true },
+  { id: 'user-hod-ush', email: 'ush_hod@dtce.org', username: 'john.ushering', full_name: 'Deacon John (Ushering)', role: 'hod', department_id: 'dept-33', must_change_password: false, is_active: true },
+  { id: 'user-hod-wel', email: 'wel_hod@dtce.org', username: 'mary.welfare', full_name: 'Sister Mary (Welfare)', role: 'hod', department_id: 'dept-34', must_change_password: false, is_active: true }
 ]
 
 export const mockDailyReports: DailyReport[] = [

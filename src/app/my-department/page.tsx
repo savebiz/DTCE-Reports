@@ -285,7 +285,7 @@ export default function MyDepartmentDashboard() {
     const report = reports.find(r => r.event_day_id === dayId)
     if (!report) {
       return (
-        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500">
+        <span className="inline-flex items-center rounded-full bg-flag-amber text-white px-2.5 py-0.5 text-xs font-bold font-sans">
           Missing
         </span>
       )
@@ -294,19 +294,20 @@ export default function MyDepartmentDashboard() {
     switch (report.status) {
       case 'draft':
         return (
-          <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-semibold text-yellow-700">
+          <span className="inline-flex items-center rounded-full bg-hairline text-charcoal px-2.5 py-0.5 text-xs font-bold font-sans">
             Draft
           </span>
         )
       case 'submitted':
         return (
-          <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+          <span className="inline-flex items-center rounded-full bg-convention-gold text-white px-2.5 py-0.5 text-xs font-bold font-sans">
             Submitted
           </span>
         )
+      case 'reviewed':
       case 'approved':
         return (
-          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700">
+          <span className="inline-flex items-center rounded-full bg-ledger-green text-white px-2.5 py-0.5 text-xs font-bold font-sans">
             Approved
           </span>
         )
@@ -354,36 +355,45 @@ export default function MyDepartmentDashboard() {
         )}
       </div>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-4xl font-sans text-charcoal">
         {!isFormOpen ? (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-hairline pb-4">
               <div>
-                <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                <h2 className="text-2xl font-display font-semibold text-ink-navy">
                   {department?.name || 'Department'} Reporting Checklist
                 </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Days of the DTCE 2026 Event. Please fill out reporting metrics daily.
+                <p className="text-xs text-slate-500">
+                  Active convention days. Please fill out reporting metrics daily.
                 </p>
               </div>
-              <Button
-                variant="outline"
-                className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 shrink-0 font-semibold h-10"
-                onClick={() => router.push('/my-department/narrative')}
-              >
-                📝 End-of-Event Narrative
-              </Button>
+              <div className="flex space-x-2">
+                <Button
+                  variant="outline"
+                  className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 shrink-0 font-semibold h-9 text-xs"
+                  onClick={() => router.push('/my-department/team')}
+                >
+                  👥 Manage Team
+                </Button>
+                <Button
+                  variant="outline"
+                  className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 shrink-0 font-semibold h-9 text-xs"
+                  onClick={() => router.push('/my-department/narrative')}
+                >
+                  📝 End-of-Event Narrative
+                </Button>
+              </div>
             </div>
 
             {/* Stark checklist row - Linear Style */}
-            <div className="border border-slate-200 dark:border-slate-800 rounded-lg divide-y divide-slate-200 dark:divide-slate-800 bg-white dark:bg-slate-950 shadow-sm">
+            <div className="border border-hairline rounded divide-y divide-hairline bg-white shadow-sm">
               {eventDays.map((day) => (
-                <div key={day.id} className="flex items-center justify-between p-4 hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
+                <div key={day.id} className="flex items-center justify-between p-4 hover:bg-slate-50/20 transition-colors">
                   <div className="flex items-center space-x-4">
-                    <span className="font-mono text-sm font-semibold text-slate-400">
+                    <span className="font-mono text-xs font-bold text-slate-400">
                       Day {day.day_number}
                     </span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">
+                    <span className="font-semibold text-slate-800 font-sans">
                       {new Date(day.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
                     </span>
                   </div>
@@ -394,6 +404,11 @@ export default function MyDepartmentDashboard() {
                       variant={getButtonText(day.id) === "Enter today's data" ? 'default' : 'outline'}
                       size="sm"
                       onClick={() => openEntryForm(day)}
+                      className={
+                        getButtonText(day.id) === "Enter today's data"
+                          ? 'bg-ink-navy hover:bg-ink-navy/95 text-white font-semibold text-xs h-8'
+                          : 'border-hairline text-slate-700 font-semibold text-xs h-8'
+                      }
                     >
                       {getButtonText(day.id)}
                     </Button>
@@ -404,20 +419,20 @@ export default function MyDepartmentDashboard() {
           </div>
         ) : (
           /* Multi-step Mobile/Desktop Form Wizard (Enketo/Kobo Style) */
-          <Card className="shadow-2xl border-slate-200 dark:border-slate-800">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 border-b border-slate-100 dark:border-slate-800">
+          <Card className="shadow-lg border-hairline bg-white">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 border-b border-hairline bg-slate-50/50">
               <div>
-                <CardTitle className="text-xl">
+                <CardTitle className="text-lg font-display font-semibold text-ink-navy">
                   {department?.name} Report — Day {activeDay?.day_number}
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs text-slate-500">
                   {new Date(activeDay?.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
                 </CardDescription>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 text-xs font-semibold"
                 onClick={() => setIsFormOpen(false)}
               >
                 ✕ Close
@@ -426,14 +441,14 @@ export default function MyDepartmentDashboard() {
 
             <CardContent className="pt-6 min-h-[300px]">
               {/* Progress Indicator */}
-              <div className="flex items-center space-x-2 pb-6 border-b border-slate-100 dark:border-slate-800 mb-6 text-xs text-slate-400 font-semibold font-mono">
-                <span className={formStep === 1 ? 'text-primary font-bold underline' : ''}>1. Attendance</span>
+              <div className="flex items-center space-x-2 pb-6 border-b border-hairline mb-6 text-xs text-slate-500 font-semibold font-mono">
+                <span className={formStep === 1 ? 'text-convention-gold font-bold underline' : ''}>1. Attendance</span>
                 <span>➔</span>
-                <span className={formStep === 2 ? 'text-primary font-bold underline' : ''}>2. Metrics</span>
+                <span className={formStep === 2 ? 'text-convention-gold font-bold underline' : ''}>2. Metrics</span>
                 <span>➔</span>
-                <span className={formStep === 3 ? 'text-primary font-bold underline' : ''}>3. Narrative</span>
+                <span className={formStep === 3 ? 'text-convention-gold font-bold underline' : ''}>3. Narrative</span>
                 <span>➔</span>
-                <span className={formStep === 4 ? 'text-primary font-bold underline' : ''}>4. Review</span>
+                <span className={formStep === 4 ? 'text-convention-gold font-bold underline' : ''}>4. Review</span>
               </div>
 
               {/* Step 1: Attendance */}
@@ -622,9 +637,9 @@ export default function MyDepartmentDashboard() {
               )}
             </CardContent>
 
-            <CardFooter className="flex justify-between border-t border-slate-100 dark:border-slate-800 pt-6">
+            <CardFooter className="flex justify-between border-t border-hairline pt-6">
               {formStep > 1 ? (
-                <Button variant="outline" onClick={() => setFormStep(prev => prev - 1)} disabled={loading}>
+                <Button variant="outline" onClick={() => setFormStep(prev => prev - 1)} disabled={loading} className="border-hairline text-slate-700 font-semibold h-9 text-xs">
                   Previous
                 </Button>
               ) : (
@@ -632,17 +647,17 @@ export default function MyDepartmentDashboard() {
               )}
 
               {formStep < 4 ? (
-                <Button onClick={() => setFormStep(prev => prev + 1)}>
+                <Button onClick={() => setFormStep(prev => prev + 1)} className="bg-ink-navy hover:bg-ink-navy/95 text-white font-semibold h-9 text-xs">
                   Next Step
                 </Button>
               ) : (
                 reports.find(r => r.event_day_id === activeDay?.id)?.status !== 'submitted' &&
                 reports.find(r => r.event_day_id === activeDay?.id)?.status !== 'approved' ? (
-                  <Button onClick={handleSubmitReport} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white">
+                  <Button onClick={handleSubmitReport} disabled={loading} className="bg-convention-gold hover:bg-convention-gold/95 text-ink-navy font-bold h-9 text-xs">
                     {loading ? 'Submitting...' : 'Submit Report'}
                   </Button>
                 ) : (
-                  <Button variant="outline" onClick={() => setIsFormOpen(false)}>
+                  <Button variant="outline" onClick={() => setIsFormOpen(false)} className="border-hairline text-slate-700 font-semibold h-9 text-xs">
                     Close View
                   </Button>
                 )

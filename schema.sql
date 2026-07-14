@@ -36,6 +36,10 @@ create table if not exists public.profiles (
   email text not null unique,
   full_name text,
   role text not null check (role in ('super_admin', 'coordinator', 'hod', 'assistant')),
+  username text unique,
+  must_change_password boolean default true not null,
+  created_by uuid references public.profiles(id) on delete set null,
+  is_active boolean default true not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -101,12 +105,14 @@ create table if not exists public.report_versions (
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, email, full_name, role)
+  insert into public.profiles (id, email, full_name, role, username, must_change_password)
   values (
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
-    coalesce(new.raw_user_meta_data->>'role', 'assistant')
+    coalesce(new.raw_user_meta_data->>'role', 'assistant'),
+    coalesce(new.raw_user_meta_data->>'username', substring(new.email from '^[^@]+')),
+    coalesce((new.raw_user_meta_data->>'must_change_password')::boolean, true)
   );
   return new;
 end;
