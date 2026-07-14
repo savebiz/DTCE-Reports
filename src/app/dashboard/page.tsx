@@ -269,7 +269,14 @@ export default function SecretariatDashboard() {
                 className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 shrink-0 font-semibold h-9"
                 onClick={() => router.push('/dashboard/reports')}
               >
-                📄 Preview & Export Report
+                📄 Preview & Export
+              </Button>
+              <Button
+                variant="outline"
+                className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 shrink-0 font-semibold h-9"
+                onClick={() => router.push('/dashboard/yoy')}
+              >
+                📊 YoY Analytics
               </Button>
             </div>
           </div>

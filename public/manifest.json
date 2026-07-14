@@ -1,0 +1,24 @@
+{
+  "name": "DTCE Reporting System",
+  "short_name": "DTCE Reports",
+  "description": "Progressive Web App for DTCE Convention Daily Reporting and Collation",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1B3A6B",
+  "theme_color": "#1B3A6B",
+  "icons": [
+    {
+      "src": "/dtce-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/dtce-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -203,6 +203,57 @@ export const mockDepartments: Department[] = [
   { id: 'dept-41', name: 'National Competitions Committee' }
 ]
 
+// Dynamically assign schemas to all departments
+mockDepartments.forEach(dept => {
+  if (dept.id === 'dept-9') { // ICT
+    dept.default_metrics_schema = {
+      fields: [
+        {
+          name: 'ict_logs',
+          label: 'ICT Sub-unit Submissions',
+          type: 'repeat-group',
+          schema: [
+            { name: 'subunit', label: 'Sub-unit', type: 'select', options: ['CBS', 'Technical', 'Research & Help Desk', 'Cybersecurity'] },
+            { name: 'issues_resolved', label: 'Issues Resolved', type: 'number' },
+            { name: 'outstanding_tickets', label: 'Outstanding Tickets', type: 'number' },
+            { name: 'downtime_minutes', label: 'Downtime (min)', type: 'number' }
+          ]
+        }
+      ]
+    }
+  } else if (dept.id === 'dept-28' || dept.id === 'dept-41') { // Sports & NCC
+    dept.default_metrics_schema = {
+      fields: [
+        {
+          name: 'competition_results',
+          label: 'Competition Results',
+          type: 'repeat-group',
+          schema: [
+            { name: 'category', label: 'Category', type: 'select', options: ['Football', 'Athletics', 'Bible Quiz', 'Spelling Bee', 'Chess'] },
+            { name: 'subcategory', label: 'Sub-category', type: 'text' },
+            { name: 'region_or_zone', label: 'Province / Region / Zone', type: 'text' },
+            { name: 'position', label: 'Position achieved', type: 'number' }
+          ]
+        }
+      ]
+    }
+  } else if (!dept.default_metrics_schema) { // Generic Fallback
+    dept.default_metrics_schema = {
+      fields: [
+        {
+          name: 'generic_metrics',
+          label: 'Department Metrics Log',
+          type: 'repeat-group',
+          schema: [
+            { name: 'key_metric_label', label: 'Metric Description', type: 'text' },
+            { name: 'value', label: 'Value / Count', type: 'number' }
+          ]
+        }
+      ]
+    }
+  }
+})
+
 export const mockEvents: Event[] = [
   {
     id: 'event-1',

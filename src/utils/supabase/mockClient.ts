@@ -81,6 +81,13 @@ class MockSupabaseStore {
     setStorageItem('dtce_mock_report_versions', val)
   }
 
+  get notificationLogs(): any[] {
+    return getStorageItem('dtce_mock_notification_logs', [])
+  }
+  set notificationLogs(val: any[]) {
+    setStorageItem('dtce_mock_notification_logs', val)
+  }
+
   get auditLogs(): AuditLog[] {
     return getStorageItem('dtce_mock_audit_logs', [])
   }
@@ -141,6 +148,8 @@ class MockQueryBuilder {
       data = [...store.narratives]
     } else if (this.table === 'audit_logs') {
       data = [...store.auditLogs]
+    } else if (this.table === 'notification_logs') {
+      data = [...store.notificationLogs]
     }
 
     // Apply filters

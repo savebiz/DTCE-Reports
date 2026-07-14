@@ -25,6 +25,12 @@ export default function ReportsExportPage() {
   const [exportLabel, setExportLabel] = useState('First Draft')
   const [exporting, setExporting] = useState(false)
 
+  // Notifications controls
+  const [digestDay, setDigestDay] = useState('1')
+  const [digestCutoff, setDigestCutoff] = useState('18:00')
+  const [notifLogs, setNotifLogs] = useState<any[]>([])
+  const [sendingDigest, setSendingDigest] = useState(false)
+
   const loadData = async () => {
     const supabase = getClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -58,6 +64,32 @@ export default function ReportsExportPage() {
 
       const { data: narrs } = await supabase.from('department_narratives').select('*')
       setNarratives(narrs || [])
+
+      const { data: logs } = await supabase.from('notification_logs').select('*')
+      setNotifLogs(logs || [])
+    }
+  }
+
+  const handleTriggerDigest = async () => {
+    setSendingDigest(true)
+    try {
+      const res = await fetch(`/api/send-digest?day=${digestDay}&cutoff=${encodeURIComponent(digestCutoff)}`, {
+        method: 'POST'
+      })
+      const data = await res.json()
+      if (data.success) {
+        alert(`Successfully triggered daily digest reminders! Sent ${data.notifications_sent} emails in ${data.delivery_mode} mode.`)
+        // Refresh logs list
+        const supabase = getClient()
+        const { data: logs } = await supabase.from('notification_logs').select('*')
+        setNotifLogs(logs || [])
+      } else {
+        alert(`Error triggering digest: ${data.error}`)
+      }
+    } catch (err: any) {
+      alert(`Digest failed: ${err.message}`)
+    } finally {
+      setSendingDigest(false)
     }
   }
 
@@ -115,9 +147,9 @@ export default function ReportsExportPage() {
 
       <main className="max-w-7xl mx-auto px-8 py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
         
-        {/* Left Side: Export Settings (1 col) */}
+        {/* Left Side: Export Settings & Notifications (1 col) */}
         <div className="lg:col-span-1 space-y-6">
-          <Card className="border-slate-200 dark:border-slate-800 shadow-sm sticky top-6">
+          <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">
                 Export Settings
@@ -153,6 +185,75 @@ export default function ReportsExportPage() {
                 {exporting ? 'Generating...' : '📥 Export Branded DOCX'}
               </Button>
             </CardFooter>
+          </Card>
+
+          <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">
+                🔔 Daily Reminders
+              </CardTitle>
+              <CardDescription>
+                Send reminders to HODs and collation logs to Secretariat.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="digest-day" className="text-xs font-semibold">Target Day</Label>
+                <select
+                  id="digest-day"
+                  value={digestDay}
+                  onChange={(e) => setDigestDay(e.target.value)}
+                  className="w-full h-9 rounded-md border border-slate-200 bg-white px-3 text-xs dark:border-slate-800 dark:bg-slate-950"
+                >
+                  <option value="1">Day 1</option>
+                  <option value="2">Day 2</option>
+                  <option value="3">Day 3</option>
+                  <option value="4">Day 4</option>
+                  <option value="5">Day 5</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="digest-cutoff" className="text-xs font-semibold">Cutoff Time</Label>
+                <Input
+                  id="digest-cutoff"
+                  value={digestCutoff}
+                  onChange={(e) => setDigestCutoff(e.target.value)}
+                  placeholder="e.g. 18:00"
+                  className="h-9 text-xs"
+                />
+              </div>
+
+              <Button
+                onClick={handleTriggerDigest}
+                disabled={sendingDigest}
+                variant="outline"
+                className="w-full text-xs font-semibold h-9"
+              >
+                {sendingDigest ? 'Sending Reminders...' : '🔔 Trigger Daily Reminders'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 dark:border-slate-800 shadow-sm max-h-[40vh] flex flex-col">
+            <CardHeader className="py-3">
+              <CardTitle className="text-xs font-bold uppercase text-slate-400">Simulated Email Logs</CardTitle>
+            </CardHeader>
+            <CardContent className="overflow-y-auto px-4 pb-4 space-y-3 flex-1 text-[10px]">
+              {notifLogs.slice().reverse().map((log) => (
+                <div key={log.id} className="border-b border-slate-100 dark:border-slate-800 pb-2 space-y-1">
+                  <div className="flex justify-between text-slate-400 font-mono">
+                    <span>To: {log.recipient}</span>
+                    <span>{new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                  </div>
+                  <p className="font-semibold text-slate-700 dark:text-slate-300">{log.subject}</p>
+                  <p className="text-slate-500 whitespace-pre-wrap leading-tight bg-slate-50 dark:bg-slate-900/50 p-1.5 rounded">{log.body.substring(0, 120)}...</p>
+                </div>
+              ))}
+              {notifLogs.length === 0 && (
+                <p className="text-xs italic text-slate-400 text-center py-4">No notification logs recorded yet.</p>
+              )}
+            </CardContent>
           </Card>
         </div>
 
