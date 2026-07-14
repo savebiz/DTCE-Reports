@@ -1,12 +1,7 @@
 import { createClient as createBrowserClient } from './client'
 import { mockSupabaseClient, store } from './mockClient'
 
-const hasSupabaseEnv = !!(
-  process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
-
-export const isMock = !hasSupabaseEnv
+export const isMock = true
 
 export function getClient() {
   if (isMock) {
