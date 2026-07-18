@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getClient } from '@/utils/supabase'
-import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, Shield } from 'lucide-react'
+import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X } from 'lucide-react'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 const NAV_ITEMS = [
   { label: 'Overview',    href: '/dashboard',         icon: LayoutGrid },
@@ -84,9 +85,22 @@ export function DashboardHeader() {
               onClick={() => router.push('/')}
               className="flex items-center gap-2.5 group"
             >
-              <div className="relative flex h-7 w-7 items-center justify-center rounded-lg"
-                style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}>
-                <Shield size={14} className="text-white" />
+              {/* DTCE Logo badge */}
+              <div
+                className="relative flex-shrink-0 h-8 w-8 rounded-xl overflow-hidden"
+                style={{
+                  background: '#fff',
+                  boxShadow: '0 0 0 1px rgba(245,158,11,0.2), 0 0 12px rgba(245,158,11,0.08)',
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/dtce-logo.png"
+                  alt="DTCE Junior Church Global"
+                  width={32}
+                  height={32}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
                 <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 pulse-dot border-2 border-[#06090F]" />
               </div>
               <div className="flex flex-col leading-none">
@@ -131,8 +145,11 @@ export function DashboardHeader() {
             )}
           </div>
 
-          {/* Right — Role badge + User + Sign out */}
+          {/* Right — Theme toggle + Role badge + User + Sign out */}
           <div className="flex items-center gap-3">
+            {/* Theme toggle */}
+            <ThemeToggle compact />
+
             {/* Role badge */}
             <span className={`hidden sm:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize tracking-wide ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
               {ROLE_LABELS[role] || role}

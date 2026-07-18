@@ -338,7 +338,7 @@ export default function HODTeamManagement() {
                 <p className="text-[12px] text-slate-500">Create a new sub-leader login for your department.</p>
               </div>
 
-              <form onSubmit={handleCreateAssistant} className="space-y-4">
+              <form onSubmit={handleCreateAssistant} noValidate className="space-y-4">
                 <div className="space-y-1.5">
                   <label htmlFor="asst-name" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Assistant Full Name</label>
                   <input

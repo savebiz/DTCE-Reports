@@ -174,7 +174,7 @@ export default function ResetPasswordPage() {
             <span className="text-[13px] text-slate-300 font-medium">Logged in as: <span className="text-white font-bold">{profile.full_name}</span> ({profile.username})</span>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
             
             {/* New Password input */}
             <div className="space-y-1.5">

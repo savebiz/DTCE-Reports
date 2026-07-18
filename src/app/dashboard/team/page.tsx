@@ -588,7 +588,7 @@ export default function SecretariatTeamManagement() {
                 <p className="text-[12px] text-slate-500">Generate a specific department head login.</p>
               </div>
 
-              <form onSubmit={handleCreateSingle} className="space-y-4">
+              <form onSubmit={handleCreateSingle} noValidate className="space-y-4">
                 <div className="space-y-1.5">
                   <label htmlFor="single-fullname" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Leader Full Name</label>
                   <input

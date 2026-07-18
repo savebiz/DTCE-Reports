@@ -16,6 +16,7 @@
     "npm:eslint@9": "9.39.5",
     "npm:localforage@^1.10.0": "1.10.0",
     "npm:lucide-react@^1.24.0": "1.24.0_react@19.2.4",
+    "npm:next-themes@~0.4.6": "0.4.6_react@19.2.4_react-dom@19.2.4__react@19.2.4",
     "npm:next@16.2.10": "16.2.10_react@19.2.4_react-dom@19.2.4__react@19.2.4",
     "npm:react-dom@19.2.4": "19.2.4_react@19.2.4",
     "npm:react-hook-form@^7.81.0": "7.81.0_react@19.2.4",
@@ -3088,6 +3089,13 @@
     "negotiator@1.0.0": {
       "integrity": "sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg=="
     },
+    "next-themes@0.4.6_react@19.2.4_react-dom@19.2.4__react@19.2.4": {
+      "integrity": "sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==",
+      "dependencies": [
+        "react",
+        "react-dom"
+      ]
+    },
     "next@16.2.10_react@19.2.4_react-dom@19.2.4__react@19.2.4": {
       "integrity": "sha512-2som5AVXb3kE6Yjine3/mNbBayYF58eguBWIVVUdr1y/L426xyVEgYxgBG+1QC34P2x5E+tcDup6XkuOAX3dCA==",
       "dependencies": [
@@ -4311,6 +4319,7 @@
         "npm:eslint@9",
         "npm:localforage@^1.10.0",
         "npm:lucide-react@^1.24.0",
+        "npm:next-themes@~0.4.6",
         "npm:next@16.2.10",
         "npm:react-dom@19.2.4",
         "npm:react-hook-form@^7.81.0",

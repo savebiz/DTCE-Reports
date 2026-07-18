@@ -90,7 +90,44 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ── Light Theme (default) ── */
 :root {
+  --background:            #F7F5F0;
+  --foreground:            #0F2A4A;
+  --card:                  #FFFFFF;
+  --card-foreground:       #0F2A4A;
+  --popover:               #FFFFFF;
+  --popover-foreground:    #0F2A4A;
+  --primary:               #1E40AF;
+  --primary-foreground:    #ffffff;
+  --secondary:             #F59E0B;
+  --secondary-foreground:  #0F2A4A;
+  --muted:                 #EEE9DF;
+  --muted-foreground:      #64748B;
+  --accent:                #EEE9DF;
+  --accent-foreground:     #0F2A4A;
+  --destructive:           #DC2626;
+  --border:                rgba(15, 42, 74, 0.12);
+  --input:                 rgba(15, 42, 74, 0.08);
+  --ring:                  #1E40AF;
+  --chart-1:               #1E40AF;
+  --chart-2:               #F59E0B;
+  --chart-3:               #059669;
+  --chart-4:               #DC2626;
+  --chart-5:               #7C3AED;
+  --radius:                0.5rem;
+  --sidebar:               #FFFFFF;
+  --sidebar-foreground:    #0F2A4A;
+  --sidebar-primary:       #1E40AF;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:        #EEE9DF;
+  --sidebar-accent-foreground: #0F2A4A;
+  --sidebar-border:        rgba(15, 42, 74, 0.1);
+  --sidebar-ring:          #1E40AF;
+}
+
+/* ── Dark Theme ── */
+.dark {
   --background:            #06090F;
   --foreground:            #F1F5F9;
   --card:                  #0C1220;
@@ -140,8 +177,8 @@
   }
 
   body {
-    background-color: #06090F;
-    color: #F1F5F9;
+    background-color: var(--background);
+    color: var(--foreground);
     font-family: 'Inter', system-ui, sans-serif;
     line-height: 1.6;
   }
@@ -292,6 +329,75 @@
   .input-dark:focus {
     border-color: rgba(59, 130, 246, 0.5);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  /* Auth input — defeat browser autofill yellow */
+  .auth-input {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--foreground);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    transition: border-color 200ms ease, box-shadow 200ms ease, background 200ms ease;
+    outline: none;
+    width: 100%;
+    -webkit-text-fill-color: var(--foreground);
+    caret-color: var(--foreground);
+  }
+
+  :root .auth-input {
+    background: rgba(15, 42, 74, 0.05);
+    border: 1px solid rgba(15, 42, 74, 0.15);
+  }
+
+  .auth-input::placeholder {
+    color: var(--muted-foreground);
+    -webkit-text-fill-color: var(--muted-foreground);
+  }
+
+  .auth-input:focus {
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  /* Defeat Chrome autofill background injection */
+  .auth-input:-webkit-autofill,
+  .auth-input:-webkit-autofill:hover,
+  .auth-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px #0C1220 inset;
+    -webkit-text-fill-color: #F1F5F9;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
+  .dark .auth-input:-webkit-autofill,
+  .dark .auth-input:-webkit-autofill:hover,
+  .dark .auth-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px #0C1220 inset;
+    -webkit-text-fill-color: #F1F5F9;
+  }
+
+  :root:not(.dark) .auth-input:-webkit-autofill,
+  :root:not(.dark) .auth-input:-webkit-autofill:hover,
+  :root:not(.dark) .auth-input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset;
+    -webkit-text-fill-color: #0F2A4A;
+  }
+
+  /* Inline field error */
+  .field-error {
+    color: #EF4444;
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    animation: fade-in-up 0.2s ease forwards;
+  }
+
+  :root:not(.dark) .field-error {
+    color: #DC2626;
   }
 
   /* Scroll hiding */

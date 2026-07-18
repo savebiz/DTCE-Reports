@@ -507,7 +507,7 @@ export default function SecretariatDashboard() {
                     ))
                   )}
                 </div>
-                <form onSubmit={handlePostComment} className="flex gap-2">
+                <form onSubmit={handlePostComment} noValidate className="flex gap-2">
                   <input
                     placeholder="Write a note..."
                     value={newComment}

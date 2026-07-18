@@ -3,37 +3,59 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock } from '@/utils/supabase'
-import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { AuthInput } from '@/components/ui/auth-input'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { ScheduleDayCard } from '@/components/ui/schedule-day-card'
+import type { DayStatus } from '@/components/ui/schedule-day-card'
+
+// ── Convention schedule (decorative, matches real event days) ───────────────
+const days: { label: string; num: number; status: DayStatus; isToday: boolean }[] = [
+  { label: 'Mon', num: 13, isToday: false, status: 'submitted' },
+  { label: 'Tue', num: 14, isToday: false, status: 'submitted' },
+  { label: 'Wed', num: 15, isToday: true,  status: 'today'     },
+  { label: 'Thu', num: 16, isToday: false, status: 'upcoming'  },
+  { label: 'Fri', num: 17, isToday: false, status: 'upcoming'  },
+  { label: 'Sat', num: 18, isToday: false, status: 'upcoming'  },
+]
+
+// ── Field-level validation ──────────────────────────────────────────────────
+function validateFields(username: string, password: string) {
+  const errors: { username?: string; password?: string } = {}
+  if (!username.trim()) errors.username = 'Username is required.'
+  else if (username.trim().length < 3) errors.username = 'Enter at least 3 characters.'
+  if (!password) errors.password = 'Password is required.'
+  else if (password.length < 6) errors.password = 'Password must be at least 6 characters.'
+  return errors
+}
 
 export default function LoginPage() {
   const router = useRouter()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [touched, setTouched] = useState<{ username: boolean; password: boolean }>({
+    username: false,
+    password: false,
+  })
+  const [formMessage, setFormMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [showForgotMsg, setShowForgotMsg] = useState(false)
 
-  const days = [
-    { label: 'Mon', num: 13, active: false, status: 'Submitted' },
-    { label: 'Tue', num: 14, active: false, status: 'Submitted' },
-    { label: 'Wed', num: 15, active: true, status: 'Today' },
-    { label: 'Thu', num: 16, active: false, status: 'Upcoming' },
-    { label: 'Fri', num: 17, active: false, status: 'Upcoming' },
-    { label: 'Sat', num: 18, active: false, status: 'Upcoming' }
-  ]
+  const fieldErrors = validateFields(username, password)
+  const visibleErrors = {
+    username: touched.username ? fieldErrors.username : undefined,
+    password: touched.password ? fieldErrors.password : undefined,
+  }
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!username || !password) return
+    // Touch all fields to reveal all validation errors
+    setTouched({ username: true, password: true })
+    if (fieldErrors.username || fieldErrors.password) return
 
     setLoading(true)
-    setMessage(null)
+    setFormMessage(null)
 
     const supabase = getClient()
-
     let loginEmail = username.trim()
 
     if (!isMock && !loginEmail.includes('@')) {
@@ -43,13 +65,8 @@ export default function LoginPage() {
           .select('email')
           .eq('username', loginEmail)
           .maybeSingle()
-        
-        if (profileRow?.email) {
-          loginEmail = profileRow.email
-        } else {
-          loginEmail = `${loginEmail}@dtce.internal`
-        }
-      } catch (err) {
+        loginEmail = profileRow?.email ?? `${loginEmail}@dtce.internal`
+      } catch {
         loginEmail = `${loginEmail}@dtce.internal`
       }
     } else if (isMock && !loginEmail.includes('@')) {
@@ -59,21 +76,18 @@ export default function LoginPage() {
     if (isMock) {
       const { data, error } = await (supabase.auth as any).signInWithPassword({
         email: loginEmail,
-        password
+        password,
       })
 
       if (error) {
-        setMessage({ type: 'error', text: error.message })
+        setFormMessage({ type: 'error', text: error.message })
         setLoading(false)
         return
       }
 
-      setMessage({ type: 'success', text: 'Credentials verified. Signing you in...' })
-
-      // Set the auth cookie directly so the Edge middleware can read it on the next request
+      setFormMessage({ type: 'success', text: 'Credentials verified. Signing you in…' })
       document.cookie = `sb-mock-token=${data.user.id}; path=/; max-age=86400; SameSite=Lax`
 
-      // Load profile to determine destination
       const { data: prof } = await supabase
         .from('profiles')
         .select('*')
@@ -86,25 +100,20 @@ export default function LoginPage() {
         } else {
           const role = prof?.role
           const path = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
-          window.location.href = path  // Hard navigate forces fresh server request with cookie
+          window.location.href = path
         }
       }, 600)
-
     } else {
-      // Live Supabase email/password login
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: loginEmail,
-          password
-        })
+        const { data, error } = await supabase.auth.signInWithPassword({ email: loginEmail, password })
 
         if (error) {
           console.error('Supabase Auth Error:', error)
           let errorText = error.message
           if (!errorText || errorText === '{}' || (typeof error === 'object' && Object.keys(error).length === 0)) {
-            errorText = 'Invalid username or password. Please verify your credentials and database connection.'
+            errorText = 'Invalid username or password. Please check your credentials.'
           }
-          setMessage({ type: 'error', text: errorText })
+          setFormMessage({ type: 'error', text: errorText })
           setLoading(false)
           return
         }
@@ -117,8 +126,7 @@ export default function LoginPage() {
             .single()
 
           if (dbErr) {
-            console.error('Database Profile Read Error:', dbErr)
-            setMessage({ type: 'error', text: `Authentication succeeded, but failed to load user profile: ${dbErr.message}` })
+            setFormMessage({ type: 'error', text: `Auth succeeded but profile load failed: ${dbErr.message}` })
             setLoading(false)
             return
           }
@@ -132,76 +140,24 @@ export default function LoginPage() {
             router.refresh()
           }
         } else {
-          setMessage({ type: 'error', text: 'Authentication failed. No user session returned.' })
+          setFormMessage({ type: 'error', text: 'Authentication failed. No user session returned.' })
           setLoading(false)
         }
       } catch (err: any) {
         console.error('Login Exception:', err)
-        setMessage({ type: 'error', text: err.message || String(err) || 'An unexpected error occurred during login.' })
+        setFormMessage({ type: 'error', text: err.message || 'An unexpected error occurred during login.' })
         setLoading(false)
       }
     }
   }
 
-  const handleQuickLogin = async (mockUsername: string) => {
-    setLoading(true)
-    setMessage({ type: 'success', text: `Signing in as ${mockUsername}...` })
-
-    // Map usernames to their static mock profile IDs so the middleware can validate
-    const usernameToId: Record<string, string> = {
-      'admin.secretariat': 'user-admin',
-      'jane.coordinator': 'user-coord',
-      'smith.medical': 'user-hod-med',
-      'kelly.medical': 'user-asst-med',
-      'robert.registration': 'user-hod-reg',
-      'john.ushering': 'user-hod-ush',
-      'mary.welfare': 'user-hod-wel',
-    }
-    const usernameToRole: Record<string, string> = {
-      'admin.secretariat': 'super_admin',
-      'jane.coordinator': 'coordinator',
-      'smith.medical': 'hod',
-      'kelly.medical': 'assistant',
-      'robert.registration': 'hod',
-      'john.ushering': 'hod',
-      'mary.welfare': 'hod',
-    }
-    const usernameToName: Record<string, string> = {
-      'admin.secretariat': 'Admin Chief',
-      'jane.coordinator': 'Coordinator Jane',
-      'smith.medical': 'Dr. Smith (HOD)',
-      'kelly.medical': 'Nurse Kelly (Asst)',
-      'robert.registration': 'Elder Robert (Registration)',
-      'john.ushering': 'Deacon John (Ushering)',
-      'mary.welfare': 'Sister Mary (Welfare)',
-    }
-
-    const profileId = usernameToId[mockUsername]
-    if (!profileId) {
-      setMessage({ type: 'error', text: 'Unknown quick login user.' })
-      setLoading(false)
-      return
-    }
-
-    // Set the auth cookie BEFORE redirecting so middleware can read it immediately
-    document.cookie = `sb-mock-token=${profileId}; path=/; max-age=86400; SameSite=Lax`
-
-    setMessage({ type: 'success', text: `Logging in as ${usernameToName[mockUsername]}...` })
-
-    setTimeout(() => {
-      const role = usernameToRole[mockUsername]
-      const path = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
-      window.location.href = path  // Hard navigate to force fresh server request with cookie
-    }, 600)
-  }
-
   return (
     <div
       className="min-h-screen flex flex-col lg:flex-row"
-      style={{ background: '#06090F' }}
+      style={{ background: 'var(--background)' }}
     >
-      {/* ── Left Panel: Cinematic Brand Side ── */}
-      <div
+      {/* ── Left Panel: Cinematic Brand Side (desktop only) ── */}
+      <aside
         className="relative hidden lg:flex w-5/12 flex-col justify-between overflow-hidden p-12"
         style={{
           background: 'linear-gradient(160deg, #0C1220 0%, #06090F 50%, #0A1628 100%)',
@@ -218,13 +174,28 @@ export default function LoginPage() {
 
         {/* Logo & tagline */}
         <div className="relative z-10">
-          <div className="flex items-center gap-2.5 mb-8">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl"
-              style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div className="flex items-center gap-3 mb-8">
+            {/* DTCE Logo badge */}
+            <div
+              className="flex-shrink-0 h-14 w-14 rounded-2xl overflow-hidden"
+              style={{
+                boxShadow: '0 0 0 1px rgba(245,158,11,0.25), 0 0 20px rgba(245,158,11,0.12)',
+                background: '#fff',
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/dtce-logo.png"
+                alt="DTCE Junior Church Global"
+                width={56}
+                height={56}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
             </div>
             <div>
-              <div className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">DTCE Oversight System</div>
+              <div className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">
+                DTCE Oversight System
+              </div>
             </div>
           </div>
 
@@ -237,97 +208,150 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Day Rail */}
+        {/* Convention Schedule */}
         <div className="relative z-10 space-y-2">
-          <p className="text-[10px] font-semibold tracking-widest text-slate-600 uppercase mb-3">Convention Schedule</p>
+          <p className="text-[10px] font-bold tracking-widest text-slate-600 uppercase mb-3">
+            Convention Schedule
+          </p>
           {days.map((day) => (
-            <div
+            <ScheduleDayCard
               key={day.num}
-              className="flex items-center justify-between rounded-xl px-4 py-3 transition-all duration-300"
-              style={
-                day.active
-                  ? { background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)' }
-                  : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
-              }
-            >
-              <div className="flex items-center gap-3">
-                {day.active && <span className="h-1.5 w-1.5 rounded-full bg-amber-400 pulse-dot" />}
-                <span className="font-tabular text-sm font-bold" style={{ color: day.active ? '#FCD34D' : '#475569' }}>
-                  {day.num.toString().padStart(2, '0')}
-                </span>
-                <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: day.active ? '#F1F5F9' : '#475569' }}>
-                  {day.label}
-                </span>
-              </div>
-              <span
-                className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full"
-                style={
-                  day.active
-                    ? { background: 'rgba(245,158,11,0.2)', color: '#FCD34D' }
-                    : day.status === 'Submitted'
-                    ? { background: 'rgba(16,185,129,0.1)', color: '#34D399' }
-                    : { background: 'rgba(255,255,255,0.04)', color: '#334155' }
-                }
-              >
-                {day.status}
-              </span>
-            </div>
+              dayNum={day.num}
+              dayLabel={day.label}
+              status={day.status}
+              isToday={day.isToday}
+            />
           ))}
         </div>
 
         <div className="relative z-10 text-[10px] font-mono text-slate-700 uppercase tracking-widest">
           RCCG Teens &amp; Children Directorate
         </div>
-      </div>
+      </aside>
 
       {/* ── Right Panel: Login Form ── */}
-      <div className="flex flex-1 items-center justify-center p-6 lg:p-16">
-        <div className="w-full max-w-sm space-y-5 animate-fade-in-up">
-
-          {/* Mobile logo */}
-          <div className="flex lg:hidden items-center gap-2 mb-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg"
-              style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <main className="flex flex-1 flex-col">
+        {/* Mobile header bar */}
+        <div
+          className="flex lg:hidden items-center justify-between px-5 py-4 border-b"
+          style={{
+            background: '#06090F',
+            borderColor: 'rgba(255,255,255,0.06)',
+          }}
+        >
+          <div className="flex items-center gap-2.5">
+            <div
+              className="flex-shrink-0 h-9 w-9 rounded-xl overflow-hidden"
+              style={{ background: '#fff', boxShadow: '0 0 0 1px rgba(245,158,11,0.2)' }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/dtce-logo.png"
+                alt="DTCE Junior Church Global"
+                width={36}
+                height={36}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
             </div>
             <span className="text-sm font-bold text-white">DTCE Reporting</span>
           </div>
+          <ThemeToggle compact />
+        </div>
 
-          <div>
-            <h2 className="text-2xl font-bold text-white">Sign In</h2>
-            <p className="text-[13px] text-slate-500 mt-1">Enter your provisioned credentials to continue.</p>
-          </div>
+        {/* Mobile schedule chip rail */}
+        <div
+          className="flex lg:hidden gap-2 px-5 py-3 overflow-x-auto scrollbar-hide"
+          style={{
+            background: '#06090F',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+          }}
+        >
+          {days.map((day) => (
+            <div
+              key={day.num}
+              className="flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl"
+              style={
+                day.isToday
+                  ? { background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)' }
+                  : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
+              }
+            >
+              <span
+                className="font-tabular text-xs font-bold"
+                style={{ color: day.isToday ? '#FCD34D' : '#475569' }}
+              >
+                {day.num}
+              </span>
+              <span
+                className="text-[9px] font-semibold uppercase tracking-wide"
+                style={{ color: day.isToday ? '#F1F5F9' : '#475569' }}
+              >
+                {day.label}
+              </span>
+              {day.isToday && (
+                <span className="h-1 w-1 rounded-full pulse-dot" style={{ background: '#FBBF24' }} />
+              )}
+            </div>
+          ))}
+        </div>
 
-          {/* Form card */}
-          <div
-            className="rounded-2xl p-6 space-y-4"
-            style={{
-              background: 'rgba(12, 18, 32, 0.9)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              backdropFilter: 'blur(20px)',
-            }}
-          >
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="username" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
-                  Username
-                </label>
-                <input
+        {/* Form area */}
+        <div className="flex flex-1 items-center justify-center p-6 lg:p-16"
+          style={{ background: 'var(--background)' }}
+        >
+          <div className="w-full max-w-sm space-y-5 animate-fade-in-up">
+
+            {/* Desktop: theme toggle + heading row */}
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>
+                  Sign In
+                </h2>
+                <p className="text-[13px] mt-1" style={{ color: 'var(--muted-foreground)' }}>
+                  Enter your provisioned credentials to continue.
+                </p>
+              </div>
+              <div className="hidden lg:block pt-1">
+                <ThemeToggle />
+              </div>
+            </div>
+
+            {/* Form card */}
+            <div
+              className="rounded-2xl p-6 space-y-4"
+              style={{
+                background: 'var(--card)',
+                border: '1px solid var(--border)',
+                backdropFilter: 'blur(20px)',
+              }}
+            >
+              <form onSubmit={handleSubmit} noValidate className="space-y-4">
+                <AuthInput
                   id="username"
+                  label="Username"
                   placeholder="e.g. admin.secretariat"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  required
+                  onBlur={() => setTouched((t) => ({ ...t, username: true }))}
+                  error={visibleErrors.username}
                   disabled={loading}
-                  className="input-dark"
+                  autoComplete="username"
                 />
-              </div>
 
-              <div className="space-y-1.5">
-                <div className="flex justify-between items-center">
-                  <label htmlFor="password" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
-                    Password
-                  </label>
+
+                <AuthInput
+                  id="password"
+                  label="Password"
+                  type="password"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+                  error={visibleErrors.password}
+                  disabled={loading}
+                />
+
+                <div className="flex justify-end -mt-2">
                   <button
                     type="button"
                     onClick={() => setShowForgotMsg(true)}
@@ -337,54 +361,62 @@ export default function LoginPage() {
                     Forgot password?
                   </button>
                 </div>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+
+
+                {showForgotMsg && (
+                  <div
+                    className="rounded-xl p-3 text-[12px]"
+                    style={{
+                      background: 'rgba(245,158,11,0.08)',
+                      border: '1px solid rgba(245,158,11,0.2)',
+                      color: '#FCD34D',
+                    }}
+                    role="status"
+                  >
+                    Contact your Department Head or Secretariat Admin to reset your password.
+                  </div>
+                )}
+
+                {formMessage && (
+                  <div
+                    className="rounded-xl p-3 text-[12px]"
+                    style={
+                      formMessage.type === 'success'
+                        ? { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34D399' }
+                        : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' }
+                    }
+                    role="alert"
+                  >
+                    {formMessage.text}
+                  </div>
+                )}
+
+                <button
+                  id="login-submit-btn"
+                  type="submit"
                   disabled={loading}
-                  className="input-dark"
-                />
-              </div>
-
-              {showForgotMsg && (
-                <div className="rounded-xl p-3 text-[12px]" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#FCD34D' }}>
-                  Contact your Department Head or Secretariat Admin to reset your password.
-                </div>
-              )}
-
-              {message && (
-                <div
-                  className="rounded-xl p-3 text-[12px]"
-                  style={
-                    message.type === 'success'
-                      ? { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34D399' }
-                      : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' }
-                  }
+                  className="w-full rounded-xl py-3 text-[14px] font-bold text-white transition-all duration-200"
+                  style={{
+                    background: loading ? 'rgba(30,64,175,0.5)' : 'linear-gradient(135deg, #1E40AF, #3B82F6)',
+                    border: '1px solid rgba(59,130,246,0.3)',
+                    opacity: loading ? 0.7 : 1,
+                  }}
                 >
-                  {message.text}
-                </div>
-              )}
+                  {loading ? 'Authenticating…' : 'Sign In'}
+                </button>
+              </form>
+            </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-xl py-3 text-[14px] font-bold text-white transition-all duration-200"
-                style={{
-                  background: loading ? 'rgba(30,64,175,0.5)' : 'linear-gradient(135deg, #1E40AF, #3B82F6)',
-                  border: '1px solid rgba(59,130,246,0.3)',
-                }}
-                onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.opacity = '0.9' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
-              >
-                {loading ? 'Authenticating…' : 'Sign In'}
-              </button>
-            </form>
+            {/* Footer note */}
+            <p
+              className="text-center text-[11px]"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
+              RCCG Teens &amp; Children Directorate · Convention Edition
+            </p>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
