@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { mockProfiles } from './mockData'
 
-// This flag mirrors the one in index.ts — keep them in sync
+// Set to true to bypass live Supabase auth and use mock session only
 const FORCE_MOCK = true
 
 export async function updateSession(request: NextRequest) {
@@ -16,12 +16,12 @@ export async function updateSession(request: NextRequest) {
   )
 
   // Use mock session when forced mock mode is active OR env vars are missing
+  // IMPORTANT: We only use statically-imported mockProfiles here (no require/localStorage)
+  // because Next.js middleware runs in the Edge Runtime which doesn't support CommonJS.
   if (FORCE_MOCK || !hasSupabaseEnv) {
     const mockToken = request.cookies.get('sb-mock-token')?.value
     if (mockToken) {
-      const { store } = require('./mockClient')
-      const profile = store.profiles.find((p: any) => p.id === mockToken) || mockProfiles.find((p) => p.id === mockToken)
-      
+      const profile = mockProfiles.find((p) => p.id === mockToken)
       if (profile && profile.is_active !== false) {
         const user = {
           id: profile.id,
@@ -47,9 +47,7 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
+          supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -58,10 +56,8 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Refresh session if expired
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Get user profile role and status if logged in
   let role = null
   let mustChangePassword = false
 
@@ -72,7 +68,6 @@ export async function updateSession(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    // Enforce deactivation checks
     if (profile && profile.is_active === false) {
       return { supabaseResponse, user: null, role: null, mustChangePassword: false }
     }

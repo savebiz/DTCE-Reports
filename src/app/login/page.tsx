@@ -50,9 +50,12 @@ export default function LoginPage() {
         return
       }
 
-      setMessage({ type: 'success', text: 'Credentials verified. Checking account status...' })
-      
-      // Load user profile to check must_change_password
+      setMessage({ type: 'success', text: 'Credentials verified. Signing you in...' })
+
+      // Set the auth cookie directly so the Edge middleware can read it on the next request
+      document.cookie = `sb-mock-token=${data.user.id}; path=/; max-age=86400; SameSite=Lax`
+
+      // Load profile to determine destination
       const { data: prof } = await supabase
         .from('profiles')
         .select('*')
@@ -61,14 +64,14 @@ export default function LoginPage() {
 
       setTimeout(() => {
         if (prof?.must_change_password) {
-          router.push('/reset-password')
+          window.location.href = '/reset-password'
         } else {
           const role = prof?.role
           const path = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
-          router.push(path)
-          router.refresh()
+          window.location.href = path  // Hard navigate forces fresh server request with cookie
         }
-      }, 800)
+      }, 600)
+
     } else {
       // Live Supabase email/password login
       try {
@@ -124,40 +127,54 @@ export default function LoginPage() {
 
   const handleQuickLogin = async (mockUsername: string) => {
     setLoading(true)
-    setUsername(mockUsername)
-    setPassword('temporaryPass123') // Default mock password
-    const loginEmail = `${mockUsername}@dtce.internal`
-    const supabase = getClient()
+    setMessage({ type: 'success', text: `Signing in as ${mockUsername}...` })
 
-    const { data, error } = await (supabase.auth as any).signInWithPassword({
-      email: loginEmail,
-      password: 'temporaryPass123'
-    })
+    // Map usernames to their static mock profile IDs so the middleware can validate
+    const usernameToId: Record<string, string> = {
+      'admin.secretariat': 'user-admin',
+      'jane.coordinator': 'user-coord',
+      'smith.medical': 'user-hod-med',
+      'kelly.medical': 'user-asst-med',
+      'robert.registration': 'user-hod-reg',
+      'john.ushering': 'user-hod-ush',
+      'mary.welfare': 'user-hod-wel',
+    }
+    const usernameToRole: Record<string, string> = {
+      'admin.secretariat': 'super_admin',
+      'jane.coordinator': 'coordinator',
+      'smith.medical': 'hod',
+      'kelly.medical': 'assistant',
+      'robert.registration': 'hod',
+      'john.ushering': 'hod',
+      'mary.welfare': 'hod',
+    }
+    const usernameToName: Record<string, string> = {
+      'admin.secretariat': 'Admin Chief',
+      'jane.coordinator': 'Coordinator Jane',
+      'smith.medical': 'Dr. Smith (HOD)',
+      'kelly.medical': 'Nurse Kelly (Asst)',
+      'robert.registration': 'Elder Robert (Registration)',
+      'john.ushering': 'Deacon John (Ushering)',
+      'mary.welfare': 'Sister Mary (Welfare)',
+    }
 
-    if (error) {
-      setMessage({ type: 'error', text: error.message })
+    const profileId = usernameToId[mockUsername]
+    if (!profileId) {
+      setMessage({ type: 'error', text: 'Unknown quick login user.' })
       setLoading(false)
       return
     }
 
-    const { data: prof } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', data.user.id)
-      .single()
+    // Set the auth cookie BEFORE redirecting so middleware can read it immediately
+    document.cookie = `sb-mock-token=${profileId}; path=/; max-age=86400; SameSite=Lax`
 
-    setMessage({ type: 'success', text: `Logging in as ${prof?.full_name || mockUsername}...` })
+    setMessage({ type: 'success', text: `Logging in as ${usernameToName[mockUsername]}...` })
 
     setTimeout(() => {
-      if (prof?.must_change_password) {
-        router.push('/reset-password')
-      } else {
-        const role = prof?.role
-        const path = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
-        router.push(path)
-        router.refresh()
-      }
-    }, 800)
+      const role = usernameToRole[mockUsername]
+      const path = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
+      window.location.href = path  // Hard navigate to force fresh server request with cookie
+    }, 600)
   }
 
   return (
