@@ -41,12 +41,27 @@ export default function YoYComparisonPage() {
       .eq('id', user.id)
       .single()
 
-    if (prof) {
-      if (prof.role !== 'super_admin' && prof.role !== 'coordinator') {
+    let activeProfile = prof
+    if (!activeProfile && user) {
+      const meta = user.user_metadata as any
+      activeProfile = {
+        id: user.id,
+        email: user.email || '',
+        full_name: meta?.full_name || user.email?.split('@')[0] || 'Secretariat Admin',
+        role: meta?.role || 'super_admin',
+        department_id: meta?.department_id,
+        username: meta?.username || user.email?.split('@')[0] || 'admin',
+        must_change_password: false,
+        is_active: true
+      }
+    }
+
+    if (activeProfile) {
+      if (activeProfile.role !== 'super_admin' && activeProfile.role !== 'coordinator') {
         router.push('/my-department')
         return
       }
-      setProfile(prof)
+      setProfile(activeProfile)
     }
 
     // Run carry-over detection algorithm on mock/live narratives

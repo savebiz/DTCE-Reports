@@ -43,21 +43,36 @@ export default function HODTeamManagement() {
       .eq('id', user.id)
       .single()
 
-    if (prof) {
-      if (prof.role !== 'hod') {
+    let activeProfile = prof
+    if (!activeProfile && user) {
+      const meta = user.user_metadata as any
+      activeProfile = {
+        id: user.id,
+        email: user.email || '',
+        full_name: meta?.full_name || user.email?.split('@')[0] || 'Department HOD',
+        role: meta?.role || 'hod',
+        department_id: meta?.department_id || 'dept-10', // Default to Medical
+        username: meta?.username || user.email?.split('@')[0] || 'user',
+        must_change_password: false,
+        is_active: true
+      }
+    }
+
+    if (activeProfile) {
+      if (activeProfile.role !== 'hod') {
         router.push('/dashboard')
         return
       }
-      setProfile(prof)
+      setProfile(activeProfile)
 
-      const dept = mockDepartments.find(d => d.id === prof.department_id)
+      const dept = mockDepartments.find(d => d.id === activeProfile.department_id)
       setDepartmentName(dept?.name || 'Department')
 
       // Load assistants scoped specifically to this department
       const { data: allUsers } = await supabase
         .from('profiles')
         .select('*')
-        .eq('department_id', prof.department_id)
+        .eq('department_id', activeProfile.department_id)
         .eq('role', 'assistant')
       
       setAssistants(allUsers || [])

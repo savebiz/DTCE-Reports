@@ -365,44 +365,6 @@ export default function LoginPage() {
               </button>
             </form>
           </div>
-
-          {/* Quick Login Panel */}
-          {isMock && (
-            <div
-              className="rounded-2xl p-4 space-y-3"
-              style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.06)',
-              }}
-            >
-              <p className="text-[10px] font-semibold tracking-widest text-slate-600 uppercase">
-                Quick Leader Logins — No password needed
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { username: 'admin.secretariat', label: 'Admin Chief',    icon: '🛡️', color: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.2)', text: '#93C5FD' },
-                  { username: 'jane.coordinator',  label: 'Coordinator',   icon: '🗂️', color: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)', text: '#FCD34D' },
-                  { username: 'smith.medical',      label: 'HOD Medical',   icon: '⚕️', color: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)', text: '#34D399' },
-                  { username: 'robert.registration',label: 'HOD Registry',  icon: '📋', color: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.2)', text: '#C4B5FD' },
-                  { username: 'john.ushering',      label: 'HOD Ushering',  icon: '🚪', color: 'rgba(20,184,166,0.08)', border: 'rgba(20,184,166,0.2)', text: '#5EEAD4' },
-                  { username: 'mary.welfare',       label: 'HOD Welfare',   icon: '🤝', color: 'rgba(251,113,133,0.08)', border: 'rgba(251,113,133,0.2)', text: '#FDA4AF' },
-                ].map(({ username: u, label, icon, color, border, text }) => (
-                  <button
-                    key={u}
-                    onClick={() => handleQuickLogin(u)}
-                    disabled={loading}
-                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-[12px] font-semibold transition-all duration-150"
-                    style={{ background: color, border: `1px solid ${border}`, color: text }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.8' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
-                  >
-                    <span className="text-base leading-none">{icon}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -81,10 +81,25 @@ export default function DepartmentNarrativePage() {
       .eq('id', user.id)
       .single()
 
-    if (prof) {
-      setProfile(prof)
+    let activeProfile = prof
+    if (!activeProfile && user) {
+      const meta = user.user_metadata as any
+      activeProfile = {
+        id: user.id,
+        email: user.email || '',
+        full_name: meta?.full_name || user.email?.split('@')[0] || 'Department HOD',
+        role: meta?.role || 'hod',
+        department_id: meta?.department_id || 'dept-10', // Default to Medical
+        username: meta?.username || user.email?.split('@')[0] || 'user',
+        must_change_password: false,
+        is_active: true
+      }
+    }
+
+    if (activeProfile) {
+      setProfile(activeProfile)
       
-      const dept = mockDepartments.find(d => d.id === prof.department_id)
+      const dept = mockDepartments.find(d => d.id === activeProfile.department_id)
       if (dept) setDepartment(dept)
 
       // Fetch active event
@@ -95,7 +110,7 @@ export default function DepartmentNarrativePage() {
 
       // Fetch reports
       const { data: reps } = await supabase.from('daily_reports').select('*')
-      const filteredReps = reps ? reps.filter((r: any) => r.department_id === prof.department_id) : []
+      const filteredReps = reps ? reps.filter((r: any) => r.department_id === activeProfile.department_id) : []
       setReports(filteredReps)
 
       // Calculate aggregated metrics

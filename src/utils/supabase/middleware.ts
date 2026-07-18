@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { mockProfiles } from './mockData'
 
 // Set to true to bypass live Supabase auth and use mock session only
-const FORCE_MOCK = true
+const FORCE_MOCK = false
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
