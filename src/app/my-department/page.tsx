@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, mockDepartments, mockEventDays, mockEvents, Profile, DailyReport, Department } from '@/utils/supabase'
+import { showToast } from '@/components/ui/toast'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
@@ -127,7 +128,7 @@ export default function MyDepartmentDashboard() {
     setPendingSyncCount(queue.length)
 
     if (syncedCount > 0) {
-      alert(`Successfully synced ${syncedCount} queued report(s) online!`)
+      showToast(`Successfully synced ${syncedCount} queued report(s) online!`, 'success')
       loadData()
     }
     if (errors.length > 0) {
@@ -227,7 +228,7 @@ export default function MyDepartmentDashboard() {
       // Delete draft
       await deleteOfflineDraft(department.id, activeDay.id)
       
-      alert('You are currently offline. Your submission has been saved locally and will auto-sync once your connection is restored!')
+      showToast('You are currently offline. Your submission has been saved locally and will auto-sync once your connection is restored!', 'warning')
       setPendingSyncCount(prev => prev + 1)
       setIsFormOpen(false)
       setLoading(false)
@@ -280,11 +281,11 @@ export default function MyDepartmentDashboard() {
       // Delete draft
       await deleteOfflineDraft(department.id, activeDay.id)
 
-      alert('Report submitted successfully!')
+      showToast('Report submitted successfully!', 'success')
       setIsFormOpen(false)
       loadData()
     } catch (err: any) {
-      alert(`Submission failed: ${err.message}. Saving to sync queue.`);
+      showToast(`Submission failed: ${err.message}. Saving to sync queue.`, 'error')
       await queueSubmission(reportPayload)
       setPendingSyncCount(prev => prev + 1)
       setIsFormOpen(false)

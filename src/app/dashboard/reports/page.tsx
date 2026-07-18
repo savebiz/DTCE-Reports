@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, mockDepartments, mockEventDays, mockEvents, Profile, DailyReport, Department } from '@/utils/supabase'
+import { showToast } from '@/components/ui/toast'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
@@ -78,16 +79,16 @@ export default function ReportsExportPage() {
       })
       const data = await res.json()
       if (data.success) {
-        alert(`Successfully triggered daily digest reminders! Sent ${data.notifications_sent} emails in ${data.delivery_mode} mode.`)
+        showToast(`Successfully triggered daily digest reminders! Sent ${data.notifications_sent} emails in ${data.delivery_mode} mode.`, 'success')
         // Refresh logs list
         const supabase = getClient()
         const { data: logs } = await supabase.from('notification_logs').select('*')
         setNotifLogs(logs || [])
       } else {
-        alert(`Error triggering digest: ${data.error}`)
+        showToast(`Error triggering digest: ${data.error}`, 'error')
       }
     } catch (err: any) {
-      alert(`Digest failed: ${err.message}`)
+      showToast(`Digest failed: ${err.message}`, 'error')
     } finally {
       setSendingDigest(false)
     }
@@ -112,7 +113,7 @@ export default function ReportsExportPage() {
     
     setTimeout(() => {
       setExporting(false)
-      alert('Your branded DOCX report has been generated and is downloading!')
+      showToast('Your branded DOCX report has been generated and is downloading!', 'success')
     }, 1500)
   }
 

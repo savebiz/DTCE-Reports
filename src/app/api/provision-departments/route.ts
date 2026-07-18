@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. Check for service role key
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!serviceRoleKey) {
       return NextResponse.json(
         { error: 'Server configuration error: Supabase Service Role key is missing.' },

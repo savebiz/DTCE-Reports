@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, Profile, Department } from '@/utils/supabase'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { generateCompliantPassword } from '@/lib/password-policy'
+import { showToast } from '@/components/ui/toast'
 import Link from 'next/link'
 
 interface CredentialSlip {
@@ -198,7 +199,7 @@ export default function SecretariatTeamManagement() {
     // Double check collisions
     const isExistDb = users.some((u: Profile) => u.username?.toLowerCase() === singleUsernameInput.toLowerCase())
     if (isExistDb) {
-      alert(`Username "${singleUsernameInput}" already exists. Please choose a different one.`)
+      showToast(`Username "${singleUsernameInput}" already exists. Please choose a different one.`, 'error')
       return
     }
 
@@ -264,9 +265,9 @@ export default function SecretariatTeamManagement() {
       setSingleUsernameInput('')
       setSingleEmail('')
       loadData()
-      alert('Account provisioned successfully!')
+      showToast('Account provisioned successfully!', 'success')
     } catch (err: any) {
-      alert(`Provisioning failed: ${err.message}`)
+      showToast(`Provisioning failed: ${err.message}`, 'error')
     } finally {
       setSavingSingle(false)
     }
@@ -275,11 +276,11 @@ export default function SecretariatTeamManagement() {
   // Provision single row in bulk table
   const handleProvisionRow = async (row: BulkRow) => {
     if (!row.leaderName.trim()) {
-      alert('Please fill in a leader name first.')
+      showToast('Please fill in a leader name first.', 'warning')
       return
     }
     if (collisions.length > 0) {
-      alert('Please resolve username collisions before provisioning.')
+      showToast('Please resolve username collisions before provisioning.', 'warning')
       return
     }
 
@@ -340,9 +341,9 @@ export default function SecretariatTeamManagement() {
       }
 
       loadData()
-      alert(`Provisioned ${row.name} account successfully!`)
+      showToast(`Provisioned ${row.name} account successfully!`, 'success')
     } catch (err: any) {
-      alert(`Provisioning failed: ${err.message}`)
+      showToast(`Provisioning failed: ${err.message}`, 'error')
     } finally {
       setProvisioningBulk(false)
       setProvisionProgress(null)
@@ -353,12 +354,12 @@ export default function SecretariatTeamManagement() {
   const handleProvisionAll = async () => {
     const pending = bulkList.filter(row => !row.isCreated && row.leaderName.trim().length > 0)
     if (pending.length === 0) {
-      alert('No new department HOD names filled in. Nothing to provision.')
+      showToast('No new department HOD names filled in. Nothing to provision.', 'warning')
       return
     }
 
     if (collisions.length > 0) {
-      alert('Please resolve username conflicts first.')
+      showToast('Please resolve username conflicts first.', 'warning')
       return
     }
 
@@ -417,9 +418,9 @@ export default function SecretariatTeamManagement() {
       }
 
       loadData()
-      alert(`Provisioned ${pending.length} HOD accounts successfully! Slips are revealed below.`)
+      showToast(`Provisioned ${pending.length} HOD accounts successfully! Slips are revealed below.`, 'success')
     } catch (err: any) {
-      alert(`Bulk provisioning failed: ${err.message}`)
+      showToast(`Bulk provisioning failed: ${err.message}`, 'error')
     } finally {
       setProvisioningBulk(false)
       setProvisionProgress(null)

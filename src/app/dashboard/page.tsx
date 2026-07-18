@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, mockDepartments, mockEventDays, mockEvents, Profile, DailyReport, Department } from '@/utils/supabase'
+import { showToast } from '@/components/ui/toast'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -159,11 +160,11 @@ export default function SecretariatDashboard() {
         addSystemComment(activeReport.id, `Rejection Note: ${commentText}`)
       }
 
-      alert(`Report status updated to ${newStatus}!`)
+      showToast(`Report status updated to ${newStatus}!`, 'success')
       setIsSheetOpen(false)
       loadData()
     } catch (err: any) {
-      alert(`Failed to update status: ${err.message}`)
+      showToast(`Failed to update status: ${err.message}`, 'error')
     }
   }
 

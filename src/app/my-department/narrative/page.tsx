@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, mockDepartments, mockEvents, Profile, DailyReport, Department } from '@/utils/supabase'
+import { showToast } from '@/components/ui/toast'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
@@ -274,13 +275,13 @@ export default function DepartmentNarrativePage() {
       if (submit) {
         // Clear local storage draft
         await localforage.removeItem(`dtce_narrative_draft_${profile.department_id}`)
-        alert('End-of-Event Narrative submitted successfully!')
+        showToast('End-of-Event Narrative submitted successfully!', 'success')
       } else {
-        alert('Draft saved successfully!')
+        showToast('Draft saved successfully!', 'success')
       }
       loadData()
     } catch (err: any) {
-      alert(`Operation failed: ${err.message}`)
+      showToast(`Operation failed: ${err.message}`, 'error')
     } finally {
       setLoading(false)
     }

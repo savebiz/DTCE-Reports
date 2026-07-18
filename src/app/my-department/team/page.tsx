@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, Profile } from '@/utils/supabase'
+import { showToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -181,7 +182,7 @@ export default function HODTeamManagement() {
       setUsernameInput('')
       loadData()
     } catch (err: any) {
-      alert(`Assistant creation failed: ${err.message}`)
+      showToast(`Assistant creation failed: ${err.message}`, 'error')
     } finally {
       setSaving(false)
     }
@@ -202,10 +203,10 @@ export default function HODTeamManagement() {
         .eq('id', asstId)
 
       if (error) throw error
-      alert(`Account status updated successfully.`)
+      showToast(`Account status updated successfully.`, 'success')
       loadData()
     } catch (err: any) {
-      alert(`Status update failed: ${err.message}`)
+      showToast(`Status update failed: ${err.message}`, 'error')
     }
   }
 

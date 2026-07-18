@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, Profile } from '@/utils/supabase'
 import { validatePassword } from '@/lib/password-policy'
+import { showToast } from '@/components/ui/toast'
 import Link from 'next/link'
 
 export default function ResetPasswordPage() {
@@ -133,7 +134,7 @@ export default function ResetPasswordPage() {
 
       if (dbErr) throw dbErr
 
-      alert('Password updated successfully! Welcome to DTCE Reporting.')
+      showToast('Password updated successfully! Welcome to DTCE Reporting.', 'success')
       const path = (profile.role === 'super_admin' || profile.role === 'coordinator') ? '/dashboard' : '/my-department'
       window.location.href = path // hard redirect refreshes sessions/middleware
     } catch (err: any) {
