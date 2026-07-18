@@ -101,22 +101,9 @@ export default function SecretariatDashboard() {
     loadData()
   }, [])
 
-  // Open Slide-over Panel for a cell
-  const handleCellClick = async (dept: Department, day: any) => {
-    setSelectedCell({ dept, day })
-    const report = reports.find(r => r.department_id === dept.id && r.event_day_id === day.id)
-    setActiveReport(report || null)
-    
-    if (report) {
-      const narrative = narratives.find(n => n.daily_report_id === report.id)
-      setActiveNarrative(narrative || null)
-    } else {
-      setActiveNarrative(null)
-    }
-
-    setIsRejecting(false)
-    setRejectionComment('')
-    setIsSheetOpen(true)
+  // Open unified daily log editor for the cell
+  const handleCellClick = (dept: Department, day: any) => {
+    router.push(`/my-department/daily-log?deptId=${dept.id}&dayId=${day.id}`)
   }
 
   // Update report status & Log to Audit
@@ -208,7 +195,11 @@ export default function SecretariatDashboard() {
   const getCellStatusLabel = (deptId: string, dayId: string) => {
     const report = reports.find(r => r.department_id === deptId && r.event_day_id === dayId)
     if (!report) return 'Missing'
-    return report.status.charAt(0).toUpperCase() + report.status.slice(1)
+    const baseLabel = report.status.charAt(0).toUpperCase() + report.status.slice(1)
+    if (report.submitted_on_behalf_by) {
+      return `${baseLabel} (Admin)`
+    }
+    return baseLabel
   }
 
   // Compute KPI Counts for the selected KPI Day
@@ -228,8 +219,7 @@ export default function SecretariatDashboard() {
   const kpis = getKPICounts()
 
   return (
-    <div className="min-h-screen bg-mesh" style={{ background: '#06090F' }}>
-      <DashboardHeader />
+    <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
 
       <main className="mx-auto max-w-[1400px] px-4 md:px-6 py-8">
         <div className="flex flex-col gap-6">

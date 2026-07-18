@@ -206,7 +206,7 @@ export default function SecretariatTeamManagement() {
     setSavingSingle(true)
     const supabase = getClient()
     const password = generateCompliantPassword()
-    const placeholderEmail = singleEmail || `${singleUsernameInput}@dtce.internal`
+    const placeholderEmail = singleEmail || `${singleUsernameInput}@accounts.dtce-reports.vercel.app`
 
     try {
       if (isMock) {
@@ -290,7 +290,7 @@ export default function SecretariatTeamManagement() {
     try {
       if (isMock) {
         const password = generateCompliantPassword()
-        const emailAddress = row.email || `${row.username}@dtce.internal`
+        const emailAddress = row.email || `${row.username}@accounts.dtce-reports.vercel.app`
         const newUserId = 'mock-bulk-' + Math.random().toString(36).substr(2, 9)
 
         const { store: mockStore } = require('@/utils/supabase/mockClient')
@@ -373,7 +373,7 @@ export default function SecretariatTeamManagement() {
 
         pending.forEach(row => {
           const password = generateCompliantPassword()
-          const emailAddress = row.email || `${row.username}@dtce.internal`
+          const emailAddress = row.email || `${row.username}@accounts.dtce-reports.vercel.app`
           const newUserId = 'mock-bulk-' + Math.random().toString(36).substr(2, 9)
 
           mockStore.profiles.push({
@@ -447,18 +447,16 @@ export default function SecretariatTeamManagement() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center font-sans" style={{ background: '#06090F' }}>
+      <div className="min-h-screen flex items-center justify-center font-sans" style={{ background: 'var(--background)' }}>
         <p className="text-sm font-mono animate-pulse text-slate-500">Loading Account Center...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-mesh" style={{ background: '#06090F' }}>
-      <DashboardHeader />
-
+    <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
       {/* Heading Block */}
-      <div className="border-b" style={{ background: 'rgba(6,9,15,0.7)', borderColor: 'rgba(255,255,255,0.07)' }}>
+      <div className="border-b" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between py-6 px-4 md:px-6 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">

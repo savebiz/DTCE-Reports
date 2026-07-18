@@ -67,6 +67,29 @@ export default function DepartmentNarrativePage() {
     }
   }, [])
 
+  const [warnings, setWarnings] = useState<string[]>([])
+
+  useEffect(() => {
+    const errs: string[] = []
+    if (!overview.trim()) {
+      errs.push('Overview of Activities must be filled.')
+    } else if (overview.trim().length < 20) {
+      errs.push('Overview description is too short (minimum 20 characters).')
+    }
+    if (!highlights.trim()) {
+      errs.push('Core Highlights & Key Successes must be filled.')
+    } else if (highlights.trim().length < 20) {
+      errs.push('Highlights list is too short (minimum 20 characters).')
+    }
+    if (challenges.some(c => !c.text.trim())) {
+      errs.push('One or more challenge details are empty.')
+    }
+    if (recommendations.some(r => !r.text.trim())) {
+      errs.push('One or more recommendation details are empty.')
+    }
+    setWarnings(errs)
+  }, [overview, highlights, challenges, recommendations])
+
   // 2. Fetch data & aggregate metrics
   const loadData = async () => {
     const supabase = getClient()
@@ -290,11 +313,9 @@ export default function DepartmentNarrativePage() {
   const isViewOnly = status === 'submitted' || status === 'approved' || status === 'reviewed'
 
   return (
-    <div className="min-h-screen bg-mesh" style={{ background: '#06090F' }}>
-      <DashboardHeader />
-
+    <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
       {/* Title block */}
-      <div className="border-b" style={{ background: 'rgba(6,9,15,0.7)', borderColor: 'rgba(255,255,255,0.07)' }}>
+      <div className="border-b" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between py-6 px-4 md:px-6 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -373,7 +394,7 @@ export default function DepartmentNarrativePage() {
                 <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <span className="text-[10px] text-slate-500 uppercase font-semibold block mb-0.5">Total Offering / Sum</span>
                   <p className="text-2xl font-bold font-mono text-emerald-400">
-                    ₦{aggregatedStats.totalOffering.toLocaleString()}
+                    <span className="font-sans">₦</span>{aggregatedStats.totalOffering.toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -573,6 +594,16 @@ export default function DepartmentNarrativePage() {
                 </div>
               </div>
 
+              {/* Validation Warnings (Task 8) */}
+              {!isViewOnly && warnings.length > 0 && (
+                <div className="rounded-xl p-4 text-[12px] space-y-1.5" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', color: '#FCD34D' }}>
+                  <span className="font-bold uppercase tracking-wider block">⚠️ Gating Requirements</span>
+                  <ul className="list-disc list-inside space-y-1 text-slate-400">
+                    {warnings.map((w, idx) => <li key={idx}>{w}</li>)}
+                  </ul>
+                </div>
+              )}
+
               {/* Footer actions inside editor card */}
               <div className="flex justify-end gap-2 pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 {!isViewOnly ? (
@@ -580,16 +611,16 @@ export default function DepartmentNarrativePage() {
                     <button
                       onClick={() => handleSave(false)}
                       disabled={loading}
-                      className="h-9 rounded-lg px-4 text-[12px] font-semibold text-slate-300 transition-all"
+                      className="h-9 rounded-lg px-4 text-[12px] font-semibold text-slate-300 transition-all cursor-pointer"
                       style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
                     >
                       Save Draft
                     </button>
                     <button
                       onClick={() => handleSave(true)}
-                      disabled={loading}
-                      className="h-9 rounded-lg px-4 text-[12px] font-bold text-white transition-all"
-                      style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#34D399' }}
+                      disabled={loading || warnings.length > 0}
+                      className="h-9 rounded-lg px-4 text-[12px] font-bold text-white transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ background: warnings.length > 0 ? 'rgba(255,255,255,0.05)' : 'rgba(16,185,129,0.15)', border: warnings.length > 0 ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(16,185,129,0.3)', color: warnings.length > 0 ? '#64748B' : '#34D399' }}
                     >
                       Submit Narrative Report
                     </button>

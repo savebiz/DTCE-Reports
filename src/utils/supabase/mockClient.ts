@@ -413,9 +413,9 @@ export const mockSupabaseClient = {
       // Search both store (localStorage) and static mockProfiles seed data
       const emailLower = email.toLowerCase()
       
-      // Extract username from email pattern username@dtce.internal
-      const usernameFromEmail = emailLower.endsWith('@dtce.internal') 
-        ? emailLower.replace('@dtce.internal', '') 
+      // Extract username from email pattern username@accounts.dtce-reports.vercel.app
+      const usernameFromEmail = emailLower.endsWith('@accounts.dtce-reports.vercel.app') 
+        ? emailLower.replace('@accounts.dtce-reports.vercel.app', '') 
         : emailLower
 
       const allProfiles = [

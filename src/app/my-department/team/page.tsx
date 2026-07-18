@@ -89,12 +89,14 @@ export default function HODTeamManagement() {
     const normalized = val
       .toLowerCase()
       .trim()
-      .replace(/\s+/g, '.')
-      .replace(/[^a-z0-9.]/g, '')
-    if (normalized && profile) {
-      const dept = mockDepartments.find(d => d.id === profile.department_id)
-      const deptSlug = dept ? dept.name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '') : 'dept'
-      setUsernameInput(`${normalized}.asst.${deptSlug}`)
+      .replace(/[^a-zA-Z0-9\s]/g, '') // remove special chars
+      .split(/\s+/)
+      .filter(p => !['deaconess', 'deacon', 'pastor', 'elder', 'brother', 'sister', 'bro', 'sis', 'dr', 'mr', 'mrs', 'miss'].includes(p))
+      .filter(p => p.length > 0)
+      .join('.')
+    
+    if (normalized) {
+      setUsernameInput(normalized)
     } else {
       setUsernameInput('')
     }
@@ -114,9 +116,35 @@ export default function HODTeamManagement() {
     setSaving(true)
     const supabase = getClient()
     const tempPassword = generateRandomPassword()
-    const placeholderEmail = `${usernameInput}@dtce.internal`
 
     try {
+      // 1. Dynamic Username Collision Resolution
+      let baseUsername = usernameInput.toLowerCase().trim()
+      let finalUsername = baseUsername
+      let suffix = 2
+      
+      while (true) {
+        let isCollision = false
+        if (isMock) {
+          const { store: mockStore } = require('@/utils/supabase/mockClient')
+          isCollision = mockStore.profiles.some((p: any) => p.username?.toLowerCase() === finalUsername)
+        } else {
+          const { data: existing } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('username', finalUsername)
+            .maybeSingle()
+          isCollision = !!existing
+        }
+
+        if (!isCollision) {
+          break
+        }
+        finalUsername = `${baseUsername}.${suffix}`
+        suffix++
+      }
+
+      const placeholderEmail = `${finalUsername}@accounts.dtce-reports.vercel.app`
       let newUserId = 'mock-asst-' + Math.random().toString(36).substr(2, 9)
 
       if (!isMock) {
@@ -127,7 +155,7 @@ export default function HODTeamManagement() {
             data: {
               full_name: fullName,
               role: 'assistant',
-              username: usernameInput,
+              username: finalUsername,
               must_change_password: true
             }
           }
@@ -138,7 +166,7 @@ export default function HODTeamManagement() {
         const newProfile = {
           id: newUserId,
           email: placeholderEmail,
-          username: usernameInput,
+          username: finalUsername,
           full_name: fullName,
           role: 'assistant' as const,
           department_id: profile.department_id,
@@ -153,7 +181,7 @@ export default function HODTeamManagement() {
       await supabase.from('profiles').upsert({
         id: newUserId,
         email: placeholderEmail,
-        username: usernameInput,
+        username: finalUsername,
         full_name: fullName,
         role: 'assistant',
         department_id: profile.department_id,
@@ -219,61 +247,7 @@ export default function HODTeamManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-mesh" style={{ background: '#06090F' }}>
-      {/* Header bar */}
-      <header
-        className="sticky top-0 z-50 w-full"
-        style={{
-          background: 'rgba(6, 9, 15, 0.92)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
-        }}
-      >
-        <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-6">
-            <span className="text-[13px] font-bold text-white flex items-center gap-2">
-              <span>⛪</span>
-              <span>{departmentName} Team</span>
-            </span>
-            <nav className="hidden sm:flex items-center gap-1">
-              <Link
-                href="/my-department"
-                className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-300 transition-colors"
-              >
-                Dashboard Checklist
-              </Link>
-              <Link
-                href="/my-department/narrative"
-                className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-300 transition-colors"
-              >
-                Narrative Write-up
-              </Link>
-              <Link
-                href="/my-department/team"
-                className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-white transition-colors"
-                style={{ background: 'rgba(59,130,246,0.08)' }}
-              >
-                Manage Team
-              </Link>
-            </nav>
-          </div>
-
-          <div className="flex items-center">
-            <Link href="/my-department">
-              <button
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}
-              >
-                ➔ Back to Checklist
-              </button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-fade-in-up">
         <div>
           <div className="flex items-center gap-2 mb-1">

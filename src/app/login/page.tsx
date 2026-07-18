@@ -65,12 +65,12 @@ export default function LoginPage() {
           .select('email')
           .eq('username', loginEmail)
           .maybeSingle()
-        loginEmail = profileRow?.email ?? `${loginEmail}@dtce.internal`
+        loginEmail = profileRow?.email ?? `${loginEmail}@accounts.dtce-reports.vercel.app`
       } catch {
-        loginEmail = `${loginEmail}@dtce.internal`
+        loginEmail = `${loginEmail}@accounts.dtce-reports.vercel.app`
       }
     } else if (isMock && !loginEmail.includes('@')) {
-      loginEmail = `${loginEmail}@dtce.internal`
+      loginEmail = `${loginEmail}@accounts.dtce-reports.vercel.app`
     }
 
     if (isMock) {

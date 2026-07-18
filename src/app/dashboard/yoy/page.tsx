@@ -152,11 +152,9 @@ export default function YoYComparisonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-mesh" style={{ background: '#06090F' }}>
-      <DashboardHeader />
-
+    <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
       {/* Heading Block */}
-      <div className="border-b" style={{ background: 'rgba(6,9,15,0.7)', borderColor: 'rgba(255,255,255,0.07)' }}>
+      <div className="border-b" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between py-6 px-4 md:px-6 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -274,14 +272,14 @@ export default function YoYComparisonPage() {
                 <div className="space-y-1">
                   <span className="text-[9px] text-slate-500 font-bold uppercase block tracking-wider">2025 Annual Convention</span>
                   <p className="text-2xl font-extrabold font-mono text-slate-300">
-                    ₦{comparisonStats.offering.event2025.toLocaleString()}
+                    <span className="font-sans">₦</span>{comparisonStats.offering.event2025.toLocaleString()}
                   </p>
                 </div>
 
                 <div className="space-y-1 pt-4" style={{ borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
                   <span className="text-[9px] text-slate-500 font-bold uppercase block tracking-wider">2026 Annual Convention</span>
                   <p className="text-3xl font-extrabold font-mono text-emerald-400">
-                    ₦{comparisonStats.offering.event2026.toLocaleString()}
+                    <span className="font-sans">₦</span>{comparisonStats.offering.event2026.toLocaleString()}
                   </p>
                 </div>
               </div>

@@ -40,6 +40,7 @@ export interface DailyReport {
   event_day_id: string
   department_id: string
   submitted_by: string
+  submitted_on_behalf_by?: string
   attendance_morning: number
   attendance_evening: number
   status: 'draft' | 'submitted' | 'approved'
@@ -53,6 +54,7 @@ export interface DepartmentNarrative {
   daily_report_id?: string
   event_id?: string
   department_id?: string
+  submitted_on_behalf_by?: string
   is_end_of_event?: boolean
   status?: 'draft' | 'submitted' | 'reviewed' | 'approved'
   overview?: string

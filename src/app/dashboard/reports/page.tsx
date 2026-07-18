@@ -121,11 +121,9 @@ export default function ReportsExportPage() {
   const eoeNarratives = narratives.filter(n => n.is_end_of_event === true)
 
   return (
-    <div className="min-h-screen bg-mesh" style={{ background: '#06090F' }}>
-      <DashboardHeader />
-
+    <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
       {/* Heading Block */}
-      <div className="border-b" style={{ background: 'rgba(6,9,15,0.7)', borderColor: 'rgba(255,255,255,0.07)' }}>
+      <div className="border-b" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between py-6 px-4 md:px-6 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">

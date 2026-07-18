@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getClient } from '@/utils/supabase'
 import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { mockDepartments } from '@/utils/supabase'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 const NAV_ITEMS = [
@@ -30,7 +32,11 @@ const ROLE_COLORS: Record<string, string> = {
 export function DashboardHeader() {
   const router   = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const deptIdParam = searchParams?.get('deptId')
+
   const [user, setUser]     = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
   const [open, setOpen]     = useState(false)
   const [signing, setSigning] = useState(false)
 
@@ -38,7 +44,15 @@ export function DashboardHeader() {
     const fetchUser = async () => {
       const supabase = getClient()
       const { data } = await supabase.auth.getUser()
-      setUser(data.user)
+      if (data?.user) {
+        setUser(data.user)
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single()
+        if (prof) setProfile(prof)
+      }
     }
     fetchUser()
   }, [])
@@ -65,6 +79,18 @@ export function DashboardHeader() {
     .join('')
     .toUpperCase()
 
+  // Determine active department label
+  let activeDeptName = 'Secretariat'
+  if (deptIdParam) {
+    const activeDept = mockDepartments.find(d => d.id === deptIdParam)
+    if (activeDept) activeDeptName = activeDept.name
+  } else if (profile?.department_id) {
+    const activeDept = mockDepartments.find(d => d.id === profile.department_id)
+    if (activeDept) activeDeptName = activeDept.name
+  } else if (role === 'hod' || role === 'assistant') {
+    activeDeptName = 'Department'
+  }
+
   return (
     <>
       <header
@@ -79,15 +105,15 @@ export function DashboardHeader() {
         <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 md:px-6">
 
           {/* Left — Logo + Nav */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             {/* Logo */}
             <button
-              onClick={() => router.push('/')}
+              onClick={() => router.push(showNav ? '/dashboard' : '/my-department')}
               className="flex items-center gap-2.5 group"
             >
               {/* DTCE Logo badge */}
               <div
-                className="relative flex-shrink-0 h-8 w-8 rounded-xl overflow-hidden"
+                className="relative flex-shrink-0 h-8 w-8 rounded-xl overflow-hidden animate-fade-in-up"
                 style={{
                   background: '#fff',
                   boxShadow: '0 0 0 1px rgba(245,158,11,0.2), 0 0 12px rgba(245,158,11,0.08)',
@@ -108,6 +134,12 @@ export function DashboardHeader() {
                 <span className="text-[9px] font-medium tracking-widest text-slate-500 uppercase">Reporting</span>
               </div>
             </button>
+
+            {/* Active Department Label */}
+            <div className="h-4 w-px bg-slate-800 hidden sm:block" />
+            <div className="text-[11px] font-bold text-amber-400 tracking-wider uppercase bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full select-none max-w-[150px] md:max-w-none truncate">
+              {activeDeptName}
+            </div>
 
             {/* Desktop Nav */}
             {showNav && (
