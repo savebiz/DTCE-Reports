@@ -34,9 +34,27 @@ export default function LoginPage() {
 
     const supabase = getClient()
 
-    // Map username to mock or Supabase credentials
-    // If it's a username without an @, construct placeholder email: {username}@dtce.internal
-    const loginEmail = username.includes('@') ? username : `${username}@dtce.internal`
+    let loginEmail = username.trim()
+
+    if (!isMock && !loginEmail.includes('@')) {
+      try {
+        const { data: profileRow } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('username', loginEmail)
+          .maybeSingle()
+        
+        if (profileRow?.email) {
+          loginEmail = profileRow.email
+        } else {
+          loginEmail = `${loginEmail}@dtce.internal`
+        }
+      } catch (err) {
+        loginEmail = `${loginEmail}@dtce.internal`
+      }
+    } else if (isMock && !loginEmail.includes('@')) {
+      loginEmail = `${loginEmail}@dtce.internal`
+    }
 
     if (isMock) {
       const { data, error } = await (supabase.auth as any).signInWithPassword({
