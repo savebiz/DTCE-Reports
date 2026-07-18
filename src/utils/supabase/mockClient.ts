@@ -410,13 +410,33 @@ export const mockSupabaseClient = {
     },
 
     async signInWithPassword({ email, password }: { email: string; password?: string }) {
-      const profile = store.profiles.find(p => 
-        p.username?.toLowerCase() === email.toLowerCase() ||
-        p.email.toLowerCase() === email.toLowerCase()
+      // Search both store (localStorage) and static mockProfiles seed data
+      const emailLower = email.toLowerCase()
+      
+      // Extract username from email pattern username@dtce.internal
+      const usernameFromEmail = emailLower.endsWith('@dtce.internal') 
+        ? emailLower.replace('@dtce.internal', '') 
+        : emailLower
+
+      const allProfiles = [
+        ...store.profiles,
+        ...mockProfiles.filter(mp => !store.profiles.find(sp => sp.id === mp.id))
+      ]
+
+      const profile = allProfiles.find(p => 
+        p.username?.toLowerCase() === usernameFromEmail ||
+        p.username?.toLowerCase() === emailLower ||
+        p.email.toLowerCase() === emailLower
       )
+
       if (!profile) {
-        return { data: { user: null }, error: new Error('User account not found') }
+        return { data: { user: null }, error: new Error(`User account not found. Try using the Quick Login buttons below.`) }
       }
+
+      if (profile.is_active === false) {
+        return { data: { user: null }, error: new Error('This account has been deactivated.') }
+      }
+
       store.currentUser = profile
       return {
         data: {
