@@ -89,6 +89,29 @@ export async function POST(request: NextRequest) {
       const password = generateCompliantPassword()
       const emailAddress = item.email || `${item.username}@dtce.internal`
 
+      // Resolve the department UUID by matching the name if it is a mock ID (e.g. "dept-25")
+      let resolvedDeptId = item.id
+      if (item.id.startsWith('dept-')) {
+        const { data: deptData, error: deptError } = await supabaseAdmin
+          .from('departments')
+          .select('id')
+          .eq('name', item.name)
+          .single()
+        
+        if (!deptError && deptData) {
+          resolvedDeptId = deptData.id
+        } else {
+          // Case-insensitive fallback lookup
+          const { data: allDepts } = await supabaseAdmin.from('departments').select('id, name')
+          const matched = allDepts?.find(d => d.name.toLowerCase().trim() === item.name.toLowerCase().trim())
+          if (matched) {
+            resolvedDeptId = matched.id
+          } else {
+            throw new Error(`Could not resolve database UUID for department "${item.name}"`)
+          }
+        }
+      }
+
       // a. Create User in Supabase Auth via Admin client
       const { data: signUpData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
         email: emailAddress,
@@ -129,7 +152,7 @@ export async function POST(request: NextRequest) {
       const { error: assignErr } = await supabaseAdmin.from('hod_assignments').insert({
         event_id: eventId,
         profile_id: newUserId,
-        department_id: item.id,
+        department_id: resolvedDeptId,
         role_in_event: 'hod'
       })
 
