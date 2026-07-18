@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
 
       const newUserId = signUpData.user.id
 
-      // b. Insert Profile Row
-      const { error: dbErr } = await supabaseAdmin.from('profiles').insert({
+      // b. Upsert Profile Row (the database trigger automatically inserts a row upon Auth creation)
+      const { error: dbErr } = await supabaseAdmin.from('profiles').upsert({
         id: newUserId,
         email: emailAddress,
         username: item.username,
