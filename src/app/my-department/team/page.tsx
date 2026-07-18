@@ -196,199 +196,240 @@ export default function HODTeamManagement() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-paper text-charcoal">
-        <p className="text-sm font-mono animate-pulse">Loading Team Dashboard...</p>
+      <div className="min-h-screen flex items-center justify-center font-sans" style={{ background: '#06090F' }}>
+        <p className="text-sm font-mono animate-pulse text-slate-500">Loading Team Dashboard...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-paper text-charcoal font-sans">
+    <div className="min-h-screen bg-mesh" style={{ background: '#06090F' }}>
       {/* Header bar */}
-      <header className="flex h-14 items-center justify-between border-b border-hairline bg-white px-6">
-        <div className="flex items-center space-x-6">
-          <span className="text-sm font-display font-bold text-ink-navy flex items-center space-x-1.5">
-            <span>⛪</span>
-            <span>{departmentName} Team</span>
-          </span>
-          <nav className="flex space-x-4 text-xs font-semibold text-slate-500">
-            <Link href="/my-department" className="hover:text-ink-navy">Dashboard Checklist</Link>
-            <Link href="/my-department/narrative" className="hover:text-ink-navy">Narrative Write-up</Link>
-            <Link href="/my-department/team" className="text-ink-navy border-b-2 border-convention-gold pb-0.5">Manage Team</Link>
-          </nav>
-        </div>
+      <header
+        className="sticky top-0 z-50 w-full"
+        style={{
+          background: 'rgba(6, 9, 15, 0.92)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid rgba(255,255,255,0.07)',
+        }}
+      >
+        <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-6">
+            <span className="text-[13px] font-bold text-white flex items-center gap-2">
+              <span>⛪</span>
+              <span>{departmentName} Team</span>
+            </span>
+            <nav className="hidden sm:flex items-center gap-1">
+              <Link
+                href="/my-department"
+                className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                Dashboard Checklist
+              </Link>
+              <Link
+                href="/my-department/narrative"
+                className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                Narrative Write-up
+              </Link>
+              <Link
+                href="/my-department/team"
+                className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-white transition-colors"
+                style={{ background: 'rgba(59,130,246,0.08)' }}
+              >
+                Manage Team
+              </Link>
+            </nav>
+          </div>
 
-        <div className="flex items-center space-x-4">
-          <Link href="/my-department">
-            <Button variant="outline" size="sm" className="h-8 text-xs font-semibold border-hairline text-slate-700">
-              ➔ Back to Checklist
-            </Button>
-          </Link>
+          <div className="flex items-center">
+            <Link href="/my-department">
+              <button
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}
+              >
+                ➔ Back to Checklist
+              </button>
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-8 py-8 space-y-8">
+      <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-fade-in-up">
         <div>
-          <h1 className="text-2xl font-display font-semibold text-ink-navy">Manage My Team</h1>
-          <p className="text-xs text-slate-500">
-            HOD Controls • Scoped to {departmentName} department assistants.
+          <div className="flex items-center gap-2 mb-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+            <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">HOD Controls</span>
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Manage My Team</h1>
+          <p className="text-[13px] text-slate-500 mt-0.5">
+            Provision and manage sub-leader accounts issued for the {departmentName} department.
           </p>
         </div>
 
         {/* Issued Credential Slip */}
         {issuedSlip && (
-          <Card className="border-2 border-dashed border-convention-gold bg-amber-50/20 p-5 space-y-4 max-w-md">
+          <div className="rounded-2xl p-6 space-y-4 max-w-md" style={{ background: 'rgba(245,158,11,0.04)', border: '1px dashed rgba(245,158,11,0.25)' }}>
             <div className="flex justify-between items-center">
-              <span className="text-xs font-bold uppercase tracking-wider text-convention-gold">
+              <span className="text-[12px] font-bold uppercase tracking-wider text-amber-400">
                 🎫 Issued Assistant Credential Slip
               </span>
-              <Button size="xs" variant="ghost" onClick={() => setIssuedSlip(null)} className="text-[10px]">
+              <button
+                onClick={() => setIssuedSlip(null)}
+                className="text-[12px] text-slate-500 hover:text-slate-400 font-semibold"
+              >
                 Dismiss
-              </Button>
+              </button>
             </div>
-            <div className="bg-white border border-hairline p-5 rounded relative overflow-hidden">
-              <div className="absolute top-0 right-0 h-full w-2 bg-convention-gold"></div>
-              <div className="space-y-3">
+            
+            <div
+              className="rounded-xl p-5 relative overflow-hidden"
+              style={{
+                background: 'rgba(12,18,32,0.8)',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              <div className="absolute top-0 right-0 h-full w-1.5" style={{ background: 'linear-gradient(180deg, #F59E0B, #D97706)' }}></div>
+              <div className="space-y-4">
                 <div>
-                  <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400">RCCG DTCE System</span>
-                  <h4 className="text-base font-display font-semibold text-ink-navy">{issuedSlip.fullName}</h4>
+                  <span className="text-[9px] font-mono uppercase tracking-widest text-slate-500">RCCG DTCE System</span>
+                  <h4 className="text-base font-bold text-white mt-1 leading-tight">{issuedSlip.fullName}</h4>
                 </div>
-                <div className="border-t border-dashed border-hairline pt-3 text-xs grid grid-cols-2 gap-1.5 font-mono">
+                <div className="grid grid-cols-2 gap-3 text-[12px] pt-3 font-mono" style={{ borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
                   <div>
-                    <span className="text-slate-400 block text-[8px] uppercase">Username</span>
-                    <span className="font-bold text-slate-800">{issuedSlip.username}</span>
+                    <span className="text-slate-500 block text-[8px] uppercase">Username</span>
+                    <span className="font-bold text-slate-200">{issuedSlip.username}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[8px] uppercase">Temporary Password</span>
-                    <span className="font-bold text-red-600">{issuedSlip.temporaryPassword}</span>
+                    <span className="text-slate-500 block text-[8px] uppercase">Temporary Password</span>
+                    <span className="font-bold text-amber-400">{issuedSlip.temporaryPassword}</span>
                   </div>
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Add Assistant form */}
           <div className="lg:col-span-1">
-            <Card className="border-hairline bg-white shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">
-                  Provision Assistant HOD
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Create a new sub-leader login for your department.
-                </CardDescription>
-              </CardHeader>
-              <form onSubmit={handleCreateAssistant}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="asst-name">Assistant Full Name</Label>
-                    <Input
-                      id="asst-name"
-                      value={fullName}
-                      onChange={(e) => handleNameChange(e.target.value)}
-                      placeholder="e.g. Deaconess Funmi Coker"
-                      required
-                      className="h-9 text-xs"
-                    />
-                  </div>
+            <div className="glass-card p-5 space-y-4">
+              <div>
+                <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1">Provision Assistant HOD</h2>
+                <p className="text-[12px] text-slate-500">Create a new sub-leader login for your department.</p>
+              </div>
 
-                  <div className="space-y-1">
-                    <Label htmlFor="asst-username">Generated Username</Label>
-                    <Input
-                      id="asst-username"
-                      value={usernameInput}
-                      onChange={(e) => setUsernameInput(e.target.value)}
-                      placeholder="Auto-suggests username"
-                      required
-                      className="h-9 text-xs font-mono"
-                    />
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button type="submit" disabled={saving} className="w-full bg-ink-navy text-white text-xs h-9">
-                    {saving ? 'Creating Account...' : '⚡ Generate Assistant Credential'}
-                  </Button>
-                </CardFooter>
+              <form onSubmit={handleCreateAssistant} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="asst-name" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Assistant Full Name</label>
+                  <input
+                    id="asst-name"
+                    value={fullName}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    placeholder="e.g. Deaconess Funmi Coker"
+                    required
+                    className="input-dark"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="asst-username" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Generated Username</label>
+                  <input
+                    id="asst-username"
+                    value={usernameInput}
+                    onChange={(e) => setUsernameInput(e.target.value)}
+                    placeholder="Auto-suggests username"
+                    required
+                    className="input-dark font-mono"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full rounded-xl py-2.5 text-[13px] font-bold text-white transition-all duration-200 mt-2"
+                  style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', border: '1px solid rgba(59,130,246,0.3)' }}
+                >
+                  {saving ? 'Creating Account...' : '⚡ Generate Assistant Credential'}
+                </button>
               </form>
-            </Card>
+            </div>
           </div>
 
           {/* Assistant list */}
           <div className="lg:col-span-2">
-            <Card className="border-hairline bg-white shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">
-                  Active Assistant Accounts
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Review or deactivate helper profiles issued for {departmentName}.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-0 border-t border-hairline">
+            <div className="glass-card overflow-hidden flex flex-col" style={{ maxHeight: '70vh' }}>
+              <div className="px-5 py-4 border-b flex flex-col gap-1" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.2)' }}>
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Active Assistant Accounts</span>
+                <p className="text-[12px] text-slate-500">Review or deactivate helper profiles issued for {departmentName}.</p>
+              </div>
+
+              <div className="overflow-y-auto flex-1 scrollbar-hide">
                 {assistants.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic p-6 text-center">
+                  <p className="text-[12px] text-slate-500 italic p-6 text-center">
                     No assistant HOD logins provisioned yet for your department.
                   </p>
                 ) : (
-                  <table className="w-full text-left border-collapse text-xs">
+                  <table className="w-full text-left border-collapse text-[12px]">
                     <thead>
-                      <tr className="bg-slate-50 border-b border-hairline text-slate-600 font-bold">
-                        <th className="p-3">Full Name</th>
-                        <th className="p-3">Username</th>
-                        <th className="p-3">Login Password Reset</th>
-                        <th className="p-3">Account Status</th>
-                        <th className="p-3 text-right">Action</th>
+                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
+                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Full Name</th>
+                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Username</th>
+                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Login Status</th>
+                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Account Status</th>
+                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-hairline">
+                    <tbody className="divide-y divide-slate-800 text-slate-300">
                       {assistants.map(asst => (
-                        <tr key={asst.id} className="hover:bg-slate-50/50">
-                          <td className="p-3 font-semibold text-slate-800">{asst.full_name}</td>
-                          <td className="p-3 font-mono text-slate-500">{asst.username}</td>
+                        <tr key={asst.id} className="hover:bg-slate-900/10">
+                          <td className="p-3 font-semibold text-slate-200">{asst.full_name}</td>
+                          <td className="p-3 font-mono text-slate-400">{asst.username}</td>
                           <td className="p-3">
                             {asst.must_change_password ? (
-                              <span className="text-[10px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' }}>
                                 Pending Reset
                               </span>
                             ) : (
-                              <span className="text-[10px] text-green-700 font-bold bg-green-50 px-2 py-0.5 rounded border border-green-200">
-                                Active Password
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }}>
+                                Active
                               </span>
                             )}
                           </td>
                           <td className="p-3">
                             {asst.is_active !== false ? (
-                              <span className="text-[10px] text-emerald-800 font-bold">Active</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }}>Active</span>
                             ) : (
-                              <span className="text-[10px] text-red-800 font-bold">Deactivated</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.1)', color: '#FCA5A5', border: '1px solid rgba(239,68,68,0.2)' }}>Deactivated</span>
                             )}
                           </td>
                           <td className="p-2 text-right">
-                            <Button
-                              variant="outline"
-                              size="xs"
+                            <button
                               onClick={() => toggleAssistantActive(asst.id, asst.is_active !== false)}
-                              className={`text-[10px] font-semibold h-7 ${
+                              className="h-7 rounded-lg px-3 text-[11px] font-semibold transition-all duration-150"
+                              style={
                                 asst.is_active !== false 
-                                  ? 'text-red-600 border-red-200 hover:bg-red-50' 
-                                  : 'text-green-600 border-green-200 hover:bg-green-50'
-                              }`}
+                                  ? { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' } 
+                                  : { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34D399' }
+                              }
                             >
                               {asst.is_active !== false ? 'Deactivate' : 'Reactivate'}
-                            </Button>
+                            </button>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       </main>
     </div>
   )
 }
+

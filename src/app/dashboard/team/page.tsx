@@ -309,293 +309,325 @@ export default function SecretariatTeamManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-paper text-charcoal font-sans">
+    <div className="min-h-screen bg-mesh" style={{ background: '#06090F' }}>
       <DashboardHeader />
 
-      <div className="bg-white border-b border-hairline py-6 px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+      <div className="border-b" style={{ background: 'rgba(6,9,15,0.7)', borderColor: 'rgba(255,255,255,0.07)' }}>
+        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between py-6 px-4 md:px-6 gap-4">
           <div>
-            <h1 className="text-2xl font-display font-semibold text-ink-navy">Leader Account Provisioning</h1>
-            <p className="text-xs text-slate-500">Secretariat Command Center • Provision HOD and assistant accounts.</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+              <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">Secretariat Command Center</span>
+            </div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Leader Account Provisioning</h1>
+            <p className="text-[13px] text-slate-500 mt-0.5">Provision HOD and department assistant logins.</p>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <Link href="/dashboard">
-              <Button variant="outline" size="sm" className="h-9 text-xs">
+              <button
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}
+              >
                 ➔ Oversight Dashboard
-              </Button>
+              </button>
             </Link>
           </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-8 py-8 space-y-8">
+      <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-fade-in-up">
         {/* Credential Slips Display Panel (The issued badges) */}
         {revealedSlips.length > 0 && (
-          <Card className="border-2 border-dashed border-convention-gold bg-amber-50/20 p-6 space-y-6">
-            <div>
-              <div className="flex justify-between items-center">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-convention-gold">
-                  🎫 Issued Credential Slips ({revealedSlips.length})
+          <div className="rounded-2xl p-6 space-y-6" style={{ background: 'rgba(245,158,11,0.04)', border: '1px dashed rgba(245,158,11,0.25)' }}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                  <span>🎫</span> Issued Credential Slips ({revealedSlips.length})
                 </h3>
-                <Button variant="outline" size="sm" onClick={() => window.print()} className="h-8 text-xs">
-                  🖨️ Print Slips
-                </Button>
+                <p className="text-[12px] text-slate-500 mt-1">
+                  Temporary passwords will expire on their first login. Issue these credentials to HODs.
+                </p>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Print these slips and issue them to HODs. Temporary passwords will expire on their first login.
-              </p>
+              <button
+                onClick={() => window.print()}
+                className="h-8 rounded-lg px-4 text-[12px] font-semibold transition-all text-white self-start sm:self-center"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}
+              >
+                Print Slips
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {revealedSlips.map((slip, i) => (
                 <div
                   key={i}
-                  className="bg-white border border-hairline p-5 rounded relative overflow-hidden flex flex-col justify-between"
-                  style={{ pageBreakInside: 'avoid' }}
+                  className="rounded-xl p-5 relative overflow-hidden flex flex-col justify-between"
+                  style={{
+                    background: 'rgba(12,18,32,0.8)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    pageBreakInside: 'avoid',
+                  }}
                 >
                   {/* Ledger Tab marker */}
-                  <div className="absolute top-0 right-0 h-full w-2 bg-convention-gold"></div>
+                  <div className="absolute top-0 right-0 h-full w-1.5" style={{ background: 'linear-gradient(180deg, #F59E0B, #D97706)' }}></div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="flex justify-between items-start pr-4">
                       <div>
-                        <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400">RCCG DTCE System</span>
-                        <h4 className="text-base font-display font-semibold text-ink-navy leading-tight">{slip.fullName}</h4>
+                        <span className="text-[9px] font-mono uppercase tracking-widest text-slate-500">RCCG DTCE System</span>
+                        <h4 className="text-base font-bold text-white mt-1 leading-tight">{slip.fullName}</h4>
                       </div>
-                      <span className="text-[10px] font-mono uppercase bg-slate-100 px-2 py-0.5 rounded text-slate-600 font-bold border border-hairline">
+                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full" style={{ background: 'rgba(59,130,246,0.1)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.2)' }}>
                         {slip.role}
                       </span>
                     </div>
 
-                    <div className="border-t border-dashed border-hairline pt-3 grid grid-cols-2 gap-2 text-xs">
+                    <div className="grid grid-cols-2 gap-3 text-[12px] pt-3" style={{ borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
                       <div>
-                        <span className="text-slate-400 block text-[9px] uppercase font-mono">Department</span>
-                        <span className="font-semibold text-slate-800">{slip.departmentName}</span>
+                        <span className="text-slate-500 block text-[9px] uppercase font-mono">Department</span>
+                        <span className="font-semibold text-slate-300">{slip.departmentName}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[9px] uppercase font-mono">Portal URL</span>
-                        <span className="font-mono text-slate-600">dtce.org/login</span>
+                        <span className="text-slate-500 block text-[9px] uppercase font-mono">Portal URL</span>
+                        <span className="font-mono text-slate-400">dtce.org/login</span>
                       </div>
                     </div>
 
-                    <div className="bg-slate-50 border border-hairline p-3 rounded grid grid-cols-2 gap-2 text-xs font-mono">
+                    <div className="rounded-xl p-3.5 grid grid-cols-2 gap-3 text-[12px] font-mono" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                       <div>
-                        <span className="text-slate-400 block text-[8px] uppercase">Username</span>
-                        <span className="font-bold text-slate-800">{slip.username}</span>
+                        <span className="text-slate-500 block text-[8px] uppercase">Username</span>
+                        <span className="font-bold text-slate-200">{slip.username}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[8px] uppercase">Temporary Password</span>
-                        <span className="font-bold text-red-600">{slip.temporaryPassword}</span>
+                        <span className="text-slate-500 block text-[8px] uppercase">Temporary Password</span>
+                        <span className="font-bold text-amber-400">{slip.temporaryPassword}</span>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-[9px] text-slate-400 mt-4 leading-tight italic">
-                    * You will be forced to change this password immediately upon logging in.
+                  <p className="text-[10px] text-slate-500 mt-4 leading-tight italic">
+                    * Password reset is required on first login.
                   </p>
                 </div>
               ))}
             </div>
 
             <div className="flex justify-end">
-              <Button size="sm" variant="ghost" onClick={() => setRevealedSlips([])} className="text-xs">
+              <button
+                onClick={() => setRevealedSlips([])}
+                className="text-[12px] font-semibold text-slate-500 hover:text-slate-400 transition-colors"
+              >
                 Clear Slip View
-              </Button>
+              </button>
             </div>
-          </Card>
+          </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Create Single User */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="border-hairline shadow-sm bg-white">
-              <CardHeader>
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">
-                  Single Account Provision
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Create a specific HOD or department assistant login.
-                </CardDescription>
-              </CardHeader>
-              <form onSubmit={handleCreateSingle}>
-                <CardContent className="space-y-4">
-                  <div className="space-y-1">
-                    <Label htmlFor="single-fullname">Leader Full Name</Label>
-                    <Input
-                      id="single-fullname"
-                      value={fullName}
-                      onChange={(e) => handleNameChange(e.target.value)}
-                      placeholder="e.g. Pastor David Adebayo"
-                      required
-                      className="h-9 text-xs"
-                    />
-                  </div>
+          <div className="lg:col-span-1">
+            <div className="glass-card p-5 space-y-4">
+              <div>
+                <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1">Single Account Provision</h2>
+                <p className="text-[12px] text-slate-500">Create a specific HOD or department assistant login.</p>
+              </div>
 
-                  <div className="space-y-1">
-                    <Label htmlFor="single-dept">Target Department</Label>
-                    <select
-                      id="single-dept"
-                      value={deptId}
-                      onChange={(e) => handleDeptSelectChange(e.target.value)}
-                      className="w-full h-9 rounded-md border border-hairline bg-white px-3 text-xs"
-                    >
-                      {mockDepartments.map(d => (
-                        <option key={d.id} value={d.id}>{d.name}</option>
-                      ))}
-                    </select>
-                  </div>
+              <form onSubmit={handleCreateSingle} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="single-fullname" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Leader Full Name</label>
+                  <input
+                    id="single-fullname"
+                    value={fullName}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    placeholder="e.g. Pastor David Adebayo"
+                    required
+                    className="input-dark"
+                  />
+                </div>
 
-                  <div className="space-y-1">
-                    <Label htmlFor="single-username">Generated Username</Label>
-                    <Input
-                      id="single-username"
-                      value={usernameInput}
-                      onChange={(e) => setUsernameInput(e.target.value)}
-                      placeholder="Auto-suggests from name"
-                      required
-                      className="h-9 text-xs font-mono"
-                    />
-                  </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="single-dept" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Target Department</label>
+                  <select
+                    id="single-dept"
+                    value={deptId}
+                    onChange={(e) => handleDeptSelectChange(e.target.value)}
+                    className="w-full h-9 rounded-lg px-3 text-[13px] font-medium text-slate-300 cursor-pointer"
+                    style={{
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      outline: 'none',
+                    }}
+                  >
+                    {mockDepartments.map(d => (
+                      <option key={d.id} value={d.id} style={{ background: '#111827' }}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
 
-                  <div className="space-y-1">
-                    <Label htmlFor="single-role">System Role</Label>
-                    <select
-                      id="single-role"
-                      value={role}
-                      onChange={(e: any) => setRole(e.target.value)}
-                      className="w-full h-9 rounded-md border border-hairline bg-white px-3 text-xs"
-                    >
-                      <option value="hod">HOD (Department Head)</option>
-                      <option value="assistant">Assistant HOD</option>
-                    </select>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button type="submit" disabled={savingSingle} className="w-full bg-ink-navy hover:bg-ink-navy/95 text-white text-xs h-9">
-                    {savingSingle ? 'Provisioning...' : '⚡ Generate Single Credential'}
-                  </Button>
-                </CardFooter>
+                <div className="space-y-1.5">
+                  <label htmlFor="single-username" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Generated Username</label>
+                  <input
+                    id="single-username"
+                    value={usernameInput}
+                    onChange={(e) => setUsernameInput(e.target.value)}
+                    placeholder="Auto-suggested username"
+                    required
+                    className="input-dark font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="single-role" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">System Role</label>
+                  <select
+                    id="single-role"
+                    value={role}
+                    onChange={(e: any) => setRole(e.target.value)}
+                    className="w-full h-9 rounded-lg px-3 text-[13px] font-medium text-slate-300 cursor-pointer"
+                    style={{
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="hod" style={{ background: '#111827' }}>HOD (Department Head)</option>
+                    <option value="assistant" style={{ background: '#111827' }}>Assistant HOD</option>
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={savingSingle}
+                  className="w-full rounded-xl py-2.5 text-[13px] font-bold text-white transition-all duration-200 mt-2"
+                  style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', border: '1px solid rgba(59,130,246,0.3)' }}
+                >
+                  {savingSingle ? 'Provisioning...' : '⚡ Generate Single Credential'}
+                </button>
               </form>
-            </Card>
+            </div>
           </div>
 
           {/* Right Column: Bulk Provision List */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="border-hairline shadow-sm bg-white">
-              <CardHeader className="flex flex-row items-center justify-between">
+          <div className="lg:col-span-2">
+            <div className="glass-card overflow-hidden flex flex-col" style={{ maxHeight: '70vh' }}>
+              <div className="px-5 py-4 border-b flex items-center justify-between gap-4" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.2)' }}>
                 <div>
-                  <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">
-                    Bulk HOD Provisioning Grid
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    Quickly provision HOD accounts for all 40 departments in a single action.
-                  </CardDescription>
+                  <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1">Bulk HOD Provisioning Grid</h2>
+                  <p className="text-[12px] text-slate-500">Provision HOD accounts for departments in a single action.</p>
                 </div>
-                <Button
+                <button
                   onClick={handleProvisionBulk}
                   disabled={provisioningBulk}
-                  className="bg-convention-gold hover:bg-convention-gold/95 text-ink-navy font-bold text-xs h-9"
+                  className="rounded-lg px-4 h-8 text-[12px] font-semibold text-white transition-all shrink-0"
+                  style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#FCD34D' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(245,158,11,0.25)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(245,158,11,0.15)' }}
                 >
-                  {provisioningBulk ? 'Provisioning Grid...' : '⚡ Bulk Provision HODs'}
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0 border-t border-hairline max-h-[60vh] overflow-y-auto">
-                <table className="w-full text-left border-collapse text-xs">
+                  {provisioningBulk ? 'Provisioning Grid...' : 'Bulk Provision HODs'}
+                </button>
+              </div>
+
+              <div className="overflow-y-auto flex-1 scrollbar-hide">
+                <table className="w-full text-left border-collapse text-[12px]">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-hairline font-bold text-slate-600">
-                      <th className="p-3 w-1/3">Department</th>
-                      <th className="p-3 w-1/3">HOD Full Name</th>
-                      <th className="p-3 w-1/3">Optional Real Email</th>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
+                      <th className="p-3 w-1/3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Department</th>
+                      <th className="p-3 w-1/3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">HOD Full Name</th>
+                      <th className="p-3 w-1/3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Optional Real Email</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-hairline">
+                  <tbody className="divide-y divide-slate-800 text-slate-300">
                     {bulkList.map((item, idx) => (
-                      <tr key={item.id} className="hover:bg-slate-50/40">
-                        <td className="p-3 font-semibold text-slate-700">{item.name}</td>
+                      <tr key={item.id} className="hover:bg-slate-900/10">
+                        <td className="p-3 font-semibold text-slate-400">{item.name}</td>
                         <td className="p-2">
-                          <Input
+                          <input
                             value={item.leaderName}
                             onChange={(e) => handleBulkNameChange(idx, e.target.value)}
-                            placeholder="Type leader name to provision"
-                            className="h-8 text-xs bg-white border-hairline"
+                            placeholder="Leader name to provision"
+                            className="input-dark h-8 text-[12px] py-0"
                           />
                         </td>
                         <td className="p-2">
-                          <Input
+                          <input
                             value={item.email}
                             onChange={(e) => handleBulkEmailChange(idx, e.target.value)}
                             placeholder="Real email (optional)"
-                            className="h-8 text-xs bg-white border-hairline"
+                            className="input-dark h-8 text-[12px] py-0"
                           />
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Existing Accounts List */}
-        <Card className="border-hairline shadow-sm bg-white">
-          <CardHeader>
-            <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">
-              Active System Accounts ({users.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 border-t border-hairline">
-            <div className="overflow-x-auto text-xs">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-hairline text-slate-600 font-bold">
-                    <th className="p-3">Full Name</th>
-                    <th className="p-3">Username</th>
-                    <th className="p-3">System Email</th>
-                    <th className="p-3">Department</th>
-                    <th className="p-3">Role</th>
-                    <th className="p-3">First Login Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-hairline">
-                  {users.map(u => {
-                    const dept = mockDepartments.find(d => d.id === u.department_id)
-                    return (
-                      <tr key={u.id} className="hover:bg-slate-50/50">
-                        <td className="p-3 font-semibold text-slate-700">{u.full_name}</td>
-                        <td className="p-3 font-mono text-slate-600">{u.username || '—'}</td>
-                        <td className="p-3 text-slate-500">{u.email}</td>
-                        <td className="p-3 font-semibold text-slate-600">{dept?.name || 'Administrative Office'}</td>
-                        <td className="p-3">
-                          <span className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] font-bold ${
-                            u.role === 'super_admin' ? 'bg-indigo-100 text-indigo-800' :
-                            u.role === 'coordinator' ? 'bg-blue-100 text-blue-800' :
-                            u.role === 'hod' ? 'bg-amber-100 text-amber-800' :
-                            'bg-slate-100 text-slate-600'
-                          }`}>
-                            {u.role.toUpperCase()}
+        <div className="glass-card overflow-hidden">
+          <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.2)' }}>
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Active System Accounts ({users.length})</span>
+          </div>
+
+          <div className="overflow-x-auto scrollbar-hide text-[12px]">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Full Name</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Username</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">System Email</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Department</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Role</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800 text-slate-300">
+                {users.map(u => {
+                  const dept = mockDepartments.find(d => d.id === u.department_id)
+                  return (
+                    <tr key={u.id} className="hover:bg-slate-900/10">
+                      <td className="p-3 font-semibold text-slate-200">{u.full_name}</td>
+                      <td className="p-3 font-mono text-slate-400">{u.username || '—'}</td>
+                      <td className="p-3 text-slate-500">{u.email}</td>
+                      <td className="p-3 font-medium text-slate-400">{dept?.name || 'Administrative Office'}</td>
+                      <td className="p-3">
+                        <span
+                          className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full"
+                          style={
+                            u.role === 'super_admin' ? { background: 'rgba(59,130,246,0.1)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.2)' } :
+                            u.role === 'coordinator' ? { background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' } :
+                            u.role === 'hod' ? { background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' } :
+                            { background: 'rgba(255,255,255,0.04)', color: '#94A3B8', border: '1px solid rgba(255,255,255,0.08)' }
+                          }
+                        >
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        {u.must_change_password ? (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' }}>
+                            Pending Reset
                           </span>
-                        </td>
-                        <td className="p-3">
-                          {u.must_change_password ? (
-                            <span className="text-[10px] text-amber-700 font-bold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
-                              Pending Reset
-                            </span>
-                          ) : (
-                            <span className="text-[10px] text-green-700 font-bold bg-green-50 border border-green-200 px-2 py-0.5 rounded">
-                              Completed
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                        ) : (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }}>
+                            Active
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </main>
     </div>
   )
 }
+

@@ -137,212 +137,220 @@ export default function YoYComparisonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-mesh" style={{ background: '#06090F' }}>
       <DashboardHeader />
 
       {/* Heading Block */}
-      <div className="bg-white border-b border-slate-200 dark:bg-slate-950 dark:border-slate-800 py-6 px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+      <div className="border-b" style={{ background: 'rgba(6,9,15,0.7)', borderColor: 'rgba(255,255,255,0.07)' }}>
+        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between py-6 px-4 md:px-6 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-              Year-over-Year Comparison
-            </h1>
-            <p className="text-sm text-slate-500">
-              Secretariat Analytics Panel • Compare 2025 and 2026 convention cycles.
-            </p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+              <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">Secretariat Analytics Panel</span>
+            </div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Year-over-Year Comparison</h1>
+            <p className="text-[13px] text-slate-500 mt-0.5">Compare 2025 and 2026 convention cycles.</p>
           </div>
-          
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <Link href="/dashboard">
-              <Button variant="outline" size="sm">
-                ➔ Oversight Grid Matrix
-              </Button>
+              <button
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}
+              >
+                ➔ Oversight Dashboard
+              </button>
             </Link>
           </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-8 py-8 space-y-8">
+      <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-fade-in-up">
         {/* Selector Header Bar */}
-        <Card className="border-slate-200 dark:border-slate-800">
-          <CardContent className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-center text-xs">
+        <div className="glass-card p-4">
+          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center text-[12px]">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-slate-500">Compare Base Year:</span>
               <select
                 value={eventA}
                 onChange={(e) => setEventA(e.target.value)}
-                className="h-8 rounded border border-slate-200 bg-white px-2 dark:border-slate-800 dark:bg-slate-950"
+                className="h-8 rounded-lg px-3 text-[12px] font-medium text-slate-300 cursor-pointer"
+                style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  outline: 'none',
+                }}
               >
-                <option value="event-2025">DTCE 2025 Annual Convention</option>
+                <option value="event-2025" style={{ background: '#111827' }}>DTCE 2025 Annual Convention</option>
               </select>
             </div>
-            <div className="text-slate-400 font-bold">VS</div>
+            <div className="text-slate-600 font-bold uppercase tracking-wider">VS</div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-slate-500">Compare Target Year:</span>
               <select
                 value={eventB}
                 onChange={(e) => setEventB(e.target.value)}
-                className="h-8 rounded border border-slate-200 bg-white px-2 dark:border-slate-800 dark:bg-slate-950"
+                className="h-8 rounded-lg px-3 text-[12px] font-medium text-slate-300 cursor-pointer"
+                style={{
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  outline: 'none',
+                }}
               >
-                <option value="event-1">DTCE 2026 Annual Convention (Active)</option>
+                <option value="event-1" style={{ background: '#111827' }}>DTCE 2026 Annual Convention (Active)</option>
               </select>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Charts & Key KPIs Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
           {/* Card 1: Registration comparison custom bar chart */}
-          <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">Total Registration Comparison</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {comparisonStats.registrations.map(reg => {
-                const total = Math.max(reg.event2025, reg.event2026)
-                const pctA = Math.round((reg.event2025 / total) * 100)
-                const pctB = Math.round((reg.event2026 / total) * 100)
-                return (
-                  <div key={reg.category} className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-semibold text-slate-700 dark:text-slate-300">{reg.category}</span>
-                      <span className="font-mono text-slate-500">
-                        {reg.event2025} <span className="text-slate-300">vs</span> {reg.event2026}
-                      </span>
-                    </div>
-                    {/* Visual double bar chart */}
-                    <div className="space-y-1">
-                      {/* Event A (2025) - Gold */}
-                      <div className="h-2 w-full bg-slate-100 rounded-full dark:bg-slate-800 overflow-hidden">
-                        <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${pctA}%` }}></div>
+          <div className="glass-card p-5 flex flex-col justify-between">
+            <div>
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">Total Registration Comparison</h2>
+              <div className="space-y-4">
+                {comparisonStats.registrations.map(reg => {
+                  const total = Math.max(reg.event2025, reg.event2026)
+                  const pctA = Math.round((reg.event2025 / total) * 100)
+                  const pctB = Math.round((reg.event2026 / total) * 100)
+                  return (
+                    <div key={reg.category} className="space-y-1.5">
+                      <div className="flex justify-between text-[12px]">
+                        <span className="font-semibold text-slate-300">{reg.category}</span>
+                        <span className="font-mono text-slate-400">
+                          {reg.event2025} <span className="text-slate-600">vs</span> {reg.event2026}
+                        </span>
                       </div>
-                      {/* Event B (2026) - Navy */}
-                      <div className="h-2 w-full bg-slate-100 rounded-full dark:bg-slate-800 overflow-hidden">
-                        <div className="h-full bg-blue-600 rounded-full" style={{ width: `${pctB}%` }}></div>
+                      {/* Visual double bar chart */}
+                      <div className="space-y-1">
+                        {/* Event A (2025) - Gold */}
+                        <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                          <div className="h-full bg-amber-500 rounded-full" style={{ width: `${pctA}%` }}></div>
+                        </div>
+                        {/* Event B (2026) - Navy */}
+                        <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                          <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pctB}%` }}></div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-              <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold uppercase pt-2 border-t border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-1">
-                  <span className="h-2 w-2 bg-yellow-500 rounded-full"></span> 2025 Cycle
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="h-2 w-2 bg-blue-600 rounded-full"></span> 2026 Cycle
-                </div>
+                  )
+                })}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            
+            <div className="flex justify-between items-center text-[10px] text-slate-500 font-bold uppercase pt-4 mt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 bg-amber-500 rounded-full"></span> 2025 Cycle
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 bg-blue-500 rounded-full"></span> 2026 Cycle
+              </div>
+            </div>
+          </div>
 
           {/* Card 2: Offering Finance comparison */}
-          <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">Total Offering Finance</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6 flex flex-col justify-center h-[280px]">
-              <div className="space-y-1">
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">2025 Annual Convention</span>
-                <p className="text-3xl font-extrabold font-mono text-slate-700 dark:text-slate-300">
-                  ₦{comparisonStats.offering.event2025.toLocaleString()}
-                </p>
-              </div>
+          <div className="glass-card p-5 flex flex-col justify-between">
+            <div>
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">Total Offering Finance</h2>
+              <div className="space-y-5">
+                <div className="space-y-1">
+                  <span className="text-[9px] text-slate-500 font-bold uppercase block tracking-wider">2025 Annual Convention</span>
+                  <p className="text-2xl font-extrabold font-mono text-slate-300">
+                    ₦{comparisonStats.offering.event2025.toLocaleString()}
+                  </p>
+                </div>
 
-              <div className="space-y-1 border-t border-slate-100 pt-4 dark:border-slate-800">
-                <span className="text-[10px] text-slate-400 font-bold uppercase block">2026 Annual Convention</span>
-                <p className="text-3xl font-extrabold font-mono text-green-600 dark:text-green-400">
-                  ₦{comparisonStats.offering.event2026.toLocaleString()}
-                </p>
+                <div className="space-y-1 pt-4" style={{ borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
+                  <span className="text-[9px] text-slate-500 font-bold uppercase block tracking-wider">2026 Annual Convention</span>
+                  <p className="text-3xl font-extrabold font-mono text-emerald-400">
+                    ₦{comparisonStats.offering.event2026.toLocaleString()}
+                  </p>
+                </div>
               </div>
+            </div>
 
-              <div className="bg-green-50 text-green-800 dark:bg-green-950/20 dark:text-green-400 p-2.5 rounded text-xs text-center font-bold">
-                ➔ +38.1% Increase in collections YoY
-              </div>
-            </CardContent>
-          </Card>
+            <div className="mt-5 rounded-xl p-3 text-[12px] text-center font-bold text-emerald-400" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
+              ➔ +38.1% Increase in collections YoY
+            </div>
+          </div>
 
           {/* Card 3: Attendance Trends comparison */}
-          <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">Daily Attendance trends</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="glass-card p-5">
+            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">Daily Attendance trends</h2>
+            <div className="space-y-3.5">
               {comparisonStats.attendanceTrend.map(trend => {
                 const maxVal = 1600
                 const pct2025 = Math.round((trend.event2025 / maxVal) * 100)
                 const pct2026 = Math.round((trend.event2026 / maxVal) * 100)
                 return (
-                  <div key={trend.day} className="flex items-center space-x-3 text-xs">
-                    <span className="w-12 font-semibold text-slate-500">{trend.day}</span>
+                  <div key={trend.day} className="flex items-center gap-3 text-[12px]">
+                    <span className="w-12 font-semibold text-slate-400">{trend.day}</span>
                     <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         {/* Event A (2025) */}
-                        <div className="h-2 bg-yellow-500 rounded" style={{ width: `${pct2025}%` }}></div>
-                        <span className="text-[9px] font-mono text-slate-400">{trend.event2025}</span>
+                        <div className="h-1.5 bg-amber-500/80 rounded" style={{ width: `${pct2025}%` }}></div>
+                        <span className="text-[9px] font-mono text-slate-500">{trend.event2025}</span>
                       </div>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         {/* Event B (2026) */}
-                        <div className="h-2 bg-blue-600 rounded" style={{ width: `${pct2026}%` }}></div>
-                        <span className="text-[9px] font-mono text-slate-600 font-bold">{trend.event2026}</span>
+                        <div className="h-1.5 bg-blue-500/90 rounded" style={{ width: `${pct2026}%` }}></div>
+                        <span className="text-[9px] font-mono text-slate-300 font-bold">{trend.event2026}</span>
                       </div>
                     </div>
                   </div>
                 )
               })}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
         </div>
 
         {/* Unresolved Carry-over Challenges / Recommendations */}
-        <Card className="border-slate-200 dark:border-slate-800 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-200">
-              ⚠️ Carry-Over Challenges & Unresolved Recommendations
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Automatically matching challenges from 2025 that apparently recurred in 2026 (simple keyword matching).
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0 border-t border-slate-100 dark:border-slate-800">
-            <div className="overflow-x-auto text-xs">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-100/50 text-slate-600 font-bold border-b border-slate-200">
-                    <th className="p-3">Department</th>
-                    <th className="p-3">Matched Keyword</th>
-                    <th className="p-3">2025 Challenge</th>
-                    <th className="p-3">2025 Unaddressed Recommendation</th>
-                    <th className="p-3 bg-red-50 text-red-800">2026 Recurrent Challenge</th>
+        <div className="glass-card overflow-hidden">
+          <div className="px-5 py-4 border-b flex flex-col gap-1" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.2)' }}>
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">⚠️ Carry-Over Challenges &amp; Unresolved Recommendations</span>
+            <p className="text-[12px] text-slate-500">Automatically matching challenges from 2025 that recurrently appeared in 2026 narrative reports.</p>
+          </div>
+
+          <div className="overflow-x-auto scrollbar-hide text-[12px]">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Department</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Matched Keyword</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">2025 Challenge</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">2025 Unaddressed Recommendation</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-red-400" style={{ background: 'rgba(239,68,68,0.02)' }}>2026 Recurrent Challenge</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800 text-slate-300">
+                {carryOvers.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-slate-900/10">
+                    <td className="p-3 font-bold text-slate-200">{item.departmentName}</td>
+                    <td className="p-3">
+                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' }}>
+                        {item.keywordMatched}
+                      </span>
+                    </td>
+                    <td className="p-3 text-slate-400">{item.challenge2025}</td>
+                    <td className="p-3 italic font-semibold text-slate-300">{item.recommendation2025}</td>
+                    <td className="p-3 font-medium text-red-300" style={{ background: 'rgba(239,68,68,0.01)' }}>{item.challenge2026}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {carryOvers.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/50">
-                      <td className="p-3 font-bold text-slate-800 dark:text-slate-200">{item.departmentName}</td>
-                      <td className="p-3">
-                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-[10px] font-bold text-yellow-800 capitalize">
-                          {item.keywordMatched}
-                        </span>
-                      </td>
-                      <td className="p-3 text-slate-500">{item.challenge2025}</td>
-                      <td className="p-3 italic font-semibold text-slate-700 dark:text-slate-300">{item.recommendation2025}</td>
-                      <td className="p-3 bg-red-50/30 text-red-900 font-medium">{item.challenge2026}</td>
-                    </tr>
-                  ))}
-                  {carryOvers.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="p-6 text-center text-slate-400 italic">
-                        No recurring carry-over issues detected! Outstanding recommendations from 2025 appear fully resolved.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+                {carryOvers.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="p-6 text-center text-slate-500 italic">
+                      No recurring carry-over issues detected! All recommendations from 2025 appear fully resolved.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
       </main>
     </div>

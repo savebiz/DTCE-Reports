@@ -178,172 +178,230 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-paper text-charcoal font-sans">
-      {/* Left Panel: Ink-navy with the signature Day Rail */}
-      <div className="w-full lg:w-5/12 bg-ink-navy text-white p-8 lg:p-16 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-hairline">
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className="h-2 w-2 bg-convention-gold rounded-full"></span>
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-400">DTCE Oversight System</span>
+    <div
+      className="min-h-screen flex flex-col lg:flex-row"
+      style={{ background: '#06090F' }}
+    >
+      {/* ── Left Panel: Cinematic Brand Side ── */}
+      <div
+        className="relative hidden lg:flex w-5/12 flex-col justify-between overflow-hidden p-12"
+        style={{
+          background: 'linear-gradient(160deg, #0C1220 0%, #06090F 50%, #0A1628 100%)',
+          borderRight: '1px solid rgba(255,255,255,0.07)',
+        }}
+      >
+        {/* Ambient glow orbs */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute top-[-10%] left-[-10%] h-96 w-96 rounded-full opacity-20"
+            style={{ background: 'radial-gradient(circle, #1E40AF 0%, transparent 70%)' }} />
+          <div className="absolute bottom-[-5%] right-[-5%] h-80 w-80 rounded-full opacity-10"
+            style={{ background: 'radial-gradient(circle, #F59E0B 0%, transparent 70%)' }} />
+        </div>
+
+        {/* Logo & tagline */}
+        <div className="relative z-10">
+          <div className="flex items-center gap-2.5 mb-8">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl"
+              style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">DTCE Oversight System</div>
+            </div>
           </div>
-          <h2 className="text-2xl font-display font-semibold mt-4 text-white">
-            Daily Report Portal
-          </h2>
-          <p className="text-xs text-slate-400 mt-1 font-sans">
-            Access secure departmental reporting tools for the active convention.
+
+          <h1 className="text-3xl font-bold text-white leading-tight">
+            Daily Report<br />
+            <span className="text-gradient-gold">Portal</span>
+          </h1>
+          <p className="mt-3 text-[13px] text-slate-500 leading-relaxed max-w-xs">
+            Secure departmental reporting tools for convention operations.
           </p>
         </div>
 
-        {/* Signature Day Rail Tab Rail */}
-        <div className="my-10 space-y-2.5 max-w-sm">
+        {/* Day Rail */}
+        <div className="relative z-10 space-y-2">
+          <p className="text-[10px] font-semibold tracking-widest text-slate-600 uppercase mb-3">Convention Schedule</p>
           {days.map((day) => (
             <div
               key={day.num}
-              className={`flex items-center justify-between p-3 rounded border transition-all duration-300 ${
+              className="flex items-center justify-between rounded-xl px-4 py-3 transition-all duration-300"
+              style={
                 day.active
-                  ? 'bg-convention-gold border-convention-gold text-ink-navy font-bold shadow-md'
-                  : 'bg-ink-navy/40 border-slate-800 text-slate-300'
-              }`}
+                  ? { background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)' }
+                  : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
+              }
             >
-              <div className="flex items-center space-x-3 text-xs">
-                <span className="font-mono text-sm font-bold">
+              <div className="flex items-center gap-3">
+                {day.active && <span className="h-1.5 w-1.5 rounded-full bg-amber-400 pulse-dot" />}
+                <span className="font-tabular text-sm font-bold" style={{ color: day.active ? '#FCD34D' : '#475569' }}>
                   {day.num.toString().padStart(2, '0')}
                 </span>
-                <span className="font-semibold uppercase tracking-wider">{day.label}</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: day.active ? '#F1F5F9' : '#475569' }}>
+                  {day.label}
+                </span>
               </div>
-              <span className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded ${
-                day.active ? 'bg-ink-navy/20 text-ink-navy' : 'bg-slate-900 text-slate-500'
-              }`}>
+              <span
+                className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full"
+                style={
+                  day.active
+                    ? { background: 'rgba(245,158,11,0.2)', color: '#FCD34D' }
+                    : day.status === 'Submitted'
+                    ? { background: 'rgba(16,185,129,0.1)', color: '#34D399' }
+                    : { background: 'rgba(255,255,255,0.04)', color: '#334155' }
+                }
+              >
                 {day.status}
               </span>
             </div>
           ))}
         </div>
 
-        <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">
-          ⛪ RCCG Teens & Children Directorate
+        <div className="relative z-10 text-[10px] font-mono text-slate-700 uppercase tracking-widest">
+          RCCG Teens &amp; Children Directorate
         </div>
       </div>
 
-      {/* Right Panel: Login Credentials Form */}
-      <div className="w-full lg:w-7/12 flex items-center justify-center p-6 lg:p-16">
-        <div className="w-full max-w-md space-y-6">
-          <div className="text-left space-y-1">
-            <h1 className="text-3xl font-display font-semibold text-ink-navy">Sign In</h1>
-            <p className="text-sm text-slate-500">
-              Enter your pre-provisioned leader username and password.
-            </p>
+      {/* ── Right Panel: Login Form ── */}
+      <div className="flex flex-1 items-center justify-center p-6 lg:p-16">
+        <div className="w-full max-w-sm space-y-5 animate-fade-in-up">
+
+          {/* Mobile logo */}
+          <div className="flex lg:hidden items-center gap-2 mb-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg"
+              style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <span className="text-sm font-bold text-white">DTCE Reporting</span>
           </div>
 
-          <Card className="border-hairline shadow-md bg-white">
-            <form onSubmit={handleLogin}>
-              <CardContent className="space-y-4 pt-6">
-                <div className="space-y-2">
-                  <Label htmlFor="username" className="text-xs font-semibold text-slate-600">Username</Label>
-                  <Input
-                    id="username"
-                    placeholder="e.g. smith.medical"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="h-10 text-sm font-sans"
-                  />
-                </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">Sign In</h2>
+            <p className="text-[13px] text-slate-500 mt-1">Enter your provisioned credentials to continue.</p>
+          </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label htmlFor="password" className="text-xs font-semibold text-slate-600">Password</Label>
-                    <button
-                      type="button"
-                      onClick={() => setShowForgotMsg(true)}
-                      className="text-xs font-medium text-convention-gold hover:underline"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                    className="h-10 text-sm font-sans"
-                  />
-                </div>
-
-                {showForgotMsg && (
-                  <div className="rounded-md bg-amber-50 text-amber-800 border border-amber-200/60 p-3 text-xs">
-                    🔒 Self-service password resets are disabled. Please contact your Department Head or the Secretariat Admin to reset your temporary password.
-                  </div>
-                )}
-
-                {message && (
-                  <div
-                    className={`rounded-md p-3 text-sm ${
-                      message.type === 'success'
-                        ? 'bg-green-50 text-green-800 border border-green-100'
-                        : 'bg-red-50 text-red-800 border border-red-100'
-                    }`}
-                  >
-                    {message.text}
-                  </div>
-                )}
-              </CardContent>
-              <CardFooter className="pb-6">
-                <Button type="submit" className="w-full bg-ink-navy text-white hover:bg-ink-navy/95 font-semibold h-10" disabled={loading}>
-                  {loading ? 'Authenticating...' : 'Sign In'}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-
-          {isMock && (
-            <Card className="border-dashed border-hairline bg-slate-50/50 p-4">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block mb-2">
-                🛠️ Quick Leader Logins (No password needed)
-              </span>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs justify-start h-8 text-slate-700 font-semibold border-hairline"
-                  onClick={() => handleQuickLogin('admin.secretariat')}
+          {/* Form card */}
+          <div
+            className="rounded-2xl p-6 space-y-4"
+            style={{
+              background: 'rgba(12, 18, 32, 0.9)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              backdropFilter: 'blur(20px)',
+            }}
+          >
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label htmlFor="username" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  placeholder="e.g. admin.secretariat"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
                   disabled={loading}
-                >
-                  👑 Admin Chief
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs justify-start h-8 text-slate-700 font-semibold border-hairline"
-                  onClick={() => handleQuickLogin('jane.coordinator')}
-                  disabled={loading}
-                >
-                  👥 Coordinator
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs justify-start h-8 text-slate-700 font-semibold border-hairline"
-                  onClick={() => handleQuickLogin('smith.medical')}
-                  disabled={loading}
-                >
-                  🩺 HOD Medical
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs justify-start h-8 text-slate-700 font-semibold border-hairline"
-                  onClick={() => handleQuickLogin('robert.registration')}
-                  disabled={loading}
-                >
-                  📝 HOD Registry
-                </Button>
+                  className="input-dark"
+                />
               </div>
-            </Card>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label htmlFor="password" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotMsg(true)}
+                    className="text-[11px] font-medium transition-colors"
+                    style={{ color: '#F59E0B' }}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="input-dark"
+                />
+              </div>
+
+              {showForgotMsg && (
+                <div className="rounded-xl p-3 text-[12px]" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#FCD34D' }}>
+                  Contact your Department Head or Secretariat Admin to reset your password.
+                </div>
+              )}
+
+              {message && (
+                <div
+                  className="rounded-xl p-3 text-[12px]"
+                  style={
+                    message.type === 'success'
+                      ? { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34D399' }
+                      : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' }
+                  }
+                >
+                  {message.text}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-xl py-3 text-[14px] font-bold text-white transition-all duration-200"
+                style={{
+                  background: loading ? 'rgba(30,64,175,0.5)' : 'linear-gradient(135deg, #1E40AF, #3B82F6)',
+                  border: '1px solid rgba(59,130,246,0.3)',
+                }}
+                onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLElement).style.opacity = '0.9' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
+              >
+                {loading ? 'Authenticating…' : 'Sign In'}
+              </button>
+            </form>
+          </div>
+
+          {/* Quick Login Panel */}
+          {isMock && (
+            <div
+              className="rounded-2xl p-4 space-y-3"
+              style={{
+                background: 'rgba(255,255,255,0.02)',
+                border: '1px solid rgba(255,255,255,0.06)',
+              }}
+            >
+              <p className="text-[10px] font-semibold tracking-widest text-slate-600 uppercase">
+                Quick Leader Logins — No password needed
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { username: 'admin.secretariat', label: 'Admin Chief',    icon: '🛡️', color: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.2)', text: '#93C5FD' },
+                  { username: 'jane.coordinator',  label: 'Coordinator',   icon: '🗂️', color: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)', text: '#FCD34D' },
+                  { username: 'smith.medical',      label: 'HOD Medical',   icon: '⚕️', color: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)', text: '#34D399' },
+                  { username: 'robert.registration',label: 'HOD Registry',  icon: '📋', color: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.2)', text: '#C4B5FD' },
+                  { username: 'john.ushering',      label: 'HOD Ushering',  icon: '🚪', color: 'rgba(20,184,166,0.08)', border: 'rgba(20,184,166,0.2)', text: '#5EEAD4' },
+                  { username: 'mary.welfare',       label: 'HOD Welfare',   icon: '🤝', color: 'rgba(251,113,133,0.08)', border: 'rgba(251,113,133,0.2)', text: '#FDA4AF' },
+                ].map(({ username: u, label, icon, color, border, text }) => (
+                  <button
+                    key={u}
+                    onClick={() => handleQuickLogin(u)}
+                    disabled={loading}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-left text-[12px] font-semibold transition-all duration-150"
+                    style={{ background: color, border: `1px solid ${border}`, color: text }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.8' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
+                  >
+                    <span className="text-base leading-none">{icon}</span>
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>

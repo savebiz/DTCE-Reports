@@ -324,94 +324,112 @@ export default function MyDepartmentDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen" style={{ background: '#06090F' }}>
       <DashboardHeader />
 
       {/* Connectivity Status Bar */}
-      <div className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-2 flex items-center justify-between text-xs">
-        <div className="flex items-center space-x-2">
-          <span className={`h-2.5 w-2.5 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-amber-500 animate-bounce'}`} />
-          <span className="font-semibold text-slate-600 dark:text-slate-300">
-            {isOnline ? 'Online' : 'Offline Mode'}
+      <div
+        className="flex items-center justify-between px-4 md:px-6 py-2 text-[12px]"
+        style={{ background: 'rgba(0,0,0,0.4)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className="h-2 w-2 rounded-full"
+            style={{
+              background: isOnline ? '#10B981' : '#F59E0B',
+              boxShadow: isOnline ? '0 0 6px #10B981' : '0 0 6px #F59E0B',
+            }}
+          />
+          <span className="font-medium" style={{ color: isOnline ? '#34D399' : '#FCD34D' }}>
+            {isOnline ? 'Connected' : 'Offline Mode'}
           </span>
         </div>
         {pendingSyncCount > 0 && (
-          <div className="flex items-center space-x-3">
-            <span className="text-amber-600 dark:text-amber-400 font-bold">
-              {pendingSyncCount} pending upload(s)
-            </span>
+          <div className="flex items-center gap-3">
+            <span className="text-amber-400 font-semibold">{pendingSyncCount} pending upload(s)</span>
             {isOnline && (
-              <Button
-                variant="outline"
-                size="xs"
-                className="h-6 text-[10px] py-0 px-2"
+              <button
+                className="h-6 rounded-lg px-3 text-[11px] font-semibold text-white transition-all"
+                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)' }}
                 onClick={triggerSync}
                 disabled={syncing}
               >
-                {syncing ? 'Syncing...' : 'Sync Now'}
-              </Button>
+                {syncing ? 'Syncing…' : 'Sync Now'}
+              </button>
             )}
           </div>
         )}
       </div>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl font-sans text-charcoal">
+      <main className="mx-auto max-w-4xl px-4 md:px-6 py-8">
         {!isFormOpen ? (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-hairline pb-4">
+          <div className="space-y-5 animate-fade-in-up">
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-display font-semibold text-ink-navy">
-                  {department?.name || 'Department'} Reporting Checklist
-                </h2>
-                <p className="text-xs text-slate-500">
-                  Active convention days. Please fill out reporting metrics daily.
-                </p>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+                  <span className="text-[11px] font-semibold tracking-widest text-slate-600 uppercase">HOD Dashboard</span>
+                </div>
+                <h1 className="text-2xl font-bold text-white">
+                  {department?.name || 'Department'}
+                </h1>
+                <p className="text-[13px] text-slate-500 mt-0.5">Fill daily reporting metrics for each convention day.</p>
               </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 shrink-0 font-semibold h-9 text-xs"
+              <div className="flex gap-2">
+                <button
+                  className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all"
+                  style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', color: '#93C5FD' }}
                   onClick={() => router.push('/my-department/team')}
                 >
-                  👥 Manage Team
-                </Button>
-                <Button
-                  variant="outline"
-                  className="bg-primary/5 hover:bg-primary/10 text-primary border-primary/20 shrink-0 font-semibold h-9 text-xs"
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  Manage Team
+                </button>
+                <button
+                  className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all"
+                  style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#FCD34D' }}
                   onClick={() => router.push('/my-department/narrative')}
                 >
-                  📝 End-of-Event Narrative
-                </Button>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  Event Narrative
+                </button>
               </div>
             </div>
 
-            {/* Stark checklist row - Linear Style */}
-            <div className="border border-hairline rounded divide-y divide-hairline bg-white shadow-sm">
-              {eventDays.map((day) => (
-                <div key={day.id} className="flex items-center justify-between p-4 hover:bg-slate-50/20 transition-colors">
-                  <div className="flex items-center space-x-4">
-                    <span className="font-mono text-xs font-bold text-slate-400">
+            {/* Day Checklist */}
+            <div className="glass-card overflow-hidden">
+              {eventDays.map((day, i) => (
+                <div
+                  key={day.id}
+                  className="flex items-center justify-between px-5 py-4 transition-all duration-150"
+                  style={{
+                    borderBottom: i < eventDays.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="font-tabular text-[11px] font-bold text-slate-600 w-10">
                       Day {day.day_number}
                     </span>
-                    <span className="font-semibold text-slate-800 font-sans">
+                    <span className="text-[14px] font-medium text-slate-300">
                       {new Date(day.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
                     </span>
                   </div>
 
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center gap-3">
                     {getStatusPill(day.id)}
-                    <Button
-                      variant={getButtonText(day.id) === "Enter today's data" ? 'default' : 'outline'}
-                      size="sm"
+                    <button
                       onClick={() => openEntryForm(day)}
-                      className={
+                      className="h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-150"
+                      style={
                         getButtonText(day.id) === "Enter today's data"
-                          ? 'bg-ink-navy hover:bg-ink-navy/95 text-white font-semibold text-xs h-8'
-                          : 'border-hairline text-slate-700 font-semibold text-xs h-8'
+                          ? { background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', color: '#fff', border: '1px solid rgba(59,130,246,0.3)' }
+                          : { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8' }
                       }
                     >
                       {getButtonText(day.id)}
-                    </Button>
+                    </button>
                   </div>
                 </div>
               ))}
