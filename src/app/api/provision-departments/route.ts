@@ -115,7 +115,6 @@ export async function POST(request: NextRequest) {
         username: item.username,
         full_name: item.leaderName,
         role: 'hod',
-        department_id: item.id,
         must_change_password: true,
         created_by: user.id
       })
