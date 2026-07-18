@@ -3,10 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, Profile } from '@/utils/supabase'
-import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { validatePassword } from '@/lib/password-policy'
+import Link from 'next/link'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -14,7 +12,15 @@ export default function ResetPasswordPage() {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  
+  // Validation feedback
+  const [validation, setValidation] = useState<{ valid: boolean; errors: string[] }>({
+    valid: true,
+    errors: []
+  })
+  const [hasTyped, setHasTyped] = useState(false)
+  const [confirmError, setConfirmError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
     const checkUser = async () => {
@@ -25,17 +31,33 @@ export default function ResetPasswordPage() {
         return
       }
 
+      // Fetch profile with fallback if database row is missing
       const { data: prof } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
 
-      if (prof) {
-        setProfile(prof)
+      let activeProfile = prof
+      if (!activeProfile && user) {
+        const meta = user.user_metadata as any
+        activeProfile = {
+          id: user.id,
+          email: user.email || '',
+          full_name: meta?.full_name || user.email?.split('@')[0] || 'User',
+          role: meta?.role || 'hod',
+          department_id: meta?.department_id,
+          username: meta?.username || user.email?.split('@')[0] || 'user',
+          must_change_password: true,
+          is_active: true
+        }
+      }
+
+      if (activeProfile) {
+        setProfile(activeProfile)
         // If they don't actually need to reset, redirect them away
-        if (!prof.must_change_password) {
-          const path = (prof.role === 'super_admin' || prof.role === 'coordinator') ? '/dashboard' : '/my-department'
+        if (!activeProfile.must_change_password) {
+          const path = (activeProfile.role === 'super_admin' || activeProfile.role === 'coordinator') ? '/dashboard' : '/my-department'
           router.push(path)
         }
       } else {
@@ -45,22 +67,53 @@ export default function ResetPasswordPage() {
     checkUser()
   }, [])
 
+  // Live validation as user types
+  const handlePasswordChange = (val: string) => {
+    setNewPassword(val)
+    setHasTyped(true)
+    setSubmitError(null)
+    
+    const result = validatePassword(val, profile?.username || '')
+    setValidation(result)
+
+    if (confirmPassword && val !== confirmPassword) {
+      setConfirmError('Passwords do not match.')
+    } else {
+      setConfirmError(null)
+    }
+  }
+
+  const handleConfirmPasswordChange = (val: string) => {
+    setConfirmPassword(val)
+    setSubmitError(null)
+
+    if (newPassword && val !== newPassword) {
+      setConfirmError('Passwords do not match.')
+    } else {
+      setConfirmError(null)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newPassword || !confirmPassword) return
+    if (!newPassword || !confirmPassword || !profile) return
 
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters long.')
+    // Run final validation
+    const result = validatePassword(newPassword, profile.username || '')
+    if (!result.valid) {
+      setValidation(result)
+      setHasTyped(true)
+      setSubmitError('Please satisfy all password strength requirements.')
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.')
+      setConfirmError('Passwords do not match.')
       return
     }
 
     setLoading(true)
-    setError(null)
+    setSubmitError(null)
     const supabase = getClient()
 
     try {
@@ -76,16 +129,15 @@ export default function ResetPasswordPage() {
       const { error: dbErr } = await supabase
         .from('profiles')
         .update({ must_change_password: false })
-        .eq('id', profile!.id)
+        .eq('id', profile.id)
 
       if (dbErr) throw dbErr
 
       alert('Password updated successfully! Welcome to DTCE Reporting.')
-      const path = (profile!.role === 'super_admin' || profile!.role === 'coordinator') ? '/dashboard' : '/my-department'
-      router.push(path)
-      router.refresh()
+      const path = (profile.role === 'super_admin' || profile.role === 'coordinator') ? '/dashboard' : '/my-department'
+      window.location.href = path // hard redirect refreshes sessions/middleware
     } catch (err: any) {
-      setError(err.message || 'An error occurred while updating your password.')
+      setSubmitError(err.message || 'An error occurred while updating your password.')
     } finally {
       setLoading(false)
     }
@@ -93,69 +145,123 @@ export default function ResetPasswordPage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-paper text-charcoal">
-        <p className="text-sm font-mono animate-pulse">Checking credentials...</p>
+      <div className="min-h-screen flex items-center justify-center font-sans" style={{ background: '#06090F' }}>
+        <p className="text-sm font-mono animate-pulse text-slate-500">Checking credentials...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-paper text-charcoal p-4 font-sans">
-      <div className="w-full max-w-md space-y-6">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 font-sans bg-mesh" style={{ background: '#06090F' }}>
+      <div className="w-full max-w-md space-y-6 animate-fade-in-up">
+        
+        {/* Header Block */}
         <div className="text-center space-y-2">
-          <div className="inline-block text-2xl">🔒</div>
-          <h1 className="text-2xl font-display font-semibold text-ink-navy">Secure Your Account</h1>
-          <p className="text-xs text-slate-500 max-w-xs mx-auto">
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
+            <span className="text-amber-400 text-lg">🔒</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Secure Your Account</h1>
+          <p className="text-[13px] text-slate-500 max-w-xs mx-auto">
             This is your first login with an admin-provisioned credential. You must set a personalized password to continue.
           </p>
         </div>
 
-        <Card className="border-hairline shadow-md bg-white">
-          <CardHeader>
-            <CardTitle className="text-sm font-bold uppercase tracking-wider text-slate-400">Update Password</CardTitle>
-            <CardDescription className="text-xs">Logged in as {profile.full_name} ({profile.username})</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  placeholder="At least 6 characters"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                />
-              </div>
+        {/* Card Wrapper */}
+        <div className="glass-card p-6 space-y-5">
+          <div className="flex flex-col gap-0.5 border-b pb-4" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">First-Time Setup</span>
+            <span className="text-[13px] text-slate-300 font-medium">Logged in as: <span className="text-white font-bold">{profile.full_name}</span> ({profile.username})</span>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input
-                  id="confirm-password"
-                  type="password"
-                  placeholder="Re-enter password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                />
-              </div>
-
-              {error && (
-                <div className="rounded-md bg-red-50 text-red-800 border border-red-100 p-3 text-xs font-semibold">
-                  ⚠️ {error}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* New Password input */}
+            <div className="space-y-1.5">
+              <label htmlFor="new-password" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                New Password
+              </label>
+              <input
+                id="new-password"
+                type="password"
+                placeholder="Enter compliant password"
+                value={newPassword}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                required
+                disabled={loading}
+                className="input-dark"
+              />
+              
+              {/* Password strength checklist */}
+              {hasTyped && (
+                <div className="rounded-xl p-3.5 space-y-2 mt-2 text-[12px]" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <p className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Strength Requirements</p>
+                  
+                  <ul className="space-y-1.5 font-mono text-[11px]">
+                    {[
+                      { label: 'Minimum 8 characters', ok: newPassword.length >= 8 },
+                      { label: 'At least 1 uppercase letter', ok: /[A-Z]/.test(newPassword) },
+                      { label: 'At least 1 lowercase letter', ok: /[a-z]/.test(newPassword) },
+                      { label: 'At least 1 digit', ok: /\d/.test(newPassword) },
+                      { label: 'At least 1 special char (!@#$%&*?-)', ok: /[!@#\$%&\*\?-]/.test(newPassword) },
+                      { label: 'Does not contain username', ok: !newPassword.toLowerCase().includes((profile.username || '').toLowerCase()) }
+                    ].map((rule, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <span className="text-[12px] font-bold" style={{ color: rule.ok ? '#10B981' : '#EF4444' }}>
+                          {rule.ok ? '✓' : '✗'}
+                        </span>
+                        <span style={{ color: rule.ok ? '#94A3B8' : '#FCA5A5' }}>
+                          {rule.label}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full bg-ink-navy text-white hover:bg-ink-navy/95 font-semibold" disabled={loading}>
-                {loading ? 'Updating Password...' : '➔ Save Password & Continue'}
-              </Button>
-            </CardFooter>
+            </div>
+
+            {/* Confirm Password input */}
+            <div className="space-y-1.5">
+              <label htmlFor="confirm-password" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                Confirm Password
+              </label>
+              <input
+                id="confirm-password"
+                type="password"
+                placeholder="Re-enter password"
+                value={confirmPassword}
+                onChange={(e) => handleConfirmPasswordChange(e.target.value)}
+                required
+                disabled={loading}
+                className="input-dark"
+              />
+              {confirmError && (
+                <p className="text-[11px] text-red-400 font-medium mt-1">⚠️ {confirmError}</p>
+              )}
+            </div>
+
+            {/* Form-level errors */}
+            {submitError && (
+              <div className="rounded-xl p-3 text-[12px]" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' }}>
+                ⚠️ {submitError}
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading || !validation.valid || !!confirmError}
+              className="w-full rounded-xl py-3 text-[13px] font-bold text-white transition-all duration-200 mt-2"
+              style={{
+                background: (loading || !validation.valid || !!confirmError) ? 'rgba(30,64,175,0.4)' : 'linear-gradient(135deg, #1E40AF, #3B82F6)',
+                border: '1px solid rgba(59,130,246,0.3)',
+                color: (loading || !validation.valid || !!confirmError) ? '#94A3B8' : 'white',
+                cursor: (loading || !validation.valid || !!confirmError) ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {loading ? 'Updating Password...' : '➔ Save Password & Continue'}
+            </button>
           </form>
-        </Card>
+        </div>
       </div>
     </div>
   )
