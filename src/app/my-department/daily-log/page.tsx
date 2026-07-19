@@ -94,7 +94,16 @@ function DailyLogContent() {
       }
 
       const dept = mockDepartments.find(d => d.id === activeDeptId)
-      if (dept) setDepartment(dept)
+      if (dept) {
+        setDepartment(dept)
+      } else {
+        const { data: dbDept } = await supabase
+          .from('departments')
+          .select('*')
+          .eq('id', activeDeptId)
+          .maybeSingle()
+        if (dbDept) setDepartment(dbDept)
+      }
 
       // Fetch Event Days
       let days = []
@@ -300,8 +309,8 @@ function DailyLogContent() {
           <div className="flex items-center gap-2.5">
             <span className="text-base">⚠️</span>
             <div>
-              <span className="text-[12px] font-bold text-amber-400 uppercase block tracking-wider">Secretariat On-Behalf Submission Mode</span>
-              <p className="text-[11px] text-slate-400">
+              <span className="text-[12px] font-bold text-amber-500 uppercase block tracking-wider">Secretariat On-Behalf Submission Mode</span>
+              <p className="text-[11px] text-muted-foreground">
                 You are entering daily logs for the <strong>{department.name}</strong> department. Any submit action will record you as reviewer on-behalf.
               </p>
             </div>
@@ -314,7 +323,7 @@ function DailyLogContent() {
       {behalfAdminName && (
         <div className="rounded-xl p-4 flex items-center gap-2.5 border" style={{ background: 'rgba(59,130,246,0.06)', borderColor: 'rgba(59,130,246,0.2)' }}>
           <span className="text-base text-blue-400">ℹ️</span>
-          <p className="text-[12px] text-slate-300">
+          <p className="text-[12px] text-muted-foreground">
             This log was <strong>Submitted on behalf of {department.name} by {behalfAdminName}</strong>.
           </p>
         </div>
@@ -322,7 +331,7 @@ function DailyLogContent() {
 
       {/* Date Day Selector */}
       <div className="glass-card p-5 space-y-3">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Event reporting Day</span>
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Event reporting Day</span>
         <div className="flex flex-wrap gap-2">
           {eventDays.map((d: any) => {
             const active = d.id === activeDay.id
@@ -330,10 +339,10 @@ function DailyLogContent() {
               <button
                 key={d.id}
                 onClick={() => handleDayChange(d.id)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all border ${
+                className={`px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all border cursor-pointer ${
                   active
-                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                    : 'bg-slate-900/10 text-slate-400 border-transparent hover:border-slate-800'
+                    ? 'bg-amber-500/10 text-amber-550 dark:text-amber-400 border-amber-500/30'
+                    : 'bg-card text-muted-foreground border-border hover:border-slate-400 dark:hover:border-slate-700'
                 }`}
               >
                 Day {d.day_number} ({new Date(d.date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })})
@@ -348,34 +357,34 @@ function DailyLogContent() {
         <div className="lg:col-span-2 space-y-6">
           <Card className="glass-card border-none">
             <CardHeader>
-              <CardTitle className="text-lg font-bold text-white uppercase tracking-wider">
+              <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
                 1. Core Daily Attendance
               </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
+              <CardDescription className="text-xs text-muted-foreground">
                 Enter total attendees logged for both morning and evening services.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="m-att" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Morning Session</Label>
+                <Label htmlFor="m-att" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Morning Session</Label>
                 <Input
                   id="m-att"
                   type="number"
                   value={attendanceMorning}
                   onChange={(e) => setAttendanceMorning(Math.max(0, parseInt(e.target.value) || 0))}
                   disabled={isReadOnly || loading}
-                  className="input-dark font-mono text-lg text-center"
+                  className="input-dark font-mono text-lg text-center text-foreground"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="e-att" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Evening Session</Label>
+                <Label htmlFor="e-att" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Evening Session</Label>
                 <Input
                   id="e-att"
                   type="number"
                   value={attendanceEvening}
                   onChange={(e) => setAttendanceEvening(Math.max(0, parseInt(e.target.value) || 0))}
                   disabled={isReadOnly || loading}
-                  className="input-dark font-mono text-lg text-center"
+                  className="input-dark font-mono text-lg text-center text-foreground"
                 />
               </div>
             </CardContent>
@@ -385,15 +394,15 @@ function DailyLogContent() {
           {hasWorkforce && (
             <Card className="glass-card border-none">
               <CardHeader>
-                <CardTitle className="text-lg font-bold text-white uppercase tracking-wider">
+                <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
                   2. Attendee Category Breakdown
                 </CardTitle>
-                <CardDescription className="text-xs text-slate-500">
+                <CardDescription className="text-xs text-muted-foreground">
                   Break down logged attendee counts by age category and gender.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold text-slate-500 uppercase tracking-wider pb-2 border-b border-slate-800">
+                <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider pb-2 border-b border-border">
                   <div className="text-left">Category</div>
                   <div>Male</div>
                   <div>Female</div>
@@ -401,77 +410,77 @@ function DailyLogContent() {
 
                 {/* Teachers */}
                 <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
-                  <span className="font-semibold text-slate-300">Teachers / Helpers</span>
+                  <span className="font-semibold text-foreground">Teachers / Helpers</span>
                   <Input
                     type="number"
                     value={workforce.teachersMale}
                     onChange={(e) => setWorkforce(w => ({ ...w, teachersMale: Math.max(0, parseInt(e.target.value) || 0) }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center"
+                    className="input-dark font-mono text-center text-foreground"
                   />
                   <Input
                     type="number"
                     value={workforce.teachersFemale}
                     onChange={(e) => setWorkforce(w => ({ ...w, teachersFemale: Math.max(0, parseInt(e.target.value) || 0) }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center"
+                    className="input-dark font-mono text-center text-foreground"
                   />
                 </div>
 
                 {/* Teenagers */}
                 <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
-                  <span className="font-semibold text-slate-300">Teenagers</span>
+                  <span className="font-semibold text-foreground">Teenagers</span>
                   <Input
                     type="number"
                     value={workforce.teenagersMale}
                     onChange={(e) => setWorkforce(w => ({ ...w, teenagersMale: Math.max(0, parseInt(e.target.value) || 0) }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center"
+                    className="input-dark font-mono text-center text-foreground"
                   />
                   <Input
                     type="number"
                     value={workforce.teenagersFemale}
                     onChange={(e) => setWorkforce(w => ({ ...w, teenagersFemale: Math.max(0, parseInt(e.target.value) || 0) }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center"
+                    className="input-dark font-mono text-center text-foreground"
                   />
                 </div>
 
                 {/* Pre-teens */}
                 <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
-                  <span className="font-semibold text-slate-300">Pre-Teens</span>
+                  <span className="font-semibold text-foreground">Pre-Teens</span>
                   <Input
                     type="number"
                     value={workforce.preteensMale}
                     onChange={(e) => setWorkforce(w => ({ ...w, preteensMale: Math.max(0, parseInt(e.target.value) || 0) }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center"
+                    className="input-dark font-mono text-center text-foreground"
                   />
                   <Input
                     type="number"
                     value={workforce.preteensFemale}
                     onChange={(e) => setWorkforce(w => ({ ...w, preteensFemale: Math.max(0, parseInt(e.target.value) || 0) }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center"
+                    className="input-dark font-mono text-center text-foreground"
                   />
                 </div>
 
                 {/* Children */}
                 <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
-                  <span className="font-semibold text-slate-300">Children</span>
+                  <span className="font-semibold text-foreground">Children</span>
                   <Input
                     type="number"
                     value={workforce.childrenMale}
                     onChange={(e) => setWorkforce(w => ({ ...w, childrenMale: Math.max(0, parseInt(e.target.value) || 0) }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center"
+                    className="input-dark font-mono text-center text-foreground"
                   />
                   <Input
                     type="number"
                     value={workforce.childrenFemale}
                     onChange={(e) => setWorkforce(w => ({ ...w, childrenFemale: Math.max(0, parseInt(e.target.value) || 0) }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center"
+                    className="input-dark font-mono text-center text-foreground"
                   />
                 </div>
               </CardContent>
@@ -482,25 +491,25 @@ function DailyLogContent() {
           {hasOffering && (
             <Card className="glass-card border-none">
               <CardHeader>
-                <CardTitle className="text-lg font-bold text-white uppercase tracking-wider">
+                <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
                   3. Collections &amp; Financials
                 </CardTitle>
-                <CardDescription className="text-xs text-slate-500">
+                <CardDescription className="text-xs text-muted-foreground">
                   Record total offering collected for this day.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <Label htmlFor="offering-fin" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Total Offering Collected</Label>
+                  <Label htmlFor="offering-fin" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Total Offering Collected</Label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-sans text-sm font-semibold">₦</span>
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground font-sans text-sm font-semibold">₦</span>
                     <Input
                       id="offering-fin"
                       type="number"
                       value={offering}
                       onChange={(e) => setOffering(Math.max(0, parseInt(e.target.value) || 0))}
                       disabled={isReadOnly}
-                      className="input-dark pl-8 font-mono text-lg"
+                      className="input-dark pl-8 font-mono text-lg text-foreground"
                     />
                   </div>
                 </div>
@@ -514,10 +523,10 @@ function DailyLogContent() {
           {/* Custom Schema Form rendering */}
           <Card className="glass-card border-none">
             <CardHeader>
-              <CardTitle className="text-base font-bold text-white uppercase tracking-wider">
+              <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
                 Department Custom Metrics
               </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
+              <CardDescription className="text-xs text-muted-foreground">
                 Log metrics specific to {department.name} operations.
               </CardDescription>
             </CardHeader>
@@ -530,7 +539,7 @@ function DailyLogContent() {
                   readOnly={isReadOnly}
                 />
               ) : (
-                <p className="text-slate-500 italic text-[12px]">No custom metrics schema required for this department.</p>
+                <p className="text-muted-foreground italic text-[12px]">No custom metrics schema required for this department.</p>
               )}
             </CardContent>
           </Card>
@@ -538,14 +547,14 @@ function DailyLogContent() {
           {/* Submission panel */}
           <Card className="glass-card border-none">
             <CardContent className="pt-6 space-y-4">
-              <div className="flex justify-between items-center text-[12px] pb-3 border-b border-slate-800">
-                <span className="text-slate-500">Current Status:</span>
+              <div className="flex justify-between items-center text-[12px] pb-3 border-b border-border">
+                <span className="text-muted-foreground">Current Status:</span>
                 <span
                   className="font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
                   style={
-                    status === 'draft' ? { background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' } :
-                    status === 'submitted' ? { background: 'rgba(59,130,246,0.1)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.2)' } :
-                    { background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }
+                    status === 'draft' ? { background: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' } :
+                    status === 'submitted' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
+                    { background: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' }
                   }
                 >
                   {status}
@@ -554,16 +563,16 @@ function DailyLogContent() {
 
               {/* Form Validation Warnings (Task 8) */}
               {!isReadOnly && validationErrors.length > 0 && (
-                <div className="rounded-xl p-3 text-[11px] space-y-1.5" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', color: '#FCD34D' }}>
+                <div className="rounded-xl p-3 text-[11px] space-y-1.5" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', color: '#D97706' }}>
                   <span className="font-bold uppercase tracking-wide">⚠️ Gating Warnings</span>
-                  <ul className="list-disc list-inside space-y-1 text-slate-400">
+                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     {validationErrors.map((e, idx) => <li key={idx}>{e}</li>)}
                   </ul>
                 </div>
               )}
 
               {isReadOnly ? (
-                <p className="text-slate-500 text-center text-xs italic">
+                <p className="text-muted-foreground text-center text-xs italic">
                   This report is submitted/approved and locked. Contact Secretariat to make updates.
                 </p>
               ) : (

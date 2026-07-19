@@ -187,20 +187,37 @@
 /* ── Glass Card Utility ── */
 @layer utilities {
   .glass-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(15, 42, 74, 0.12);
+    border-radius: 12px;
+    transition: border-color 200ms ease, box-shadow 200ms ease;
+    box-shadow: 0 4px 16px rgba(15, 42, 74, 0.04);
+  }
+
+  .dark .glass-card {
     background: rgba(12, 18, 32, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    transition: border-color 200ms ease, box-shadow 200ms ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
 
   .glass-card:hover {
+    border-color: rgba(15, 42, 74, 0.2);
+  }
+
+  .dark .glass-card:hover {
     border-color: rgba(255, 255, 255, 0.14);
     box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.08), 0 8px 32px rgba(0, 0, 0, 0.4);
   }
 
   .glass-card-flat {
+    background: rgba(15, 42, 74, 0.03);
+    border: 1px solid rgba(15, 42, 74, 0.06);
+    border-radius: 10px;
+  }
+
+  .dark .glass-card-flat {
     background: rgba(15, 26, 46, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 10px;
@@ -311,9 +328,9 @@
 
   /* Premium input styling */
   .input-dark {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #F1F5F9;
+    background: rgba(15, 42, 74, 0.04);
+    border: 1px solid rgba(15, 42, 74, 0.15);
+    color: var(--foreground);
     border-radius: 8px;
     padding: 10px 14px;
     font-size: 14px;
@@ -322,7 +339,17 @@
     width: 100%;
   }
 
+  .dark .input-dark {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #F1F5F9;
+  }
+
   .input-dark::placeholder {
+    color: #94A3B8;
+  }
+
+  .dark .input-dark::placeholder {
     color: #475569;
   }
 

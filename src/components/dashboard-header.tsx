@@ -39,6 +39,7 @@ export function DashboardHeader() {
   const [profile, setProfile] = useState<any>(null)
   const [open, setOpen]     = useState(false)
   const [signing, setSigning] = useState(false)
+  const [activeDeptName, setActiveDeptName] = useState('Secretariat')
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -51,11 +52,49 @@ export function DashboardHeader() {
           .select('*')
           .eq('id', data.user.id)
           .single()
-        if (prof) setProfile(prof)
+        
+        let activeProfile: any = prof
+        if (prof) {
+          setProfile(prof)
+        } else {
+          const meta = (data.user.user_metadata || {}) as any
+          activeProfile = {
+            id: data.user.id,
+            role: meta.role || 'hod',
+            department_id: meta.department_id || 'dept-10'
+          }
+        }
+
+        const userRole = activeProfile?.role || 'hod'
+        let deptId = deptIdParam
+        if (userRole === 'super_admin' || userRole === 'coordinator') {
+          if (!deptIdParam) {
+            setActiveDeptName('Secretariat')
+            return
+          }
+        } else {
+          if (!deptId) deptId = activeProfile?.department_id
+        }
+
+        if (deptId) {
+          const mockDept = mockDepartments.find(d => d.id === deptId)
+          if (mockDept) {
+            setActiveDeptName(mockDept.name)
+          } else {
+            const { data: dbDept } = await supabase
+              .from('departments')
+              .select('name')
+              .eq('id', deptId)
+              .maybeSingle()
+            setActiveDeptName(dbDept?.name || 'Department')
+          }
+        } else {
+          setActiveDeptName(userRole === 'super_admin' || userRole === 'coordinator' ? 'Secretariat' : 'Department')
+        }
       }
     }
     fetchUser()
-  }, [])
+  }, [deptIdParam, profile?.department_id])
 
   const handleSignOut = async () => {
     setSigning(true)
@@ -78,18 +117,6 @@ export function DashboardHeader() {
     .map((w: string) => w[0])
     .join('')
     .toUpperCase()
-
-  // Determine active department label
-  let activeDeptName = 'Secretariat'
-  if (deptIdParam) {
-    const activeDept = mockDepartments.find(d => d.id === deptIdParam)
-    if (activeDept) activeDeptName = activeDept.name
-  } else if (profile?.department_id) {
-    const activeDept = mockDepartments.find(d => d.id === profile.department_id)
-    if (activeDept) activeDeptName = activeDept.name
-  } else if (role === 'hod' || role === 'assistant') {
-    activeDeptName = 'Department'
-  }
 
   return (
     <>

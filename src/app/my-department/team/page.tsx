@@ -67,7 +67,16 @@ export default function HODTeamManagement() {
       setProfile(activeProfile)
 
       const dept = mockDepartments.find(d => d.id === activeProfile.department_id)
-      setDepartmentName(dept?.name || 'Department')
+      if (dept) {
+        setDepartmentName(dept.name)
+      } else {
+        const { data: dbDept } = await supabase
+          .from('departments')
+          .select('name')
+          .eq('id', activeProfile.department_id)
+          .maybeSingle()
+        setDepartmentName(dbDept?.name || 'Department')
+      }
 
       // Load assistants scoped specifically to this department
       const { data: allUsers } = await supabase

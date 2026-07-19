@@ -73,9 +73,17 @@ export default function MyDepartmentDashboard() {
 
     if (activeProfile) {
       setProfile(activeProfile)
-      // Find HOD's department
       const dept = mockDepartments.find(d => d.id === activeProfile.department_id)
-      if (dept) setDepartment(dept)
+      if (dept) {
+        setDepartment(dept)
+      } else {
+        const { data: dbDept } = await supabase
+          .from('departments')
+          .select('*')
+          .eq('id', activeProfile.department_id)
+          .maybeSingle()
+        if (dbDept) setDepartment(dbDept)
+      }
 
       // Fetch days
       let days = []

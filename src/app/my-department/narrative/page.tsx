@@ -124,7 +124,16 @@ export default function DepartmentNarrativePage() {
       setProfile(activeProfile)
       
       const dept = mockDepartments.find(d => d.id === activeProfile.department_id)
-      if (dept) setDepartment(dept)
+      if (dept) {
+        setDepartment(dept)
+      } else {
+        const { data: dbDept } = await supabase
+          .from('departments')
+          .select('*')
+          .eq('id', activeProfile.department_id)
+          .maybeSingle()
+        if (dbDept) setDepartment(dbDept)
+      }
 
       // Fetch active event
       const { data: eventsList } = await supabase.from('events').select('*')
@@ -320,10 +329,10 @@ export default function DepartmentNarrativePage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-              <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">HOD Summary Submission</span>
+              <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">HOD Summary Submission</span>
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">End-of-Event Narrative Report</h1>
-            <p className="text-[13px] text-slate-500 mt-0.5">
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">End-of-Event Narrative Report</h1>
+            <p className="text-[13px] text-muted-foreground mt-0.5">
               {department?.name} Department • {activeEvent?.name || 'Annual Convention'}
             </p>
           </div>
@@ -332,19 +341,16 @@ export default function DepartmentNarrativePage() {
             <span
               className="text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full"
               style={
-                status === 'draft' ? { background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' } :
-                status === 'submitted' ? { background: 'rgba(59,130,246,0.1)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.2)' } :
-                { background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }
+                status === 'draft' ? { background: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' } :
+                status === 'submitted' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
+                { background: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' }
               }
             >
               Status: {status}
             </span>
             <button
               onClick={() => router.push('/my-department')}
-              className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200 text-slate-300"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}
+              className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer"
             >
               ➔ Daily Checklist
             </button>
@@ -359,55 +365,55 @@ export default function DepartmentNarrativePage() {
           <div className="lg:col-span-1 space-y-6">
             <div className="sticky top-20 space-y-6">
               <div>
-                <h3 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1.5">
+                <h3 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
                   Event Aggregated Data
                 </h3>
-                <p className="text-[12px] text-slate-500 leading-relaxed">
+                <p className="text-[12px] text-muted-foreground leading-relaxed">
                   Live references pulled directly from your daily reports to guide your summary prose.
                 </p>
               </div>
 
               {/* Attendance card */}
-              <div className="glass-card p-5">
-                <h4 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">Total Attendance Case</h4>
+              <div className="glass-card p-5 bg-card border-border">
+                <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Total Attendance Case</h4>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-xl p-3.5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <span className="text-[10px] text-slate-500 uppercase font-semibold block mb-0.5">Morning Total</span>
-                      <p className="text-xl font-bold font-mono text-white">{aggregatedStats.totalMorningAttendance}</p>
+                    <div className="rounded-xl p-3.5 bg-background/50 border border-border">
+                      <span className="text-[10px] text-muted-foreground uppercase font-semibold block mb-0.5">Morning Total</span>
+                      <p className="text-xl font-bold font-mono text-foreground">{aggregatedStats.totalMorningAttendance}</p>
                     </div>
-                    <div className="rounded-xl p-3.5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <span className="text-[10px] text-slate-500 uppercase font-semibold block mb-0.5">Evening Total</span>
-                      <p className="text-xl font-bold font-mono text-white">{aggregatedStats.totalEveningAttendance}</p>
+                    <div className="rounded-xl p-3.5 bg-background/50 border border-border">
+                      <span className="text-[10px] text-muted-foreground uppercase font-semibold block mb-0.5">Evening Total</span>
+                      <p className="text-xl font-bold font-mono text-foreground">{aggregatedStats.totalEveningAttendance}</p>
                     </div>
                   </div>
-                  <div className="pt-3.5 flex justify-between items-center text-[12px]" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                    <span className="text-slate-500">Average/Day:</span>
-                    <span className="font-bold font-mono text-slate-300">{aggregatedStats.averageAttendance}</span>
+                  <div className="pt-3.5 flex justify-between items-center text-[12px] border-t border-border">
+                    <span className="text-muted-foreground">Average/Day:</span>
+                    <span className="font-bold font-mono text-foreground">{aggregatedStats.averageAttendance}</span>
                   </div>
                 </div>
               </div>
 
               {/* Financial collections (if applicable) */}
-              <div className="glass-card p-5">
-                <h4 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">Financial / Collections</h4>
-                <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <span className="text-[10px] text-slate-500 uppercase font-semibold block mb-0.5">Total Offering / Sum</span>
-                  <p className="text-2xl font-bold font-mono text-emerald-400">
+              <div className="glass-card p-5 bg-card border-border">
+                <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Financial / Collections</h4>
+                <div className="rounded-xl p-4 bg-background/50 border border-border">
+                  <span className="text-[10px] text-muted-foreground uppercase font-semibold block mb-0.5">Total Offering / Sum</span>
+                  <p className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
                     <span className="font-sans">₦</span>{aggregatedStats.totalOffering.toLocaleString()}
                   </p>
                 </div>
               </div>
 
               {/* Event stats card */}
-              <div className="glass-card p-4 text-[12px] space-y-2">
+              <div className="glass-card p-4 text-[12px] space-y-2 bg-card border-border">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Reporting Days Submitted:</span>
-                  <span className="font-bold font-mono text-slate-300">{aggregatedStats.reportingDays} days</span>
+                  <span className="text-muted-foreground">Reporting Days Submitted:</span>
+                  <span className="font-bold font-mono text-foreground">{aggregatedStats.reportingDays} days</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">First Entry Logged:</span>
-                  <span className="font-medium text-slate-400">{reports.length > 0 ? new Date(reports[0].created_at).toLocaleDateString() : 'None'}</span>
+                  <span className="text-muted-foreground">First Entry Logged:</span>
+                  <span className="font-medium text-muted-foreground/80">{reports.length > 0 ? new Date(reports[0].created_at).toLocaleDateString() : 'None'}</span>
                 </div>
               </div>
             </div>
@@ -415,14 +421,14 @@ export default function DepartmentNarrativePage() {
 
           {/* Right Column: Writing/Prose Panel (Coda Editor Style) */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="glass-card p-6 space-y-6">
+            <div className="glass-card p-6 space-y-6 bg-card border-border">
               
               {/* 1. Overview */}
               <div className="space-y-2">
-                <label htmlFor="overview" className="text-[14px] font-bold text-white uppercase tracking-wider block">
+                <label htmlFor="overview" className="text-[14px] font-bold text-foreground uppercase tracking-wider block">
                   1. Overview of Activities
                 </label>
-                <p className="text-[12px] text-slate-500 mb-2">
+                <p className="text-[12px] text-muted-foreground mb-2">
                   Write a brief, comprehensive summary of your department's operations and tasks during the entire event.
                 </p>
                 <textarea
@@ -432,16 +438,16 @@ export default function DepartmentNarrativePage() {
                   placeholder="Describe how the department operated, tasks carried out, shift setups, and general workflow..."
                   rows={4}
                   disabled={isViewOnly}
-                  className="input-dark"
+                  className="input-dark text-foreground"
                 />
               </div>
 
               {/* 2. Highlights */}
               <div className="space-y-2">
-                <label htmlFor="highlights" className="text-[14px] font-bold text-white uppercase tracking-wider block">
+                <label htmlFor="highlights" className="text-[14px] font-bold text-foreground uppercase tracking-wider block">
                   2. Core Highlights &amp; Key Successes
                 </label>
-                <p className="text-[12px] text-slate-500 mb-2">
+                <p className="text-[12px] text-muted-foreground mb-2">
                   Highlight key milestones, major accomplishments, or moments where your department excelled.
                 </p>
                 <textarea
@@ -451,18 +457,18 @@ export default function DepartmentNarrativePage() {
                   placeholder="Example: Successfully printed 800 tags, treated all cases without injuries, smoothly distributed meals..."
                   rows={4}
                   disabled={isViewOnly}
-                  className="input-dark"
+                  className="input-dark text-foreground"
                 />
               </div>
 
               {/* 3. Discrete Challenges */}
-              <div className="space-y-4 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="space-y-4 pt-6 border-t border-border">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <span className="text-[14px] font-bold text-white uppercase tracking-wider block">
+                    <span className="text-[14px] font-bold text-foreground uppercase tracking-wider block">
                       3. Department Challenges / Issues
                     </span>
-                    <p className="text-[12px] text-slate-500">
+                    <p className="text-[12px] text-muted-foreground">
                       Log specific, discrete issues faced during the event (SafetyCulture discrete style).
                     </p>
                   </div>
@@ -470,10 +476,7 @@ export default function DepartmentNarrativePage() {
                     <button
                       type="button"
                       onClick={handleAddChallenge}
-                      className="h-8 rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 shrink-0 text-white"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}
+                      className="h-8 rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 shrink-0 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer"
                     >
                       + Add Challenge
                     </button>
@@ -482,19 +485,19 @@ export default function DepartmentNarrativePage() {
 
                 <div className="space-y-3">
                   {challenges.map((c, index) => (
-                    <div key={c.id} className="flex items-center gap-2 rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <span className="font-mono text-xs font-bold text-slate-500 w-6">C{index + 1}</span>
+                    <div key={c.id} className="flex items-center gap-2 rounded-xl p-3 bg-background/30 border border-border">
+                      <span className="font-mono text-xs font-bold text-muted-foreground w-6">C{index + 1}</span>
                       <input
                         value={c.text}
                         onChange={(e) => handleChallengeChange(c.id, e.target.value)}
                         placeholder="Describe the challenge briefly..."
                         disabled={isViewOnly}
-                        className="input-dark h-9 text-[13px] py-0 flex-1"
+                        className="input-dark h-9 text-[13px] py-0 flex-1 text-foreground"
                       />
                       {!isViewOnly && (
                         <button
                           type="button"
-                          className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-red-400 transition-colors"
+                          className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                           onClick={() => handleRemoveChallenge(c.id)}
                         >
                           ✕
@@ -503,19 +506,19 @@ export default function DepartmentNarrativePage() {
                     </div>
                   ))}
                   {challenges.length === 0 && (
-                    <p className="text-[12px] text-slate-500 italic">No challenges logged yet. Click "+ Add Challenge" if applicable.</p>
+                    <p className="text-[12px] text-muted-foreground italic">No challenges logged yet. Click "+ Add Challenge" if applicable.</p>
                   )}
                 </div>
               </div>
 
               {/* 4. Structured Recommendations */}
-              <div className="space-y-4 pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="space-y-4 pt-6 border-t border-border">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <span className="text-[14px] font-bold text-white uppercase tracking-wider block">
+                    <span className="text-[14px] font-bold text-foreground uppercase tracking-wider block">
                       4. Strategic Recommendations
                     </span>
-                    <p className="text-[12px] text-slate-500">
+                    <p className="text-[12px] text-muted-foreground">
                       Map actionable suggestions directly to the challenges logged above.
                     </p>
                   </div>
@@ -523,10 +526,7 @@ export default function DepartmentNarrativePage() {
                     <button
                       type="button"
                       onClick={handleAddRecommendation}
-                      className="h-8 rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 shrink-0 text-white"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}
+                      className="h-8 rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 shrink-0 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer"
                     >
                       + Add Recommendation
                     </button>
@@ -535,13 +535,13 @@ export default function DepartmentNarrativePage() {
 
                 <div className="space-y-4">
                   {recommendations.map((r, index) => (
-                    <div key={r.id} className="space-y-3 rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div key={r.id} className="space-y-3 rounded-xl p-4 bg-background/30 border border-border">
                       <div className="flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold text-slate-500">R{index + 1}</span>
+                        <span className="font-mono text-xs font-bold text-muted-foreground">R{index + 1}</span>
                         {!isViewOnly && (
                           <button
                             type="button"
-                            className="h-6 w-6 flex items-center justify-center rounded-lg text-slate-500 hover:text-red-400 transition-colors"
+                            className="h-6 w-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-550 transition-colors"
                             onClick={() => handleRemoveRecommendation(r.id)}
                           >
                             ✕
@@ -554,14 +554,14 @@ export default function DepartmentNarrativePage() {
                         onChange={(e) => handleRecommendationChange(r.id, e.target.value)}
                         placeholder="Describe your suggestion / action plan..."
                         disabled={isViewOnly}
-                        className="input-dark h-9 text-[13px] py-0"
+                        className="input-dark h-9 text-[13px] py-0 text-foreground"
                       />
 
                       {/* Linked challenge dropdown */}
                       <div className="flex items-center gap-2 pt-1">
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Linked Challenge:</span>
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Linked Challenge:</span>
                         {isViewOnly ? (
-                          <span className="text-[12px] font-semibold text-slate-300">
+                          <span className="text-[12px] font-semibold text-foreground">
                             {r.linked_challenge_id
                               ? `C${challenges.findIndex(c => c.id === r.linked_challenge_id) + 1}: ${challenges.find(c => c.id === r.linked_challenge_id)?.text}`
                               : 'None'}
@@ -570,16 +570,11 @@ export default function DepartmentNarrativePage() {
                           <select
                             value={r.linked_challenge_id || 'none'}
                             onChange={(e) => handleLinkChallenge(r.id as string, e.target.value)}
-                            className="h-7 rounded-lg px-2 text-[12px] font-medium text-slate-300 cursor-pointer"
-                            style={{
-                              background: 'rgba(255,255,255,0.06)',
-                              border: '1px solid rgba(255,255,255,0.1)',
-                              outline: 'none',
-                            }}
+                            className="h-8 rounded-lg px-2.5 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
                           >
-                            <option value="none" style={{ background: '#111827' }}>None</option>
+                            <option value="none">None</option>
                             {challenges.map((c, cIdx) => (
-                              <option key={c.id} value={c.id} style={{ background: '#111827' }}>
+                              <option key={c.id} value={c.id}>
                                 C{cIdx + 1}: {c.text.substring(0, 30)}...
                               </option>
                             ))}
@@ -589,30 +584,29 @@ export default function DepartmentNarrativePage() {
                     </div>
                   ))}
                   {recommendations.length === 0 && (
-                    <p className="text-[12px] text-slate-500 italic">No recommendations logged yet. Click "+ Add Recommendation" to begin.</p>
+                    <p className="text-[12px] text-muted-foreground italic">No recommendations logged yet. Click "+ Add Recommendation" to begin.</p>
                   )}
                 </div>
               </div>
 
               {/* Validation Warnings (Task 8) */}
               {!isViewOnly && warnings.length > 0 && (
-                <div className="rounded-xl p-4 text-[12px] space-y-1.5" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', color: '#FCD34D' }}>
+                <div className="rounded-xl p-4 text-[12px] space-y-1.5" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', color: '#D97706' }}>
                   <span className="font-bold uppercase tracking-wider block">⚠️ Gating Requirements</span>
-                  <ul className="list-disc list-inside space-y-1 text-slate-400">
+                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     {warnings.map((w, idx) => <li key={idx}>{w}</li>)}
                   </ul>
                 </div>
               )}
 
               {/* Footer actions inside editor card */}
-              <div className="flex justify-end gap-2 pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex justify-end gap-2 pt-5 border-t border-border">
                 {!isViewOnly ? (
                   <>
                     <button
                       onClick={() => handleSave(false)}
                       disabled={loading}
-                      className="h-9 rounded-lg px-4 text-[12px] font-semibold text-slate-300 transition-all cursor-pointer"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                      className="h-9 rounded-lg px-4 text-[12px] font-semibold text-foreground bg-card border border-border transition-all cursor-pointer hover:bg-slate-500/5"
                     >
                       Save Draft
                     </button>
@@ -626,7 +620,7 @@ export default function DepartmentNarrativePage() {
                     </button>
                   </>
                 ) : (
-                  <p className="text-[12px] text-slate-500 italic">
+                  <p className="text-[12px] text-muted-foreground italic">
                     Narrative is {status} and cannot be modified. Contact Secretariat to re-open draft.
                   </p>
                 )}
