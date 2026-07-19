@@ -64,6 +64,16 @@ export default function HODTeamManagement() {
         router.push('/dashboard')
         return
       }
+      if (!activeProfile.department_id && !isMock) {
+        const { data: assignment } = await supabase
+          .from('hod_assignments')
+          .select('department_id')
+          .eq('profile_id', activeProfile.id)
+          .maybeSingle()
+        if (assignment) {
+          activeProfile.department_id = assignment.department_id
+        }
+      }
       setProfile(activeProfile)
 
       const dept = mockDepartments.find(d => d.id === activeProfile.department_id)
@@ -79,13 +89,24 @@ export default function HODTeamManagement() {
       }
 
       // Load assistants scoped specifically to this department
-      const { data: allUsers } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('department_id', activeProfile.department_id)
-        .eq('role', 'assistant')
+      let assistantsList: any[] = []
+      if (isMock) {
+        const { data: allUsers } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('department_id', activeProfile.department_id)
+          .eq('role', 'assistant')
+        assistantsList = allUsers || []
+      } else {
+        const { data: assRows } = await supabase
+          .from('hod_assignments')
+          .select('profile_id, profiles!inner(*)')
+          .eq('department_id', activeProfile.department_id)
+          .eq('role_in_event', 'assistant')
+        assistantsList = assRows ? assRows.map((row: any) => row.profiles) : []
+      }
       
-      setAssistants(allUsers || [])
+      setAssistants(assistantsList)
     }
   }
 
@@ -187,21 +208,33 @@ export default function HODTeamManagement() {
         store.profiles.push(newProfile)
       }
 
-      await supabase.from('profiles').upsert({
+      const profilePayload: any = {
         id: newUserId,
         email: placeholderEmail,
         username: finalUsername,
         full_name: fullName,
         role: 'assistant',
-        department_id: profile.department_id,
         must_change_password: true,
         created_by: profile.id,
         is_active: true
-      })
+      }
+      if (isMock) {
+        profilePayload.department_id = profile.department_id
+      }
+      await supabase.from('profiles').upsert(profilePayload)
+
+      // Fetch active event id for assignment in DB mode
+      let activeEventId = 'event-1'
+      if (!isMock) {
+        const { data: eventsList } = await supabase.from('events').select('id')
+        if (eventsList && eventsList.length > 0) {
+          activeEventId = eventsList[0].id
+        }
+      }
 
       // Auto-assign assistant to active event
       await supabase.from('hod_assignments').insert({
-        event_id: 'event-1',
+        event_id: activeEventId,
         profile_id: newUserId,
         department_id: profile.department_id,
         role_in_event: 'assistant'

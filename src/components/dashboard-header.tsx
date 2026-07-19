@@ -2,10 +2,9 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { getClient } from '@/utils/supabase'
+import { getClient, isMock, mockDepartments } from '@/utils/supabase'
 import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import { mockDepartments } from '@/utils/supabase'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 const NAV_ITEMS = [
@@ -73,7 +72,20 @@ export function DashboardHeader() {
             return
           }
         } else {
-          if (!deptId) deptId = activeProfile?.department_id
+          if (!deptId) {
+            deptId = activeProfile?.department_id
+            if (!deptId && !isMock) {
+              const { data: assignment } = await supabase
+                .from('hod_assignments')
+                .select('department_id')
+                .eq('profile_id', activeProfile.id)
+                .maybeSingle()
+              if (assignment) {
+                deptId = assignment.department_id
+                activeProfile.department_id = deptId
+              }
+            }
+          }
         }
 
         if (deptId) {

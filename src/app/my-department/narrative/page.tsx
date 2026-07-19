@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getClient, mockDepartments, mockEvents, Profile, DailyReport, Department } from '@/utils/supabase'
+import { getClient, isMock, mockDepartments, mockEvents, Profile, DailyReport, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { Button } from '@/components/ui/button'
@@ -121,6 +121,16 @@ export default function DepartmentNarrativePage() {
     }
 
     if (activeProfile) {
+      if (!activeProfile.department_id && !isMock) {
+        const { data: assignment } = await supabase
+          .from('hod_assignments')
+          .select('department_id')
+          .eq('profile_id', activeProfile.id)
+          .maybeSingle()
+        if (assignment) {
+          activeProfile.department_id = assignment.department_id
+        }
+      }
       setProfile(activeProfile)
       
       const dept = mockDepartments.find(d => d.id === activeProfile.department_id)

@@ -83,6 +83,16 @@ function DailyLogContent() {
     }
 
     if (activeProfile) {
+      if (!activeProfile.department_id && !isMock) {
+        const { data: assignment } = await supabase
+          .from('hod_assignments')
+          .select('department_id')
+          .eq('profile_id', activeProfile.id)
+          .maybeSingle()
+        if (assignment) {
+          activeProfile.department_id = assignment.department_id
+        }
+      }
       setProfile(activeProfile)
       
       // Determine department context
