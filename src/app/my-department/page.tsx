@@ -21,6 +21,10 @@ export default function MyDepartmentDashboard() {
   const [syncing, setSyncing] = useState(false)
   const [pendingSyncCount, setPendingSyncCount] = useState(0)
 
+  // Stores fulfillment state
+  const [approvedRequests, setApprovedRequests] = useState<any[]>([])
+  const [actionLoading, setActionLoading] = useState(false)
+
   // 1. Monitor network state
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -110,6 +114,42 @@ export default function MyDepartmentDashboard() {
         .select('*')
         .eq('department_id', activeProfile.department_id)
       setReports(reps || [])
+
+      // Fetch approved store requisitions if Stores department
+      const isStores = activeProfile.department_id === 'dept-29' || activeProfile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690'
+      if (isStores) {
+        if (!isMock) {
+          const { data: appReqs } = await supabase
+            .from('store_requests')
+            .select('*')
+            .eq('status', 'approved')
+            .order('created_at', { ascending: false })
+          
+          if (appReqs) {
+            const enhanced = await Promise.all(appReqs.map(async (r: any) => {
+              const { data: reqProfile } = await supabase.from('profiles').select('full_name, email').eq('id', r.requester_profile_id).maybeSingle()
+              const { data: requesterDept } = await supabase.from('departments').select('name').eq('id', r.department_id).maybeSingle()
+              return {
+                ...r,
+                requester: reqProfile || { full_name: 'Unknown HOD', email: '' },
+                department: requesterDept || { name: 'Unknown Department' }
+              }
+            }))
+            setApprovedRequests(enhanced)
+          }
+        } else {
+          setApprovedRequests([
+            {
+              id: 'req-mock-stores-1',
+              items_json: [{ name: 'Mattresses', quantity: 50, category: 'durable' }],
+              status: 'approved',
+              created_at: new Date().toISOString(),
+              requester: { full_name: 'Elder Robert', email: 'reg@dtce.org' },
+              department: { name: 'Registration' }
+            }
+          ])
+        }
+      }
     }
 
     // Load offline sync queue
@@ -135,6 +175,34 @@ export default function MyDepartmentDashboard() {
       console.error(e)
     } finally {
       setSyncing(false)
+    }
+  }
+
+  // 4. Mark Request as Delivered
+  const handleMarkAsDelivered = async (reqId: string) => {
+    setActionLoading(true)
+    const supabase = getClient()
+    if (isMock) {
+      showToast('Requisition marked as delivered (Mock Mode)', 'success')
+      setApprovedRequests(prev => prev.filter(r => r.id !== reqId))
+      setActionLoading(false)
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('store_requests')
+        .update({ status: 'delivered' })
+        .eq('id', reqId)
+
+      if (error) throw error
+
+      showToast('Items issued and marked as delivered successfully!', 'success')
+      loadData()
+    } catch (e: any) {
+      showToast(`Failed to update request: ${e.message}`, 'error')
+    } finally {
+      setActionLoading(false)
     }
   }
 
@@ -193,6 +261,8 @@ export default function MyDepartmentDashboard() {
     )
   }
 
+  const isStoresDept = profile.department_id === 'dept-29' || profile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690'
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
 
@@ -230,7 +300,7 @@ export default function MyDepartmentDashboard() {
       </div>
 
       <main className="mx-auto max-w-4xl px-4 md:px-6 py-8">
-        <div className="space-y-5 animate-fade-in-up">
+        <div className="space-y-6 animate-fade-in-up">
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -243,16 +313,23 @@ export default function MyDepartmentDashboard() {
               </h1>
               <p className="text-[13px] text-slate-500 mt-0.5">Fill daily reporting metrics for each convention day.</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground"
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
+                onClick={() => router.push('/my-department/store-request')}
+              >
+                <span>📦</span>
+                Store Request
+              </button>
+              <button
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
                 onClick={() => router.push('/my-department/team')}
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                 Manage Team
               </button>
               <button
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground"
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
                 onClick={() => router.push('/my-department/narrative')}
               >
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -289,6 +366,69 @@ export default function MyDepartmentDashboard() {
               </div>
             ))}
           </div>
+
+          {/* Stores Department - Approved requisitions view */}
+          {isStoresDept && (
+            <Card className="glass-card border-none mt-8">
+              <CardHeader>
+                <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
+                  Approved Requisitions for Fulfillment
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                  Issue durables or consumables and mark them as delivered when collected.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {approvedRequests.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">No approved requisitions pending delivery.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {approvedRequests.map((req) => (
+                      <div key={req.id} className="border border-border rounded-xl p-4 space-y-3 bg-background/25">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <span className="text-sm font-bold text-foreground block">
+                              {req.department?.name} Department Requisition
+                            </span>
+                            <span className="text-[10px] text-muted-foreground block mt-0.5">
+                              Approved by Coordinator • Ordered by {req.requester?.full_name}
+                            </span>
+                          </div>
+                          <Button
+                            size="sm"
+                            disabled={actionLoading}
+                            onClick={() => handleMarkAsDelivered(req.id)}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
+                          >
+                            Mark as Delivered
+                          </Button>
+                        </div>
+
+                        {/* List items requested */}
+                        <div className="p-3 bg-background/40 border border-border rounded-lg space-y-1.5">
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">Material details:</span>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                            {req.items_json.map((it: any, itIdx: number) => (
+                              <div key={itIdx} className="flex justify-between border-b border-border/40 pb-1">
+                                <span className="text-foreground">{it.name} <span className="text-[10px] text-muted-foreground capitalize">({it.category})</span></span>
+                                <span className="font-bold text-foreground font-mono">x {it.quantity}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {req.reviewer_comments && (
+                          <div className="text-[11px] text-amber-500 bg-amber-500/5 p-2 rounded-lg border border-amber-500/10">
+                            <strong>Coordinator instruction:</strong> {req.reviewer_comments}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
     </div>

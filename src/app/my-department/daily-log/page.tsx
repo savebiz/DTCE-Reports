@@ -51,6 +51,9 @@ function DailyLogContent() {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [isSuperAdminActing, setIsSuperAdminActing] = useState(false)
   const [behalfAdminName, setBehalfAdminName] = useState<string>('')
+  
+  // Custom lookup inline inputs
+  const [newDiagText, setNewDiagText] = useState('')
 
   // 1. Fetch User profile and Event Days
   const loadData = async () => {
@@ -103,16 +106,165 @@ function DailyLogContent() {
         setIsSuperAdminActing(true)
       }
 
+      let activeDept: any = null
       const dept = mockDepartments.find(d => d.id === activeDeptId)
       if (dept) {
-        setDepartment(dept)
+        activeDept = { ...dept }
       } else {
         const { data: dbDept } = await supabase
           .from('departments')
           .select('*')
           .eq('id', activeDeptId)
           .maybeSingle()
-        if (dbDept) setDepartment(dbDept)
+        if (dbDept) {
+          activeDept = { ...dbDept }
+        }
+      }
+
+      if (activeDept) {
+        const nameLower = activeDept.name.toLowerCase()
+        if (nameLower.includes('bible study') || nameLower.includes('holy land')) {
+          // Fetch tribes from database
+          let tribesList: string[] = []
+          if (!isMock) {
+            const { data: tribesData } = await supabase.from('tribes').select('name').order('name', { ascending: true })
+            tribesList = tribesData?.map(t => t.name) || []
+          }
+          if (tribesList.length === 0) {
+            tribesList = ['Reuben', 'Simeon', 'Judah', 'Levi', 'Issachar', 'Zebulun', 'Dan', 'Naphtali', 'Gad', 'Asher', 'Joseph', 'Benjamin']
+          }
+
+          activeDept.default_metrics_schema = {
+            fields: [
+              {
+                name: 'tribes_attendance',
+                label: 'Tribal Attendance Statistics',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'tribe', label: 'Tribe', type: 'select', options: tribesList },
+                  { name: 'teachers_male', label: 'Teachers (Male)', type: 'number' },
+                  { name: 'teachers_female', label: 'Teachers (Female)', type: 'number' },
+                  { name: 'teenagers_male', label: 'Teenagers (Male)', type: 'number' },
+                  { name: 'teenagers_female', label: 'Teenagers (Female)', type: 'number' }
+                ]
+              }
+            ]
+          }
+        } else if (nameLower.includes('medical')) {
+          // Fetch diagnoses from database
+          let diagnosesList: string[] = []
+          if (!isMock) {
+            const { data: diagData } = await supabase.from('diagnoses').select('name').order('name', { ascending: true })
+            diagnosesList = diagData?.map(d => d.name) || []
+          }
+          if (diagnosesList.length === 0) {
+            diagnosesList = [
+              'DIARRHOEA/VOMITTING/STOOLING', 'RTI', 'FEVER', 'ABDOMINAL PAINS',
+              'FAINTING SYNDROME', 'INJURY/LACERATION', 'BODY WEAKNESS', 'BODY PAINS',
+              'TOOTHACHE', 'BOIL/SWELLING ON TOE, NECK ETC', 'CONJUCTIVITIS', 'ULCER',
+              'MENSTRUAL PAIN', 'RASH', 'ASTHMATIC ATTACK', 'SWOLLEN GUM', 'CONSTIPATION'
+            ]
+          }
+
+          activeDept.default_metrics_schema = {
+            fields: [
+              {
+                name: 'patients_demographics',
+                label: 'Patient Demographics',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'category', label: 'Category', type: 'select', options: ['children', 'adult'] },
+                  { name: 'gender', label: 'Gender', type: 'select', options: ['male', 'female'] },
+                  { name: 'count', label: 'Count', type: 'number' }
+                ]
+              },
+              {
+                name: 'diagnoses_cases',
+                label: 'Diagnoses & Cases',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'diagnosis', label: 'Diagnosis / Symptom', type: 'select', options: diagnosesList },
+                  { name: 'count', label: 'Count', type: 'number' }
+                ]
+              }
+            ]
+          }
+        } else if (nameLower.includes('stores')) {
+          activeDept.default_metrics_schema = {
+            fields: [
+              {
+                name: 'durables',
+                label: 'Durables Inventory Tracking',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'item_name', label: 'Item Name', type: 'text' },
+                  { name: 'department', label: 'Department', type: 'text' },
+                  { name: 'qty_instock', label: 'Quantity In-Stock', type: 'number' },
+                  { name: 'qty_issued', label: 'Quantity Issued', type: 'number' },
+                  { name: 'qty_returned', label: 'Quantity Returned', type: 'number' }
+                ]
+              },
+              {
+                name: 'consumables',
+                label: 'Consumables Inventory Tracking',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'item_name', label: 'Item Name', type: 'text' },
+                  { name: 'department', label: 'Department', type: 'text' },
+                  { name: 'qty_instock', label: 'Quantity In-Stock', type: 'number' },
+                  { name: 'qty_issued', label: 'Quantity Issued', type: 'number' }
+                ]
+              }
+            ]
+          }
+        } else if (nameLower.includes('welfare')) {
+          activeDept.default_metrics_schema = {
+            fields: [
+              {
+                name: 'welfare_logs',
+                label: 'Welfare Kitchen Allocations',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'meal_type', label: 'Meal Type', type: 'select', options: ['Breakfast', 'Lunch', 'Dinner'] },
+                  { name: 'qty_served', label: 'Quantity Served', type: 'number' },
+                  { name: 'time_logged', label: 'Distribution Time', type: 'text' }
+                ]
+              }
+            ]
+          }
+        } else if (nameLower.includes('safety') || nameLower.includes('sepu')) {
+          activeDept.default_metrics_schema = {
+            fields: [
+              {
+                name: 'incidents_log',
+                label: 'SEPU Daily Incident Index',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'incidence', label: 'Incident Description', type: 'text' },
+                  { name: 'action_taken', label: 'Action Taken', type: 'text' },
+                  { name: 'remarks', label: 'Remarks / Follow-up', type: 'text' }
+                ]
+              }
+            ]
+          }
+        } else if (nameLower.includes('programmes') || nameLower.includes('teens')) {
+          activeDept.default_metrics_schema = {
+            fields: [
+              {
+                name: 'session_logs',
+                label: 'Teens Service & Sessions Statistics',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'session_name', label: 'Session Name', type: 'select', options: ['Morning', 'Afternoon', 'Evening'] },
+                  { name: 'details', label: 'Program Details', type: 'text' },
+                  { name: 'atten', label: 'Attendance', type: 'number' },
+                  { name: 'offering_sum', label: 'Offering Collected (₦)', type: 'number' }
+                ]
+              }
+            ]
+          }
+        }
+        setDepartment(activeDept)
       }
 
       // Fetch Event Days
@@ -295,6 +447,42 @@ function DailyLogContent() {
       showToast(`Submission failed: ${err.message}`, 'error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAddDiagnosisInline = async () => {
+    if (!newDiagText.trim()) return
+    const name = newDiagText.trim().toUpperCase()
+    
+    if (isMock) {
+      showToast(`Diagnosis "${name}" added locally!`, 'success')
+      setNewDiagText('')
+      if (department && department.default_metrics_schema) {
+        const fields = [...department.default_metrics_schema.fields]
+        const diagField = fields.find((f: any) => f.name === 'diagnoses_cases')
+        if (diagField && diagField.schema) {
+          const subDiag = diagField.schema.find((s: any) => s.name === 'diagnosis')
+          if (subDiag && subDiag.options) {
+            subDiag.options = [...subDiag.options, name].sort()
+          }
+        }
+        setDepartment({
+          ...department,
+          default_metrics_schema: { fields }
+        })
+      }
+      return
+    }
+
+    const supabase = getClient()
+    try {
+      const { error } = await supabase.from('diagnoses').insert({ name })
+      if (error) throw error
+      showToast(`Diagnosis "${name}" added to dropdown list!`, 'success')
+      setNewDiagText('')
+      await loadData()
+    } catch (e: any) {
+      showToast(`Failed to add diagnosis: ${e.message}`, 'error')
     }
   }
 
@@ -550,6 +738,29 @@ function DailyLogContent() {
                 />
               ) : (
                 <p className="text-muted-foreground italic text-[12px]">No custom metrics schema required for this department.</p>
+              )}
+
+              {/* Dynamic Add Diagnosis Input */}
+              {!isReadOnly && department.name.toLowerCase().includes('medical') && (
+                <div className="mt-6 pt-6 border-t border-border/60 space-y-2">
+                  <Label htmlFor="add-diag-opt" className="text-xs font-bold text-foreground uppercase tracking-widest block">Add Custom Diagnosis Option</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="add-diag-opt"
+                      placeholder="e.g. CHOLERA"
+                      value={newDiagText}
+                      onChange={(e) => setNewDiagText(e.target.value)}
+                      className="input-dark h-9 text-xs flex-1 text-foreground"
+                    />
+                    <Button
+                      onClick={handleAddDiagnosisInline}
+                      size="sm"
+                      className="h-9 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4"
+                    >
+                      Add option
+                    </Button>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>

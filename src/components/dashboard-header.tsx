@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getClient, isMock, mockDepartments } from '@/utils/supabase'
-import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X } from 'lucide-react'
+import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, PackageOpen, Settings } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 
@@ -11,7 +11,9 @@ const NAV_ITEMS = [
   { label: 'Overview',    href: '/dashboard',         icon: LayoutGrid },
   { label: 'Reports',     href: '/dashboard/reports', icon: FileText   },
   { label: 'YoY Analytics', href: '/dashboard/yoy',  icon: BarChart2  },
+  { label: 'Requisitions', href: '/dashboard/store-requisitions', icon: PackageOpen },
   { label: 'Team',        href: '/dashboard/team',    icon: Users      },
+  { label: 'Settings',    href: '/dashboard/settings', icon: Settings   },
 ]
 
 const ROLE_LABELS: Record<string, string> = {
