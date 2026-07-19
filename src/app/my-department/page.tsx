@@ -87,16 +87,19 @@ export default function MyDepartmentDashboard() {
         }
       }
       setProfile(activeProfile)
-      const dept = mockDepartments.find(d => d.id === activeProfile.department_id)
-      if (dept) {
-        setDepartment(dept)
-      } else {
+      let activeDept: any = mockDepartments.find(d => d.id === activeProfile.department_id)
+      if (!activeDept) {
         const { data: dbDept } = await supabase
           .from('departments')
           .select('*')
           .eq('id', activeProfile.department_id)
           .maybeSingle()
-        if (dbDept) setDepartment(dbDept)
+        if (dbDept) {
+          activeDept = dbDept
+        }
+      }
+      if (activeDept) {
+        setDepartment(activeDept)
       }
 
       // Fetch days
@@ -118,8 +121,7 @@ export default function MyDepartmentDashboard() {
       // Fetch approved store requisitions if Stores department
       const isStores = activeProfile.department_id === 'dept-29' || 
                        activeProfile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690' ||
-                       dept?.name?.toLowerCase().includes('stores') ||
-                       dbDept?.name?.toLowerCase().includes('stores')
+                       activeDept?.name?.toLowerCase().includes('stores')
       if (isStores) {
         if (!isMock) {
           const { data: appReqs } = await supabase
