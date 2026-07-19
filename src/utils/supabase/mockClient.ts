@@ -139,6 +139,10 @@ class MockQueryBuilder {
     return this
   }
 
+  limit(n: number) {
+    return this
+  }
+
   async execute() {
     let data: any = []
     if (this.table === 'departments') {
