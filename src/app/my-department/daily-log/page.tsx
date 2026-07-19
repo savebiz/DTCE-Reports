@@ -54,6 +54,7 @@ function DailyLogContent() {
   
   // Custom lookup inline inputs
   const [newDiagText, setNewDiagText] = useState('')
+  const [allDepartments, setAllDepartments] = useState<Department[]>([])
 
   // 1. Fetch User profile and Event Days
   const loadData = async () => {
@@ -101,9 +102,19 @@ function DailyLogContent() {
       // Determine department context
       const isAdmin = activeProfile.role === 'super_admin' || activeProfile.role === 'coordinator'
       let activeDeptId = activeProfile.department_id
-      if (isAdmin && deptIdParam) {
-        activeDeptId = deptIdParam
+      
+      let sortedDepts: Department[] = []
+      if (isAdmin) {
         setIsSuperAdminActing(true)
+        const { data: depts } = await supabase.from('departments').select('*')
+        sortedDepts = ((depts || mockDepartments) as Department[]).sort((a,b) => a.name.localeCompare(b.name))
+        setAllDepartments(sortedDepts)
+        
+        if (deptIdParam) {
+          activeDeptId = deptIdParam
+        } else if (!activeDeptId && sortedDepts.length > 0) {
+          activeDeptId = sortedDepts[0].id
+        }
       }
 
       let activeDept: any = null
@@ -531,6 +542,27 @@ function DailyLogContent() {
           <Button variant="outline" size="sm" onClick={() => router.push('/dashboard')} className="text-xs h-7">
             Cancel Secretariat Mode
           </Button>
+        </div>
+      )}
+
+      {/* Admin Department Switcher */}
+      {isSuperAdminActing && allDepartments.length > 0 && (
+        <div className="flex items-center gap-3 bg-card border border-border p-4 rounded-xl">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Switch Department Form:</span>
+          <select
+            value={department?.id || ''}
+            onChange={(e) => {
+              const newDeptId = e.target.value
+              const urlParams = new URLSearchParams(window.location.search)
+              urlParams.set('deptId', newDeptId)
+              router.push(`/my-department/daily-log?${urlParams.toString()}`)
+            }}
+            className="bg-background border border-border rounded-lg text-xs font-semibold px-3 py-1.5 text-foreground h-9"
+          >
+            {allDepartments.map(d => (
+              <option key={d.id} value={d.id}>{d.name}</option>
+            ))}
+          </select>
         </div>
       )}
       {behalfAdminName && (

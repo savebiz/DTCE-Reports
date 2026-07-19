@@ -15,6 +15,7 @@ export default function MyDepartmentDashboard() {
   const [department, setDepartment] = useState<Department | null>(null)
   const [eventDays, setEventDays] = useState<any[]>([])
   const [reports, setReports] = useState<any[]>([])
+  const [allDepartments, setAllDepartments] = useState<Department[]>([])
   
   // Connection & Sync States
   const [isOnline, setIsOnline] = useState(true)
@@ -43,6 +44,47 @@ export default function MyDepartmentDashboard() {
       }
     }
   }, [])
+
+  // Reload reports when active department changes (for acting admins)
+  useEffect(() => {
+    if (profile?.department_id && (profile.role === 'super_admin' || profile.role === 'coordinator')) {
+      const reloadReports = async () => {
+        const supabase = getClient()
+        const { data: reps } = await supabase
+          .from('daily_reports')
+          .select('*')
+          .eq('department_id', profile.department_id)
+        setReports(reps || [])
+        
+        const isStores = profile.department_id === 'dept-29' || 
+                         profile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690' ||
+                         department?.name?.toLowerCase().includes('stores')
+        if (isStores) {
+          if (!isMock) {
+            const { data: appReqs } = await supabase
+              .from('store_requests')
+              .select('*')
+              .eq('status', 'approved')
+              .order('created_at', { ascending: false })
+            
+            if (appReqs) {
+              const enhanced = await Promise.all(appReqs.map(async (r: any) => {
+                const { data: reqProfile } = await supabase.from('profiles').select('full_name, email').eq('id', r.requester_profile_id).maybeSingle()
+                const { data: requesterDept } = await supabase.from('departments').select('name').eq('id', r.department_id).maybeSingle()
+                return {
+                  ...r,
+                  requester: reqProfile || { full_name: 'Unknown HOD', email: '' },
+                  department: requesterDept || { name: 'Unknown Department' }
+                }
+              }))
+              setApprovedRequests(enhanced)
+            }
+          }
+        }
+      }
+      reloadReports()
+    }
+  }, [profile?.department_id, department?.name])
 
   // 2. Load User Profile and Data
   const loadData = async () => {
@@ -86,7 +128,19 @@ export default function MyDepartmentDashboard() {
           activeProfile.department_id = assignment.department_id
         }
       }
-      setProfile(activeProfile)
+
+      const isAdmin = activeProfile.role === 'super_admin' || activeProfile.role === 'coordinator'
+      let sortedDepts: Department[] = []
+      if (isAdmin) {
+        const { data: depts } = await supabase.from('departments').select('*')
+        sortedDepts = ((depts || mockDepartments) as Department[]).sort((a,b) => a.name.localeCompare(b.name))
+        setAllDepartments(sortedDepts)
+        
+        if (!activeProfile.department_id && sortedDepts.length > 0) {
+          activeProfile.department_id = sortedDepts[0].id
+        }
+      }
+
       let activeDept: any = mockDepartments.find(d => d.id === activeProfile.department_id)
       if (!activeDept) {
         const { data: dbDept } = await supabase
@@ -101,6 +155,7 @@ export default function MyDepartmentDashboard() {
       if (activeDept) {
         setDepartment(activeDept)
       }
+      setProfile(activeProfile)
 
       // Fetch days
       let days = []
@@ -308,6 +363,27 @@ export default function MyDepartmentDashboard() {
 
       <main className="mx-auto max-w-4xl px-4 md:px-6 py-8">
         <div className="space-y-6 animate-fade-in-up">
+          {/* Department Switcher for Admin/Coordinators */}
+          {(profile.role === 'super_admin' || profile.role === 'coordinator') && allDepartments.length > 0 && (
+            <div className="flex items-center gap-3 bg-card border border-border p-4 rounded-xl">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Act on behalf of:</span>
+              <select
+                value={profile.department_id || ''}
+                onChange={(e) => {
+                  const newDeptId = e.target.value
+                  setProfile({ ...profile, department_id: newDeptId })
+                  const d = allDepartments.find(ad => ad.id === newDeptId)
+                  if (d) setDepartment(d)
+                }}
+                className="bg-background border border-border rounded-lg text-xs font-semibold px-3 py-1.5 text-foreground h-9"
+              >
+                {allDepartments.map(d => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Page Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
