@@ -263,6 +263,21 @@ function DailyLogContent() {
               }
             ]
           }
+        } else {
+          // Generic Fallback Schema for all other database-loaded departments
+          activeDept.default_metrics_schema = {
+            fields: [
+              {
+                name: 'generic_metrics',
+                label: 'Department Metrics Log',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'key_metric_label', label: 'Metric Description', type: 'text' },
+                  { name: 'value', label: 'Value / Count', type: 'number' }
+                ]
+              }
+            ]
+          }
         }
         setDepartment(activeDept)
       }

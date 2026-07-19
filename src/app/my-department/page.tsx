@@ -116,7 +116,10 @@ export default function MyDepartmentDashboard() {
       setReports(reps || [])
 
       // Fetch approved store requisitions if Stores department
-      const isStores = activeProfile.department_id === 'dept-29' || activeProfile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690'
+      const isStores = activeProfile.department_id === 'dept-29' || 
+                       activeProfile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690' ||
+                       dept?.name?.toLowerCase().includes('stores') ||
+                       dbDept?.name?.toLowerCase().includes('stores')
       if (isStores) {
         if (!isMock) {
           const { data: appReqs } = await supabase
@@ -261,7 +264,9 @@ export default function MyDepartmentDashboard() {
     )
   }
 
-  const isStoresDept = profile.department_id === 'dept-29' || profile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690'
+  const isStoresDept = profile.department_id === 'dept-29' || 
+                       profile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690' ||
+                       department?.name?.toLowerCase().includes('stores')
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>

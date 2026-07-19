@@ -34,7 +34,7 @@ export default function SecretariatTeamManagement() {
   const [singleFullName, setSingleFullName] = useState('')
   const [singleDeptId, setSingleDeptId] = useState('dept-1')
   const [singleUsernameInput, setSingleUsernameInput] = useState('')
-  const [singleRole, setSingleRole] = useState<'hod' | 'assistant'>('hod')
+  const [singleRole, setSingleRole] = useState<'hod' | 'assistant' | 'coordinator' | 'super_admin'>('hod')
   const [singleEmail, setSingleEmail] = useState('')
   const [savingSingle, setSavingSingle] = useState(false)
 
@@ -656,6 +656,8 @@ export default function SecretariatTeamManagement() {
                   >
                     <option value="hod" style={{ background: '#111827' }}>HOD (Department Head)</option>
                     <option value="assistant" style={{ background: '#111827' }}>Assistant HOD</option>
+                    <option value="coordinator" style={{ background: '#111827' }}>National Coordinator / Admin Assistant</option>
+                    <option value="super_admin" style={{ background: '#111827' }}>Super Admin</option>
                   </select>
                 </div>
 
