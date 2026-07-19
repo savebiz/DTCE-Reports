@@ -398,6 +398,31 @@ class MockUpdateBuilder {
   }
 }
 
+// Thenable Mock Delete Builder
+class MockDeleteBuilder {
+  private table: string
+  private filterField?: string
+  private filterValue?: any
+
+  constructor(table: string) {
+    this.table = table
+  }
+
+  eq(field: string, value: any) {
+    this.filterField = field
+    this.filterValue = value
+    return this
+  }
+
+  async execute() {
+    return { data: [], error: null }
+  }
+
+  then(onfulfilled?: (value: any) => any, onrejected?: (reason: any) => any) {
+    return this.execute().then(onfulfilled, onrejected)
+  }
+}
+
 // Stateful mock client that mimics Supabase client
 export const mockSupabaseClient = {
   auth: {
@@ -496,6 +521,10 @@ export const mockSupabaseClient = {
 
       update(data: any) {
         return new MockUpdateBuilder(table, data)
+      },
+
+      delete() {
+        return new MockDeleteBuilder(table)
       },
 
       upsert(data: any) {
