@@ -143,6 +143,11 @@ class MockQueryBuilder {
     return this
   }
 
+  in(field: string, values: any[]) {
+    this.filters.push((item) => values.includes(item[field]))
+    return this
+  }
+
   async execute() {
     let data: any = []
     if (this.table === 'departments') {
