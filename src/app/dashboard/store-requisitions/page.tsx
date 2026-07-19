@@ -329,7 +329,7 @@ function AdminRequisitionsContent() {
                     <div className="flex gap-2">
                       <Select
                         value={delegateId}
-                        onValueChange={setDelegateId}
+                        onValueChange={(val) => setDelegateId(val || 'none')}
                       >
                         <SelectTrigger id="del-user" className="h-9 text-foreground bg-card border-border flex-1">
                           <SelectValue />
