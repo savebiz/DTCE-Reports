@@ -128,7 +128,7 @@ function DailyLogContent() {
           let tribesList: string[] = []
           if (!isMock) {
             const { data: tribesData } = await supabase.from('tribes').select('name').order('name', { ascending: true })
-            tribesList = tribesData?.map(t => t.name) || []
+            tribesList = tribesData?.map((t: any) => t.name) || []
           }
           if (tribesList.length === 0) {
             tribesList = ['Reuben', 'Simeon', 'Judah', 'Levi', 'Issachar', 'Zebulun', 'Dan', 'Naphtali', 'Gad', 'Asher', 'Joseph', 'Benjamin']
@@ -155,7 +155,7 @@ function DailyLogContent() {
           let diagnosesList: string[] = []
           if (!isMock) {
             const { data: diagData } = await supabase.from('diagnoses').select('name').order('name', { ascending: true })
-            diagnosesList = diagData?.map(d => d.name) || []
+            diagnosesList = diagData?.map((d: any) => d.name) || []
           }
           if (diagnosesList.length === 0) {
             diagnosesList = [
