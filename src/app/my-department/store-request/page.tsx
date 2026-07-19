@@ -212,11 +212,21 @@ function StoreRequestContent() {
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <DashboardHeader />
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Stores Requisition Portal</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Submit material requests to the National Coordinator for approval and Stores fulfillment.
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Stores Requisition Portal</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Submit material requests to the National Coordinator for approval and Stores fulfillment.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/my-department')}
+            className="text-xs h-9 cursor-pointer w-fit"
+          >
+            ← Back to Dashboard
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

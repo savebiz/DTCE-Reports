@@ -291,15 +291,25 @@ export default function HODTeamManagement() {
   return (
     <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-fade-in-up">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-            <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">HOD Controls</span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+              <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">HOD Controls</span>
+            </div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Manage My Team</h1>
+            <p className="text-[13px] text-slate-500 mt-0.5">
+              Provision and manage sub-leader accounts issued for the {departmentName} department.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Manage My Team</h1>
-          <p className="text-[13px] text-slate-500 mt-0.5">
-            Provision and manage sub-leader accounts issued for the {departmentName} department.
-          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/my-department')}
+            className="text-xs h-9 cursor-pointer w-fit text-slate-300 hover:text-white"
+          >
+            ← Back to Dashboard
+          </Button>
         </div>
 
         {/* Issued Credential Slip */}

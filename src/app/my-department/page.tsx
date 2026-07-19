@@ -398,6 +398,13 @@ export default function MyDepartmentDashboard() {
             </div>
             <div className="flex flex-wrap gap-2">
               <button
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-amber-500/20 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 cursor-pointer"
+                onClick={() => router.push('/my-department/daily-log')}
+              >
+                <span>📅</span>
+                Daily Logs Workspace
+              </button>
+              <button
                 className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
                 onClick={() => router.push('/my-department/store-request')}
               >
@@ -423,31 +430,44 @@ export default function MyDepartmentDashboard() {
 
           {/* Day Checklist */}
           <div className="glass-card overflow-hidden">
-            {eventDays.map((day, i) => (
-              <div
-                key={day.id}
-                className="flex items-center justify-between px-5 py-4 transition-all duration-150 border-b border-border/40 last:border-b-0 hover:bg-slate-900/5 dark:hover:bg-white/5"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="font-tabular text-[11px] font-bold text-slate-500 w-10">
-                    Day {day.day_number}
-                  </span>
-                  <span className="text-[14px] font-medium">
-                    {new Date(day.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  {getStatusPill(day.id)}
-                  <button
-                    onClick={() => openEntryForm(day)}
-                    className="h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-150 cursor-pointer border border-border bg-card hover:bg-slate-950/10 dark:hover:bg-white/10"
-                  >
-                    {getButtonText(day.id)}
-                  </button>
-                </div>
+            {eventDays.length === 0 ? (
+              <div className="text-center py-12 px-5 space-y-4">
+                <span className="text-3xl block">📅</span>
+                <p className="text-[13px] text-muted-foreground italic">No active event convention days found in the database.</p>
+                <button
+                  onClick={() => router.push('/my-department/daily-log')}
+                  className="h-9 rounded-xl px-5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer transition-all"
+                >
+                  Go to Daily Logs Workspace
+                </button>
               </div>
-            ))}
+            ) : (
+              eventDays.map((day, i) => (
+                <div
+                  key={day.id}
+                  className="flex items-center justify-between px-5 py-4 transition-all duration-150 border-b border-border/40 last:border-b-0 hover:bg-slate-900/5 dark:hover:bg-white/5"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="font-tabular text-[11px] font-bold text-slate-500 w-10">
+                      Day {day.day_number}
+                    </span>
+                    <span className="text-[14px] font-medium">
+                      {new Date(day.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {getStatusPill(day.id)}
+                    <button
+                      onClick={() => openEntryForm(day)}
+                      className="h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-150 cursor-pointer border border-border bg-card hover:bg-slate-950/10 dark:hover:bg-white/10"
+                    >
+                      {getButtonText(day.id)}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Stores Department - Approved requisitions view */}

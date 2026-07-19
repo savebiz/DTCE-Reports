@@ -527,6 +527,28 @@ function DailyLogContent() {
 
   return (
     <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
+      {/* Page Title Block */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">HOD DAILY REPORTING</span>
+          </div>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">{department.name} Daily Log Workspace</h1>
+          <p className="text-[13px] text-muted-foreground mt-0.5">
+            Fill and submit department specific metrics for convention days.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.push(isSuperAdminActing ? '/dashboard' : '/my-department')}
+          className="text-xs h-9 cursor-pointer w-fit"
+        >
+          ← {isSuperAdminActing ? 'Back to Submission Board' : 'Back to Dashboard'}
+        </Button>
+      </div>
+
       {/* On behalf warning */}
       {isSuperAdminActing && (
         <div className="rounded-xl p-4 flex items-center justify-between border" style={{ background: 'rgba(245,158,11,0.06)', borderColor: 'rgba(245,158,11,0.25)' }}>

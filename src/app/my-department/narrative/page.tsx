@@ -362,7 +362,7 @@ export default function DepartmentNarrativePage() {
               onClick={() => router.push('/my-department')}
               className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer"
             >
-              ➔ Daily Checklist
+              ← Back to Dashboard
             </button>
           </div>
         </div>
