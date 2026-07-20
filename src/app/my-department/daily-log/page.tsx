@@ -55,6 +55,7 @@ function DailyLogContent() {
   // Custom lookup inline inputs
   const [newDiagText, setNewDiagText] = useState('')
   const [allDepartments, setAllDepartments] = useState<Department[]>([])
+  const [dataLoaded, setDataLoaded] = useState(false)
 
   // 1. Fetch User profile and Event Days
   const loadData = async () => {
@@ -321,6 +322,9 @@ function DailyLogContent() {
       if (selectedDay && activeDeptId) {
         await loadReportForDay(selectedDay.id, activeDeptId)
       }
+      setDataLoaded(true)
+    } else {
+      setDataLoaded(true)
     }
   }
 
@@ -512,10 +516,34 @@ function DailyLogContent() {
     }
   }
 
-  if (!profile || !department || !activeDay) {
+  if (!dataLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
         <p className="text-sm font-mono animate-pulse text-slate-500">Loading Daily Reporting Workspace...</p>
+      </div>
+    )
+  }
+
+  if (!profile || !department || !activeDay) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
+        <div className="text-center space-y-4 max-w-md">
+          <span className="text-4xl block">📋</span>
+          <h2 className="text-xl font-bold text-foreground">Daily Log Not Available</h2>
+          <p className="text-sm text-muted-foreground">
+            {!activeDay
+              ? 'No active event days have been configured in the database yet. Please ask the Super Admin to create event days before filing daily reports.'
+              : !department
+                ? 'Your profile is not assigned to a department. Please contact the Super Admin to assign you.'
+                : 'Unable to load your profile. Please try signing out and back in.'}
+          </p>
+          <button
+            onClick={() => router.push('/my-department')}
+            className="h-9 rounded-xl px-5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer transition-all"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
       </div>
     )
   }
