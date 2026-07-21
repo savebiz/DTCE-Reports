@@ -174,7 +174,6 @@ export async function POST(request: NextRequest) {
       username: finalUsername,
       full_name: fullName,
       role: 'assistant',
-      department_id: targetDeptId,
       must_change_password: true,
       created_by: user.id,
       is_active: true
