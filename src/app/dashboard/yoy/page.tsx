@@ -154,23 +154,20 @@ export default function YoYComparisonPage() {
   return (
     <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
       {/* Heading Block */}
-      <div className="border-b" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+      <div className="border-b bg-card border-border">
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between py-6 px-4 md:px-6 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-              <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">Secretariat Analytics Panel</span>
+              <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Secretariat Analytics Panel</span>
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Year-over-Year Comparison</h1>
-            <p className="text-[13px] text-slate-500 mt-0.5">Compare 2025 and 2026 convention cycles.</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Year-over-Year Comparison</h1>
+            <p className="text-[13px] text-muted-foreground mt-0.5">Compare 2025 and 2026 convention cycles.</p>
           </div>
           <div className="flex items-center">
             <Link href="/dashboard">
               <button
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200 bg-card border border-border text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 ➔ Oversight Dashboard
               </button>
@@ -184,34 +181,24 @@ export default function YoYComparisonPage() {
         <div className="glass-card p-4">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-center text-[12px]">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-slate-500">Compare Base Year:</span>
+              <span className="font-semibold text-muted-foreground">Compare Base Year:</span>
               <select
                 value={eventA}
                 onChange={(e) => setEventA(e.target.value)}
-                className="h-8 rounded-lg px-3 text-[12px] font-medium text-slate-300 cursor-pointer"
-                style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  outline: 'none',
-                }}
+                className="h-8 rounded-lg px-3 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
               >
-                <option value="event-2025" style={{ background: '#111827' }}>DTCE 2025 Annual Convention</option>
+                <option value="event-2025" className="bg-card text-foreground">DTCE 2025 Annual Convention</option>
               </select>
             </div>
-            <div className="text-slate-600 font-bold uppercase tracking-wider">VS</div>
+            <div className="text-muted-foreground font-bold uppercase tracking-wider">VS</div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-slate-500">Compare Target Year:</span>
+              <span className="font-semibold text-muted-foreground">Compare Target Year:</span>
               <select
                 value={eventB}
                 onChange={(e) => setEventB(e.target.value)}
-                className="h-8 rounded-lg px-3 text-[12px] font-medium text-slate-300 cursor-pointer"
-                style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  outline: 'none',
-                }}
+                className="h-8 rounded-lg px-3 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
               >
-                <option value="event-1" style={{ background: '#111827' }}>DTCE 2026 Annual Convention (Active)</option>
+                <option value="event-1" className="bg-card text-foreground">DTCE 2026 Annual Convention (Active)</option>
               </select>
             </div>
           </div>
@@ -223,7 +210,7 @@ export default function YoYComparisonPage() {
           {/* Card 1: Registration comparison custom bar chart */}
           <div className="glass-card p-5 flex flex-col justify-between">
             <div>
-              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">Total Registration Comparison</h2>
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Total Registration Comparison</h2>
               <div className="space-y-4">
                 {comparisonStats.registrations.map(reg => {
                   const total = Math.max(reg.event2025, reg.event2026)
@@ -232,19 +219,19 @@ export default function YoYComparisonPage() {
                   return (
                     <div key={reg.category} className="space-y-1.5">
                       <div className="flex justify-between text-[12px]">
-                        <span className="font-semibold text-slate-300">{reg.category}</span>
-                        <span className="font-mono text-slate-400">
-                          {reg.event2025} <span className="text-slate-600">vs</span> {reg.event2026}
+                        <span className="font-semibold text-foreground">{reg.category}</span>
+                        <span className="font-mono text-muted-foreground">
+                          {reg.event2025} <span className="text-muted-foreground">vs</span> {reg.event2026}
                         </span>
                       </div>
                       {/* Visual double bar chart */}
                       <div className="space-y-1">
                         {/* Event A (2025) - Gold */}
-                        <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                           <div className="h-full bg-amber-500 rounded-full" style={{ width: `${pctA}%` }}></div>
                         </div>
                         {/* Event B (2026) - Navy */}
-                        <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                           <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pctB}%` }}></div>
                         </div>
                       </div>
@@ -254,7 +241,7 @@ export default function YoYComparisonPage() {
               </div>
             </div>
             
-            <div className="flex justify-between items-center text-[10px] text-slate-500 font-bold uppercase pt-4 mt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex justify-between items-center text-[10px] text-muted-foreground font-bold uppercase pt-4 mt-4 border-t border-border">
               <div className="flex items-center gap-1.5">
                 <span className="h-2 w-2 bg-amber-500 rounded-full"></span> 2025 Cycle
               </div>
@@ -267,32 +254,32 @@ export default function YoYComparisonPage() {
           {/* Card 2: Offering Finance comparison */}
           <div className="glass-card p-5 flex flex-col justify-between">
             <div>
-              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">Total Offering Finance</h2>
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Total Offering Finance</h2>
               <div className="space-y-5">
                 <div className="space-y-1">
-                  <span className="text-[9px] text-slate-500 font-bold uppercase block tracking-wider">2025 Annual Convention</span>
-                  <p className="text-2xl font-extrabold font-mono text-slate-300">
+                  <span className="text-[9px] text-muted-foreground font-bold uppercase block tracking-wider">2025 Annual Convention</span>
+                  <p className="text-2xl font-extrabold font-mono text-foreground">
                     <span className="font-sans">₦</span>{comparisonStats.offering.event2025.toLocaleString()}
                   </p>
                 </div>
 
-                <div className="space-y-1 pt-4" style={{ borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
-                  <span className="text-[9px] text-slate-500 font-bold uppercase block tracking-wider">2026 Annual Convention</span>
-                  <p className="text-3xl font-extrabold font-mono text-emerald-400">
+                <div className="space-y-1 pt-4 border-t border-dashed border-border">
+                  <span className="text-[9px] text-muted-foreground font-bold uppercase block tracking-wider">2026 Annual Convention</span>
+                  <p className="text-3xl font-extrabold font-mono text-emerald-500">
                     <span className="font-sans">₦</span>{comparisonStats.offering.event2026.toLocaleString()}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-5 rounded-xl p-3 text-[12px] text-center font-bold text-emerald-400" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)' }}>
+            <div className="mt-5 rounded-xl p-3 text-[12px] text-center font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20">
               ➔ +38.1% Increase in collections YoY
             </div>
           </div>
 
           {/* Card 3: Attendance Trends comparison */}
           <div className="glass-card p-5">
-            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-4">Daily Attendance trends</h2>
+            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-4">Daily Attendance trends</h2>
             <div className="space-y-3.5">
               {comparisonStats.attendanceTrend.map(trend => {
                 const maxVal = 1600
@@ -300,17 +287,17 @@ export default function YoYComparisonPage() {
                 const pct2026 = Math.round((trend.event2026 / maxVal) * 100)
                 return (
                   <div key={trend.day} className="flex items-center gap-3 text-[12px]">
-                    <span className="w-12 font-semibold text-slate-400">{trend.day}</span>
+                    <span className="w-12 font-semibold text-muted-foreground">{trend.day}</span>
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
                         {/* Event A (2025) */}
                         <div className="h-1.5 bg-amber-500/80 rounded" style={{ width: `${pct2025}%` }}></div>
-                        <span className="text-[9px] font-mono text-slate-500">{trend.event2025}</span>
+                        <span className="text-[9px] font-mono text-muted-foreground">{trend.event2025}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         {/* Event B (2026) */}
                         <div className="h-1.5 bg-blue-500/90 rounded" style={{ width: `${pct2026}%` }}></div>
-                        <span className="text-[9px] font-mono text-slate-300 font-bold">{trend.event2026}</span>
+                        <span className="text-[9px] font-mono text-foreground font-bold">{trend.event2026}</span>
                       </div>
                     </div>
                   </div>

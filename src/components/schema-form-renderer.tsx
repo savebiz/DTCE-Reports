@@ -164,20 +164,20 @@ export function SchemaFormRenderer({ fields, value, onChange, readOnly = false }
         }
 
         return (
-          <div key={fieldId} className="space-y-4 border-l-2 border-slate-200 pl-4 py-2 dark:border-slate-800 my-4">
+          <div key={fieldId} className="space-y-4 border-l-2 border-border pl-4 py-2 my-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              <h4 className="text-sm font-bold text-foreground">
                 {field.label} {field.required && <span className="text-red-500">*</span>}
               </h4>
               {!readOnly && (
-                <Button type="button" variant="outline" size="sm" onClick={handleAddGroupRow}>
+                <Button type="button" variant="outline" size="sm" onClick={handleAddGroupRow} className="border-border text-foreground">
                   + Add Row
                 </Button>
               )}
             </div>
 
             {groupValues.length === 0 && (
-              <p className="text-xs text-slate-400 italic py-2">
+              <p className="text-xs text-muted-foreground italic py-2">
                 No items added yet. Click "+ Add Row" to begin.
               </p>
             )}

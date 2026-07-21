@@ -389,12 +389,12 @@ export default function MyDepartmentDashboard() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-                <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">HOD Controls</span>
+                <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">HOD Controls</span>
               </div>
-              <h1 className="text-2xl font-bold text-white">
+              <h1 className="text-2xl font-bold text-foreground">
                 {department?.name || 'Department'} Dashboard
               </h1>
-              <p className="text-[13px] text-slate-500 mt-0.5">Fill daily reporting metrics for each convention day.</p>
+              <p className="text-[13px] text-muted-foreground mt-0.5">Fill daily reporting metrics for each convention day.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <button

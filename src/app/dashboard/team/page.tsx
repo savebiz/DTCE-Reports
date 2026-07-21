@@ -455,24 +455,21 @@ export default function SecretariatTeamManagement() {
 
   return (
     <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
-      {/* Heading Block */}
-      <div className="border-b" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+      {/* Header Block */}
+      <div className="border-b bg-card border-border">
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between py-6 px-4 md:px-6 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-              <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">Secretariat Command Center</span>
+              <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Secretariat Command Center</span>
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Leader Account Provisioning</h1>
-            <p className="text-[13px] text-slate-500 mt-0.5">Provision HOD and department assistant logins securely on Supabase.</p>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Leader Account Provisioning</h1>
+            <p className="text-[13px] text-muted-foreground mt-0.5">Provision HOD and department assistant logins securely on Supabase.</p>
           </div>
           <div className="flex items-center">
             <Link href="/dashboard">
               <button
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94A3B8' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)' }}
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200 bg-card border border-border text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 ➔ Oversight Dashboard
               </button>
