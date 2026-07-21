@@ -4,7 +4,6 @@ import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, Profile } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
-import { DashboardHeader } from '@/components/dashboard-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -187,7 +186,6 @@ function SettingsContent() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      <DashboardHeader />
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Oversight Lookup Lists Configuration</h1>

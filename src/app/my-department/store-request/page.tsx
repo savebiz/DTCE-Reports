@@ -4,7 +4,6 @@ import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, Profile } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
-import { DashboardHeader } from '@/components/dashboard-header'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -210,7 +209,6 @@ function StoreRequestContent() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      <DashboardHeader />
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
           <div>

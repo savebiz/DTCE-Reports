@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, Profile, Department } from '@/utils/supabase'
-import { DashboardHeader } from '@/components/dashboard-header'
 import { generateCompliantPassword } from '@/lib/password-policy'
 import { showToast } from '@/components/ui/toast'
 import Link from 'next/link'
