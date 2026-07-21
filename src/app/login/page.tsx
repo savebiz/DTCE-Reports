@@ -10,12 +10,12 @@ import type { DayStatus } from '@/components/ui/schedule-day-card'
 
 // ── Convention schedule (decorative, matches real event days) ───────────────
 const days: { label: string; num: number; status: DayStatus; isToday: boolean }[] = [
-  { label: 'Mon', num: 13, isToday: false, status: 'submitted' },
-  { label: 'Tue', num: 14, isToday: false, status: 'submitted' },
-  { label: 'Wed', num: 15, isToday: true,  status: 'today'     },
-  { label: 'Thu', num: 16, isToday: false, status: 'upcoming'  },
-  { label: 'Fri', num: 17, isToday: false, status: 'upcoming'  },
-  { label: 'Sat', num: 18, isToday: false, status: 'upcoming'  },
+  { label: 'Mon', num: 3, isToday: false, status: 'submitted' },
+  { label: 'Tue', num: 4, isToday: false, status: 'submitted' },
+  { label: 'Wed', num: 5, isToday: true,  status: 'today'     },
+  { label: 'Thu', num: 6, isToday: false, status: 'upcoming'  },
+  { label: 'Fri', num: 7, isToday: false, status: 'upcoming'  },
+  { label: 'Sat', num: 8, isToday: false, status: 'upcoming'  },
 ]
 
 // ── Field-level validation ──────────────────────────────────────────────────
