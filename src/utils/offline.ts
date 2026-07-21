@@ -109,6 +109,7 @@ export async function syncQueuedSubmissions(supabaseClient: any): Promise<{ sync
           attendance_evening: report.attendance_evening,
           submitted_by: user.id,
           status: 'submitted',
+          metrics_data: report.metrics_data || {}
         })
         .select()
 

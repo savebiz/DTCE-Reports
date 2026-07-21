@@ -213,6 +213,26 @@ export default function DepartmentNarrativePage() {
           setHighlights(localDraft.highlights || '')
           setChallenges(localDraft.challenges || [])
           setRecommendations(localDraft.recommendations || [])
+        } else if (filteredReps.length > 0) {
+          const overviewsList: string[] = []
+          const highlightsList: string[] = []
+          const chList: Challenge[] = []
+          const recList: Recommendation[] = []
+
+          filteredReps.forEach((r: any, idx: number) => {
+            const dn = r.metrics_data?.daily_narrative
+            if (dn) {
+              if (dn.overview?.trim()) overviewsList.push(`Day ${idx + 1}: ${dn.overview.trim()}`)
+              if (dn.achievements?.trim()) highlightsList.push(`Day ${idx + 1}: ${dn.achievements.trim()}`)
+              if (dn.challenges?.trim()) chList.push({ id: 'ch-d-' + idx, text: `Day ${idx + 1}: ${dn.challenges.trim()}` })
+              if (dn.recommendations?.trim()) recList.push({ id: 'rec-d-' + idx, text: `Day ${idx + 1}: ${dn.recommendations.trim()}` })
+            }
+          })
+
+          if (overviewsList.length > 0) setOverview(overviewsList.join('\n\n'))
+          if (highlightsList.length > 0) setHighlights(highlightsList.join('\n\n'))
+          if (chList.length > 0) setChallenges(chList)
+          if (recList.length > 0) setRecommendations(recList)
         }
       }
     }

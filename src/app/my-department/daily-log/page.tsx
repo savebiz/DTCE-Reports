@@ -7,6 +7,7 @@ import { showToast } from '@/components/ui/toast'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { SchemaFormRenderer } from '@/components/schema-form-renderer'
 
@@ -43,6 +44,12 @@ function DailyLogContent() {
 
   // Financials
   const [offering, setOffering] = useState(0)
+
+  // Daily qualitative narrative entries
+  const [dailyOverview, setDailyOverview] = useState('')
+  const [dailyAchievements, setDailyAchievements] = useState('')
+  const [dailyChallenges, setDailyChallenges] = useState('')
+  const [dailyRecommendations, setDailyRecommendations] = useState('')
 
   // Custom schema metrics
   const [metricsData, setMetricsData] = useState<any>({})
@@ -353,6 +360,12 @@ function DailyLogContent() {
         childrenMale: 0, childrenFemale: 0,
       })
       
+      const dNarrative = mData.daily_narrative || {}
+      setDailyOverview(dNarrative.overview || '')
+      setDailyAchievements(dNarrative.achievements || '')
+      setDailyChallenges(dNarrative.challenges || '')
+      setDailyRecommendations(dNarrative.recommendations || '')
+      
       if (reps.submitted_on_behalf_by) {
         let adminProf = null
         if (isMock) {
@@ -384,6 +397,10 @@ function DailyLogContent() {
         preteensMale: 0, preteensFemale: 0,
         childrenMale: 0, childrenFemale: 0,
       })
+      setDailyOverview('')
+      setDailyAchievements('')
+      setDailyChallenges('')
+      setDailyRecommendations('')
       setBehalfAdminName('')
     }
   }
@@ -440,7 +457,13 @@ function DailyLogContent() {
       metrics_data: {
         custom_schema: metricsData,
         workforce,
-        offering
+        offering,
+        daily_narrative: {
+          overview: dailyOverview,
+          achievements: dailyAchievements,
+          challenges: dailyChallenges,
+          recommendations: dailyRecommendations
+        }
       }
     }
 
@@ -811,6 +834,81 @@ function DailyLogContent() {
               </CardContent>
             </Card>
           )}
+
+          {/* Daily Qualitative Report & Feedback */}
+          <Card className="glass-card border-none">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
+                Daily Qualitative Report &amp; Feedback
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">
+                Log key activities, achievements, challenges encountered, and recommendations for Day {activeDay?.day_number || 1}.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="daily-overview" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                  Daily Overview &amp; Issues Logged
+                </Label>
+                <Textarea
+                  id="daily-overview"
+                  value={dailyOverview}
+                  onChange={(e) => setDailyOverview(e.target.value)}
+                  disabled={isReadOnly}
+                  placeholder="Summarize key operational events, general flow, or notable issues that occurred today..."
+                  rows={3}
+                  className="input-dark text-xs text-foreground"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="daily-achieve" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                  Daily Achievements &amp; Key Successes
+                </Label>
+                <Textarea
+                  id="daily-achieve"
+                  value={dailyAchievements}
+                  onChange={(e) => setDailyAchievements(e.target.value)}
+                  disabled={isReadOnly}
+                  placeholder="Record major milestones, operational wins, or positive outcomes for today..."
+                  rows={3}
+                  className="input-dark text-xs text-foreground"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="daily-chall" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                    Challenges Faced
+                  </Label>
+                  <Textarea
+                    id="daily-chall"
+                    value={dailyChallenges}
+                    onChange={(e) => setDailyChallenges(e.target.value)}
+                    disabled={isReadOnly}
+                    placeholder="List bottlenecks, resource shortages, or difficulties encountered..."
+                    rows={3}
+                    className="input-dark text-xs text-foreground"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="daily-recom" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                    Recommendations &amp; Next Steps
+                  </Label>
+                  <Textarea
+                    id="daily-recom"
+                    value={dailyRecommendations}
+                    onChange={(e) => setDailyRecommendations(e.target.value)}
+                    disabled={isReadOnly}
+                    placeholder="Suggestions for resolution or adjustments for upcoming days..."
+                    rows={3}
+                    className="input-dark text-xs text-foreground"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right side: Schema metrics & save panel */}
