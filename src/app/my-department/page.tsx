@@ -458,7 +458,7 @@ export default function MyDepartmentDashboard() {
                       Day {day.day_number}
                     </span>
                     <span className="text-[14px] font-medium">
-                      {new Date(day.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+                      {new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'short' })}
                     </span>
                   </div>
 

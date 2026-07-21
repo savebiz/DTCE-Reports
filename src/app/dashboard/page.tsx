@@ -367,7 +367,7 @@ export default function SecretariatDashboard() {
                       <th key={day.id} className="py-2.5 px-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-r border-border" style={{ minWidth: '96px' }}>
                         Day {day.day_number}
                         <div className="text-[10px] font-normal text-muted-foreground normal-case tracking-normal">
-                          {new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                          {new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })}
                         </div>
                       </th>
                     ))}

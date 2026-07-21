@@ -663,7 +663,7 @@ function DailyLogContent() {
                     : 'bg-card text-muted-foreground border-border hover:border-slate-400 dark:hover:border-slate-700'
                 }`}
               >
-                Day {d.day_number} ({new Date(d.date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' })})
+                Day {d.day_number} ({new Date(`${d.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })})
               </button>
             )
           })}
