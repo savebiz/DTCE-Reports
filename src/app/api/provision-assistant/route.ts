@@ -15,14 +15,50 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
     }
 
-    // 2. Fetch profile role
-    const { data: prof, error: profError } = await supabaseUserClient
+    // 2. Comprehensive HOD / Secretariat authorization check
+    let isAuthorized = false
+    let userDeptId = ''
+
+    // Check A: Profile table
+    const { data: prof } = await supabaseUserClient
       .from('profiles')
       .select('role, department_id')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (profError || !prof || (prof.role !== 'hod' && prof.role !== 'super_admin' && prof.role !== 'coordinator')) {
+    if (prof) {
+      if (['hod', 'super_admin', 'coordinator'].includes(prof.role)) {
+        isAuthorized = true
+      }
+      if (prof.department_id) {
+        userDeptId = prof.department_id
+      }
+    }
+
+    // Check B: User metadata in Auth session
+    const metaRole = user.user_metadata?.role
+    if (['hod', 'super_admin', 'coordinator'].includes(metaRole)) {
+      isAuthorized = true
+    }
+    if (!userDeptId && user.user_metadata?.department_id) {
+      userDeptId = user.user_metadata.department_id
+    }
+
+    // Check C: hod_assignments table in Database
+    const { data: assignment } = await supabaseUserClient
+      .from('hod_assignments')
+      .select('department_id')
+      .eq('profile_id', user.id)
+      .maybeSingle()
+
+    if (assignment) {
+      isAuthorized = true
+      if (!userDeptId) {
+        userDeptId = assignment.department_id
+      }
+    }
+
+    if (!isAuthorized) {
       return NextResponse.json({ error: 'Unauthorized: HOD or Secretariat permissions required.' }, { status: 403 })
     }
 
@@ -53,31 +89,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Full name and username are required.' }, { status: 400 })
     }
 
-    const targetDepartmentId = departmentId || prof.department_id
-    if (!targetDepartmentId) {
-      return NextResponse.json({ error: 'No department associated with this HOD account.' }, { status: 400 })
+    let targetDeptId = departmentId || userDeptId
+    if (!targetDeptId) {
+      return NextResponse.json({ error: 'No department associated with this account.' }, { status: 400 })
     }
 
-    // 6. Fetch active event
-    let activeEventId = ''
-    const { data: eventsList } = await supabaseAdmin.from('events').select('id').limit(1)
-    if (eventsList && eventsList.length > 0) {
-      activeEventId = eventsList[0].id
+    // Resolve department UUID if string starts with "dept-"
+    if (targetDeptId.startsWith('dept-')) {
+      const { data: deptRow } = await supabaseAdmin
+        .from('departments')
+        .select('id')
+        .ilike('name', targetDeptId.replace('dept-', ''))
+        .maybeSingle()
+      if (deptRow) {
+        targetDeptId = deptRow.id
+      }
     }
 
-    // 7. Resolve username collision
-    let baseUsername = username.toLowerCase().trim()
+    // 6. Dynamic username collision resolution
+    let baseUsername = username.toLowerCase().trim().replace(/[^a-z0-9._-]/g, '')
     let finalUsername = baseUsername
     let suffix = 2
 
     while (true) {
-      const { data: existing } = await supabaseAdmin
+      const { data: existingProf } = await supabaseAdmin
         .from('profiles')
         .select('id')
         .eq('username', finalUsername)
         .maybeSingle()
 
-      if (!existing) break
+      if (!existingProf) break
       finalUsername = `${baseUsername}.${suffix}`
       suffix++
     }
@@ -85,7 +126,8 @@ export async function POST(request: NextRequest) {
     const tempPassword = generateCompliantPassword()
     const placeholderEmail = `${finalUsername}@accounts.dtce-reports.vercel.app`
 
-    // 8. Create User with email_confirm: true via Admin Client
+    // 7. Create User with email_confirm: true via Admin Client
+    let newUserId = ''
     const { data: signUpData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
       email: placeholderEmail,
       password: tempPassword,
@@ -99,19 +141,37 @@ export async function POST(request: NextRequest) {
     })
 
     if (authErr) {
-      return NextResponse.json({ error: `Auth creation failed: ${authErr.message}` }, { status: 400 })
+      // If user already exists in auth (e.g. unconfirmed previous attempt), find and auto-confirm/reset password
+      const { data: listData } = await supabaseAdmin.auth.admin.listUsers()
+      const existingUser = listData?.users.find(u => u.email?.toLowerCase() === placeholderEmail.toLowerCase())
+      
+      if (existingUser) {
+        newUserId = existingUser.id
+        await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+          password: tempPassword,
+          email_confirm: true,
+          user_metadata: {
+            full_name: fullName,
+            role: 'assistant',
+            username: finalUsername,
+            must_change_password: true
+          }
+        })
+      } else {
+        return NextResponse.json({ error: `Auth creation failed: ${authErr.message}` }, { status: 400 })
+      }
+    } else {
+      newUserId = signUpData.user.id
     }
 
-    const newUserId = signUpData.user.id
-
-    // 9. Upsert Profile Row
+    // 8. Upsert Profile Row
     const { error: profileErr } = await supabaseAdmin.from('profiles').upsert({
       id: newUserId,
       email: placeholderEmail,
       username: finalUsername,
       full_name: fullName,
       role: 'assistant',
-      department_id: targetDepartmentId,
+      department_id: targetDeptId,
       must_change_password: true,
       created_by: user.id,
       is_active: true
@@ -121,22 +181,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Profile creation failed: ${profileErr.message}` }, { status: 400 })
     }
 
-    // 10. Assign to HOD Assignments
+    // 9. Assign to HOD Assignments
+    let activeEventId = ''
+    const { data: eventsList } = await supabaseAdmin.from('events').select('id').limit(1)
+    if (eventsList && eventsList.length > 0) {
+      activeEventId = eventsList[0].id
+    }
+
     if (activeEventId) {
       await supabaseAdmin.from('hod_assignments').insert({
         event_id: activeEventId,
         profile_id: newUserId,
-        department_id: targetDepartmentId,
+        department_id: targetDeptId,
         role_in_event: 'assistant'
       })
     }
 
-    // Fetch department name
+    // Fetch department name for credential slip
     const { data: deptData } = await supabaseAdmin
       .from('departments')
       .select('name')
-      .eq('id', targetDepartmentId)
-      .single()
+      .eq('id', targetDeptId)
+      .maybeSingle()
 
     return NextResponse.json({
       success: true,
