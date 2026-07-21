@@ -195,34 +195,66 @@ export default function ReportsExportPage() {
 
           {/* Card 2: Daily Reminders */}
           <div className="glass-card p-5">
-            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Secretariat Digest</h2>
-            <p className="text-[12px] text-muted-foreground mb-4">Email summary report to Secretariat leads.</p>
+            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">🔔 Daily Reminders</h2>
+            <p className="text-[12px] text-muted-foreground mb-4">Send reminders to HODs and collation logs to Secretariat.</p>
             
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="digest-email" className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Recipient Email
-                </label>
+                <label htmlFor="digest-day" className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Target Day</label>
+                <select
+                  id="digest-day"
+                  value={digestDay}
+                  onChange={(e) => setDigestDay(e.target.value)}
+                  className="w-full h-9 rounded-lg px-3 text-[13px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
+                >
+                  <option value="1" className="bg-card text-foreground">Day 1</option>
+                  <option value="2" className="bg-card text-foreground">Day 2</option>
+                  <option value="3" className="bg-card text-foreground">Day 3</option>
+                  <option value="4" className="bg-card text-foreground">Day 4</option>
+                  <option value="5" className="bg-card text-foreground">Day 5</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label htmlFor="digest-cutoff" className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Cutoff Time</label>
                 <input
-                  id="digest-email"
-                  type="email"
-                  value={recipientEmail}
-                  onChange={(e) => setRecipientEmail(e.target.value)}
-                  placeholder="coordinator@dtce.org"
+                  id="digest-cutoff"
+                  value={digestCutoff}
+                  onChange={(e) => setDigestCutoff(e.target.value)}
+                  placeholder="e.g. 18:00"
                   className="input-dark h-9 text-[13px] text-foreground"
                 />
               </div>
 
               <button
-                onClick={handleSendDigest}
-                disabled={sending}
-                className="w-full rounded-xl py-2.5 text-[13px] font-bold text-white transition-all cursor-pointer"
-                style={{ background: 'linear-gradient(135deg, #059669, #10B981)', border: '1px solid rgba(16,185,129,0.3)' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.9' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
+                onClick={handleTriggerDigest}
+                disabled={sendingDigest}
+                className="w-full rounded-xl py-2.5 text-[13px] font-bold text-foreground transition-all bg-card border border-border hover:bg-muted/30 cursor-pointer"
               >
-                {sending ? 'Sending Email...' : '📧 Send Email Digest'}
+                {sendingDigest ? 'Sending Reminders...' : 'Trigger Daily Reminders'}
               </button>
+            </div>
+          </div>
+
+          {/* Card 3: Simulated Email Logs */}
+          <div className="glass-card p-5 max-h-[350px] flex flex-col">
+            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Simulated Email Logs</h2>
+            <div className="overflow-y-auto pr-1 space-y-3 flex-1 scrollbar-hide text-[11px]">
+              {notifLogs.slice().reverse().map((log) => (
+                <div key={log.id} className="pb-3.5 space-y-1.5 border-b border-border">
+                  <div className="flex justify-between text-muted-foreground font-mono text-[10px]">
+                    <span>To: {log.recipient}</span>
+                    <span>{new Date(log.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                  </div>
+                  <p className="font-semibold text-foreground">{log.subject}</p>
+                  <p className="text-muted-foreground leading-tight p-2 rounded-lg bg-muted/20 border border-border">
+                    {log.body.substring(0, 120)}...
+                  </p>
+                </div>
+              ))}
+              {notifLogs.length === 0 && (
+                <p className="text-[12px] italic text-muted-foreground text-center py-4">No notification logs recorded.</p>
+              )}
             </div>
           </div>
 
