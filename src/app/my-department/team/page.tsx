@@ -145,54 +145,23 @@ export default function HODTeamManagement() {
 
     setSaving(true)
     const supabase = getClient()
-    const tempPassword = generateRandomPassword()
 
     try {
-      // 1. Dynamic Username Collision Resolution
-      let baseUsername = usernameInput.toLowerCase().trim()
-      let finalUsername = baseUsername
-      let suffix = 2
-      
-      while (true) {
-        let isCollision = false
-        if (isMock) {
-          const { store: mockStore } = require('@/utils/supabase/mockClient')
-          isCollision = mockStore.profiles.some((p: any) => p.username?.toLowerCase() === finalUsername)
-        } else {
-          const { data: existing } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('username', finalUsername)
-            .maybeSingle()
-          isCollision = !!existing
+      if (isMock) {
+        const tempPassword = generateRandomPassword()
+        let baseUsername = usernameInput.toLowerCase().trim()
+        let finalUsername = baseUsername
+        let suffix = 2
+        
+        const { store: mockStore } = require('@/utils/supabase/mockClient')
+        while (mockStore.profiles.some((p: any) => p.username?.toLowerCase() === finalUsername)) {
+          finalUsername = `${baseUsername}.${suffix}`
+          suffix++
         }
 
-        if (!isCollision) {
-          break
-        }
-        finalUsername = `${baseUsername}.${suffix}`
-        suffix++
-      }
+        const placeholderEmail = `${finalUsername}@accounts.dtce-reports.vercel.app`
+        const newUserId = 'mock-asst-' + Math.random().toString(36).substr(2, 9)
 
-      const placeholderEmail = `${finalUsername}@accounts.dtce-reports.vercel.app`
-      let newUserId = 'mock-asst-' + Math.random().toString(36).substr(2, 9)
-
-      if (!isMock) {
-        const { data: signUpData, error: authErr } = await (supabase.auth as any).signUp({
-          email: placeholderEmail,
-          password: tempPassword,
-          options: {
-            data: {
-              full_name: fullName,
-              role: 'assistant',
-              username: finalUsername,
-              must_change_password: true
-            }
-          }
-        })
-        if (authErr) throw authErr
-        if (signUpData.user) newUserId = signUpData.user.id
-      } else {
         const newProfile = {
           id: newUserId,
           email: placeholderEmail,
@@ -204,52 +173,35 @@ export default function HODTeamManagement() {
           created_by: profile.id,
           is_active: true
         }
-        const { store } = require('@/utils/supabase/mockClient')
-        store.profiles.push(newProfile)
-      }
+        mockStore.profiles.push(newProfile)
 
-      const profilePayload: any = {
-        id: newUserId,
-        email: placeholderEmail,
-        username: finalUsername,
-        full_name: fullName,
-        role: 'assistant',
-        must_change_password: true,
-        created_by: profile.id,
-        is_active: true
-      }
-      if (isMock) {
-        profilePayload.department_id = profile.department_id
-      }
-      await supabase.from('profiles').upsert(profilePayload)
+        setIssuedSlip({
+          fullName,
+          departmentName,
+          username: finalUsername,
+          temporaryPassword: tempPassword,
+          role: 'ASSISTANT HOD'
+        })
+      } else {
+        // Live Mode API Call (uses admin createUser with email_confirm: true)
+        const res = await fetch('/api/provision-assistant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName,
+            username: usernameInput,
+            departmentId: profile.department_id
+          })
+        })
 
-      // Fetch active event id for assignment in DB mode
-      let activeEventId = 'event-1'
-      if (!isMock) {
-        const { data: eventsList } = await supabase.from('events').select('id')
-        if (eventsList && eventsList.length > 0) {
-          activeEventId = eventsList[0].id
-        }
+        const data = await res.json()
+        if (data.error) throw new Error(data.error)
+        setIssuedSlip(data.slip)
       }
-
-      // Auto-assign assistant to active event
-      await supabase.from('hod_assignments').insert({
-        event_id: activeEventId,
-        profile_id: newUserId,
-        department_id: profile.department_id,
-        role_in_event: 'assistant'
-      })
-
-      setIssuedSlip({
-        fullName,
-        departmentName,
-        username: usernameInput,
-        temporaryPassword: tempPassword,
-        role: 'ASSISTANT HOD'
-      })
 
       setFullName('')
       setUsernameInput('')
+      showToast('Assistant HOD account provisioned successfully!', 'success')
       loadData()
     } catch (err: any) {
       showToast(`Assistant creation failed: ${err.message}`, 'error')
@@ -282,23 +234,23 @@ export default function HODTeamManagement() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center font-sans" style={{ background: '#06090F' }}>
-        <p className="text-sm font-mono animate-pulse text-slate-500">Loading Team Dashboard...</p>
+      <div className="min-h-screen flex items-center justify-center font-sans bg-background">
+        <p className="text-sm font-mono animate-pulse text-muted-foreground">Loading Team Dashboard...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
+    <div className="min-h-screen bg-mesh bg-background">
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6 animate-fade-in-up">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-              <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">HOD Controls</span>
+              <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">HOD Controls</span>
             </div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Manage My Team</h1>
-            <p className="text-[13px] text-slate-500 mt-0.5">
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Manage My Team</h1>
+            <p className="text-[13px] text-muted-foreground mt-0.5">
               Provision and manage sub-leader accounts issued for the {departmentName} department.
             </p>
           </div>
@@ -306,7 +258,7 @@ export default function HODTeamManagement() {
             variant="outline"
             size="sm"
             onClick={() => router.push('/my-department')}
-            className="text-xs h-9 cursor-pointer w-fit text-slate-300 hover:text-white"
+            className="text-xs h-9 cursor-pointer w-fit text-muted-foreground hover:text-foreground border-border bg-card"
           >
             ← Back to Dashboard
           </Button>
@@ -314,40 +266,34 @@ export default function HODTeamManagement() {
 
         {/* Issued Credential Slip */}
         {issuedSlip && (
-          <div className="rounded-2xl p-6 space-y-4 max-w-md" style={{ background: 'rgba(245,158,11,0.04)', border: '1px dashed rgba(245,158,11,0.25)' }}>
+          <div className="rounded-2xl p-6 space-y-4 max-w-md bg-amber-500/10 border border-dashed border-amber-500/30">
             <div className="flex justify-between items-center">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-amber-400">
+              <span className="text-[12px] font-bold uppercase tracking-wider text-amber-500">
                 🎫 Issued Assistant Credential Slip
               </span>
               <button
                 onClick={() => setIssuedSlip(null)}
-                className="text-[12px] text-slate-500 hover:text-slate-400 font-semibold"
+                className="text-[12px] text-muted-foreground hover:text-foreground font-semibold cursor-pointer"
               >
                 Dismiss
               </button>
             </div>
             
-            <div
-              className="rounded-xl p-5 relative overflow-hidden"
-              style={{
-                background: 'rgba(12,18,32,0.8)',
-                border: '1px solid rgba(255,255,255,0.08)',
-              }}
-            >
-              <div className="absolute top-0 right-0 h-full w-1.5" style={{ background: 'linear-gradient(180deg, #F59E0B, #D97706)' }}></div>
+            <div className="rounded-xl p-5 relative overflow-hidden bg-card border border-border">
+              <div className="absolute top-0 right-0 h-full w-1.5 bg-gradient-to-b from-amber-500 to-amber-600"></div>
               <div className="space-y-4">
                 <div>
-                  <span className="text-[9px] font-mono uppercase tracking-widest text-slate-500">RCCG DTCE System</span>
-                  <h4 className="text-base font-bold text-white mt-1 leading-tight">{issuedSlip.fullName}</h4>
+                  <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground">RCCG DTCE System</span>
+                  <h4 className="text-base font-bold text-foreground mt-1 leading-tight">{issuedSlip.fullName}</h4>
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-[12px] pt-3 font-mono" style={{ borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
+                <div className="grid grid-cols-2 gap-3 text-[12px] pt-3 font-mono border-t border-dashed border-border">
                   <div>
-                    <span className="text-slate-500 block text-[8px] uppercase">Username</span>
-                    <span className="font-bold text-slate-200">{issuedSlip.username}</span>
+                    <span className="text-muted-foreground block text-[8px] uppercase">Username</span>
+                    <span className="font-bold text-foreground">{issuedSlip.username}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[8px] uppercase">Temporary Password</span>
-                    <span className="font-bold text-amber-400">{issuedSlip.temporaryPassword}</span>
+                    <span className="text-muted-foreground block text-[8px] uppercase">Temporary Password</span>
+                    <span className="font-bold text-amber-500">{issuedSlip.temporaryPassword}</span>
                   </div>
                 </div>
               </div>
@@ -358,41 +304,41 @@ export default function HODTeamManagement() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Add Assistant form */}
           <div className="lg:col-span-1">
-            <div className="glass-card p-5 space-y-4">
+            <div className="glass-card p-5 space-y-4 bg-card border border-border">
               <div>
-                <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1">Provision Assistant HOD</h2>
-                <p className="text-[12px] text-slate-500">Create a new sub-leader login for your department.</p>
+                <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Provision Assistant HOD</h2>
+                <p className="text-[12px] text-muted-foreground">Create a new sub-leader login for your department.</p>
               </div>
 
               <form onSubmit={handleCreateAssistant} noValidate className="space-y-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="asst-name" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Assistant Full Name</label>
+                  <label htmlFor="asst-name" className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Assistant Full Name</label>
                   <input
                     id="asst-name"
                     value={fullName}
                     onChange={(e) => handleNameChange(e.target.value)}
                     placeholder="e.g. Deaconess Funmi Coker"
                     required
-                    className="input-dark"
+                    className="input-dark text-foreground"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="asst-username" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Generated Username</label>
+                  <label htmlFor="asst-username" className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Generated Username</label>
                   <input
                     id="asst-username"
                     value={usernameInput}
                     onChange={(e) => setUsernameInput(e.target.value)}
                     placeholder="Auto-suggests username"
                     required
-                    className="input-dark font-mono"
+                    className="input-dark text-foreground font-mono"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={saving}
-                  className="w-full rounded-xl py-2.5 text-[13px] font-bold text-white transition-all duration-200 mt-2"
+                  className="w-full rounded-xl py-2.5 text-[13px] font-bold text-white transition-all duration-200 mt-2 cursor-pointer"
                   style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', border: '1px solid rgba(59,130,246,0.3)' }}
                 >
                   {saving ? 'Creating Account...' : '⚡ Generate Assistant Credential'}
@@ -403,59 +349,59 @@ export default function HODTeamManagement() {
 
           {/* Assistant list */}
           <div className="lg:col-span-2">
-            <div className="glass-card overflow-hidden flex flex-col" style={{ maxHeight: '70vh' }}>
-              <div className="px-5 py-4 border-b flex flex-col gap-1" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.2)' }}>
-                <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Active Assistant Accounts</span>
-                <p className="text-[12px] text-slate-500">Review or deactivate helper profiles issued for {departmentName}.</p>
+            <div className="glass-card overflow-hidden flex flex-col max-h-[70vh] bg-card border border-border">
+              <div className="px-5 py-4 border-b border-border bg-muted/20 flex flex-col gap-1">
+                <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Active Assistant Accounts</span>
+                <p className="text-[12px] text-muted-foreground">Review or deactivate helper profiles issued for {departmentName}.</p>
               </div>
 
               <div className="overflow-y-auto flex-1 scrollbar-hide">
                 {assistants.length === 0 ? (
-                  <p className="text-[12px] text-slate-500 italic p-6 text-center">
+                  <p className="text-[12px] text-muted-foreground italic p-6 text-center">
                     No assistant HOD logins provisioned yet for your department.
                   </p>
                 ) : (
                   <table className="w-full text-left border-collapse text-[12px]">
                     <thead>
-                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
-                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Full Name</th>
-                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Username</th>
-                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Login Status</th>
-                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Account Status</th>
-                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">Action</th>
+                      <tr className="border-b border-border bg-muted/10">
+                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Full Name</th>
+                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Username</th>
+                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Login Status</th>
+                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Account Status</th>
+                        <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-800 text-slate-300">
+                    <tbody className="divide-y divide-border text-foreground">
                       {assistants.map(asst => (
-                        <tr key={asst.id} className="hover:bg-slate-900/10">
-                          <td className="p-3 font-semibold text-slate-200">{asst.full_name}</td>
-                          <td className="p-3 font-mono text-slate-400">{asst.username}</td>
+                        <tr key={asst.id} className="hover:bg-muted/20">
+                          <td className="p-3 font-semibold text-foreground">{asst.full_name}</td>
+                          <td className="p-3 font-mono text-muted-foreground">{asst.username}</td>
                           <td className="p-3">
                             {asst.must_change_password ? (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' }}>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
                                 Pending Reset
                               </span>
                             ) : (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }}>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
                                 Active
                               </span>
                             )}
                           </td>
                           <td className="p-3">
                             {asst.is_active !== false ? (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }}>Active</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Active</span>
                             ) : (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.1)', color: '#FCA5A5', border: '1px solid rgba(239,68,68,0.2)' }}>Deactivated</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/20">Deactivated</span>
                             )}
                           </td>
                           <td className="p-2 text-right">
                             <button
                               onClick={() => toggleAssistantActive(asst.id, asst.is_active !== false)}
-                              className="h-7 rounded-lg px-3 text-[11px] font-semibold transition-all duration-150"
+                              className="h-7 rounded-lg px-3 text-[11px] font-semibold transition-all duration-150 cursor-pointer"
                               style={
                                 asst.is_active !== false 
-                                  ? { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' } 
-                                  : { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34D399' }
+                                  ? { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#DC2626' } 
+                                  : { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#059669' }
                               }
                             >
                               {asst.is_active !== false ? 'Deactivate' : 'Reactivate'}
