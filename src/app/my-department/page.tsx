@@ -64,7 +64,7 @@ export default function MyDepartmentDashboard() {
             const { data: appReqs } = await supabase
               .from('store_requests')
               .select('*')
-              .eq('status', 'approved')
+              .in('status', ['approved', 'in_progress', 'partially_fulfilled'])
               .order('created_at', { ascending: false })
             
             if (appReqs) {
@@ -184,7 +184,7 @@ export default function MyDepartmentDashboard() {
           const { data: appReqs } = await supabase
             .from('store_requests')
             .select('*')
-            .eq('status', 'approved')
+            .in('status', ['approved', 'in_progress', 'partially_fulfilled'])
             .order('created_at', { ascending: false })
           
           if (appReqs) {
@@ -240,13 +240,18 @@ export default function MyDepartmentDashboard() {
     }
   }
 
-  // 4. Mark Request as Delivered
-  const handleMarkAsDelivered = async (reqId: string) => {
+  // 4. Update Request Status (Stores Fulfillment)
+  const handleUpdateReqStatus = async (reqId: string, newStatus: 'in_progress' | 'partially_fulfilled' | 'delivered') => {
     setActionLoading(true)
     const supabase = getClient()
+    const labelMap: Record<string, string> = { in_progress: 'In Progress', partially_fulfilled: 'Partially Fulfilled', delivered: 'Delivered' }
     if (isMock) {
-      showToast('Requisition marked as delivered (Mock Mode)', 'success')
-      setApprovedRequests(prev => prev.filter(r => r.id !== reqId))
+      showToast(`Requisition marked as ${labelMap[newStatus]} (Mock Mode)`, 'success')
+      if (newStatus === 'delivered') {
+        setApprovedRequests(prev => prev.filter(r => r.id !== reqId))
+      } else {
+        setApprovedRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: newStatus } : r))
+      }
       setActionLoading(false)
       return
     }
@@ -254,12 +259,12 @@ export default function MyDepartmentDashboard() {
     try {
       const { error } = await supabase
         .from('store_requests')
-        .update({ status: 'delivered' })
+        .update({ status: newStatus })
         .eq('id', reqId)
 
       if (error) throw error
 
-      showToast('Items issued and marked as delivered successfully!', 'success')
+      showToast(`Requisition updated to ${labelMap[newStatus]}!`, 'success')
       loadData()
     } catch (e: any) {
       showToast(`Failed to update request: ${e.message}`, 'error')
@@ -480,16 +485,16 @@ export default function MyDepartmentDashboard() {
           {isStoresDept && (
             <Card className="glass-card border-none mt-8">
               <CardHeader>
-                <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                  Approved Requisitions for Fulfillment
+                 <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
+                  Requisitions for Fulfillment
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground mt-0.5">
-                  Issue durables or consumables and mark them as delivered when collected.
+                  Track, process, and mark requisitions through In Progress → Partially Fulfilled → Delivered.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {approvedRequests.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">No approved requisitions pending delivery.</p>
+                  <p className="text-xs text-muted-foreground italic">No requisitions pending fulfillment.</p>
                 ) : (
                   <div className="space-y-4">
                     {approvedRequests.map((req) => (
@@ -502,15 +507,61 @@ export default function MyDepartmentDashboard() {
                             <span className="text-[10px] text-muted-foreground block mt-0.5">
                               Approved by Coordinator • Ordered by {req.requester?.full_name}
                             </span>
+                            <span
+                              className="inline-flex items-center mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                              style={
+                                req.status === 'approved' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
+                                req.status === 'in_progress' ? { background: 'rgba(139,92,246,0.1)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.2)' } :
+                                { background: 'rgba(236,72,153,0.1)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.2)' }
+                              }
+                            >
+                              {req.status === 'approved' ? 'Approved' : req.status === 'in_progress' ? 'In Progress' : 'Partially Fulfilled'}
+                            </span>
                           </div>
-                          <Button
-                            size="sm"
-                            disabled={actionLoading}
-                            onClick={() => handleMarkAsDelivered(req.id)}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
-                          >
-                            Mark as Delivered
-                          </Button>
+                          <div className="flex gap-1.5 flex-shrink-0">
+                            {req.status === 'approved' && (
+                              <Button
+                                size="sm"
+                                disabled={actionLoading}
+                                onClick={() => handleUpdateReqStatus(req.id, 'in_progress')}
+                                className="text-xs h-8 font-semibold"
+                                style={{ background: 'rgba(139,92,246,0.15)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.3)' }}
+                              >
+                                Start Processing
+                              </Button>
+                            )}
+                            {req.status === 'in_progress' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  disabled={actionLoading}
+                                  onClick={() => handleUpdateReqStatus(req.id, 'partially_fulfilled')}
+                                  className="text-xs h-8 font-semibold"
+                                  style={{ background: 'rgba(236,72,153,0.12)', color: '#F472B6', border: '1px solid rgba(236,72,153,0.25)' }}
+                                >
+                                  Partial
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  disabled={actionLoading}
+                                  onClick={() => handleUpdateReqStatus(req.id, 'delivered')}
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
+                                >
+                                  Delivered
+                                </Button>
+                              </>
+                            )}
+                            {req.status === 'partially_fulfilled' && (
+                              <Button
+                                size="sm"
+                                disabled={actionLoading}
+                                onClick={() => handleUpdateReqStatus(req.id, 'delivered')}
+                                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
+                              >
+                                Mark Fully Delivered
+                              </Button>
+                            )}
+                          </div>
                         </div>
 
                         {/* List items requested */}

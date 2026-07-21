@@ -23,27 +23,27 @@ export async function middleware(request: NextRequest) {
   // 3. If logged in but does not need reset, and trying to access /reset-password, redirect to home
   if (user && !mustChangePassword && path === '/reset-password') {
     const url = request.nextUrl.clone()
-    url.pathname = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
+    url.pathname = (role === 'super_admin' || role === 'coordinator' || role === 'national_coordinator') ? '/dashboard' : '/my-department'
     return NextResponse.redirect(url)
   }
 
   // 4. If logged in and trying to access /login, redirect to home page based on role
   if (user && path === '/login') {
     const url = request.nextUrl.clone()
-    url.pathname = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
+    url.pathname = (role === 'super_admin' || role === 'coordinator' || role === 'national_coordinator') ? '/dashboard' : '/my-department'
     return NextResponse.redirect(url)
   }
 
   // 5. Root path redirection
   if (user && path === '/') {
     const url = request.nextUrl.clone()
-    url.pathname = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
+    url.pathname = (role === 'super_admin' || role === 'coordinator' || role === 'national_coordinator') ? '/dashboard' : '/my-department'
     return NextResponse.redirect(url)
   }
 
   // 6. Role-based path access control
   if (user) {
-    const isAdmin = role === 'super_admin' || role === 'coordinator'
+    const isAdmin = role === 'super_admin' || role === 'coordinator' || role === 'national_coordinator'
 
     if (isAdmin && path.startsWith('/my-department')) {
       const url = request.nextUrl.clone()

@@ -18,6 +18,7 @@ const NAV_ITEMS = [
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin:  'Admin',
+  national_coordinator: 'Nat. Coordinator',
   coordinator:  'Coordinator',
   hod:          'HOD',
   assistant:    'Assistant',
@@ -25,6 +26,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 const ROLE_COLORS: Record<string, string> = {
   super_admin:  'text-blue-400 bg-blue-500/10 border-blue-500/20',
+  national_coordinator: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
   coordinator:  'text-amber-400 bg-amber-500/10 border-amber-500/20',
   hod:          'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
   assistant:    'text-slate-400 bg-slate-500/10 border-slate-500/20',
@@ -41,6 +43,7 @@ export function DashboardHeader() {
   const [open, setOpen]     = useState(false)
   const [signing, setSigning] = useState(false)
   const [activeDeptName, setActiveDeptName] = useState('Secretariat')
+  const [hasNoDepartment, setHasNoDepartment] = useState(false)
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -68,9 +71,9 @@ export function DashboardHeader() {
 
         const userRole = activeProfile?.role || 'hod'
         let deptId = deptIdParam
-        if (userRole === 'super_admin' || userRole === 'coordinator') {
+        if (userRole === 'super_admin' || userRole === 'coordinator' || userRole === 'national_coordinator') {
           if (!deptIdParam) {
-            setActiveDeptName('Secretariat')
+            setActiveDeptName(userRole === 'national_coordinator' ? "National Coordinator's Office" : 'Secretariat')
             return
           }
         } else {
@@ -88,6 +91,9 @@ export function DashboardHeader() {
             if (!deptId) {
               deptId = activeProfile?.department_id
             }
+            if (!deptId && userRole === 'assistant') {
+              setHasNoDepartment(true)
+            }
           }
         }
 
@@ -104,7 +110,11 @@ export function DashboardHeader() {
             setActiveDeptName(mockDept?.name || 'Department')
           }
         } else {
-          setActiveDeptName(userRole === 'super_admin' || userRole === 'coordinator' ? 'Secretariat' : 'Department')
+          if (userRole === 'national_coordinator' || (userRole === 'assistant' && !deptId)) {
+            setActiveDeptName("National Coordinator's Office")
+          } else {
+            setActiveDeptName(userRole === 'super_admin' || userRole === 'coordinator' ? 'Secretariat' : 'Department')
+          }
         }
       }
     }
@@ -124,7 +134,7 @@ export function DashboardHeader() {
 
   const name    = user.user_metadata?.full_name || user.email || ''
   const role    = user.user_metadata?.role || 'assistant'
-  const showNav = role === 'super_admin' || role === 'coordinator'
+  const showNav = role === 'super_admin' || role === 'coordinator' || role === 'national_coordinator'
 
   const initials = name
     .split(' ')
@@ -190,6 +200,7 @@ export function DashboardHeader() {
             {showNav && (
               <nav className="hidden md:flex items-center gap-1">
                 {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+                  if (role === 'national_coordinator' && (label === 'Team' || label === 'Settings')) return null;
                   const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
                   return (
                     <button
@@ -229,7 +240,7 @@ export function DashboardHeader() {
 
             {/* Role badge */}
             <span className={`hidden sm:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize tracking-wide ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
-              {ROLE_LABELS[role] || role}
+              {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (ROLE_LABELS[role] || role)}
             </span>
 
             {/* User avatar */}
@@ -296,6 +307,7 @@ export function DashboardHeader() {
           >
             <nav className="flex flex-col gap-1 p-3">
               {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+                if (role === 'national_coordinator' && (label === 'Team' || label === 'Settings')) return null;
                 const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
                 return (
                   <button

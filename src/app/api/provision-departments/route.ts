@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (profError || !prof || (prof.role !== 'super_admin' && prof.role !== 'coordinator')) {
+    if (profError || !prof || (prof.role !== 'super_admin' && prof.role !== 'coordinator' && prof.role !== 'national_coordinator')) {
       return NextResponse.json({ error: 'Unauthorized: Secretariat access required.' }, { status: 403 })
     }
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     // 5. Parse request body
     const body = await request.json()
     const { departments } = body as {
-      departments: Array<{ id: string; name: string; leaderName: string; username: string; email?: string }>
+      departments: Array<{ id?: string | null; name?: string; leaderName: string; username: string; email?: string; role?: string }>
     }
 
     if (!departments || !Array.isArray(departments) || departments.length === 0) {
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 
       // Resolve the department UUID by matching the name if it is a mock ID (e.g. "dept-25")
       let resolvedDeptId = item.id
-      if (item.id.startsWith('dept-')) {
+      if (item.id && item.id.startsWith('dept-') && item.name) {
         const { data: deptData, error: deptError } = await supabaseAdmin
           .from('departments')
           .select('id')
@@ -102,8 +102,9 @@ export async function POST(request: NextRequest) {
           resolvedDeptId = deptData.id
         } else {
           // Case-insensitive fallback lookup
+          const itemNameLower = item.name.toLowerCase().trim()
           const { data: allDepts } = await supabaseAdmin.from('departments').select('id, name')
-          const matched = allDepts?.find(d => d.name.toLowerCase().trim() === item.name.toLowerCase().trim())
+          const matched = allDepts?.find(d => d.name.toLowerCase().trim() === itemNameLower)
           if (matched) {
             resolvedDeptId = matched.id
           } else {
@@ -111,6 +112,8 @@ export async function POST(request: NextRequest) {
           }
         }
       }
+      
+      const userRole = item.role || 'hod'
 
       // a. Create User in Supabase Auth via Admin client
       const { data: signUpData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
@@ -119,7 +122,7 @@ export async function POST(request: NextRequest) {
         email_confirm: true,
         user_metadata: {
           full_name: item.leaderName,
-          role: 'hod',
+          role: userRole,
           username: item.username,
           must_change_password: true
         }
@@ -137,7 +140,7 @@ export async function POST(request: NextRequest) {
         email: emailAddress,
         username: item.username,
         full_name: item.leaderName,
-        role: 'hod',
+        role: userRole,
         must_change_password: true,
         created_by: user.id
       })
@@ -149,26 +152,28 @@ export async function POST(request: NextRequest) {
       }
 
       // c. Insert Assignment Row
-      const { error: assignErr } = await supabaseAdmin.from('hod_assignments').insert({
-        event_id: eventId,
-        profile_id: newUserId,
-        department_id: resolvedDeptId,
-        role_in_event: 'hod'
-      })
+      if (resolvedDeptId) {
+        const { error: assignErr } = await supabaseAdmin.from('hod_assignments').insert({
+          event_id: eventId,
+          profile_id: newUserId,
+          department_id: resolvedDeptId,
+          role_in_event: userRole
+        })
 
-      if (assignErr) {
-        // Cleanup if assignment fails
-        await supabaseAdmin.from('profiles').delete().eq('id', newUserId)
-        await supabaseAdmin.auth.admin.deleteUser(newUserId)
-        throw new Error(`HOD department assignment failed: ${assignErr.message}`)
+        if (assignErr) {
+          // Cleanup if assignment fails
+          await supabaseAdmin.from('profiles').delete().eq('id', newUserId)
+          await supabaseAdmin.auth.admin.deleteUser(newUserId)
+          throw new Error(`Department assignment failed: ${assignErr.message}`)
+        }
       }
 
       slips.push({
         fullName: item.leaderName,
-        departmentName: item.name,
+        departmentName: item.name || 'Coordinator Office',
         username: item.username,
         temporaryPassword: password,
-        role: 'HOD'
+        role: userRole === 'national_coordinator' ? 'NATIONAL COORDINATOR' : (userRole === 'coordinator' ? 'COORDINATOR' : 'HOD')
       })
     }
 

@@ -19,7 +19,7 @@ interface RequestItem {
 interface StoreRequestTicket {
   id: string
   items_json: RequestItem[]
-  status: 'pending_coordinator' | 'approved' | 'declined' | 'delivered'
+  status: 'pending_coordinator' | 'approved' | 'declined' | 'in_progress' | 'partially_fulfilled' | 'delivered'
   reviewer_comments?: string
   reviewed_at?: string
   created_at: string
@@ -331,11 +331,13 @@ function StoreRequestContent() {
                             style={
                               req.status === 'pending_coordinator' ? { background: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' } :
                               req.status === 'approved' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
+                              req.status === 'in_progress' ? { background: 'rgba(139,92,246,0.1)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.2)' } :
+                              req.status === 'partially_fulfilled' ? { background: 'rgba(236,72,153,0.1)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.2)' } :
                               req.status === 'delivered' ? { background: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' } :
                               { background: 'rgba(239,68,68,0.1)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.2)' }
                             }
                           >
-                            {req.status.replace('_', ' ')}
+                            {req.status === 'pending_coordinator' ? 'Pending' : req.status === 'partially_fulfilled' ? 'Partial' : req.status === 'in_progress' ? 'In Progress' : req.status.charAt(0).toUpperCase() + req.status.slice(1)}
                           </span>
                         </div>
 

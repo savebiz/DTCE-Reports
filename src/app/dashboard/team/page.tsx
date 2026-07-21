@@ -33,7 +33,7 @@ export default function SecretariatTeamManagement() {
   const [singleFullName, setSingleFullName] = useState('')
   const [singleDeptId, setSingleDeptId] = useState('dept-1')
   const [singleUsernameInput, setSingleUsernameInput] = useState('')
-  const [singleRole, setSingleRole] = useState<'hod' | 'assistant' | 'coordinator' | 'super_admin'>('hod')
+  const [singleRole, setSingleRole] = useState<'hod' | 'assistant' | 'coordinator' | 'super_admin' | 'national_coordinator'>('hod')
   const [singleEmail, setSingleEmail] = useState('')
   const [savingSingle, setSavingSingle] = useState(false)
 
@@ -78,11 +78,14 @@ export default function SecretariatTeamManagement() {
     }
 
     if (activeProfile) {
-      if (activeProfile.role !== 'super_admin' && activeProfile.role !== 'coordinator') {
+      if (activeProfile.role !== 'super_admin' && activeProfile.role !== 'coordinator' && activeProfile.role !== 'national_coordinator') {
         router.push('/my-department')
         return
       }
       setProfile(activeProfile)
+      if (activeProfile.role !== 'super_admin') {
+        setSingleRole('assistant')
+      }
     }
 
     const { data: allUsers } = await supabase.from('profiles').select('*')
@@ -112,35 +115,29 @@ export default function SecretariatTeamManagement() {
     loadData()
   }, [])
 
+  useEffect(() => {
+    if (!singleFullName) return
+    const normalized = singleFullName.toLowerCase().trim().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')
+    if (!normalized) return
+    
+    if (singleRole === 'super_admin' || singleRole === 'coordinator' || singleRole === 'national_coordinator') {
+      setSingleDeptId('')
+      setSingleUsernameInput(normalized)
+    } else {
+      if (!singleDeptId) setSingleDeptId('dept-1')
+      const dept = mockDepartments.find(d => d.id === (singleDeptId || 'dept-1'))
+      const deptSlug = dept ? dept.name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '') : 'dept'
+      setSingleUsernameInput(`${normalized}.${deptSlug}`)
+    }
+  }, [singleRole, singleFullName, singleDeptId])
+
   // Auto-generate single username slug
   const handleSingleNameChange = (val: string) => {
     setSingleFullName(val)
-    const normalized = val
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '.')
-      .replace(/[^a-z0-9.]/g, '')
-    if (normalized) {
-      const dept = mockDepartments.find(d => d.id === singleDeptId)
-      const deptSlug = dept ? dept.name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '') : 'dept'
-      setSingleUsernameInput(`${normalized}.${deptSlug}`)
-    } else {
-      setSingleUsernameInput('')
-    }
   }
 
   const handleSingleDeptSelectChange = (id: string) => {
     setSingleDeptId(id)
-    if (singleFullName) {
-      const normalized = singleFullName
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, '.')
-        .replace(/[^a-z0-9.]/g, '')
-      const dept = mockDepartments.find(d => d.id === id)
-      const deptSlug = dept ? dept.name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '') : 'dept'
-      setSingleUsernameInput(`${normalized}.${deptSlug}`)
-    }
   }
 
   // Handle inline updates in the bulk provisioning list
@@ -595,24 +592,26 @@ export default function SecretariatTeamManagement() {
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <label htmlFor="single-dept" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Target Department</label>
-                  <select
-                    id="single-dept"
-                    value={singleDeptId}
-                    onChange={(e) => handleSingleDeptSelectChange(e.target.value)}
-                    className="w-full h-9 rounded-lg px-3 text-[13px] font-medium text-slate-300 cursor-pointer"
-                    style={{
-                      background: 'rgba(255,255,255,0.06)',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      outline: 'none',
-                    }}
-                  >
-                    {mockDepartments.map(d => (
-                      <option key={d.id} value={d.id} style={{ background: '#111827' }}>{d.name}</option>
-                    ))}
-                  </select>
-                </div>
+                {!(singleRole === 'super_admin' || singleRole === 'coordinator' || singleRole === 'national_coordinator') && (
+                  <div className="space-y-1.5">
+                    <label htmlFor="single-dept" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Target Department</label>
+                    <select
+                      id="single-dept"
+                      value={singleDeptId}
+                      onChange={(e) => handleSingleDeptSelectChange(e.target.value)}
+                      className="w-full h-9 rounded-lg px-3 text-[13px] font-medium text-slate-300 cursor-pointer"
+                      style={{
+                        background: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        outline: 'none',
+                      }}
+                    >
+                      {mockDepartments.map(d => (
+                        <option key={d.id} value={d.id} style={{ background: '#111827' }}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="space-y-1.5">
                   <label htmlFor="single-username" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Generated Username</label>
@@ -650,10 +649,19 @@ export default function SecretariatTeamManagement() {
                       outline: 'none',
                     }}
                   >
-                    <option value="hod" style={{ background: '#111827' }}>HOD (Department Head)</option>
-                    <option value="assistant" style={{ background: '#111827' }}>Assistant HOD</option>
-                    <option value="coordinator" style={{ background: '#111827' }}>National Coordinator / Admin Assistant</option>
-                    <option value="super_admin" style={{ background: '#111827' }}>Super Admin</option>
+                    {profile?.role === 'super_admin' && (
+                      <option value="hod" style={{ background: '#111827' }}>HOD (Department Head)</option>
+                    )}
+                    <option value="assistant" style={{ background: '#111827' }}>Assistant</option>
+                    {profile?.role === 'super_admin' && (
+                      <option value="coordinator" style={{ background: '#111827' }}>Coordinator</option>
+                    )}
+                    {profile?.role === 'super_admin' && (
+                      <option value="national_coordinator" style={{ background: '#111827' }}>National Coordinator</option>
+                    )}
+                    {profile?.role === 'super_admin' && (
+                      <option value="super_admin" style={{ background: '#111827' }}>Super Admin</option>
+                    )}
                   </select>
                 </div>
 

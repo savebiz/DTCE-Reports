@@ -26,7 +26,7 @@ export interface Profile {
   id: string
   email: string
   full_name: string
-  role: 'super_admin' | 'coordinator' | 'hod' | 'assistant'
+  role: 'super_admin' | 'coordinator' | 'national_coordinator' | 'hod' | 'assistant'
   department_id?: string
   username?: string
   must_change_password?: boolean

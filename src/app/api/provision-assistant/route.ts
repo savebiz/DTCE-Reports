@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (prof) {
-      if (['hod', 'super_admin', 'coordinator'].includes(prof.role)) {
+      if (['hod', 'super_admin', 'coordinator', 'national_coordinator'].includes(prof.role)) {
         isAuthorized = true
       }
       if (prof.department_id) {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     // Check B: User metadata in Auth session
     const metaRole = user.user_metadata?.role
-    if (['hod', 'super_admin', 'coordinator'].includes(metaRole)) {
+    if (['hod', 'super_admin', 'coordinator', 'national_coordinator'].includes(metaRole)) {
       isAuthorized = true
     }
     if (!userDeptId && user.user_metadata?.department_id) {
@@ -83,20 +83,17 @@ export async function POST(request: NextRequest) {
     const { fullName, username, departmentId } = body as {
       fullName: string
       username: string
-      departmentId?: string
+      departmentId?: string | null
     }
 
     if (!fullName || !username) {
       return NextResponse.json({ error: 'Full name and username are required.' }, { status: 400 })
     }
 
-    let targetDeptId = departmentId || userDeptId
-    if (!targetDeptId) {
-      return NextResponse.json({ error: 'No department associated with this account.' }, { status: 400 })
-    }
+    let targetDeptId = departmentId !== undefined ? departmentId : userDeptId
 
     // Resolve department UUID if string starts with "dept-"
-    if (targetDeptId.startsWith('dept-')) {
+    if (targetDeptId && targetDeptId.startsWith('dept-')) {
       const mockDept = mockDepartments.find(d => d.id === targetDeptId)
       const searchName = mockDept ? mockDept.name : targetDeptId.replace('dept-', '')
       const { data: deptRow } = await supabaseAdmin
@@ -190,7 +187,7 @@ export async function POST(request: NextRequest) {
       activeEventId = eventsList[0].id
     }
 
-    if (activeEventId) {
+    if (activeEventId && targetDeptId) {
       await supabaseAdmin.from('hod_assignments').insert({
         event_id: activeEventId,
         profile_id: newUserId,
@@ -200,20 +197,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch department name for credential slip
-    const { data: deptData } = await supabaseAdmin
-      .from('departments')
-      .select('name')
-      .eq('id', targetDeptId)
-      .maybeSingle()
+    let deptName = 'Coordinator Office'
+    if (targetDeptId) {
+      const { data: deptData } = await supabaseAdmin
+        .from('departments')
+        .select('name')
+        .eq('id', targetDeptId)
+        .maybeSingle()
+      if (deptData?.name) deptName = deptData.name
+    }
 
     return NextResponse.json({
       success: true,
       slip: {
         fullName,
-        departmentName: deptData?.name || 'Department',
+        departmentName: deptName,
         username: finalUsername,
         temporaryPassword: tempPassword,
-        role: 'ASSISTANT HOD'
+        role: targetDeptId ? 'ASSISTANT HOD' : 'COORDINATOR ASSISTANT'
       }
     })
   } catch (err: any) {
