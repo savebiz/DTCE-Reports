@@ -73,8 +73,9 @@ export function DashboardHeader() {
             setActiveDeptName('Secretariat')
             return
           }
+        } else {
           if (!deptId || deptId.startsWith('dept-')) {
-            if (!isMock) {
+            if (!isMock && activeProfile?.id) {
               const { data: assignment } = await supabase
                 .from('hod_assignments')
                 .select('department_id')
@@ -82,7 +83,6 @@ export function DashboardHeader() {
                 .maybeSingle()
               if (assignment?.department_id) {
                 deptId = assignment.department_id
-                activeProfile.department_id = deptId
               }
             }
             if (!deptId) {
