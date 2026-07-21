@@ -54,15 +54,15 @@ drop policy if exists "Allow all department_narratives" on public.department_nar
 create policy "Allow select department_narratives" on public.department_narratives 
 for select using (
   exists (select 1 from public.profiles where id = auth.uid() and role in ('super_admin', 'coordinator'))
-  or submitted_by = auth.uid()
   or exists (select 1 from public.profiles where id = auth.uid() and department_id = department_narratives.department_id)
   or exists (select 1 from public.hod_assignments where profile_id = auth.uid() and department_id = department_narratives.department_id)
+  or exists (select 1 from public.daily_reports where id = department_narratives.daily_report_id and submitted_by = auth.uid())
 );
 
 create policy "Allow all department_narratives" on public.department_narratives 
 for all using (
   exists (select 1 from public.profiles where id = auth.uid() and role in ('super_admin', 'coordinator', 'hod', 'assistant'))
-  or submitted_by = auth.uid()
   or exists (select 1 from public.profiles where id = auth.uid() and department_id = department_narratives.department_id)
   or exists (select 1 from public.hod_assignments where profile_id = auth.uid() and department_id = department_narratives.department_id)
+  or exists (select 1 from public.daily_reports where id = department_narratives.daily_report_id and submitted_by = auth.uid())
 );
