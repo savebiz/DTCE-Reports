@@ -16,19 +16,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
     }
 
-    // 2. Fetch user's profile role from database directly (never trust client)
-    const { data: prof, error: profError } = await supabaseUserClient
+    // 2. Comprehensive Secretariat / Coordinator authorization check
+    let isAuthorized = false
+
+    // Check A: Profile table via User client
+    const { data: prof } = await supabaseUserClient
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (profError || !prof || (prof.role !== 'super_admin' && prof.role !== 'coordinator' && prof.role !== 'national_coordinator')) {
-      return NextResponse.json({ error: 'Unauthorized: Secretariat access required.' }, { status: 403 })
+    if (prof && ['super_admin', 'coordinator', 'national_coordinator'].includes(prof.role)) {
+      isAuthorized = true
     }
 
-    // 3. Check for service role key
+    // Check B: User metadata in Auth session
+    const metaRole = user.user_metadata?.role
+    if (['super_admin', 'coordinator', 'national_coordinator'].includes(metaRole)) {
+      isAuthorized = true
+    }
+
+    // Check C: Admin client bypass if service role key exists
     const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!isAuthorized && serviceRoleKey) {
+      const supabaseAdminCheck = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        serviceRoleKey
+      )
+      const { data: adminProf } = await supabaseAdminCheck
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle()
+      if (adminProf && ['super_admin', 'coordinator', 'national_coordinator'].includes(adminProf.role)) {
+        isAuthorized = true
+      }
+    }
+
+    if (!isAuthorized) {
+      return NextResponse.json({ error: 'Unauthorized: Secretariat access required.' }, { status: 403 })
+    }
     if (!serviceRoleKey) {
       return NextResponse.json(
         { error: 'Server configuration error: Supabase Service Role key is missing.' },

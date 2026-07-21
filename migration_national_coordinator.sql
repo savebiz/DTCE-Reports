@@ -41,9 +41,8 @@ CREATE POLICY "national_coordinator_select_departments" ON public.departments FO
 );
 
 DROP POLICY IF EXISTS "national_coordinator_select_profiles" ON public.profiles;
-CREATE POLICY "national_coordinator_select_profiles" ON public.profiles FOR SELECT USING (
-  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'national_coordinator')
-);
+DROP POLICY IF EXISTS "Allow authenticated users to read profiles" ON public.profiles;
+CREATE POLICY "Allow authenticated users to read profiles" ON public.profiles FOR SELECT TO authenticated USING (true);
 
 DROP POLICY IF EXISTS "national_coordinator_select_event_days" ON public.event_days;
 CREATE POLICY "national_coordinator_select_event_days" ON public.event_days FOR SELECT USING (

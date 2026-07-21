@@ -48,6 +48,8 @@ export default function SecretariatTeamManagement() {
   // Errors state
   const [collisions, setCollisions] = useState<string[]>([])
 
+  const [dbDepartments, setDbDepartments] = useState<Department[]>([])
+
   const loadData = async () => {
     const supabase = getClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -88,14 +90,28 @@ export default function SecretariatTeamManagement() {
       }
     }
 
-    const { data: allUsers } = await supabase.from('profiles').select('*')
+    // Fetch real departments and all users from DB
+    const { data: realDepts } = await supabase.from('departments').select('*')
+    const fetchedDepts = realDepts || []
+    setDbDepartments(fetchedDepts)
+
+    const { data: allUsers, error: usersErr } = await supabase.from('profiles').select('*')
+    if (usersErr) {
+      console.error('Error fetching profiles:', usersErr)
+      showToast(`Notice: Unable to fetch all user profiles (${usersErr.message})`, 'error')
+    }
     const activeUsers = allUsers || []
     setUsers(activeUsers)
 
     // Build the bulk provisioning grid based on mockDepartments
     const grid: BulkRow[] = mockDepartments.map(dept => {
-      // Check if HOD account is already created for this department
-      const existingHOD = activeUsers.find((u: Profile) => u.department_id === dept.id && u.role === 'hod')
+      // Check if HOD account is already created for this department by matching ID or name
+      const existingHOD = activeUsers.find((u: Profile) => {
+        if (u.role !== 'hod') return false
+        if (u.department_id === dept.id) return true
+        const userDbDept = fetchedDepts.find((d: any) => d.id === u.department_id)
+        return userDbDept && userDbDept.name.toLowerCase().trim() === dept.name.toLowerCase().trim()
+      })
       const deptSlug = dept.name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')
       
       return {
@@ -811,13 +827,15 @@ export default function SecretariatTeamManagement() {
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
                 {users.map(u => {
-                  const dept = mockDepartments.find(d => d.id === u.department_id)
+                  const dbDept = dbDepartments.find(d => d.id === u.department_id)
+                  const mockDept = mockDepartments.find(d => d.id === u.department_id)
+                  const deptName = dbDept?.name || mockDept?.name || (u.department_id ? 'Department' : 'Administrative Office')
                   return (
                     <tr key={u.id} className="hover:bg-slate-900/10">
-                      <td className="p-3 font-semibold text-slate-200">{u.full_name}</td>
+                      <td className="p-3 font-semibold text-slate-200">{u.full_name || '—'}</td>
                       <td className="p-3 font-mono text-slate-400">{u.username || '—'}</td>
                       <td className="p-3 text-slate-500">{u.email}</td>
-                      <td className="p-3 font-medium text-slate-400">{dept?.name || 'Administrative Office'}</td>
+                      <td className="p-3 font-medium text-slate-400">{deptName}</td>
                       <td className="p-3">
                         <span
                           className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full"
