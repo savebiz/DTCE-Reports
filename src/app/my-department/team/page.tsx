@@ -64,28 +64,28 @@ export default function HODTeamManagement() {
         router.push('/dashboard')
         return
       }
-      if (!activeProfile.department_id && !isMock) {
+      if ((!activeProfile.department_id || activeProfile.department_id.startsWith('dept-')) && !isMock) {
         const { data: assignment } = await supabase
           .from('hod_assignments')
           .select('department_id')
           .eq('profile_id', activeProfile.id)
           .maybeSingle()
-        if (assignment) {
+        if (assignment?.department_id) {
           activeProfile.department_id = assignment.department_id
         }
       }
       setProfile(activeProfile)
 
-      const dept = mockDepartments.find(d => d.id === activeProfile.department_id)
-      if (dept) {
-        setDepartmentName(dept.name)
+      const { data: dbDept } = await supabase
+        .from('departments')
+        .select('name')
+        .eq('id', activeProfile.department_id)
+        .maybeSingle()
+      if (dbDept?.name) {
+        setDepartmentName(dbDept.name)
       } else {
-        const { data: dbDept } = await supabase
-          .from('departments')
-          .select('name')
-          .eq('id', activeProfile.department_id)
-          .maybeSingle()
-        setDepartmentName(dbDept?.name || 'Department')
+        const dept = mockDepartments.find(d => d.id === activeProfile.department_id)
+        setDepartmentName(dept?.name || 'Department')
       }
 
       // Load assistants scoped specifically to this department

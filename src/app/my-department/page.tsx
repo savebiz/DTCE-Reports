@@ -118,13 +118,13 @@ export default function MyDepartmentDashboard() {
     }
 
     if (activeProfile) {
-      if (!activeProfile.department_id && !isMock) {
+      if ((!activeProfile.department_id || activeProfile.department_id.startsWith('dept-')) && !isMock) {
         const { data: assignment } = await supabase
           .from('hod_assignments')
           .select('department_id')
           .eq('profile_id', activeProfile.id)
           .maybeSingle()
-        if (assignment) {
+        if (assignment?.department_id) {
           activeProfile.department_id = assignment.department_id
         }
       }
@@ -141,8 +141,8 @@ export default function MyDepartmentDashboard() {
         }
       }
 
-      let activeDept: any = mockDepartments.find(d => d.id === activeProfile.department_id)
-      if (!activeDept) {
+      let activeDept: any = null
+      if (activeProfile.department_id) {
         const { data: dbDept } = await supabase
           .from('departments')
           .select('*')
@@ -150,6 +150,8 @@ export default function MyDepartmentDashboard() {
           .maybeSingle()
         if (dbDept) {
           activeDept = dbDept
+        } else {
+          activeDept = mockDepartments.find(d => d.id === activeProfile.department_id)
         }
       }
       if (activeDept) {
@@ -411,20 +413,24 @@ export default function MyDepartmentDashboard() {
                 <span>📦</span>
                 Store Request
               </button>
-              <button
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
-                onClick={() => router.push('/my-department/team')}
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                Manage Team
-              </button>
-              <button
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
-                onClick={() => router.push('/my-department/narrative')}
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                Event Narrative
-              </button>
+              {profile?.role !== 'assistant' && (
+                <>
+                  <button
+                    className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
+                    onClick={() => router.push('/my-department/team')}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Manage Team
+                  </button>
+                  <button
+                    className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
+                    onClick={() => router.push('/my-department/narrative')}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Event Narrative
+                  </button>
+                </>
+              )}
             </div>
           </div>
 

@@ -73,34 +73,35 @@ export function DashboardHeader() {
             setActiveDeptName('Secretariat')
             return
           }
-        } else {
-          if (!deptId) {
-            deptId = activeProfile?.department_id
-            if (!deptId && !isMock) {
+          if (!deptId || deptId.startsWith('dept-')) {
+            if (!isMock) {
               const { data: assignment } = await supabase
                 .from('hod_assignments')
                 .select('department_id')
                 .eq('profile_id', activeProfile.id)
                 .maybeSingle()
-              if (assignment) {
+              if (assignment?.department_id) {
                 deptId = assignment.department_id
                 activeProfile.department_id = deptId
               }
+            }
+            if (!deptId) {
+              deptId = activeProfile?.department_id
             }
           }
         }
 
         if (deptId) {
-          const mockDept = mockDepartments.find(d => d.id === deptId)
-          if (mockDept) {
-            setActiveDeptName(mockDept.name)
+          const { data: dbDept } = await supabase
+            .from('departments')
+            .select('name')
+            .eq('id', deptId)
+            .maybeSingle()
+          if (dbDept?.name) {
+            setActiveDeptName(dbDept.name)
           } else {
-            const { data: dbDept } = await supabase
-              .from('departments')
-              .select('name')
-              .eq('id', deptId)
-              .maybeSingle()
-            setActiveDeptName(dbDept?.name || 'Department')
+            const mockDept = mockDepartments.find(d => d.id === deptId)
+            setActiveDeptName(mockDept?.name || 'Department')
           }
         } else {
           setActiveDeptName(userRole === 'super_admin' || userRole === 'coordinator' ? 'Secretariat' : 'Department')

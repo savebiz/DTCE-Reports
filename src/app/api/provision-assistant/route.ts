@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
+import { mockDepartments } from '@/utils/supabase'
 import { generateCompliantPassword } from '@/lib/password-policy'
 
 export const runtime = 'nodejs'
@@ -96,10 +97,12 @@ export async function POST(request: NextRequest) {
 
     // Resolve department UUID if string starts with "dept-"
     if (targetDeptId.startsWith('dept-')) {
+      const mockDept = mockDepartments.find(d => d.id === targetDeptId)
+      const searchName = mockDept ? mockDept.name : targetDeptId.replace('dept-', '')
       const { data: deptRow } = await supabaseAdmin
         .from('departments')
         .select('id')
-        .ilike('name', targetDeptId.replace('dept-', ''))
+        .ilike('name', searchName)
         .maybeSingle()
       if (deptRow) {
         targetDeptId = deptRow.id
