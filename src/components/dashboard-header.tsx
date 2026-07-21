@@ -132,12 +132,15 @@ export function DashboardHeader() {
     .join('')
     .toUpperCase()
 
+  /* CHROME LAYER (theme-invariant, always dark) — top navigation bar only.
+     This layer is intentionally fixed and styled with --chrome-* CSS variables.
+     It does NOT read light/dark canvas tokens by design. */
   return (
     <>
       <header
         className="sticky top-0 z-50 w-full"
         style={{
-          background: 'rgba(6, 9, 15, 0.92)',
+          background: 'var(--chrome-bg)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderBottom: '1px solid rgba(255,255,255,0.07)',
@@ -168,11 +171,11 @@ export function DashboardHeader() {
                   height={32}
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
-                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 pulse-dot border-2 border-[#06090F]" />
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 pulse-dot border-2 border-[#0A1826]" />
               </div>
               <div className="flex flex-col leading-none">
-                <span className="text-[13px] font-bold tracking-tight text-white">DTCE</span>
-                <span className="text-[9px] font-medium tracking-widest text-slate-500 uppercase">Reporting</span>
+                <span className="text-[13px] font-bold tracking-tight" style={{ color: 'var(--chrome-text)' }}>DTCE</span>
+                <span className="text-[9px] font-medium tracking-widest uppercase" style={{ color: 'var(--chrome-text-muted)' }}>Reporting</span>
               </div>
             </button>
 
@@ -193,14 +196,14 @@ export function DashboardHeader() {
                       onClick={() => router.push(href)}
                       className="relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-all duration-200"
                       style={{
-                        color:      active ? '#F1F5F9' : '#64748B',
-                        background: active ? 'rgba(59,130,246,0.08)' : 'transparent',
+                        color:      active ? 'var(--chrome-text)' : 'var(--chrome-text-muted)',
+                        background: active ? 'var(--chrome-surface)' : 'transparent',
                       }}
                       onMouseEnter={e => {
-                        if (!active) (e.currentTarget as HTMLElement).style.color = '#94A3B8'
+                        if (!active) (e.currentTarget as HTMLElement).style.color = 'var(--chrome-text)'
                       }}
                       onMouseLeave={e => {
-                        if (!active) (e.currentTarget as HTMLElement).style.color = '#64748B'
+                        if (!active) (e.currentTarget as HTMLElement).style.color = 'var(--chrome-text-muted)'
                       }}
                     >
                       <Icon size={13} />
@@ -208,7 +211,7 @@ export function DashboardHeader() {
                       {active && (
                         <span
                           className="absolute bottom-0 left-3 right-3 h-px rounded-full"
-                          style={{ background: 'linear-gradient(90deg, transparent, #3B82F6, transparent)' }}
+                          style={{ background: 'linear-gradient(90deg, transparent, var(--chrome-accent), transparent)' }}
                         />
                       )}
                     </button>
@@ -236,7 +239,7 @@ export function DashboardHeader() {
               >
                 {initials || '?'}
               </div>
-              <span className="hidden lg:block text-[12px] font-medium text-slate-400">
+              <span className="hidden lg:block text-[12px] font-medium" style={{ color: 'var(--chrome-text-muted)' }}>
                 {name.split(' ')[0]}
               </span>
             </div>
@@ -249,7 +252,7 @@ export function DashboardHeader() {
               style={{
                 background:   'transparent',
                 borderColor:  'rgba(255,255,255,0.1)',
-                color:        '#64748B',
+                color:        'var(--chrome-text-muted)',
               }}
               onMouseEnter={e => {
                 const el = e.currentTarget as HTMLElement
@@ -260,7 +263,7 @@ export function DashboardHeader() {
               onMouseLeave={e => {
                 const el = e.currentTarget as HTMLElement
                 el.style.borderColor = 'rgba(255,255,255,0.1)'
-                el.style.color = '#64748B'
+                el.style.color = 'var(--chrome-text-muted)'
                 el.style.background = 'transparent'
               }}
             >

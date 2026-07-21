@@ -229,32 +229,27 @@ export default function SecretariatDashboard() {
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
-                <span className="text-[11px] font-semibold tracking-widest text-slate-500 uppercase">Live Overview</span>
+                <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Live Overview</span>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
                 Secretariat Command Centre
               </h1>
-              <p className="text-[13px] text-slate-500 mt-0.5">
+              <p className="text-[13px] text-muted-foreground mt-0.5">
                 Real-time reporting status across all {departments.length} departments.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-[12px] font-medium text-slate-400">KPI Day:</span>
+                <span className="text-[12px] font-medium text-muted-foreground">KPI Day:</span>
                 <select
                   id="kpi-day-select"
                   value={selectedKPIDay}
                   onChange={(e) => setSelectedKPIDay(e.target.value)}
-                  className="h-8 rounded-lg px-3 text-[12px] font-medium text-slate-300 cursor-pointer"
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    outline: 'none',
-                  }}
+                  className="h-8 rounded-lg px-3 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
                 >
                   {eventDays.map(d => (
-                    <option key={d.id} value={d.id} style={{ background: '#111827' }}>
+                    <option key={d.id} value={d.id} className="bg-card text-foreground">
                       Day {d.day_number} — {new Date(d.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}
                     </option>
                   ))}
@@ -262,7 +257,7 @@ export default function SecretariatDashboard() {
               </div>
               <button
                 onClick={() => router.push('/dashboard/reports')}
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold text-blue-400 transition-all duration-200"
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold text-blue-400 transition-all duration-200 cursor-pointer"
                 style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(59,130,246,0.18)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(59,130,246,0.1)' }}
@@ -272,7 +267,7 @@ export default function SecretariatDashboard() {
               </button>
               <button
                 onClick={() => router.push('/dashboard/yoy')}
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold text-amber-400 transition-all duration-200"
+                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold text-amber-400 transition-all duration-200 cursor-pointer"
                 style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(245,158,11,0.18)' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(245,158,11,0.1)' }}
@@ -289,10 +284,10 @@ export default function SecretariatDashboard() {
             <div className="glass-card p-5" style={{ borderColor: 'rgba(16,185,129,0.15)' }}>
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-3">Reporting Today</p>
-                  <p className="text-4xl font-bold font-tabular text-white">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Reporting Today</p>
+                  <p className="text-4xl font-bold font-tabular text-foreground">
                     {kpis.reporting}
-                    <span className="text-xl text-slate-500 font-medium"> / {departments.length}</span>
+                    <span className="text-xl text-muted-foreground font-medium"> / {departments.length}</span>
                   </p>
                   <p className="text-[12px] text-emerald-400 mt-1.5 font-medium">
                     {departments.length > 0 ? Math.round((kpis.reporting / departments.length) * 100) : 0}% compliance rate
@@ -302,7 +297,7 @@ export default function SecretariatDashboard() {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
               </div>
-              <div className="mt-4 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="mt-4 h-1 rounded-full bg-muted">
                 <div className="h-1 rounded-full" style={{ width: `${departments.length > 0 ? Math.round((kpis.reporting / departments.length) * 100) : 0}%`, background: 'linear-gradient(90deg, #10B981, #34D399)' }} />
               </div>
             </div>
@@ -311,11 +306,11 @@ export default function SecretariatDashboard() {
             <div className="glass-card p-5" style={{ borderColor: 'rgba(239,68,68,0.15)' }}>
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-3">Missing Reports</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Missing Reports</p>
                   <p className="text-4xl font-bold font-tabular" style={{ color: kpis.missing > 0 ? '#FCA5A5' : '#34D399' }}>
                     {kpis.missing}
                   </p>
-                  <p className="text-[12px] text-slate-500 mt-1.5 font-medium">
+                  <p className="text-[12px] text-muted-foreground mt-1.5 font-medium">
                     {kpis.missing === 0 ? 'All departments reported' : `${kpis.missing} dept${kpis.missing !== 1 ? 's' : ''} pending`}
                   </p>
                 </div>
@@ -323,7 +318,7 @@ export default function SecretariatDashboard() {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </div>
               </div>
-              <div className="mt-4 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="mt-4 h-1 rounded-full bg-muted">
                 <div className="h-1 rounded-full" style={{ width: `${departments.length > 0 ? Math.round((kpis.missing / departments.length) * 100) : 0}%`, background: 'linear-gradient(90deg, #EF4444, #FCA5A5)' }} />
               </div>
             </div>
@@ -332,9 +327,9 @@ export default function SecretariatDashboard() {
             <div className="glass-card p-5" style={{ borderColor: 'rgba(59,130,246,0.15)' }}>
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-3">Awaiting Review</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Awaiting Review</p>
                   <p className="text-4xl font-bold font-tabular text-blue-400">{kpis.review}</p>
-                  <p className="text-[12px] text-slate-500 mt-1.5 font-medium">
+                  <p className="text-[12px] text-muted-foreground mt-1.5 font-medium">
                     {kpis.review === 0 ? 'Review queue empty' : `${kpis.review} report${kpis.review !== 1 ? 's' : ''} to review`}
                   </p>
                 </div>
@@ -342,7 +337,7 @@ export default function SecretariatDashboard() {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </div>
               </div>
-              <div className="mt-4 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="mt-4 h-1 rounded-full bg-muted">
                 <div className="h-1 rounded-full" style={{ width: `${departments.length > 0 ? Math.round((kpis.review / departments.length) * 100) : 0}%`, background: 'linear-gradient(90deg, #1D4ED8, #3B82F6)' }} />
               </div>
             </div>
@@ -350,12 +345,12 @@ export default function SecretariatDashboard() {
 
           {/* Reporting Grid */}
           <div className="glass-card overflow-hidden animate-fade-in-up-delay-2">
-            <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
               <div className="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                <span className="text-[12px] font-semibold text-slate-400 uppercase tracking-wide">Department Grid</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-muted-foreground" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <span className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide">Department Grid</span>
               </div>
-              <div className="flex items-center gap-3 text-[11px]">
+              <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
                 <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(16,185,129,0.4)' }} />Approved</span>
                 <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(59,130,246,0.4)' }} />Reviewed</span>
                 <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(245,158,11,0.4)' }} />Submitted</span>
@@ -365,14 +360,14 @@ export default function SecretariatDashboard() {
             <div className="overflow-x-auto scrollbar-hide">
               <table className="w-full border-collapse">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.2)' }}>
-                    <th className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-600 w-56" style={{ borderRight: '1px solid rgba(255,255,255,0.05)' }}>
+                  <tr className="border-b border-border bg-muted/30">
+                    <th className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-56 border-r border-border">
                       Department
                     </th>
                     {eventDays.map((day) => (
-                      <th key={day.id} className="py-2.5 px-3 text-center text-[11px] font-semibold uppercase tracking-wider text-slate-600" style={{ borderRight: '1px solid rgba(255,255,255,0.05)', minWidth: '96px' }}>
+                      <th key={day.id} className="py-2.5 px-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-r border-border" style={{ minWidth: '96px' }}>
                         Day {day.day_number}
-                        <div className="text-[10px] font-normal text-slate-700 normal-case tracking-normal">
+                        <div className="text-[10px] font-normal text-muted-foreground normal-case tracking-normal">
                           {new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </div>
                       </th>
@@ -383,15 +378,13 @@ export default function SecretariatDashboard() {
                   {departments.map((dept, i) => (
                     <tr
                       key={dept.id}
-                      style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                      className="border-b border-border/50 hover:bg-muted/10 transition-colors"
                     >
-                      <td className="py-2 px-4 text-[13px] font-medium text-slate-300" style={{ borderRight: '1px solid rgba(255,255,255,0.05)' }}>
+                      <td className="py-2 px-4 text-[13px] font-medium text-foreground border-r border-border">
                         {dept.name}
                       </td>
                       {eventDays.map((day) => (
-                        <td key={day.id} className="p-1.5" style={{ borderRight: '1px solid rgba(255,255,255,0.04)' }}>
+                        <td key={day.id} className="p-1.5 border-r border-border/50">
                           <button
                             onClick={() => handleCellClick(dept, day)}
                             className="w-full rounded-md py-1 px-2 text-[11px] font-semibold font-tabular transition-all duration-150 cursor-pointer"
@@ -418,18 +411,13 @@ export default function SecretariatDashboard() {
       {/* Review Slide-over Panel */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent
-          className="sm:max-w-xl overflow-y-auto w-full"
-          style={{
-            background: '#0C1220',
-            border: 'none',
-            borderLeft: '1px solid rgba(255,255,255,0.08)',
-          }}
+          className="sm:max-w-xl overflow-y-auto w-full bg-card border-l border-border"
         >
-          <SheetHeader className="pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-            <SheetTitle className="text-lg font-bold text-white">
+          <SheetHeader className="pb-5 border-b border-border">
+            <SheetTitle className="text-lg font-bold text-foreground">
               {selectedCell?.dept.name}
             </SheetTitle>
-            <SheetDescription className="text-slate-500 text-[13px]">
+            <SheetDescription className="text-muted-foreground text-[13px]">
               Day {selectedCell?.day.day_number} — {selectedCell?.day && new Date(selectedCell.day.date).toLocaleDateString(undefined, {weekday: 'long', month: 'short', day: 'numeric'})}
             </SheetDescription>
           </SheetHeader>
@@ -439,13 +427,13 @@ export default function SecretariatDashboard() {
 
               {/* Attendance stats */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-1">Morning</p>
-                  <p className="text-2xl font-bold font-tabular text-white">{activeReport.attendance_morning}</p>
+                <div className="rounded-xl p-4 bg-muted/20 border border-border">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Morning</p>
+                  <p className="text-2xl font-bold font-tabular text-foreground">{activeReport.attendance_morning}</p>
                 </div>
-                <div className="rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-600 mb-1">Evening</p>
-                  <p className="text-2xl font-bold font-tabular text-white">{activeReport.attendance_evening}</p>
+                <div className="rounded-xl p-4 bg-muted/20 border border-border">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Evening</p>
+                  <p className="text-2xl font-bold font-tabular text-foreground">{activeReport.attendance_evening}</p>
                 </div>
               </div>
 
