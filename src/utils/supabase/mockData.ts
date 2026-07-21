@@ -263,9 +263,9 @@ mockDepartments.forEach(dept => {
 export const mockEvents: Event[] = [
   {
     id: 'event-1',
-    name: 'DTCE 2026 Annual Reporting',
-    start_date: '2026-07-13',
-    end_date: '2026-07-17',
+    name: 'RCCG DTCE 2026 Annual Convention',
+    start_date: '2026-08-03',
+    end_date: '2026-08-08',
     theme_colors: {
       primary: '#1B3A6B',
       secondary: '#C49A00'
@@ -274,11 +274,12 @@ export const mockEvents: Event[] = [
 ]
 
 export const mockEventDays: EventDay[] = [
-  { id: 'day-1', event_id: 'event-1', day_number: 1, date: '2026-07-13' },
-  { id: 'day-2', event_id: 'event-1', day_number: 2, date: '2026-07-14' },
-  { id: 'day-3', event_id: 'event-1', day_number: 3, date: '2026-07-15' },
-  { id: 'day-4', event_id: 'event-1', day_number: 4, date: '2026-07-16' },
-  { id: 'day-5', event_id: 'event-1', day_number: 5, date: '2026-07-17' }
+  { id: 'day-1', event_id: 'event-1', day_number: 1, date: '2026-08-03' },
+  { id: 'day-2', event_id: 'event-1', day_number: 2, date: '2026-08-04' },
+  { id: 'day-3', event_id: 'event-1', day_number: 3, date: '2026-08-05' },
+  { id: 'day-4', event_id: 'event-1', day_number: 4, date: '2026-08-06' },
+  { id: 'day-5', event_id: 'event-1', day_number: 5, date: '2026-08-07' },
+  { id: 'day-6', event_id: 'event-1', day_number: 6, date: '2026-08-08' }
 ]
 
 export const mockProfiles: Profile[] = [
