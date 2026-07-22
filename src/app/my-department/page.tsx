@@ -414,13 +414,23 @@ export default function MyDepartmentDashboard() {
                 <span>📅</span>
                 Daily Logs Workspace
               </button>
-              <button
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
-                onClick={() => router.push('/my-department/store-request')}
-              >
-                <span>📦</span>
-                Store Request
-              </button>
+              {isStoresDept ? (
+                <button
+                  className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-bold transition-all border border-amber-500/30 bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 cursor-pointer shadow-sm"
+                  onClick={() => router.push('/my-department/store-fulfillment')}
+                >
+                  <span>📦</span>
+                  Stores Fulfillment Console {approvedRequests.length > 0 && `(${approvedRequests.length})`}
+                </button>
+              ) : (
+                <button
+                  className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
+                  onClick={() => router.push('/my-department/store-request')}
+                >
+                  <span>📦</span>
+                  Store Request
+                </button>
+              )}
               {profile?.role !== 'assistant' && (
                 <>
                   <button
@@ -441,139 +451,6 @@ export default function MyDepartmentDashboard() {
               )}
             </div>
           </div>
-
-          {/* Stores Department - Requisitions Console (Rendered at top for Stores HOD) */}
-          {isStoresDept && (
-            <Card className="glass-card border-none mb-6">
-              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/40 pb-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                    <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Stores Operational Console</span>
-                  </div>
-                  <CardTitle className="text-lg font-extrabold text-foreground tracking-tight">
-                    Convention Material Requisitions ({approvedRequests.length})
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground mt-0.5">
-                    Track, process, and fulfill material requests submitted by convention departments.
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                    {approvedRequests.filter(r => r.status === 'pending_coordinator').length} Pending Approval
-                  </span>
-                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                    {approvedRequests.filter(r => r.status === 'approved' || r.status === 'in_progress').length} In Processing
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-4 space-y-4">
-                {approvedRequests.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground space-y-2">
-                    <span className="text-2xl block">📦</span>
-                    <p className="text-xs italic">No department store requisitions recorded yet.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {approvedRequests.map((req) => (
-                      <div key={req.id} className="border border-border rounded-xl p-4 space-y-3 bg-background/25">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div>
-                            <span className="text-sm font-bold text-foreground block">
-                              {req.department?.name} Department Requisition
-                            </span>
-                            <span className="text-[10px] text-muted-foreground block mt-0.5">
-                              Ordered by {req.requester?.full_name} • Submitted on {new Date(req.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </span>
-                            <span
-                              className="inline-flex items-center mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
-                              style={
-                                req.status === 'pending_coordinator' ? { background: 'rgba(245,158,11,0.1)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.2)' } :
-                                req.status === 'approved' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
-                                req.status === 'in_progress' ? { background: 'rgba(139,92,246,0.1)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.2)' } :
-                                req.status === 'partially_fulfilled' ? { background: 'rgba(236,72,153,0.1)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.2)' } :
-                                req.status === 'delivered' ? { background: 'rgba(16,185,129,0.1)', color: '#10B981', border: '1px solid rgba(16,185,129,0.2)' } :
-                                { background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)' }
-                              }
-                            >
-                              {req.status === 'pending_coordinator' ? 'Pending Approval' :
-                               req.status === 'approved' ? 'Approved' :
-                               req.status === 'in_progress' ? 'In Progress' :
-                               req.status === 'partially_fulfilled' ? 'Partially Fulfilled' :
-                               req.status === 'delivered' ? 'Delivered' : 'Declined'}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-1.5 flex-shrink-0">
-                            {(req.status === 'pending_coordinator' || req.status === 'approved') && (
-                              <Button
-                                size="sm"
-                                disabled={actionLoading}
-                                onClick={() => handleUpdateReqStatus(req.id, 'in_progress')}
-                                className="text-xs h-8 font-semibold"
-                                style={{ background: 'rgba(139,92,246,0.15)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.3)' }}
-                              >
-                                Start Processing
-                              </Button>
-                            )}
-                            {req.status === 'in_progress' && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  disabled={actionLoading}
-                                  onClick={() => handleUpdateReqStatus(req.id, 'partially_fulfilled')}
-                                  className="text-xs h-8 font-semibold"
-                                  style={{ background: 'rgba(236,72,153,0.12)', color: '#F472B6', border: '1px solid rgba(236,72,153,0.25)' }}
-                                >
-                                  Partial
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  disabled={actionLoading}
-                                  onClick={() => handleUpdateReqStatus(req.id, 'delivered')}
-                                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
-                                >
-                                  Delivered
-                                </Button>
-                              </>
-                            )}
-                            {(req.status === 'partially_fulfilled' || req.status === 'approved') && (
-                              <Button
-                                size="sm"
-                                disabled={actionLoading}
-                                onClick={() => handleUpdateReqStatus(req.id, 'delivered')}
-                                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
-                              >
-                                Mark Delivered
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* List items requested */}
-                        <div className="p-3 bg-background/40 border border-border rounded-lg space-y-1.5">
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">Material details:</span>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                            {req.items_json && Array.isArray(req.items_json) && req.items_json.map((it: any, itIdx: number) => (
-                              <div key={itIdx} className="flex justify-between border-b border-border/40 pb-1">
-                                <span className="text-foreground">{it.name} <span className="text-[10px] text-muted-foreground capitalize">({it.category || 'durable'})</span></span>
-                                <span className="font-bold text-foreground font-mono">x {it.quantity}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {req.reviewer_comments && (
-                          <div className="text-[11px] text-amber-500 bg-amber-500/5 p-2 rounded-lg border border-amber-500/10">
-                            <strong>Coordinator instruction:</strong> {req.reviewer_comments}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
 
           {/* Day Checklist */}
           <div className="glass-card overflow-hidden">
