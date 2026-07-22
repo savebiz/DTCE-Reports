@@ -64,6 +64,7 @@ export default function SecretariatDashboard() {
   const [newComment, setNewComment] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionComment, setRejectionComment] = useState('')
+  const [reviewerNote, setReviewerNote] = useState('')
 
   // Store Request Review State
   const [selectedReq, setSelectedReq] = useState<StoreRequestTicket | null>(null)
@@ -175,26 +176,45 @@ export default function SecretariatDashboard() {
 
   // Cell Click in Grid
   const handleCellClick = (dept: Department, day: any) => {
-    const rep = reports.find(r => r.department_id === dept.id && r.event_day_id === day.id)
-    const narr = narratives.find(n => n.department_id === dept.id && n.event_day_id === day.id)
+    const rep = reports.find(r => 
+      r.department_id === dept.id && 
+      (r.event_day_id === day.id || r.event_day_id === `day-${day.day_number}`)
+    )
+    const narr = narratives.find(n => 
+      n.department_id === dept.id && 
+      (n.event_day_id === day.id || n.event_day_id === `day-${day.day_number}`)
+    )
     setSelectedCell({ dept, day })
     setActiveReport(rep || null)
     setActiveNarrative(narr || null)
+    setReviewerNote(rep?.reviewer_comments || '')
     setIsSheetOpen(true)
   }
 
-  // Report status update
+  // Report status update with optional reviewer comments
   const handleStatusChange = async (newStatus: string, commentText?: string) => {
     if (!activeReport || !profile) return
     const supabase = getClient()
     try {
+      const updatePayload: Record<string, any> = { status: newStatus }
+      if (commentText !== undefined) {
+        updatePayload.reviewer_comments = commentText
+      }
+
       const { error } = await supabase
         .from('daily_reports')
-        .update({ status: newStatus })
+        .update(updatePayload)
         .eq('id', activeReport.id)
+
       if (error) throw error
-      showToast(`Report status updated to ${newStatus}!`, 'success')
+      showToast(
+        newStatus === 'draft'
+          ? 'Report returned to draft for department revision!'
+          : `Report status updated to ${newStatus}!`,
+        'success'
+      )
       setIsSheetOpen(false)
+      setReviewerNote('')
       loadData()
     } catch (err: any) {
       showToast(`Failed to update status: ${err.message}`, 'error')
@@ -705,84 +725,226 @@ export default function SecretariatDashboard() {
       </main>
 
       {/* Review Slide-over Panel for Matrix */}
+      {/* Review Slide-over Panel for Matrix */}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="sm:max-w-xl overflow-y-auto w-full bg-card border-l border-border">
-          <SheetHeader className="pb-5 border-b border-border">
-            <SheetTitle className="text-lg font-bold text-foreground">
-              {selectedCell?.dept.name}
+        <SheetContent className="sm:max-w-xl overflow-y-auto w-full bg-card border-l border-border/60 p-6 space-y-6">
+          <SheetHeader className="pb-4 border-b border-border/50">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                {selectedCell?.dept.name} Report Review
+              </span>
+              {activeReport && (
+                <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full border"
+                  style={
+                    activeReport.status === 'submitted' ? { background: 'rgba(59,130,246,0.12)', color: '#3B82F6', borderColor: 'rgba(59,130,246,0.3)' } :
+                    activeReport.status === 'reviewed' ? { background: 'rgba(139,92,246,0.12)', color: '#8B5CF6', borderColor: 'rgba(139,92,246,0.3)' } :
+                    activeReport.status === 'approved' ? { background: 'rgba(16,185,129,0.12)', color: '#10B981', borderColor: 'rgba(16,185,129,0.3)' } :
+                    { background: 'rgba(245,158,11,0.12)', color: '#F59E0B', borderColor: 'rgba(245,158,11,0.3)' }
+                  }
+                >
+                  {activeReport.status === 'submitted' ? 'Submitted — Pending Review' :
+                   activeReport.status === 'reviewed' ? 'Reviewed' :
+                   activeReport.status === 'approved' ? 'Approved' : 'Draft'}
+                </span>
+              )}
+            </div>
+            <SheetTitle className="text-xl font-black text-foreground mt-2">
+              {selectedCell?.dept.name} Department
             </SheetTitle>
-            <SheetDescription className="text-muted-foreground text-[13px]">
+            <SheetDescription className="text-muted-foreground text-xs">
               Day {selectedCell?.day.day_number} — {selectedCell?.day && new Date(selectedCell.day.date).toLocaleDateString(undefined, {weekday: 'long', month: 'short', day: 'numeric'})}
             </SheetDescription>
           </SheetHeader>
 
           {activeReport ? (
-            <div className="py-5 space-y-5">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl p-4 bg-muted/20 border border-border">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Morning Attendance</p>
-                  <p className="text-2xl font-bold font-tabular text-foreground">{activeReport.attendance_morning}</p>
-                </div>
-                <div className="rounded-xl p-4 bg-muted/20 border border-border">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Evening Attendance</p>
-                  <p className="text-2xl font-bold font-tabular text-foreground">{activeReport.attendance_evening}</p>
+            <div className="space-y-6">
+              {/* 1. Attendance Metrics Cards */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">1. Attendance Summary</span>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-xl p-3.5 bg-muted/30 dark:bg-slate-800/40 border border-border/50 text-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Morning</span>
+                    <span className="text-2xl font-extrabold font-mono text-foreground mt-1 block">{activeReport.attendance_morning || 0}</span>
+                  </div>
+                  <div className="rounded-xl p-3.5 bg-muted/30 dark:bg-slate-800/40 border border-border/50 text-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Evening</span>
+                    <span className="text-2xl font-extrabold font-mono text-foreground mt-1 block">{activeReport.attendance_evening || 0}</span>
+                  </div>
+                  <div className="rounded-xl p-3.5 bg-amber-500/10 border border-amber-500/20 text-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">Total</span>
+                    <span className="text-2xl font-extrabold font-mono text-amber-600 dark:text-amber-400 mt-1 block">
+                      {(Number(activeReport.attendance_morning || 0) + Number(activeReport.attendance_evening || 0)).toLocaleString()}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {selectedCell?.dept.default_metrics_schema && (
+              {/* 2. Workforce Matrix Breakdown */}
+              {activeReport.metrics_data?.workforce && (
                 <div className="space-y-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Custom Metrics</p>
-                  <div className="rounded-xl p-4 bg-background/30 border border-border">
-                    <SchemaFormRenderer
-                      fields={selectedCell.dept.default_metrics_schema.fields}
-                      value={activeReport.metrics_data}
-                      onChange={() => {}}
-                      readOnly={true}
-                    />
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">2. Workforce &amp; Attendance Breakdown</span>
+                  <div className="rounded-xl p-3.5 bg-card border border-border/50 shadow-xs space-y-2 text-xs">
+                    {(() => {
+                      const wf = activeReport.metrics_data.workforce || {}
+                      const rows = [
+                        { label: 'Teachers / Leaders', m: wf.teachersMale || 0, f: wf.teachersFemale || 0 },
+                        { label: 'Teenagers', m: wf.teenagersMale || 0, f: wf.teenagersFemale || 0 },
+                        { label: 'Pre-Teens', m: wf.preteensMale || 0, f: wf.preteensFemale || 0 },
+                        { label: 'Children', m: wf.childrenMale || 0, f: wf.childrenFemale || 0 }
+                      ]
+                      const totalM = rows.reduce((acc, r) => acc + Number(r.m), 0)
+                      const totalF = rows.reduce((acc, r) => acc + Number(r.f), 0)
+                      return (
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-4 font-bold text-[10px] uppercase tracking-wider text-muted-foreground pb-1 border-b border-border/40">
+                            <span>Category</span>
+                            <span className="text-center">Male</span>
+                            <span className="text-center">Female</span>
+                            <span className="text-right">Total</span>
+                          </div>
+                          {rows.map(r => (
+                            <div key={r.label} className="grid grid-cols-4 text-xs py-0.5">
+                              <span className="font-semibold text-foreground">{r.label}</span>
+                              <span className="text-center font-mono">{r.m}</span>
+                              <span className="text-center font-mono">{r.f}</span>
+                              <span className="text-right font-mono font-bold text-foreground">{Number(r.m) + Number(r.f)}</span>
+                            </div>
+                          ))}
+                          <div className="grid grid-cols-4 text-xs font-extrabold pt-1.5 border-t border-border/50 text-amber-600 dark:text-amber-400">
+                            <span>Workforce Total</span>
+                            <span className="text-center font-mono">{totalM}</span>
+                            <span className="text-center font-mono">{totalF}</span>
+                            <span className="text-right font-mono text-sm">{totalM + totalF}</span>
+                          </div>
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
               )}
 
-              {activeNarrative && (
-                <div className="space-y-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Activity Narrative</p>
-                  <div className="space-y-2 text-[13px] text-foreground">
-                    {[
-                      ['Key Achievements', activeNarrative.key_achievements],
-                      ['Challenges', activeNarrative.challenges],
-                      ['Solutions', activeNarrative.solutions],
-                      ['Plans for Tomorrow', activeNarrative.plans_for_tomorrow]
-                    ].map(([label, val]) => (
-                      <div key={label as string} className="rounded-lg p-3 bg-background/20 border border-border">
-                        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground block mb-0.5">{label}</span>
-                        <p className="text-foreground">{val || 'Not provided'}</p>
+              {/* 3. Financial Offering Record */}
+              {(activeReport.metrics_data?.offering !== undefined || activeReport.metrics_data?.total_offering !== undefined) && (
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">3. Financial Record</span>
+                  <div className="rounded-xl p-4 bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Recorded Financial Offering</span>
+                      <span className="text-[11px] text-muted-foreground">Collected during convention sessions</span>
+                    </div>
+                    <span className="text-2xl font-black font-mono text-purple-600 dark:text-purple-400">
+                      ₦{(Number(activeReport.metrics_data?.offering || activeReport.metrics_data?.total_offering || 0)).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* 4. Specialized Department Custom Metrics */}
+              {activeReport.metrics_data?.custom_schema && Object.keys(activeReport.metrics_data.custom_schema).length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">4. Specialized Operational Metrics</span>
+                  <div className="rounded-xl p-3.5 bg-muted/20 border border-border/50 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    {Object.entries(activeReport.metrics_data.custom_schema).map(([key, val]) => (
+                      <div key={key} className="p-2.5 rounded-lg bg-card border border-border/40">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                          {key.replace(/_/g, ' ')}
+                        </span>
+                        <span className="font-mono font-extrabold text-foreground text-sm mt-0.5 block">
+                          {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                        </span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Actions */}
-              <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
-                <Button size="sm" variant="destructive" onClick={() => handleStatusChange('draft')} className="flex-1 text-xs">
-                  Return to Draft
-                </Button>
-                {activeReport.status !== 'reviewed' && (
-                  <Button size="sm" variant="outline" onClick={() => handleStatusChange('reviewed')} className="flex-1 text-xs">
-                    Mark Reviewed
+              {/* 5. Executive Daily Narrative */}
+              {(activeReport.metrics_data?.daily_narrative || activeNarrative) && (
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">5. Executive Daily Narrative</span>
+                  <div className="space-y-2 text-xs">
+                    {(() => {
+                      const dn = activeReport.metrics_data?.daily_narrative || {}
+                      const sections = [
+                        ['Key Achievements & Highlights', dn.achievements || activeNarrative?.key_achievements],
+                        ['Operational Overview', dn.overview],
+                        ['Challenges & Bottlenecks', dn.challenges || activeNarrative?.challenges],
+                        ['Solutions & Recommendations', dn.recommendations || activeNarrative?.solutions || activeNarrative?.plans_for_tomorrow]
+                      ].filter(([_, val]) => Boolean(val && String(val).trim().length > 0))
+
+                      if (sections.length === 0) {
+                        return <p className="text-xs text-muted-foreground italic">No detailed narrative notes submitted.</p>
+                      }
+
+                      return sections.map(([title, val]) => (
+                        <div key={title as string} className="rounded-xl p-3 bg-card border border-border/50 space-y-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">{title}</span>
+                          <p className="text-foreground leading-relaxed whitespace-pre-wrap">{val}</p>
+                        </div>
+                      ))
+                    })()}
+                  </div>
+                </div>
+              )}
+
+              {/* Existing Reviewer Comments if any */}
+              {activeReport.reviewer_comments && (
+                <div className="text-xs text-amber-700 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
+                  <strong>Previous Reviewer Note:</strong> {activeReport.reviewer_comments}
+                </div>
+              )}
+
+              {/* 6. Reviewer Feedback & Actions Bar */}
+              <div className="pt-4 border-t border-border/50 space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                    Reviewer Note / Feedback for Department
+                  </label>
+                  <Textarea
+                    value={reviewerNote}
+                    onChange={e => setReviewerNote(e.target.value)}
+                    placeholder="Enter instructions, notes, or reasons if returning to draft..."
+                    rows={2}
+                    className="text-xs text-foreground bg-background border-border/60"
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleStatusChange('draft', reviewerNote)}
+                    className="flex-1 text-xs font-semibold text-rose-500 border-rose-500/30 hover:bg-rose-500/10 h-9"
+                  >
+                    ↩ Return to Draft
                   </Button>
-                )}
-                {activeReport.status !== 'approved' && (
-                  <Button size="sm" onClick={() => handleStatusChange('approved')} className="flex-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white">
-                    Approve Report
-                  </Button>
-                )}
+                  {activeReport.status !== 'reviewed' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleStatusChange('reviewed', reviewerNote)}
+                      className="flex-1 text-xs font-semibold text-blue-500 border-blue-500/30 hover:bg-blue-500/10 h-9"
+                    >
+                      👀 Mark Reviewed
+                    </Button>
+                  )}
+                  {activeReport.status !== 'approved' && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleStatusChange('approved', reviewerNote)}
+                      className="flex-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs h-9"
+                    >
+                      ✅ Approve Report
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <p className="text-[13px] font-semibold text-muted-foreground">No report submitted</p>
-              <p className="text-[12px] text-muted-foreground mt-1">This department has not filed a report for this day.</p>
+            <div className="flex flex-col items-center justify-center py-16 text-center space-y-2">
+              <span className="text-3xl">📝</span>
+              <p className="text-xs font-semibold text-muted-foreground">No report submitted</p>
+              <p className="text-[11px] text-muted-foreground">This department has not filed a report for this day yet.</p>
             </div>
           )}
         </SheetContent>
