@@ -40,9 +40,25 @@ CREATE POLICY "national_coordinator_select_departments" ON public.departments FO
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'national_coordinator')
 );
 
-DROP POLICY IF EXISTS "national_coordinator_select_profiles" ON public.profiles;
-DROP POLICY IF EXISTS "Allow authenticated users to read profiles" ON public.profiles;
-CREATE POLICY "Allow authenticated users to read profiles" ON public.profiles FOR SELECT TO authenticated USING (true);
+-- 4. Clean and recreate RLS policies on profiles table (prevents infinite recursion)
+DO $$
+DECLARE
+    pol record;
+BEGIN
+    FOR pol IN 
+        SELECT policyname 
+        FROM pg_policies 
+        WHERE tablename = 'profiles' AND schemaname = 'public'
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.profiles', pol.policyname);
+    END LOOP;
+END $$;
+
+CREATE POLICY "Allow authenticated select profiles" ON public.profiles
+  FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Allow users to update own profile" ON public.profiles
+  FOR UPDATE TO authenticated USING (auth.uid() = id);
 
 DROP POLICY IF EXISTS "national_coordinator_select_event_days" ON public.event_days;
 CREATE POLICY "national_coordinator_select_event_days" ON public.event_days FOR SELECT USING (
