@@ -151,10 +151,10 @@ function StoreFulfillmentContent() {
   useEffect(() => {
     loadData(true)
 
-    // Automatic 6-Second Polling
+    // Automatic 20-Second Polling
     const interval = setInterval(() => {
       loadData(false)
-    }, 6000)
+    }, 20000)
 
     return () => clearInterval(interval)
   }, [])
@@ -259,7 +259,7 @@ function StoreFulfillmentContent() {
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              Auto-Sync (6s)
+              Auto-Sync (20s)
             </span>
             <Button
               onClick={() => loadData(true)}
