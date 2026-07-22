@@ -47,7 +47,7 @@ export default function ReportsExportPage() {
 
     if (prof) {
       // Check authorization (Only Secretariat/super_admin/coordinator)
-      if (prof.role !== 'super_admin' && prof.role !== 'coordinator') {
+      if (prof.role !== 'super_admin' && prof.role !== 'coordinator' && prof.role !== 'national_coordinator') {
         router.push('/my-department')
         return
       }

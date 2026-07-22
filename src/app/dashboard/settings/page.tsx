@@ -43,7 +43,7 @@ function SettingsContent() {
       .eq('id', user.id)
       .single()
 
-    if (prof && prof.role !== 'super_admin' && prof.role !== 'coordinator') {
+    if (prof && prof.role !== 'super_admin' && prof.role !== 'coordinator' && prof.role !== 'national_coordinator') {
       router.push('/dashboard')
       return
     }

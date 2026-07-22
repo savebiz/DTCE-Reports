@@ -56,7 +56,7 @@ export default function YoYComparisonPage() {
     }
 
     if (activeProfile) {
-      if (activeProfile.role !== 'super_admin' && activeProfile.role !== 'coordinator') {
+      if (activeProfile.role !== 'super_admin' && activeProfile.role !== 'coordinator' && activeProfile.role !== 'national_coordinator') {
         router.push('/my-department')
         return
       }

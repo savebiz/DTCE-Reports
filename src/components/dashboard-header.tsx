@@ -200,7 +200,7 @@ export function DashboardHeader() {
             {showNav && (
               <nav className="hidden md:flex items-center gap-1">
                 {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                  if (role === 'national_coordinator' && (label === 'Team' || label === 'Settings')) return null;
+                  if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings')) return null;
                   const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
                   return (
                     <button
@@ -307,7 +307,7 @@ export function DashboardHeader() {
           >
             <nav className="flex flex-col gap-1 p-3">
               {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                if (role === 'national_coordinator' && (label === 'Team' || label === 'Settings')) return null;
+                if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings')) return null;
                 const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
                 return (
                   <button
