@@ -867,16 +867,16 @@ export default function SecretariatDashboard() {
               {(activeReport.metrics_data?.offering !== undefined || activeReport.metrics_data?.total_offering !== undefined) && (
                 <section>
                   <h3 className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
                     Financial Record
                   </h3>
-                  <div className="rounded-lg p-3.5 bg-purple-500/5 dark:bg-purple-500/10 border border-purple-500/15 flex items-center justify-between">
+                  <div className="rounded-lg p-3.5 bg-purple-500/5 dark:bg-purple-500/10 border border-purple-500/15 flex items-center justify-between gap-3">
                     <div>
                       <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 block">Recorded Offering</span>
                       <span className="text-[10px] text-muted-foreground">Convention session collection</span>
                     </div>
-                    <span className="text-xl font-extrabold font-mono text-purple-600 dark:text-purple-400 tracking-tight">
-                      \u20a6{(Number(activeReport.metrics_data?.offering || activeReport.metrics_data?.total_offering || 0)).toLocaleString()}
+                    <span className="text-xl font-extrabold font-mono text-purple-600 dark:text-purple-400 tracking-tight shrink-0">
+                      ₦{(Number(activeReport.metrics_data?.offering || activeReport.metrics_data?.total_offering || 0)).toLocaleString()}
                     </span>
                   </div>
                 </section>
@@ -989,18 +989,18 @@ export default function SecretariatDashboard() {
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
                   <Button
                     size="sm"
                     variant="outline"
                     disabled={reportActionLoading}
                     onClick={() => handleStatusChange('draft', reviewerNote)}
-                    className="text-xs font-semibold h-9 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20 hover:bg-rose-50 dark:hover:bg-rose-500/10 cursor-pointer transition-colors"
+                    className="w-full sm:flex-1 h-10 px-2.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-500/20 hover:bg-rose-50 dark:hover:bg-rose-500/10 cursor-pointer transition-colors whitespace-nowrap justify-center shrink-0"
                   >
                     {reportActionLoading ? (
                       <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                     ) : (
-                      <><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Return to Draft</>
+                      <><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 shrink-0"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Return to Draft</>
                     )}
                   </Button>
                   <Button
@@ -1008,24 +1008,24 @@ export default function SecretariatDashboard() {
                     variant="outline"
                     disabled={reportActionLoading || activeReport.status === 'reviewed'}
                     onClick={() => handleStatusChange('reviewed', reviewerNote)}
-                    className="text-xs font-semibold h-9 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20 hover:bg-blue-50 dark:hover:bg-blue-500/10 cursor-pointer transition-colors disabled:opacity-40"
+                    className="w-full sm:flex-1 h-10 px-2.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-500/20 hover:bg-blue-50 dark:hover:bg-blue-500/10 cursor-pointer transition-colors disabled:opacity-40 whitespace-nowrap justify-center shrink-0"
                   >
                     {reportActionLoading ? (
                       <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                     ) : (
-                      <><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Mark Reviewed</>
+                      <><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 shrink-0"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> Mark Reviewed</>
                     )}
                   </Button>
                   <Button
                     size="sm"
                     disabled={reportActionLoading || activeReport.status === 'approved'}
                     onClick={() => handleStatusChange('approved', reviewerNote)}
-                    className="text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer transition-colors disabled:opacity-40"
+                    className="w-full sm:flex-1 h-10 px-2.5 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer transition-colors disabled:opacity-40 whitespace-nowrap justify-center shrink-0"
                   >
                     {reportActionLoading ? (
                       <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                     ) : (
-                      <><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><polyline points="20 6 9 17 4 12"/></svg> Approve</>
+                      <><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 shrink-0"><polyline points="20 6 9 17 4 12"/></svg> Approve</>
                     )}
                   </Button>
                 </div>
