@@ -62,7 +62,7 @@ function StoreRequestContent() {
       activeProfile = {
         id: user.id,
         role: meta.role || 'hod',
-        department_id: meta.department_id || 'dept-10'
+        department_id: meta.department_id || null
       }
     }
     

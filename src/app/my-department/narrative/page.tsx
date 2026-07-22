@@ -112,7 +112,7 @@ export default function DepartmentNarrativePage() {
         email: user.email || '',
         full_name: meta?.full_name || user.email?.split('@')[0] || 'Department HOD',
         role: meta?.role || 'hod',
-        department_id: meta?.department_id || 'dept-10', // Default to Medical
+        department_id: meta?.department_id || null,
         username: meta?.username || user.email?.split('@')[0] || 'user',
         must_change_password: false,
         is_active: true
