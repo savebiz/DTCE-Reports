@@ -182,15 +182,19 @@ function StoreFulfillmentContent() {
     }
 
     try {
-      const { error } = await supabase
-        .from('store_requests')
-        .update({ status: newStatus })
-        .eq('id', reqId)
+      const res = await fetch('/api/update-store-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: reqId, status: newStatus })
+      })
 
-      if (error) throw error
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to update requisition')
+      }
 
       showToast(`Requisition updated to ${labelMap[newStatus]}!`, 'success')
-      loadData()
+      loadData(false)
     } catch (err: any) {
       showToast(`Failed to update requisition: ${err.message}`, 'error')
     } finally {

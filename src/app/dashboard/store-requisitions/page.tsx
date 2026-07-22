@@ -256,21 +256,21 @@ function AdminRequisitionsContent() {
   const handleBatchAction = async (status: 'approved' | 'declined') => {
     if (selectedIds.size === 0) return
     setLoading(true)
-    const supabase = getClient()
 
     try {
       for (const id of selectedIds) {
         if (isMock) {
           setRequests(prev => prev.map(r => selectedIds.has(r.id) ? { ...r, status, reviewer_comments: `Batch ${status}` } : r))
         } else {
-          await supabase
-            .from('store_requests')
-            .update({
+          await fetch('/api/update-store-request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              requestId: id,
               status,
-              reviewer_comments: `Batch ${status} by coordinator`,
-              reviewed_at: new Date().toISOString()
+              reviewerComments: `Batch ${status} by coordinator`
             })
-            .eq('id', id)
+          })
         }
       }
 
@@ -288,7 +288,6 @@ function AdminRequisitionsContent() {
   const handleAction = async (status: 'approved' | 'declined') => {
     if (!selectedReq) return
     setLoading(true)
-    const supabase = getClient()
 
     if (isMock) {
       showToast(`Request ${status} successfully!`, 'success')
@@ -300,16 +299,20 @@ function AdminRequisitionsContent() {
     }
 
     try {
-      const { error } = await supabase
-        .from('store_requests')
-        .update({
+      const res = await fetch('/api/update-store-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId: selectedReq.id,
           status,
-          reviewer_comments: actionComments,
-          reviewed_at: new Date().toISOString()
+          reviewerComments: actionComments
         })
-        .eq('id', selectedReq.id)
+      })
 
-      if (error) throw error
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to update status')
+      }
 
       showToast(`Requisition order ${status}!`, 'success')
       setSelectedReq(null)
