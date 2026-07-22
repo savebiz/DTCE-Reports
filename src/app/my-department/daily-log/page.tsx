@@ -142,7 +142,7 @@ function DailyLogContent() {
 
       if (activeDept) {
         const nameLower = activeDept.name.toLowerCase()
-        if (nameLower.includes('bible study') || nameLower.includes('holy land')) {
+        if (nameLower.includes('bible study') || nameLower.includes('holy land') || nameLower.includes('registration')) {
           // Fetch tribes from database
           let tribesList: string[] = []
           if (!isMock) {
@@ -157,10 +157,10 @@ function DailyLogContent() {
             fields: [
               {
                 name: 'tribes_attendance',
-                label: 'Tribal Attendance Statistics',
+                label: 'Tribal & Mode Attendance Statistics',
                 type: 'repeat-group',
                 schema: [
-                  { name: 'tribe', label: 'Tribe', type: 'select', options: tribesList },
+                  { name: 'tribe', label: 'Tribe / Category', type: 'select', options: tribesList },
                   { name: 'teachers_male', label: 'Teachers (Male)', type: 'number' },
                   { name: 'teachers_female', label: 'Teachers (Female)', type: 'number' },
                   { name: 'teenagers_male', label: 'Teenagers (Male)', type: 'number' },
@@ -208,7 +208,7 @@ function DailyLogContent() {
               }
             ]
           }
-        } else if (nameLower.includes('stores')) {
+        } else if (nameLower.includes('store') || nameLower.includes('stores')) {
           activeDept.default_metrics_schema = {
             fields: [
               {
@@ -236,7 +236,7 @@ function DailyLogContent() {
               }
             ]
           }
-        } else if (nameLower.includes('welfare')) {
+        } else if (nameLower.includes('welfare') || nameLower.includes('kitchen') || nameLower.includes('serving')) {
           activeDept.default_metrics_schema = {
             fields: [
               {
@@ -266,7 +266,7 @@ function DailyLogContent() {
               }
             ]
           }
-        } else if (nameLower.includes('programmes') || nameLower.includes('teens')) {
+        } else if (nameLower.includes('programme') || nameLower.includes('program') || nameLower.includes('teens')) {
           activeDept.default_metrics_schema = {
             fields: [
               {

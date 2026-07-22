@@ -175,16 +175,16 @@ export default function MyDepartmentDashboard() {
         .eq('department_id', activeProfile.department_id)
       setReports(reps || [])
 
-      // Fetch approved store requisitions if Stores department
+      // Fetch store requisitions if Stores department
       const isStores = activeProfile.department_id === 'dept-29' || 
                        activeProfile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690' ||
-                       activeDept?.name?.toLowerCase().includes('stores')
+                       activeDept?.name?.toLowerCase().includes('store') ||
+                       department?.name?.toLowerCase().includes('store')
       if (isStores) {
         if (!isMock) {
           const { data: appReqs } = await supabase
             .from('store_requests')
             .select('*')
-            .in('status', ['approved', 'in_progress', 'partially_fulfilled'])
             .order('created_at', { ascending: false })
           
           if (appReqs) {
@@ -241,17 +241,20 @@ export default function MyDepartmentDashboard() {
   }
 
   // 4. Update Request Status (Stores Fulfillment)
-  const handleUpdateReqStatus = async (reqId: string, newStatus: 'in_progress' | 'partially_fulfilled' | 'delivered') => {
+  const handleUpdateReqStatus = async (reqId: string, newStatus: 'pending_coordinator' | 'approved' | 'in_progress' | 'partially_fulfilled' | 'delivered' | 'declined') => {
     setActionLoading(true)
     const supabase = getClient()
-    const labelMap: Record<string, string> = { in_progress: 'In Progress', partially_fulfilled: 'Partially Fulfilled', delivered: 'Delivered' }
+    const labelMap: Record<string, string> = {
+      pending_coordinator: 'Pending Approval',
+      approved: 'Approved',
+      in_progress: 'In Progress',
+      partially_fulfilled: 'Partially Fulfilled',
+      delivered: 'Delivered',
+      declined: 'Declined'
+    }
     if (isMock) {
       showToast(`Requisition marked as ${labelMap[newStatus]} (Mock Mode)`, 'success')
-      if (newStatus === 'delivered') {
-        setApprovedRequests(prev => prev.filter(r => r.id !== reqId))
-      } else {
-        setApprovedRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: newStatus } : r))
-      }
+      setApprovedRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: newStatus } : r))
       setActionLoading(false)
       return
     }
@@ -330,7 +333,7 @@ export default function MyDepartmentDashboard() {
 
   const isStoresDept = profile.department_id === 'dept-29' || 
                        profile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690' ||
-                       department?.name?.toLowerCase().includes('stores')
+                       department?.name?.toLowerCase().includes('store')
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
@@ -499,27 +502,34 @@ export default function MyDepartmentDashboard() {
                   <div className="space-y-4">
                     {approvedRequests.map((req) => (
                       <div key={req.id} className="border border-border rounded-xl p-4 space-y-3 bg-background/25">
-                        <div className="flex justify-between items-start">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           <div>
                             <span className="text-sm font-bold text-foreground block">
                               {req.department?.name} Department Requisition
                             </span>
                             <span className="text-[10px] text-muted-foreground block mt-0.5">
-                              Approved by Coordinator • Ordered by {req.requester?.full_name}
+                              Ordered by {req.requester?.full_name} • Submitted on {new Date(req.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </span>
                             <span
                               className="inline-flex items-center mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
                               style={
+                                req.status === 'pending_coordinator' ? { background: 'rgba(245,158,11,0.1)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.2)' } :
                                 req.status === 'approved' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
                                 req.status === 'in_progress' ? { background: 'rgba(139,92,246,0.1)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.2)' } :
-                                { background: 'rgba(236,72,153,0.1)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.2)' }
+                                req.status === 'partially_fulfilled' ? { background: 'rgba(236,72,153,0.1)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.2)' } :
+                                req.status === 'delivered' ? { background: 'rgba(16,185,129,0.1)', color: '#10B981', border: '1px solid rgba(16,185,129,0.2)' } :
+                                { background: 'rgba(239,68,68,0.1)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.2)' }
                               }
                             >
-                              {req.status === 'approved' ? 'Approved' : req.status === 'in_progress' ? 'In Progress' : 'Partially Fulfilled'}
+                              {req.status === 'pending_coordinator' ? 'Pending Approval' :
+                               req.status === 'approved' ? 'Approved' :
+                               req.status === 'in_progress' ? 'In Progress' :
+                               req.status === 'partially_fulfilled' ? 'Partially Fulfilled' :
+                               req.status === 'delivered' ? 'Delivered' : 'Declined'}
                             </span>
                           </div>
-                          <div className="flex gap-1.5 flex-shrink-0">
-                            {req.status === 'approved' && (
+                          <div className="flex flex-wrap gap-1.5 flex-shrink-0">
+                            {(req.status === 'pending_coordinator' || req.status === 'approved') && (
                               <Button
                                 size="sm"
                                 disabled={actionLoading}
@@ -551,14 +561,14 @@ export default function MyDepartmentDashboard() {
                                 </Button>
                               </>
                             )}
-                            {req.status === 'partially_fulfilled' && (
+                            {(req.status === 'partially_fulfilled' || req.status === 'approved') && (
                               <Button
                                 size="sm"
                                 disabled={actionLoading}
                                 onClick={() => handleUpdateReqStatus(req.id, 'delivered')}
                                 className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
                               >
-                                Mark Fully Delivered
+                                Mark Delivered
                               </Button>
                             )}
                           </div>
@@ -568,9 +578,9 @@ export default function MyDepartmentDashboard() {
                         <div className="p-3 bg-background/40 border border-border rounded-lg space-y-1.5">
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">Material details:</span>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                            {req.items_json.map((it: any, itIdx: number) => (
+                            {req.items_json && Array.isArray(req.items_json) && req.items_json.map((it: any, itIdx: number) => (
                               <div key={itIdx} className="flex justify-between border-b border-border/40 pb-1">
-                                <span className="text-foreground">{it.name} <span className="text-[10px] text-muted-foreground capitalize">({it.category})</span></span>
+                                <span className="text-foreground">{it.name} <span className="text-[10px] text-muted-foreground capitalize">({it.category || 'durable'})</span></span>
                                 <span className="font-bold text-foreground font-mono">x {it.quantity}</span>
                               </div>
                             ))}
