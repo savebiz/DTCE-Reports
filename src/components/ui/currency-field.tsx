@@ -90,7 +90,8 @@ export function CurrencyField({
         onBlur={handleBlur}
         disabled={disabled}
         placeholder={placeholder}
-        className={`pl-8 font-mono text-lg text-foreground ${className}`}
+        style={{ paddingLeft: '2.5rem' }}
+        className={`!pl-10 font-mono text-lg text-foreground ${className}`}
       />
     </div>
   )
