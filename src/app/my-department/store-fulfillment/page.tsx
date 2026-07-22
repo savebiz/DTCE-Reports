@@ -397,61 +397,64 @@ function StoreFulfillmentContent() {
                   )}
 
                   {/* Actions Bar */}
-                  <div className="flex flex-wrap items-center justify-end gap-2 pt-3 border-t border-border/40">
-                    {(req.status === 'pending_coordinator' || req.status === 'approved') && (
-                      <Button
-                        size="sm"
-                        disabled={actionLoading}
-                        onClick={() => handleUpdateStatus(req.id, 'in_progress')}
-                        className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs h-8"
-                      >
-                        Start Processing
-                      </Button>
-                    )}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-border/40">
+                    <div>
+                      {req.status === 'pending_coordinator' && (
+                        <span className="text-xs text-amber-500 font-semibold italic flex items-center gap-1.5">
+                          <span>⏳</span> Awaiting Secretariat / Coordinator Approval
+                        </span>
+                      )}
+                      {req.status === 'approved' && (
+                        <span className="text-xs text-blue-400 font-semibold flex items-center gap-1.5">
+                          <span>✅</span> Requisition Approved — Ready for Fulfillment
+                        </span>
+                      )}
+                    </div>
 
-                    {req.status === 'in_progress' && (
-                      <>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {req.status === 'approved' && (
                         <Button
                           size="sm"
                           disabled={actionLoading}
-                          onClick={() => handleUpdateStatus(req.id, 'partially_fulfilled')}
-                          className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs h-8"
+                          onClick={() => handleUpdateStatus(req.id, 'in_progress')}
+                          className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs h-8"
                         >
-                          Partial Delivery
+                          Start Processing
                         </Button>
+                      )}
+
+                      {req.status === 'in_progress' && (
+                        <>
+                          <Button
+                            size="sm"
+                            disabled={actionLoading}
+                            onClick={() => handleUpdateStatus(req.id, 'partially_fulfilled')}
+                            className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs h-8"
+                          >
+                            Partial Delivery
+                          </Button>
+                          <Button
+                            size="sm"
+                            disabled={actionLoading}
+                            onClick={() => handleUpdateStatus(req.id, 'delivered')}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
+                          >
+                            Mark Delivered
+                          </Button>
+                        </>
+                      )}
+
+                      {req.status === 'partially_fulfilled' && (
                         <Button
                           size="sm"
                           disabled={actionLoading}
                           onClick={() => handleUpdateStatus(req.id, 'delivered')}
                           className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
                         >
-                          Mark Delivered
+                          Mark Fully Delivered
                         </Button>
-                      </>
-                    )}
-
-                    {req.status === 'partially_fulfilled' && (
-                      <Button
-                        size="sm"
-                        disabled={actionLoading}
-                        onClick={() => handleUpdateStatus(req.id, 'delivered')}
-                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
-                      >
-                        Mark Fully Delivered
-                      </Button>
-                    )}
-
-                    {req.status !== 'declined' && req.status !== 'delivered' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={actionLoading}
-                        onClick={() => handleUpdateStatus(req.id, 'declined')}
-                        className="text-xs h-8 text-rose-400 hover:text-rose-300 border-rose-500/30 hover:bg-rose-500/10"
-                      >
-                        Decline
-                      </Button>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
