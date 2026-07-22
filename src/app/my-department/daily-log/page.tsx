@@ -423,9 +423,7 @@ function DailyLogContent() {
       }
     }
 
-    if (department && DEPTS_WITH_OFFERING.includes(department.id) && offering === 0) {
-      errors.push('No Offering finance total collected has been logged for this day.')
-    }
+
 
     setValidationErrors(errors)
   }, [attendanceMorning, attendanceEvening, workforce, offering, department])
@@ -572,7 +570,7 @@ function DailyLogContent() {
   }
 
   const hasWorkforce = !DEPTS_WITHOUT_ATTENDANCE.includes(department.id)
-  const hasOffering = DEPTS_WITH_OFFERING.includes(department.id)
+  const hasOffering = true
   const isReadOnly = (status === 'submitted' || status === 'approved') &&
                      (profile?.role !== 'super_admin' && profile?.role !== 'coordinator')
 
