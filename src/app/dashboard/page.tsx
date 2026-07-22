@@ -252,9 +252,13 @@ export default function SecretariatDashboard() {
 
   // KPI Calculations
   const kpis = useMemo(() => {
-    const dayReports = reports.filter(r => r.event_day_id === selectedKPIDay)
+    const selectedDayObj = eventDays.find(d => d.id === selectedKPIDay)
+    const dayReports = reports.filter(r => 
+      r.event_day_id === selectedKPIDay || 
+      (selectedDayObj && (r.event_day_id === `day-${selectedDayObj.day_number}` || r.event_day_id === selectedDayObj.id))
+    )
     const submittedCount = dayReports.filter(r => ['submitted', 'reviewed', 'approved'].includes(r.status)).length
-    const missingCount = Math.max(0, departments.length - dayReports.length)
+    const missingCount = Math.max(0, departments.length - submittedCount)
     const needingReview = dayReports.filter(r => r.status === 'submitted').length
     
     // Store Requisition KPIs
@@ -278,7 +282,7 @@ export default function SecretariatDashboard() {
       deliveredReqs,
       totalOfferings
     }
-  }, [reports, departments, selectedKPIDay, visibleStoreRequests])
+  }, [reports, departments, selectedKPIDay, eventDays, visibleStoreRequests])
 
   // Department Performance Rankings
   const deptRankings = useMemo(() => {
