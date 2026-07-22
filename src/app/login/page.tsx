@@ -60,12 +60,13 @@ export default function LoginPage() {
 
     if (!isMock && !loginEmail.includes('@')) {
       try {
-        const { data: profileRow } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('username', loginEmail)
-          .maybeSingle()
-        loginEmail = profileRow?.email ?? `${loginEmail}@accounts.dtce-reports.vercel.app`
+        const res = await fetch('/api/resolve-username', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: loginEmail })
+        })
+        const resolved = await res.json()
+        loginEmail = resolved?.email || `${loginEmail}@accounts.dtce-reports.vercel.app`
       } catch {
         loginEmail = `${loginEmail}@accounts.dtce-reports.vercel.app`
       }
