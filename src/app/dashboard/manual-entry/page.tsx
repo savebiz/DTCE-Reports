@@ -324,7 +324,9 @@ function ManualEntryContent() {
             </Label>
             <Select value={selectedDeptId} onValueChange={(val) => setSelectedDeptId(val || '')}>
               <SelectTrigger className="h-10 text-xs font-medium bg-background border-border/60">
-                <SelectValue placeholder="Select Department..." />
+                <SelectValue placeholder="Select Department...">
+                  {selectedDept?.name || 'Select Department...'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {departments.map((dept) => (
@@ -344,7 +346,9 @@ function ManualEntryContent() {
             </Label>
             <Select value={selectedDayId} onValueChange={(val) => setSelectedDayId(val || '')}>
               <SelectTrigger className="h-10 text-xs font-medium bg-background border-border/60">
-                <SelectValue placeholder="Select Convention Day..." />
+                <SelectValue placeholder="Select Convention Day...">
+                  {selectedDay ? `Day ${selectedDay.day_number} — ${new Date(`${selectedDay.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })}` : 'Select Convention Day...'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {eventDays.map((day) => (
