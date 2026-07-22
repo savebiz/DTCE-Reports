@@ -40,8 +40,8 @@ function StoreFulfillmentContent() {
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'processing' | 'delivered'>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const loadData = async () => {
-    setLoading(true)
+  const loadData = async (showLoadingSpinner = true) => {
+    if (showLoadingSpinner) setLoading(true)
     const supabase = getClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -145,11 +145,18 @@ function StoreFulfillmentContent() {
       ])
     }
 
-    setLoading(false)
+    if (showLoadingSpinner) setLoading(false)
   }
 
   useEffect(() => {
-    loadData()
+    loadData(true)
+
+    // Automatic 6-Second Polling
+    const interval = setInterval(() => {
+      loadData(false)
+    }, 6000)
+
+    return () => clearInterval(interval)
   }, [])
 
   const handleUpdateStatus = async (
@@ -249,14 +256,20 @@ function StoreFulfillmentContent() {
             </p>
           </div>
 
-          <Button
-            onClick={loadData}
-            variant="outline"
-            size="sm"
-            className="text-xs font-semibold h-9"
-          >
-            🔄 Refresh List
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              Auto-Sync (6s)
+            </span>
+            <Button
+              onClick={() => loadData(true)}
+              variant="outline"
+              size="sm"
+              className="text-xs font-semibold h-9"
+            >
+              🔄 Refresh List
+            </Button>
+          </div>
         </div>
 
         {/* Overview Stats Cards */}
