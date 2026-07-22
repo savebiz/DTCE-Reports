@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
-import { getClient, isMock, mockDepartments, Profile } from '@/utils/supabase'
+import { getClient, isMock, Profile } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
 interface RequestItem {
@@ -164,7 +164,6 @@ function StoreFulfillmentContent() {
     newStatus: 'pending_coordinator' | 'approved' | 'in_progress' | 'partially_fulfilled' | 'delivered' | 'declined'
   ) => {
     setActionLoading(true)
-    const supabase = getClient()
     const labelMap: Record<string, string> = {
       pending_coordinator: 'Pending Approval',
       approved: 'Approved',
@@ -225,97 +224,104 @@ function StoreFulfillmentContent() {
   const deliveredCount = requisitions.filter(r => r.status === 'delivered').length
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      {/* Top Bar */}
-      <div
-        className="flex items-center justify-between px-4 md:px-6 py-3 border-b"
-        style={{ background: 'rgba(0,0,0,0.15)', borderColor: 'var(--border)' }}
-      >
+    <div className="min-h-screen transition-colors duration-200" style={{ background: 'var(--background)' }}>
+      {/* 1. Integrated Breadcrumb Strip */}
+      <div className="flex items-center justify-between px-4 md:px-6 py-2.5 border-b border-border/40 bg-background/50 backdrop-blur-xs">
         <button
           onClick={() => router.push('/my-department')}
-          className="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
           <span>←</span> Back to {departmentName} Dashboard
         </button>
 
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-xs font-bold uppercase tracking-widest text-emerald-500">Stores Fulfillment Hub</span>
+          <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Stores Fulfillment Hub</span>
         </div>
       </div>
 
       <main className="mx-auto max-w-5xl px-4 md:px-6 py-8 space-y-6">
-        {/* Page Title Header */}
+        {/* 2. Page Title Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-              <span className="text-[11px] font-bold tracking-widest text-amber-500 uppercase">Stores Department Console</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              <span className="text-[11px] font-bold tracking-widest text-amber-600 dark:text-amber-400 uppercase">Stores Department Console</span>
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-foreground">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
               Stores Requisitions & Fulfillment Hub
             </h1>
-            <p className="text-[13px] text-muted-foreground mt-0.5">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               Review, process, and track material requests submitted across all convention departments.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          {/* 3. Button Hierarchy: Informational Status Pill vs Secondary Refresh Button */}
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold select-none">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               Auto-Sync (20s)
             </span>
             <Button
               onClick={() => loadData(true)}
               variant="outline"
               size="sm"
-              className="text-xs font-semibold h-9"
+              className="text-xs font-semibold h-9 px-3.5 border-border/70 hover:bg-accent/60 transition-colors shadow-xs"
             >
               🔄 Refresh List
             </Button>
           </div>
         </div>
 
-        {/* Overview Stats Cards */}
+        {/* 4. Overview Stats Cards (Stripe Pattern Typography & Elevation System) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="glass-card border-none p-4">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Total Requests</span>
-            <span className="text-2xl font-black text-foreground mt-1 block font-mono">{requisitions.length}</span>
+          <Card className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Total Requests</span>
+            <span className="text-3xl sm:text-4xl font-extrabold text-foreground mt-2 mb-0.5 tracking-tight font-mono block">{requisitions.length}</span>
+            <span className="text-[10px] text-muted-foreground font-medium">All department submissions</span>
           </Card>
-          <Card className="glass-card border-none p-4">
-            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block">Pending Approval</span>
-            <span className="text-2xl font-black text-amber-500 mt-1 block font-mono">{pendingCount}</span>
+          <Card className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">Pending Approval</span>
+            <span className="text-3xl sm:text-4xl font-extrabold text-amber-600 dark:text-amber-400 mt-2 mb-0.5 tracking-tight font-mono block">{pendingCount}</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Awaiting Coordinator</span>
           </Card>
-          <Card className="glass-card border-none p-4">
-            <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block">In Processing</span>
-            <span className="text-2xl font-black text-purple-400 mt-1 block font-mono">{processingCount}</span>
+          <Card className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+            <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">In Processing</span>
+            <span className="text-3xl sm:text-4xl font-extrabold text-purple-600 dark:text-purple-400 mt-2 mb-0.5 tracking-tight font-mono block">{processingCount}</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Currently being fulfilled</span>
           </Card>
-          <Card className="glass-card border-none p-4">
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">Delivered</span>
-            <span className="text-2xl font-black text-emerald-400 mt-1 block font-mono">{deliveredCount}</span>
+          <Card className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] dark:hover:shadow-[0_4px_12px_rgba(0,0,0,0.6)]">
+            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Delivered</span>
+            <span className="text-3xl sm:text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-2 mb-0.5 tracking-tight font-mono block">{deliveredCount}</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Successfully completed</span>
           </Card>
         </div>
 
-        {/* Filter Controls & Search */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card border border-border p-3 rounded-xl">
-          <div className="flex flex-wrap items-center gap-1.5">
+        {/* 5. Segmented Filter Control (Linear Style Cohesive Track) */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card p-2 rounded-2xl border border-border/50 shadow-[0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]">
+          <div className="flex flex-wrap items-center gap-1 p-1 bg-muted/40 dark:bg-slate-800/40 rounded-xl border border-border/30">
             {[
-              { id: 'all', label: `All (${requisitions.length})` },
-              { id: 'pending', label: `Pending (${pendingCount})` },
-              { id: 'approved', label: `Approved (${approvedCount})` },
-              { id: 'processing', label: `In Progress (${processingCount})` },
-              { id: 'delivered', label: `Delivered (${deliveredCount})` },
+              { id: 'all', label: 'All', count: requisitions.length },
+              { id: 'pending', label: 'Pending', count: pendingCount },
+              { id: 'approved', label: 'Approved', count: approvedCount },
+              { id: 'processing', label: 'In Progress', count: processingCount },
+              { id: 'delivered', label: 'Delivered', count: deliveredCount },
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
                   activeTab === tab.id
-                    ? 'bg-amber-500 text-black shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    ? 'bg-background text-foreground shadow-xs border border-border/50 font-bold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
                 }`}
               >
-                {tab.label}
+                <span>{tab.label}</span>
+                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                  activeTab === tab.id ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-muted/60 text-muted-foreground'
+                }`}>
+                  {tab.count}
+                </span>
               </button>
             ))}
           </div>
@@ -324,34 +330,51 @@ function StoreFulfillmentContent() {
             placeholder="Search by department or item..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full sm:w-64 h-9 text-xs"
+            className="w-full sm:w-64 h-9 text-xs bg-background/60 border-border/60 focus:bg-background transition-colors"
           />
         </div>
 
-        {/* Requisitions List */}
+        {/* 6. Requisition List Item Cards (Left Status Accent Bar & Material Chips) */}
         {loading ? (
           <div className="text-center py-16 space-y-2">
             <span className="text-sm font-mono animate-pulse text-muted-foreground">Loading Requisitions Console...</span>
           </div>
         ) : filteredRequisitions.length === 0 ? (
-          <Card className="glass-card border-none p-12 text-center space-y-3">
+          <Card className="bg-card rounded-xl p-12 text-center space-y-3 border border-border/50 shadow-xs">
             <span className="text-4xl block">📦</span>
             <p className="text-sm font-semibold text-muted-foreground">No material requisitions match your filter criteria.</p>
           </Card>
         ) : (
           <div className="space-y-4">
             {filteredRequisitions.map(req => (
-              <Card key={req.id} className="glass-card border-none overflow-hidden">
-                <CardHeader className="pb-3 border-b border-border/40 bg-card/40">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <Card
+                key={req.id}
+                className="relative bg-card rounded-xl border border-border/50 overflow-hidden shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_4px_12px_rgba(15,42,74,0.08)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.6)]"
+              >
+                {/* Left Status Accent Bar (Linear / Ramp Pattern) */}
+                <div
+                  className="absolute left-0 top-0 bottom-0 w-1 sm:w-1.5"
+                  style={{
+                    backgroundColor:
+                      req.status === 'pending_coordinator' ? '#F59E0B' :
+                      req.status === 'approved' ? '#3B82F6' :
+                      req.status === 'in_progress' ? '#8B5CF6' :
+                      req.status === 'partially_fulfilled' ? '#EC4899' :
+                      req.status === 'delivered' ? '#10B981' : '#EF4444'
+                  }}
+                />
+
+                {/* Tightened Header Row */}
+                <CardHeader className="pl-5 sm:pl-6 pr-4 sm:pr-6 py-3.5 border-b border-border/40 bg-muted/20 dark:bg-slate-900/20">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-base font-extrabold text-foreground">
+                        <span className="text-base font-extrabold text-foreground tracking-tight">
                           {req.department?.name || 'Department'} Requisition
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground block mt-0.5">
-                        Requested by <strong className="text-foreground">{req.requester?.full_name}</strong> • Submitted {new Date(req.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        Requested by <strong className="text-foreground font-semibold">{req.requester?.full_name}</strong> • Submitted {new Date(req.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
 
@@ -359,12 +382,12 @@ function StoreFulfillmentContent() {
                       <span
                         className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full"
                         style={
-                          req.status === 'pending_coordinator' ? { background: 'rgba(245,158,11,0.15)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.3)' } :
-                          req.status === 'approved' ? { background: 'rgba(59,130,246,0.15)', color: '#3B82F6', border: '1px solid rgba(59,130,246,0.3)' } :
-                          req.status === 'in_progress' ? { background: 'rgba(139,92,246,0.15)', color: '#A78BFA', border: '1px solid rgba(139,92,246,0.3)' } :
-                          req.status === 'partially_fulfilled' ? { background: 'rgba(236,72,153,0.15)', color: '#F472B6', border: '1px solid rgba(236,72,153,0.3)' } :
-                          req.status === 'delivered' ? { background: 'rgba(16,185,129,0.15)', color: '#10B981', border: '1px solid rgba(16,185,129,0.3)' } :
-                          { background: 'rgba(239,68,68,0.15)', color: '#EF4444', border: '1px solid rgba(239,68,68,0.3)' }
+                          req.status === 'pending_coordinator' ? { background: 'rgba(245,158,11,0.12)', color: '#D97706', border: '1px solid rgba(245,158,11,0.3)' } :
+                          req.status === 'approved' ? { background: 'rgba(59,130,246,0.12)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.3)' } :
+                          req.status === 'in_progress' ? { background: 'rgba(139,92,246,0.12)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.3)' } :
+                          req.status === 'partially_fulfilled' ? { background: 'rgba(236,72,153,0.12)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.3)' } :
+                          req.status === 'delivered' ? { background: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.3)' } :
+                          { background: 'rgba(239,68,68,0.12)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.3)' }
                         }
                       >
                         {req.status === 'pending_coordinator' ? 'Pending Approval' :
@@ -377,25 +400,29 @@ function StoreFulfillmentContent() {
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-4 space-y-4">
-                  {/* Requested Items List */}
+                <CardContent className="pl-5 sm:pl-6 pr-4 sm:pr-6 pt-4 pb-4 space-y-4">
+                  {/* Requested Material Items Chips */}
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Requested Material Items</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">Requested Material Items</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                       {req.items_json && Array.isArray(req.items_json) && req.items_json.map((item, idx) => (
-                        <div key={idx} className="bg-background/50 border border-border/60 p-2.5 rounded-lg flex items-center justify-between text-xs">
-                          <div>
+                        <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-muted/30 dark:bg-slate-800/40 border border-border/50 text-xs hover:border-border/80 transition-colors">
+                          <div className="space-y-0.5">
                             <span className="font-semibold text-foreground block">{item.name}</span>
-                            <span className="text-[10px] text-muted-foreground uppercase">{item.category || 'durable'}</span>
+                            <span className="inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted/60 text-muted-foreground">
+                              {item.category || 'durable'}
+                            </span>
                           </div>
-                          <span className="font-mono font-bold text-amber-500 text-sm">x {item.quantity}</span>
+                          <span className="font-mono font-bold text-amber-600 dark:text-amber-400 text-xs px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                            × {item.quantity}
+                          </span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {req.reviewer_comments && (
-                    <div className="text-xs text-amber-500 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
+                    <div className="text-xs text-amber-700 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
                       <strong>Coordinator Notes:</strong> {req.reviewer_comments}
                     </div>
                   )}
@@ -404,12 +431,12 @@ function StoreFulfillmentContent() {
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-border/40">
                     <div>
                       {req.status === 'pending_coordinator' && (
-                        <span className="text-xs text-amber-500 font-semibold italic flex items-center gap-1.5">
+                        <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold italic flex items-center gap-1.5">
                           <span>⏳</span> Awaiting National Coordinator Approval
                         </span>
                       )}
                       {req.status === 'approved' && (
-                        <span className="text-xs text-blue-400 font-semibold flex items-center gap-1.5">
+                        <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1.5">
                           <span>✅</span> Requisition Approved — Ready for Fulfillment
                         </span>
                       )}
@@ -421,7 +448,7 @@ function StoreFulfillmentContent() {
                           size="sm"
                           disabled={actionLoading}
                           onClick={() => handleUpdateStatus(req.id, 'in_progress')}
-                          className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs h-8"
+                          className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs h-8 shadow-xs"
                         >
                           Start Processing
                         </Button>
@@ -433,7 +460,7 @@ function StoreFulfillmentContent() {
                             size="sm"
                             disabled={actionLoading}
                             onClick={() => handleUpdateStatus(req.id, 'partially_fulfilled')}
-                            className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs h-8"
+                            className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs h-8 shadow-xs"
                           >
                             Partial Delivery
                           </Button>
@@ -441,7 +468,7 @@ function StoreFulfillmentContent() {
                             size="sm"
                             disabled={actionLoading}
                             onClick={() => handleUpdateStatus(req.id, 'delivered')}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8 shadow-xs"
                           >
                             Mark Delivered
                           </Button>
@@ -453,7 +480,7 @@ function StoreFulfillmentContent() {
                           size="sm"
                           disabled={actionLoading}
                           onClick={() => handleUpdateStatus(req.id, 'delivered')}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8"
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8 shadow-xs"
                         >
                           Mark Fully Delivered
                         </Button>
