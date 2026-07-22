@@ -318,14 +318,9 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Form card */}
+            {/* Form card (Ramp Elevation System) */}
             <div
-              className="rounded-2xl p-6 space-y-4"
-              style={{
-                background: 'var(--card)',
-                border: '1px solid var(--border)',
-                backdropFilter: 'blur(20px)',
-              }}
+              className="rounded-2xl p-6 sm:p-7 space-y-4 bg-card border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
             >
               <form onSubmit={handleSubmit} noValidate className="space-y-4">
                 <AuthInput

@@ -386,30 +386,23 @@ function AdminRequisitionsContent() {
           </Button>
         </div>
 
-        {/* Summary KPI Bar */}
+        {/* Summary KPI Bar (Stripe Pattern Elevation & Typography) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 animate-fade-in-up">
           {FILTER_TABS.map(tab => {
             const count = counts[tab.key] || 0
             const isActive = activeFilter === tab.key
-            const cfg = tab.key !== 'all' ? STATUS_CONFIG[tab.key] : null
             return (
               <button
                 key={tab.key}
                 onClick={() => setActiveFilter(tab.key)}
-                className="glass-card p-3 text-center transition-all duration-200 cursor-pointer"
-                style={{
-                  borderColor: isActive
-                    ? (cfg?.color || 'rgba(255,255,255,0.2)')
-                    : 'transparent',
-                  borderWidth: '1.5px',
-                  borderStyle: 'solid',
-                  opacity: isActive ? 1 : 0.7,
-                }}
+                className={`bg-card rounded-xl p-3 text-[11px] text-left transition-all duration-150 cursor-pointer border ${
+                  isActive
+                    ? 'border-amber-500/50 shadow-sm font-bold bg-amber-500/5 dark:bg-amber-500/10'
+                    : 'border-border/50 hover:border-border text-muted-foreground shadow-xs'
+                }`}
               >
-                <p className="text-2xl font-bold font-tabular text-foreground">{count}</p>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mt-0.5">
-                  {tab.label}
-                </p>
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">{tab.label}</span>
+                <span className="text-2xl font-extrabold font-mono text-foreground mt-1 block tracking-tight">{count}</span>
               </button>
             )
           })}

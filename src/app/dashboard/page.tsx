@@ -380,8 +380,8 @@ export default function SecretariatDashboard() {
           </div>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex border-b border-border gap-6 text-xs font-semibold">
+        {/* Tab Switcher (Linear Cohesive Track) */}
+        <div className="p-1 bg-muted/40 dark:bg-slate-800/40 rounded-xl border border-border/30 flex flex-wrap items-center gap-1">
           {[
             { key: 'overview', label: 'Overview & Matrix' },
             { key: 'store-requisitions', label: `Store Requisitions (${kpis.pendingReqs})` },
@@ -391,10 +391,10 @@ export default function SecretariatDashboard() {
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key as any)}
-              className={`pb-2.5 transition-all cursor-pointer border-b-2 ${
+              className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all duration-150 cursor-pointer ${
                 activeTab === t.key
-                  ? 'border-purple-500 text-purple-400 font-bold'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  ? 'bg-background text-foreground shadow-xs border border-border/50 font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
               }`}
             >
               {t.label}
@@ -402,42 +402,44 @@ export default function SecretariatDashboard() {
           ))}
         </div>
 
-        {/* KPI Cards Bar */}
+        {/* KPI Cards Bar (Stripe Pattern Elevation & Typography) */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-fade-in-up">
-          <div className="glass-card p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Reporting Today</p>
-            <p className="text-2xl font-bold font-tabular text-foreground mt-1">{kpis.reporting} <span className="text-xs text-muted-foreground">/ {departments.length}</span></p>
-            <p className="text-[10px] text-emerald-400 mt-1 font-semibold">{departments.length > 0 ? Math.round((kpis.reporting / departments.length) * 100) : 0}% compliance</p>
+          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Reporting Today</span>
+            <span className="text-3xl font-extrabold font-mono text-foreground mt-2 mb-0.5 tracking-tight block">
+              {kpis.reporting} <span className="text-xs font-sans text-muted-foreground">/ {departments.length}</span>
+            </span>
+            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{departments.length > 0 ? Math.round((kpis.reporting / departments.length) * 100) : 0}% compliance</span>
           </div>
 
-          <div className="glass-card p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Missing Reports</p>
-            <p className="text-2xl font-bold font-tabular mt-1" style={{ color: kpis.missing > 0 ? '#FCA5A5' : '#34D399' }}>{kpis.missing}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Pending submission</p>
+          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Missing Reports</span>
+            <span className="text-3xl font-extrabold font-mono mt-2 mb-0.5 tracking-tight block" style={{ color: kpis.missing > 0 ? '#EF4444' : '#10B981' }}>{kpis.missing}</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Pending submission</span>
           </div>
 
-          <div className="glass-card p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Awaiting Review</p>
-            <p className="text-2xl font-bold font-tabular text-blue-400 mt-1">{kpis.review}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Daily reports pending</p>
+          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Awaiting Review</span>
+            <span className="text-3xl font-extrabold font-mono text-blue-600 dark:text-blue-400 mt-2 mb-0.5 tracking-tight block">{kpis.review}</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Daily reports pending</span>
           </div>
 
-          <div className="glass-card p-4" style={{ borderColor: kpis.pendingReqs > 0 ? 'rgba(245,158,11,0.3)' : undefined }}>
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-500">Pending Store Reqs</p>
-            <p className="text-2xl font-bold font-tabular text-amber-500 mt-1">{kpis.pendingReqs}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Requires approval</p>
+          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">Pending Store Reqs</span>
+            <span className="text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 mt-2 mb-0.5 tracking-tight block">{kpis.pendingReqs}</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Requires approval</span>
           </div>
 
-          <div className="glass-card p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400">Fulfilled Store Reqs</p>
-            <p className="text-2xl font-bold font-tabular text-emerald-400 mt-1">{kpis.deliveredReqs}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Delivered by Stores</p>
+          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Fulfilled Store Reqs</span>
+            <span className="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2 mb-0.5 tracking-tight block">{kpis.deliveredReqs}</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Delivered by Stores</span>
           </div>
 
-          <div className="glass-card p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-purple-400">Recorded Offering</p>
-            <p className="text-2xl font-bold font-tabular text-purple-400 mt-1">₦{kpis.totalOfferings.toLocaleString()}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Focus day aggregate</p>
+          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+            <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Recorded Offering</span>
+            <span className="text-3xl font-extrabold font-mono text-purple-600 dark:text-purple-400 mt-2 mb-0.5 tracking-tight block">₦{kpis.totalOfferings.toLocaleString()}</span>
+            <span className="text-[10px] text-muted-foreground font-medium">Focus day aggregate</span>
           </div>
         </div>
 

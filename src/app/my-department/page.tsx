@@ -339,10 +339,7 @@ export default function MyDepartmentDashboard() {
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
 
       {/* Connectivity Status Bar */}
-      <div
-        className="flex items-center justify-between px-4 md:px-6 py-2 text-[12px]"
-        style={{ background: 'rgba(0,0,0,0.1)', borderBottom: '1px solid var(--border)' }}
-      >
+      <div className="flex items-center justify-between px-4 md:px-6 py-2.5 border-b border-border/40 bg-background/50 backdrop-blur-xs text-xs">
         <div className="flex items-center gap-2">
           <span
             className="h-2 w-2 rounded-full"
@@ -360,7 +357,7 @@ export default function MyDepartmentDashboard() {
             <span className="text-amber-500 font-semibold">{pendingSyncCount} pending upload(s)</span>
             {isOnline && (
               <button
-                className="h-6 rounded-lg px-3 text-[11px] font-semibold text-white transition-all bg-amber-500"
+                className="h-6 rounded-lg px-3 text-[11px] font-semibold text-white transition-all bg-amber-500 shadow-xs"
                 onClick={triggerSync}
                 disabled={syncing}
               >
@@ -375,7 +372,7 @@ export default function MyDepartmentDashboard() {
         <div className="space-y-6 animate-fade-in-up">
           {/* Department Switcher for Admin/Coordinators */}
           {(profile.role === 'super_admin' || profile.role === 'coordinator') && allDepartments.length > 0 && (
-            <div className="flex items-center gap-3 bg-card border border-border p-4 rounded-xl">
+            <div className="flex items-center gap-3 bg-card border border-border/50 p-4 rounded-xl shadow-xs">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Act on behalf of:</span>
               <select
                 value={profile.department_id || ''}
@@ -385,7 +382,7 @@ export default function MyDepartmentDashboard() {
                   const d = allDepartments.find(ad => ad.id === newDeptId)
                   if (d) setDepartment(d)
                 }}
-                className="bg-background border border-border rounded-lg text-xs font-semibold px-3 py-1.5 text-foreground h-9"
+                className="bg-background border border-border/60 rounded-lg text-xs font-semibold px-3 py-1.5 text-foreground h-9"
               >
                 {allDepartments.map(d => (
                   <option key={d.id} value={d.id}>{d.name}</option>
@@ -398,17 +395,17 @@ export default function MyDepartmentDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-                <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">HOD Controls</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                <span className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase">HOD Controls</span>
               </div>
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                 {department?.name || 'Department'} Dashboard
               </h1>
-              <p className="text-[13px] text-muted-foreground mt-0.5">Fill daily reporting metrics for each convention day.</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Fill daily reporting metrics for each convention day.</p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-amber-500/20 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 cursor-pointer"
+                className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all bg-blue-600 hover:bg-blue-500 text-white cursor-pointer shadow-xs"
                 onClick={() => router.push('/my-department/daily-log')}
               >
                 <span>📅</span>
@@ -416,7 +413,7 @@ export default function MyDepartmentDashboard() {
               </button>
               {isStoresDept ? (
                 <button
-                  className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-bold transition-all border border-amber-500/30 bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 cursor-pointer shadow-sm"
+                  className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 cursor-pointer shadow-xs"
                   onClick={() => router.push('/my-department/store-fulfillment')}
                 >
                   <span>📦</span>
@@ -424,7 +421,7 @@ export default function MyDepartmentDashboard() {
                 </button>
               ) : (
                 <button
-                  className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
+                  className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-border/70 bg-card hover:bg-accent/60 text-foreground cursor-pointer shadow-xs"
                   onClick={() => router.push('/my-department/store-request')}
                 >
                   <span>📦</span>
@@ -434,14 +431,14 @@ export default function MyDepartmentDashboard() {
               {profile?.role !== 'assistant' && (
                 <>
                   <button
-                    className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
+                    className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-border/70 bg-card hover:bg-accent/60 text-foreground cursor-pointer shadow-xs"
                     onClick={() => router.push('/my-department/team')}
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     Manage Team
                   </button>
                   <button
-                    className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all border border-border bg-card text-foreground cursor-pointer"
+                    className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-border/70 bg-card hover:bg-accent/60 text-foreground cursor-pointer shadow-xs"
                     onClick={() => router.push('/my-department/narrative')}
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>

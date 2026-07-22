@@ -121,18 +121,18 @@ export default function ReportsExportPage() {
 
   return (
     <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
-      {/* Heading Block */}
-      <div className="border-b bg-card border-border">
+      {/* Heading Block (Integrated Canvas Header) */}
+      <div className="border-b border-border/40 bg-background/50 backdrop-blur-xs">
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between py-6 px-4 md:px-6 gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-              <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Secretariat Panel</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+              <span className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase">Secretariat Panel</span>
             </div>
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
               Report Generation &amp; Export
             </h1>
-            <p className="text-[13px] text-muted-foreground mt-0.5">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               Dynamic document builder with Word DOCX compilation.
             </p>
           </div>
@@ -140,7 +140,7 @@ export default function ReportsExportPage() {
           <div className="flex items-center">
             <Link href="/dashboard">
               <button
-                className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200 bg-card border border-border text-muted-foreground hover:text-foreground cursor-pointer"
+                className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-semibold transition-all border border-border/70 bg-card hover:bg-accent/60 text-foreground cursor-pointer shadow-xs"
               >
                 ➔ Oversight Grid Matrix
               </button>
