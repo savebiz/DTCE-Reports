@@ -66,7 +66,7 @@ export async function updateSession(request: NextRequest) {
       .from('profiles')
       .select('role, must_change_password, is_active')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (profile && profile.is_active === false) {
       return { supabaseResponse, user: null, role: null, mustChangePassword: false }

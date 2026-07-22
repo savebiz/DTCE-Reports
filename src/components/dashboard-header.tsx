@@ -55,7 +55,7 @@ export function DashboardHeader() {
           .from('profiles')
           .select('*')
           .eq('id', data.user.id)
-          .single()
+          .maybeSingle()
         
         let activeProfile: any = prof
         if (prof) {

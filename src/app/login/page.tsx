@@ -92,14 +92,17 @@ export default function LoginPage() {
         .from('profiles')
         .select('*')
         .eq('id', data.user.id)
-        .single()
+        .maybeSingle()
 
       setTimeout(() => {
-        if (prof?.must_change_password) {
+        const meta = (data.user.user_metadata || {}) as any
+        const activeRole = prof?.role || meta.role || 'hod'
+        const mustChangePassword = prof ? prof.must_change_password : !!meta.must_change_password
+        if (mustChangePassword) {
           window.location.href = '/reset-password'
         } else {
-          const role = prof?.role
-          const path = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
+          const isAdmin = activeRole === 'super_admin' || activeRole === 'coordinator' || activeRole === 'national_coordinator'
+          const path = isAdmin ? '/dashboard' : '/my-department'
           window.location.href = path
         }
       }, 600)
@@ -119,23 +122,21 @@ export default function LoginPage() {
         }
 
         if (data?.user) {
-          const { data: prof, error: dbErr } = await supabase
+          const { data: prof } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', data.user.id)
-            .single()
+            .maybeSingle()
 
-          if (dbErr) {
-            setFormMessage({ type: 'error', text: `Auth succeeded but profile load failed: ${dbErr.message}` })
-            setLoading(false)
-            return
-          }
+          const meta = (data.user.user_metadata || {}) as any
+          const activeRole = prof?.role || meta.role || 'hod'
+          const mustChangePassword = prof ? prof.must_change_password : !!meta.must_change_password
 
-          if (prof?.must_change_password) {
+          if (mustChangePassword) {
             router.push('/reset-password')
           } else {
-            const role = prof?.role
-            const path = (role === 'super_admin' || role === 'coordinator') ? '/dashboard' : '/my-department'
+            const isAdmin = activeRole === 'super_admin' || activeRole === 'coordinator' || activeRole === 'national_coordinator'
+            const path = isAdmin ? '/dashboard' : '/my-department'
             router.push(path)
             router.refresh()
           }

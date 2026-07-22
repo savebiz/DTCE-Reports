@@ -89,8 +89,22 @@ export default function SecretariatDashboard() {
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single()
-    setProfile(prof)
+      .maybeSingle()
+
+    if (prof) {
+      setProfile(prof)
+    } else if (user) {
+      const meta = user.user_metadata as any
+      setProfile({
+        id: user.id,
+        email: user.email || '',
+        full_name: meta?.full_name || user.email?.split('@')[0] || 'User',
+        role: meta?.role || 'assistant',
+        department_id: meta?.department_id,
+        must_change_password: false,
+        is_active: true
+      })
+    }
 
     // Load static/dynamic lists
     const { data: depts } = await supabase.from('departments').select('*')

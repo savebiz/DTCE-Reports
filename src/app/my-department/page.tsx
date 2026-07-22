@@ -100,7 +100,7 @@ export default function MyDepartmentDashboard() {
       .from('profiles')
       .select('*')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
     
     let activeProfile = prof
     if (!activeProfile && user) {
