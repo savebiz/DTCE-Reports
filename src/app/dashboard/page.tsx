@@ -34,6 +34,25 @@ interface StoreRequestTicket {
   requester?: { full_name: string; email: string }
 }
 
+const isSameEventDay = (dayIdA?: string, dayIdB?: string, daysList: any[] = []) => {
+  if (!dayIdA || !dayIdB) return false
+  if (dayIdA === dayIdB) return true
+
+  const normA = dayIdA.startsWith('day-') ? dayIdA.replace('day-', '') : dayIdA
+  const normB = dayIdB.startsWith('day-') ? dayIdB.replace('day-', '') : dayIdB
+
+  if (normA === normB) return true
+
+  const objA = daysList.find(d => d.id === dayIdA || `day-${d.day_number}` === dayIdA || String(d.day_number) === normA)
+  const objB = daysList.find(d => d.id === dayIdB || `day-${d.day_number}` === dayIdB || String(d.day_number) === normB)
+
+  if (objA && objB) return objA.id === objB.id || objA.day_number === objB.day_number
+  if (objA) return objA.id === dayIdB || `day-${objA.day_number}` === dayIdB || String(objA.day_number) === dayIdB || String(objA.day_number) === normB
+  if (objB) return objB.id === dayIdA || `day-${objB.day_number}` === dayIdA || String(objB.day_number) === dayIdA || String(objB.day_number) === normA
+
+  return false
+}
+
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
   pending_coordinator: { label: 'Pending', bg: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' },
   approved:           { label: 'Approved', bg: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' },
@@ -53,31 +72,23 @@ export default function SecretariatDashboard() {
   const [storeRequests, setStoreRequests] = useState<StoreRequestTicket[]>([])
   const [approvers, setApprovers] = useState<Profile[]>([])
   
-  // Selection & Sheet States for Daily Report Grid
   const [selectedCell, setSelectedCell] = useState<{ dept: Department; day: any } | null>(null)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [activeReport, setActiveReport] = useState<any | null>(null)
   const [activeNarrative, setActiveNarrative] = useState<any | null>(null)
   
-  // Comment Thread & Rejection State
-  const [comments, setComments] = useState<Comment[]>([])
-  const [newComment, setNewComment] = useState('')
-  const [isRejecting, setIsRejecting] = useState(false)
-  const [rejectionComment, setRejectionComment] = useState('')
   const [reviewerNote, setReviewerNote] = useState('')
   const [reportActionLoading, setReportActionLoading] = useState(false)
 
-  // Store Request Review State
   const [selectedReq, setSelectedReq] = useState<StoreRequestTicket | null>(null)
   const [actionComments, setActionComments] = useState('')
   const [delegateId, setDelegateId] = useState<string>('none')
   const [actionLoading, setActionLoading] = useState(false)
 
-  // KPI Active Day focus
+  const [activeTab, setActiveTab] = useState('overview')
   const [selectedKPIDay, setSelectedKPIDay] = useState<string>('day-1')
   
-  // Main view tab: 'overview' | 'store-requisitions' | 'rankings' | 'challenges'
-  const [activeTab, setActiveTab] = useState<'overview' | 'store-requisitions' | 'rankings' | 'challenges'>('overview')
+  const isCoordinatorAssistant = profile?.role === 'assistant'
 
   const loadData = async () => {
     const supabase = getClient()
@@ -95,20 +106,8 @@ export default function SecretariatDashboard() {
 
     if (prof) {
       setProfile(prof)
-    } else if (user) {
-      const meta = user.user_metadata as any
-      setProfile({
-        id: user.id,
-        email: user.email || '',
-        full_name: meta?.full_name || user.email?.split('@')[0] || 'User',
-        role: meta?.role || 'assistant',
-        department_id: meta?.department_id,
-        must_change_password: false,
-        is_active: true
-      })
     }
 
-    // Load static/dynamic lists
     const { data: depts } = await supabase.from('departments').select('*')
     const deptList = ((depts || mockDepartments) as Department[]).sort((a, b) => a.name.localeCompare(b.name))
     setDepartments(deptList)
@@ -116,18 +115,16 @@ export default function SecretariatDashboard() {
     const { data: days } = await supabase.from('event_days').select('*').order('day_number')
     const activeDays = days || mockEventDays
     setEventDays(activeDays)
-    if (activeDays.length > 0 && !selectedKPIDay) {
-      setSelectedKPIDay(activeDays[0].id)
+    if (activeDays.length > 0) {
+        setSelectedKPIDay(prev => (prev === 'day-1' ? activeDays[0].id : prev))
     }
 
-    // Fetch reports & narratives
     const { data: reps } = await supabase.from('daily_reports').select('*')
     setReports(reps || [])
 
     const { data: narrs } = await supabase.from('department_narratives').select('*')
     setNarratives(narrs || [])
 
-    // Fetch store requests
     const { data: reqsData } = await supabase
       .from('store_requests')
       .select('*')
@@ -144,30 +141,17 @@ export default function SecretariatDashboard() {
       setStoreRequests(enhanced)
     }
 
-    // Fetch approvers for delegation
     const { data: allUsers } = await supabase
       .from('profiles')
       .select('*')
       .in('role', ['super_admin', 'coordinator', 'national_coordinator', 'assistant'])
     setApprovers(allUsers || [])
-
-    // Load comments from localStorage
-    if (typeof window !== 'undefined') {
-      const storedComments = localStorage.getItem('dtce_comments')
-      if (storedComments) setComments(JSON.parse(storedComments))
-    }
   }
 
   useEffect(() => {
     loadData()
   }, [])
 
-  // Check if current user is a Coordinator Assistant (assistant role with no dept)
-  const isCoordinatorAssistant = useMemo(() => {
-    return profile?.role === 'assistant' && !profile?.department_id
-  }, [profile])
-
-  // Filter store requests for assistant (only ones assigned to them, or all if coordinator/admin)
   const visibleStoreRequests = useMemo(() => {
     if (isCoordinatorAssistant && profile?.id) {
       return storeRequests.filter(r => r.assigned_approver_id === profile.id)
@@ -175,32 +159,28 @@ export default function SecretariatDashboard() {
     return storeRequests
   }, [storeRequests, isCoordinatorAssistant, profile])
 
-  // Cell Click in Grid
   const handleCellClick = (dept: Department, day: any) => {
     const rep = reports.find(r => 
       r.department_id === dept.id && 
-      (r.event_day_id === day.id || r.event_day_id === `day-${day.day_number}`)
+      isSameEventDay(r.event_day_id, day.id, eventDays)
     )
     const narr = narratives.find(n => 
       n.department_id === dept.id && 
-      (n.event_day_id === day.id || n.event_day_id === `day-${day.day_number}`)
+      isSameEventDay(n.event_day_id, day.id, eventDays)
     )
     setSelectedCell({ dept, day })
     setActiveReport(rep || null)
     setActiveNarrative(narr || null)
-    // Read any previous reviewer feedback from metrics_data
     setReviewerNote(rep?.metrics_data?.reviewer_feedback?.note || '')
     setReportActionLoading(false)
     setIsSheetOpen(true)
   }
 
-  // Report status update — stores reviewer feedback inside metrics_data (JSONB)
   const handleStatusChange = async (newStatus: string, feedbackNote?: string) => {
     if (!activeReport || !profile) return
     setReportActionLoading(true)
     const supabase = getClient()
     try {
-      // Merge reviewer feedback into existing metrics_data
       const existingMetrics = activeReport.metrics_data || {}
       const updatedMetrics = {
         ...existingMetrics,
@@ -221,17 +201,8 @@ export default function SecretariatDashboard() {
         .eq('id', activeReport.id)
 
       if (error) throw error
-      showToast(
-        newStatus === 'draft'
-          ? 'Report returned to draft. The department can now revise and resubmit.'
-          : newStatus === 'reviewed'
-            ? 'Report marked as reviewed.'
-            : 'Report approved successfully!',
-        'success'
-      )
+      showToast(`Report status updated to ${newStatus.toUpperCase()}`, 'success')
       setIsSheetOpen(false)
-      setReviewerNote('')
-      setReportActionLoading(false)
       loadData()
     } catch (err: any) {
       setReportActionLoading(false)
@@ -288,27 +259,28 @@ export default function SecretariatDashboard() {
     }
   }
 
-  // KPI Calculations
   const kpis = useMemo(() => {
-    const selectedDayObj = eventDays.find(d => d.id === selectedKPIDay)
-    const dayReports = reports.filter(r => 
-      r.event_day_id === selectedKPIDay || 
-      (selectedDayObj && (r.event_day_id === `day-${selectedDayObj.day_number}` || r.event_day_id === selectedDayObj.id))
-    )
+    const dayReports = reports.filter(r => isSameEventDay(r.event_day_id, selectedKPIDay, eventDays))
     const submittedCount = dayReports.filter(r => ['submitted', 'reviewed', 'approved'].includes(r.status)).length
     const missingCount = Math.max(0, departments.length - submittedCount)
     const needingReview = dayReports.filter(r => r.status === 'submitted').length
     
-    // Store Requisition KPIs
     const pendingReqs = visibleStoreRequests.filter(r => r.status === 'pending_coordinator').length
     const approvedReqs = visibleStoreRequests.filter(r => r.status === 'approved' || r.status === 'in_progress' || r.status === 'partially_fulfilled').length
     const deliveredReqs = visibleStoreRequests.filter(r => r.status === 'delivered').length
 
-    // Total Offerings aggregate
-    let totalOfferings = 0
-    dayReports.forEach(r => {
-      if (r.metrics_data?.offering) totalOfferings += Number(r.metrics_data.offering) || 0
-      if (r.metrics_data?.total_offering) totalOfferings += Number(r.metrics_data.total_offering) || 0
+    let totalOfferingsFocusDay = 0
+    let totalOfferingsAllDays = 0
+
+    reports.forEach(r => {
+      const mData = r.metrics_data || {}
+      const val = Number(mData.offering ?? mData.total_offering ?? mData.offering_collected ?? mData.custom_schema?.offering ?? 0)
+      if (!isNaN(val) && val > 0) {
+        totalOfferingsAllDays += val
+        if (isSameEventDay(r.event_day_id, selectedKPIDay, eventDays)) {
+          totalOfferingsFocusDay += val
+        }
+      }
     })
 
     return {
@@ -318,7 +290,8 @@ export default function SecretariatDashboard() {
       pendingReqs,
       approvedReqs,
       deliveredReqs,
-      totalOfferings
+      totalOfferingsFocusDay,
+      totalOfferingsAllDays
     }
   }, [reports, departments, selectedKPIDay, eventDays, visibleStoreRequests])
 
@@ -339,26 +312,58 @@ export default function SecretariatDashboard() {
     }).sort((a, b) => b.complianceRate - a.complianceRate || b.totalSubmitted - a.totalSubmitted)
   }, [departments, reports, eventDays])
 
-  // Aggregated Key Challenges
   const aggregatedChallenges = useMemo(() => {
-    return narratives
-      .filter(n => n.challenges && n.challenges.trim().length > 0)
-      .map(n => {
-        const dept = departments.find(d => d.id === n.department_id)
-        const day = eventDays.find(e => e.id === n.event_day_id)
-        return {
-          id: n.id,
+    const list: Array<{
+      id: string
+      deptName: string
+      dayNumber: number | string
+      dayId: string
+      challenges: string
+      solutions?: string
+    }> = []
+
+    reports.forEach(r => {
+      const dn = r.metrics_data?.daily_narrative || {}
+      const challengeText = dn.challenges || r.metrics_data?.custom_schema?.challenges || ''
+      const solutionText = dn.recommendations || r.metrics_data?.custom_schema?.recommendations || ''
+
+      if (challengeText && String(challengeText).trim().length > 0) {
+        const dept = departments.find(d => d.id === r.department_id)
+        const day = eventDays.find(e => isSameEventDay(e.id, r.event_day_id, eventDays))
+        list.push({
+          id: `rep-${r.id}`,
           deptName: dept?.name || 'Department',
           dayNumber: day?.day_number || 1,
-          challenges: n.challenges,
-          solutions: n.solutions
-        }
-      })
-  }, [narratives, departments, eventDays])
+          dayId: r.event_day_id,
+          challenges: String(challengeText).trim(),
+          solutions: solutionText ? String(solutionText).trim() : undefined,
+        })
+      }
+    })
 
-  // Grid Cell Styling
+    narratives.forEach(n => {
+      if (n.challenges && n.challenges.trim().length > 0) {
+        const dept = departments.find(d => d.id === n.department_id)
+        const day = eventDays.find(e => isSameEventDay(e.id, n.event_day_id, eventDays))
+        const exists = list.some(item => item.deptName === (dept?.name || 'Department') && item.challenges === n.challenges.trim())
+        if (!exists) {
+          list.push({
+            id: `narr-${n.id}`,
+            deptName: dept?.name || 'Department',
+            dayNumber: day?.day_number || 1,
+            dayId: n.event_day_id,
+            challenges: n.challenges.trim(),
+            solutions: n.solutions ? n.solutions.trim() : undefined,
+          })
+        }
+      }
+    })
+
+    return list
+  }, [reports, narratives, departments, eventDays])
+
   const getCellStatusStyle = (deptId: string, dayId: string): React.CSSProperties => {
-    const report = reports.find(r => r.department_id === deptId && r.event_day_id === dayId)
+    const report = reports.find(r => r.department_id === deptId && isSameEventDay(r.event_day_id, dayId, eventDays))
     if (!report) return { background: 'rgba(239,68,68,0.12)', color: '#FCA5A5', border: '1px solid rgba(239,68,68,0.2)' }
     switch (report.status) {
       case 'draft':     return { background: 'rgba(100,116,139,0.1)', color: '#94A3B8', border: '1px solid rgba(100,116,139,0.2)' }
@@ -476,8 +481,16 @@ export default function SecretariatDashboard() {
 
           <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
             <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Recorded Offering</span>
-            <span className="text-3xl font-extrabold font-mono text-purple-600 dark:text-purple-400 mt-2 mb-0.5 tracking-tight block">₦{kpis.totalOfferings.toLocaleString()}</span>
-            <span className="text-[10px] text-muted-foreground font-medium">Focus day aggregate</span>
+            <span className="text-3xl font-extrabold font-mono text-purple-600 dark:text-purple-400 mt-2 mb-0.5 tracking-tight block">
+              ₦{(kpis.totalOfferingsFocusDay || kpis.totalOfferingsAllDays).toLocaleString()}
+            </span>
+            <span className="text-[10px] text-muted-foreground font-medium">
+              {kpis.totalOfferingsFocusDay > 0
+                ? 'Focus day aggregate'
+                : kpis.totalOfferingsAllDays > 0
+                  ? `Total all days (Focus day: ₦0)`
+                  : 'Focus day aggregate'}
+            </span>
           </div>
         </div>
 
