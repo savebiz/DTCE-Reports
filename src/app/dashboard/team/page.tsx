@@ -858,16 +858,21 @@ export default function SecretariatTeamManagement() {
                             value={u.role}
                             onChange={async (e) => {
                               const newRole = e.target.value
-                              const supabase = getClient()
-                              const { error } = await supabase
-                                .from('profiles')
-                                .update({ role: newRole })
-                                .eq('id', u.id)
-                              if (error) {
-                                showToast(`Failed to update role: ${error.message}`, 'error')
-                              } else {
-                                showToast(`Role updated to ${newRole} for ${u.full_name}`, 'success')
-                                loadData()
+                              try {
+                                const res = await fetch('/api/update-role', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ targetUserId: u.id, newRole })
+                                })
+                                const data = await res.json()
+                                if (data.error) {
+                                  showToast(`Failed to update role: ${data.error}`, 'error')
+                                } else {
+                                  showToast(`Role updated to ${newRole} for ${u.full_name}`, 'success')
+                                  loadData()
+                                }
+                              } catch (err: any) {
+                                showToast(`Failed to update role: ${err.message}`, 'error')
                               }
                             }}
                             className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full cursor-pointer outline-none"
