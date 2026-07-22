@@ -405,7 +405,7 @@ function StoreFulfillmentContent() {
                     <div>
                       {req.status === 'pending_coordinator' && (
                         <span className="text-xs text-amber-500 font-semibold italic flex items-center gap-1.5">
-                          <span>⏳</span> Awaiting Secretariat / Coordinator Approval
+                          <span>⏳</span> Awaiting National Coordinator Approval
                         </span>
                       )}
                       {req.status === 'approved' && (
