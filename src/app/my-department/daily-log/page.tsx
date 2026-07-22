@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { SchemaFormRenderer } from '@/components/schema-form-renderer'
+import { NumberField } from '@/components/ui/number-field'
+import { CurrencyField } from '@/components/ui/currency-field'
 
 // Departments without workforce attendance breakdown
 const DEPTS_WITHOUT_ATTENDANCE = ['dept-6', 'dept-9', 'dept-13', 'dept-19', 'dept-20', 'dept-25', 'dept-26', 'dept-29', 'dept-30', 'dept-39']
@@ -683,22 +685,20 @@ function DailyLogContent() {
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="m-att" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Morning Session</Label>
-                <Input
+                <NumberField
                   id="m-att"
-                  type="number"
                   value={attendanceMorning}
-                  onChange={(e) => setAttendanceMorning(Math.max(0, parseInt(e.target.value) || 0))}
+                  onChange={setAttendanceMorning}
                   disabled={isReadOnly || loading}
                   className="input-dark font-mono text-lg text-center text-foreground"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="e-att" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Evening Session</Label>
-                <Input
+                <NumberField
                   id="e-att"
-                  type="number"
                   value={attendanceEvening}
-                  onChange={(e) => setAttendanceEvening(Math.max(0, parseInt(e.target.value) || 0))}
+                  onChange={setAttendanceEvening}
                   disabled={isReadOnly || loading}
                   className="input-dark font-mono text-lg text-center text-foreground"
                 />
@@ -727,17 +727,15 @@ function DailyLogContent() {
                 {/* Teachers */}
                 <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
                   <span className="font-semibold text-foreground">Teachers / Helpers</span>
-                  <Input
-                    type="number"
+                  <NumberField
                     value={workforce.teachersMale}
-                    onChange={(e) => setWorkforce(w => ({ ...w, teachersMale: Math.max(0, parseInt(e.target.value) || 0) }))}
+                    onChange={(val) => setWorkforce(w => ({ ...w, teachersMale: val }))}
                     disabled={isReadOnly}
                     className="input-dark font-mono text-center text-foreground"
                   />
-                  <Input
-                    type="number"
+                  <NumberField
                     value={workforce.teachersFemale}
-                    onChange={(e) => setWorkforce(w => ({ ...w, teachersFemale: Math.max(0, parseInt(e.target.value) || 0) }))}
+                    onChange={(val) => setWorkforce(w => ({ ...w, teachersFemale: val }))}
                     disabled={isReadOnly}
                     className="input-dark font-mono text-center text-foreground"
                   />
@@ -746,17 +744,15 @@ function DailyLogContent() {
                 {/* Teenagers */}
                 <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
                   <span className="font-semibold text-foreground">Teenagers</span>
-                  <Input
-                    type="number"
+                  <NumberField
                     value={workforce.teenagersMale}
-                    onChange={(e) => setWorkforce(w => ({ ...w, teenagersMale: Math.max(0, parseInt(e.target.value) || 0) }))}
+                    onChange={(val) => setWorkforce(w => ({ ...w, teenagersMale: val }))}
                     disabled={isReadOnly}
                     className="input-dark font-mono text-center text-foreground"
                   />
-                  <Input
-                    type="number"
+                  <NumberField
                     value={workforce.teenagersFemale}
-                    onChange={(e) => setWorkforce(w => ({ ...w, teenagersFemale: Math.max(0, parseInt(e.target.value) || 0) }))}
+                    onChange={(val) => setWorkforce(w => ({ ...w, teenagersFemale: val }))}
                     disabled={isReadOnly}
                     className="input-dark font-mono text-center text-foreground"
                   />
@@ -765,17 +761,15 @@ function DailyLogContent() {
                 {/* Pre-teens */}
                 <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
                   <span className="font-semibold text-foreground">Pre-Teens</span>
-                  <Input
-                    type="number"
+                  <NumberField
                     value={workforce.preteensMale}
-                    onChange={(e) => setWorkforce(w => ({ ...w, preteensMale: Math.max(0, parseInt(e.target.value) || 0) }))}
+                    onChange={(val) => setWorkforce(w => ({ ...w, preteensMale: val }))}
                     disabled={isReadOnly}
                     className="input-dark font-mono text-center text-foreground"
                   />
-                  <Input
-                    type="number"
+                  <NumberField
                     value={workforce.preteensFemale}
-                    onChange={(e) => setWorkforce(w => ({ ...w, preteensFemale: Math.max(0, parseInt(e.target.value) || 0) }))}
+                    onChange={(val) => setWorkforce(w => ({ ...w, preteensFemale: val }))}
                     disabled={isReadOnly}
                     className="input-dark font-mono text-center text-foreground"
                   />
@@ -784,17 +778,15 @@ function DailyLogContent() {
                 {/* Children */}
                 <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
                   <span className="font-semibold text-foreground">Children</span>
-                  <Input
-                    type="number"
+                  <NumberField
                     value={workforce.childrenMale}
-                    onChange={(e) => setWorkforce(w => ({ ...w, childrenMale: Math.max(0, parseInt(e.target.value) || 0) }))}
+                    onChange={(val) => setWorkforce(w => ({ ...w, childrenMale: val }))}
                     disabled={isReadOnly}
                     className="input-dark font-mono text-center text-foreground"
                   />
-                  <Input
-                    type="number"
+                  <NumberField
                     value={workforce.childrenFemale}
-                    onChange={(e) => setWorkforce(w => ({ ...w, childrenFemale: Math.max(0, parseInt(e.target.value) || 0) }))}
+                    onChange={(val) => setWorkforce(w => ({ ...w, childrenFemale: val }))}
                     disabled={isReadOnly}
                     className="input-dark font-mono text-center text-foreground"
                   />
@@ -817,17 +809,13 @@ function DailyLogContent() {
               <CardContent>
                 <div className="space-y-2">
                   <Label htmlFor="offering-fin" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Total Offering Collected</Label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground font-sans text-sm font-semibold">₦</span>
-                    <Input
-                      id="offering-fin"
-                      type="number"
-                      value={offering}
-                      onChange={(e) => setOffering(Math.max(0, parseInt(e.target.value) || 0))}
-                      disabled={isReadOnly}
-                      className="input-dark pl-8 font-mono text-lg text-foreground"
-                    />
-                  </div>
+                  <CurrencyField
+                    id="offering-fin"
+                    value={offering}
+                    onChange={setOffering}
+                    disabled={isReadOnly}
+                    className="input-dark font-mono text-lg text-foreground"
+                  />
                 </div>
               </CardContent>
             </Card>

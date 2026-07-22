@@ -7,8 +7,10 @@ import { showToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { NumberField } from '@/components/ui/number-field'
+import { Label } from '@/components/ui/label'
 
 interface RequestItem {
   name: string
@@ -251,12 +253,12 @@ function StoreRequestContent() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="item-qty" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Quantity</Label>
-                    <Input
+                    <NumberField
                       id="item-qty"
-                      type="number"
                       value={itemQty}
-                      onChange={(e) => setItemQty(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="input-dark text-foreground"
+                      onChange={setItemQty}
+                      min={1}
+                      className="input-dark text-foreground font-mono"
                     />
                   </div>
                   <div className="space-y-2">

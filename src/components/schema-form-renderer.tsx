@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { NumberField } from '@/components/ui/number-field'
 
 export interface FieldSchema {
   name: string
@@ -70,34 +71,12 @@ export function SchemaFormRenderer({ fields, value, onChange, readOnly = false }
                 {numVal}
               </div>
             ) : (
-              <div className="flex items-center space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-10 w-10 shrink-0 font-bold"
-                  onClick={() => handleFieldChange(field.name, Math.max(0, numVal - 1))}
-                >
-                  -
-                </Button>
-                <Input
-                  id={fieldId}
-                  type="number"
-                  value={numVal}
-                  onChange={(e) => handleFieldChange(field.name, Math.max(0, parseInt(e.target.value) || 0))}
-                  required={field.required}
-                  className="h-10 text-center font-mono text-lg"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-10 w-10 shrink-0 font-bold"
-                  onClick={() => handleFieldChange(field.name, numVal + 1)}
-                >
-                  +
-                </Button>
-              </div>
+              <NumberField
+                id={fieldId}
+                value={numVal}
+                onChange={(val) => handleFieldChange(field.name, val)}
+                showStepperButtons={true}
+              />
             )}
           </div>
         )
