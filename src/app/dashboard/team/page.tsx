@@ -254,16 +254,32 @@ export default function SecretariatTeamManagement() {
         }])
       } else {
         // Live Mode API Call
+        const isAdminRole = singleRole === 'super_admin' || singleRole === 'coordinator' || singleRole === 'national_coordinator'
+        // Resolve department name from DB departments first, then mock departments as fallback
+        let resolvedDeptName = 'Department'
+        if (!isAdminRole && singleDeptId) {
+          const dbDept = dbDepartments.find(d => d.id === singleDeptId)
+          if (dbDept) {
+            resolvedDeptName = dbDept.name
+          } else {
+            const mockDept = mockDepartments.find(d => d.id === singleDeptId)
+            resolvedDeptName = mockDept?.name || 'Department'
+          }
+        } else if (isAdminRole) {
+          resolvedDeptName = singleRole === 'national_coordinator' ? "National Coordinator's Office" : 'Secretariat Office'
+        }
+
         const res = await fetch('/api/provision-departments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             departments: [{
-              id: singleDeptId,
-              name: mockDepartments.find(d => d.id === singleDeptId)?.name || 'Department',
+              id: isAdminRole ? null : singleDeptId,
+              name: resolvedDeptName,
               leaderName: singleFullName,
               username: singleUsernameInput,
-              email: singleEmail
+              email: singleEmail,
+              role: singleRole
             }]
           })
         })
@@ -837,17 +853,54 @@ export default function SecretariatTeamManagement() {
                       <td className="p-3 text-slate-500">{u.email}</td>
                       <td className="p-3 font-medium text-slate-400">{deptName}</td>
                       <td className="p-3">
-                        <span
-                          className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full"
-                          style={
-                            u.role === 'super_admin' ? { background: 'rgba(59,130,246,0.1)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.2)' } :
-                            u.role === 'coordinator' ? { background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' } :
-                            u.role === 'hod' ? { background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' } :
-                            { background: 'rgba(255,255,255,0.04)', color: '#94A3B8', border: '1px solid rgba(255,255,255,0.08)' }
-                          }
-                        >
-                          {u.role}
-                        </span>
+                        {profile?.role === 'super_admin' && u.id !== profile?.id ? (
+                          <select
+                            value={u.role}
+                            onChange={async (e) => {
+                              const newRole = e.target.value
+                              const supabase = getClient()
+                              const { error } = await supabase
+                                .from('profiles')
+                                .update({ role: newRole })
+                                .eq('id', u.id)
+                              if (error) {
+                                showToast(`Failed to update role: ${error.message}`, 'error')
+                              } else {
+                                showToast(`Role updated to ${newRole} for ${u.full_name}`, 'success')
+                                loadData()
+                              }
+                            }}
+                            className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full cursor-pointer outline-none"
+                            style={{
+                              ...(
+                                u.role === 'super_admin' ? { background: 'rgba(59,130,246,0.1)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.2)' } :
+                                u.role === 'national_coordinator' ? { background: 'rgba(139,92,246,0.1)', color: '#C4B5FD', border: '1px solid rgba(139,92,246,0.2)' } :
+                                u.role === 'coordinator' ? { background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' } :
+                                u.role === 'hod' ? { background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' } :
+                                { background: 'rgba(255,255,255,0.04)', color: '#94A3B8', border: '1px solid rgba(255,255,255,0.08)' }
+                              )
+                            }}
+                          >
+                            <option value="hod" style={{ background: '#111827' }}>HOD</option>
+                            <option value="assistant" style={{ background: '#111827' }}>ASSISTANT</option>
+                            <option value="coordinator" style={{ background: '#111827' }}>COORDINATOR</option>
+                            <option value="national_coordinator" style={{ background: '#111827' }}>NATIONAL_COORDINATOR</option>
+                            <option value="super_admin" style={{ background: '#111827' }}>SUPER_ADMIN</option>
+                          </select>
+                        ) : (
+                          <span
+                            className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full"
+                            style={
+                              u.role === 'super_admin' ? { background: 'rgba(59,130,246,0.1)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.2)' } :
+                              u.role === 'national_coordinator' ? { background: 'rgba(139,92,246,0.1)', color: '#C4B5FD', border: '1px solid rgba(139,92,246,0.2)' } :
+                              u.role === 'coordinator' ? { background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' } :
+                              u.role === 'hod' ? { background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' } :
+                              { background: 'rgba(255,255,255,0.04)', color: '#94A3B8', border: '1px solid rgba(255,255,255,0.08)' }
+                            }
+                          >
+                            {u.role}
+                          </span>
+                        )}
                       </td>
                       <td className="p-3">
                         {u.must_change_password ? (

@@ -132,8 +132,8 @@ export function DashboardHeader() {
 
   if (!user) return null
 
-  const name    = user.user_metadata?.full_name || user.email || ''
-  const role    = user.user_metadata?.role || 'assistant'
+  const name    = profile?.full_name || user.user_metadata?.full_name || user.email || ''
+  const role    = profile?.role || user.user_metadata?.role || 'assistant'
   const showNav = role === 'super_admin' || role === 'coordinator' || role === 'national_coordinator'
 
   const initials = name

@@ -117,8 +117,8 @@ export async function POST(request: NextRequest) {
       const emailAddress = item.email || `${item.username}@accounts.dtce-reports.vercel.app`
 
       // Resolve the department UUID by matching the name if it is a mock ID (e.g. "dept-25")
-      let resolvedDeptId = item.id
-      if (item.id && item.id.startsWith('dept-') && item.name) {
+      let resolvedDeptId = item.id || null
+      if (resolvedDeptId && resolvedDeptId.startsWith('dept-') && item.name) {
         const { data: deptData, error: deptError } = await supabaseAdmin
           .from('departments')
           .select('id')
@@ -135,7 +135,13 @@ export async function POST(request: NextRequest) {
           if (matched) {
             resolvedDeptId = matched.id
           } else {
-            throw new Error(`Could not resolve database UUID for department "${item.name}"`)
+            // For admin roles without a department, don't throw — just nullify
+            const isAdminRole = (item.role || 'hod') !== 'hod' && (item.role || 'hod') !== 'assistant'
+            if (isAdminRole) {
+              resolvedDeptId = null
+            } else {
+              throw new Error(`Could not resolve database UUID for department "${item.name}"`)
+            }
           }
         }
       }
