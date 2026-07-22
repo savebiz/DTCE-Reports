@@ -76,6 +76,11 @@ function ManualEntryContent() {
             router.push('/dashboard')
             return
           }
+          if (prof.role === 'national_coordinator' || prof.role === 'coordinator') {
+            showToast('Access restricted: Manual paper report entry is managed by Secretariat Desk.', 'error')
+            router.push('/dashboard')
+            return
+          }
           setProfile(prof)
         }
       } else {

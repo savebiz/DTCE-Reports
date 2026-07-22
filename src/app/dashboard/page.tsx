@@ -1052,16 +1052,18 @@ export default function SecretariatDashboard() {
               <div>
                 <p className="text-sm font-semibold text-foreground">No report filed</p>
                 <p className="text-xs text-muted-foreground mt-0.5">This department has not submitted a report for this day.</p>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    setIsSheetOpen(false)
-                    router.push(`/dashboard/manual-entry?deptId=${selectedCell?.dept.id}&dayId=${selectedCell?.day.id}`)
-                  }}
-                  className="mt-4 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer shadow-xs"
-                >
-                  📝 Digitise Manual Paper Report
-                </Button>
+                {profile?.role !== 'national_coordinator' && profile?.role !== 'coordinator' && (
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setIsSheetOpen(false)
+                      router.push(`/dashboard/manual-entry?deptId=${selectedCell?.dept.id}&dayId=${selectedCell?.day.id}`)
+                    }}
+                    className="mt-4 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer shadow-xs"
+                  >
+                    📝 Digitise Manual Paper Report
+                  </Button>
+                )}
               </div>
             </div>
           )}
