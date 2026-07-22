@@ -118,7 +118,7 @@ export default function MyDepartmentDashboard() {
     }
 
     if (activeProfile) {
-      if ((!activeProfile.department_id || activeProfile.department_id.startsWith('dept-')) && !isMock) {
+      if (!isMock) {
         const { data: assignment } = await supabase
           .from('hod_assignments')
           .select('department_id')
@@ -442,62 +442,37 @@ export default function MyDepartmentDashboard() {
             </div>
           </div>
 
-          {/* Day Checklist */}
-          <div className="glass-card overflow-hidden">
-            {eventDays.length === 0 ? (
-              <div className="text-center py-12 px-5 space-y-4">
-                <span className="text-3xl block">📅</span>
-                <p className="text-[13px] text-muted-foreground italic">No active event convention days found in the database.</p>
-                <button
-                  onClick={() => router.push('/my-department/daily-log')}
-                  className="h-9 rounded-xl px-5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer transition-all"
-                >
-                  Go to Daily Logs Workspace
-                </button>
-              </div>
-            ) : (
-              eventDays.map((day, i) => (
-                <div
-                  key={day.id}
-                  className="flex items-center justify-between px-5 py-4 transition-all duration-150 border-b border-border/40 last:border-b-0 hover:bg-slate-900/5 dark:hover:bg-white/5"
-                >
-                  <div className="flex items-center gap-4">
-                    <span className="font-tabular text-[11px] font-bold text-slate-500 w-10">
-                      Day {day.day_number}
-                    </span>
-                    <span className="text-[14px] font-medium">
-                      {new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'short' })}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {getStatusPill(day.id)}
-                    <button
-                      onClick={() => openEntryForm(day)}
-                      className="h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-150 cursor-pointer border border-border bg-card hover:bg-slate-950/10 dark:hover:bg-white/10"
-                    >
-                      {getButtonText(day.id)}
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Stores Department - Approved requisitions view */}
+          {/* Stores Department - Requisitions Console (Rendered at top for Stores HOD) */}
           {isStoresDept && (
-            <Card className="glass-card border-none mt-8">
-              <CardHeader>
-                 <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                  Requisitions for Fulfillment
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground mt-0.5">
-                  Track, process, and mark requisitions through In Progress → Partially Fulfilled → Delivered.
-                </CardDescription>
+            <Card className="glass-card border-none mb-6">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/40 pb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                    <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Stores Operational Console</span>
+                  </div>
+                  <CardTitle className="text-lg font-extrabold text-foreground tracking-tight">
+                    Convention Material Requisitions ({approvedRequests.length})
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                    Track, process, and fulfill material requests submitted by convention departments.
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                    {approvedRequests.filter(r => r.status === 'pending_coordinator').length} Pending Approval
+                  </span>
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    {approvedRequests.filter(r => r.status === 'approved' || r.status === 'in_progress').length} In Processing
+                  </span>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="pt-4 space-y-4">
                 {approvedRequests.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">No requisitions pending fulfillment.</p>
+                  <div className="text-center py-8 text-muted-foreground space-y-2">
+                    <span className="text-2xl block">📦</span>
+                    <p className="text-xs italic">No department store requisitions recorded yet.</p>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {approvedRequests.map((req) => (
@@ -599,6 +574,52 @@ export default function MyDepartmentDashboard() {
               </CardContent>
             </Card>
           )}
+
+          {/* Day Checklist */}
+          <div className="glass-card overflow-hidden">
+            <div className="px-5 py-3 border-b border-border/40 bg-card/40 flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Convention Daily Reporting Checklist</span>
+              <span className="text-xs text-muted-foreground font-mono">{eventDays.length} Days</span>
+            </div>
+            {eventDays.length === 0 ? (
+              <div className="text-center py-12 px-5 space-y-4">
+                <span className="text-3xl block">📅</span>
+                <p className="text-[13px] text-muted-foreground italic">No active event convention days found in the database.</p>
+                <button
+                  onClick={() => router.push('/my-department/daily-log')}
+                  className="h-9 rounded-xl px-5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer transition-all"
+                >
+                  Go to Daily Logs Workspace
+                </button>
+              </div>
+            ) : (
+              eventDays.map((day) => (
+                <div
+                  key={day.id}
+                  className="flex items-center justify-between px-5 py-4 transition-all duration-150 border-b border-border/40 last:border-b-0 hover:bg-slate-900/5 dark:hover:bg-white/5"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="font-tabular text-[11px] font-bold text-slate-500 w-10">
+                      Day {day.day_number}
+                    </span>
+                    <span className="text-[14px] font-medium">
+                      {new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {getStatusPill(day.id)}
+                    <button
+                      onClick={() => openEntryForm(day)}
+                      className="h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-150 cursor-pointer border border-border bg-card hover:bg-slate-950/10 dark:hover:bg-white/10"
+                    >
+                      {getButtonText(day.id)}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </main>
     </div>
