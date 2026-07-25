@@ -227,7 +227,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 text-[10px] font-mono text-slate-700 uppercase tracking-widest">
-          RCCG Teens &amp; Children Directorate
+          RCCG Directorate of Teens &amp; Children Education
         </div>
       </aside>
 
