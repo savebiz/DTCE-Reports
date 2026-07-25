@@ -284,21 +284,14 @@ function StoreFulfillmentContent() {
             </p>
           </div>
 
-          <Button
-            onClick={() => router.push('/my-department/inventory')}
-            variant="outline"
-            className="text-xs font-semibold h-9 border-amber-500/30 text-amber-500 hover:bg-amber-500/10 cursor-pointer w-fit"
-          >
-            📦 Inventory Catalog & Stock Ledger
-          </Button>
-        </div>
-
-          {/* 3. Button Hierarchy: Informational Status Pill vs Secondary Refresh Button */}
-          <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold select-none">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Auto-Sync (20s)
-            </span>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Button
+              onClick={() => router.push('/my-department/inventory')}
+              variant="outline"
+              className="text-xs font-semibold h-9 border-amber-500/30 text-amber-500 hover:bg-amber-500/10 cursor-pointer w-fit"
+            >
+              📦 Inventory Catalog & Stock Ledger
+            </Button>
             <Button
               onClick={() => loadData(true)}
               variant="outline"
