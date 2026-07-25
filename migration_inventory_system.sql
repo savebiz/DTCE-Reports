@@ -50,8 +50,9 @@ CREATE POLICY "Allow stores and admin manage inventory_items" ON public.inventor
       AND (
         p.role IN ('super_admin', 'coordinator', 'national_coordinator')
         OR EXISTS (
-          SELECT 1 FROM public.departments d
-          WHERE d.id = p.department_id
+          SELECT 1 FROM public.hod_assignments ha
+          JOIN public.departments d ON d.id = ha.department_id
+          WHERE ha.profile_id = p.id
           AND LOWER(d.name) LIKE '%store%'
         )
       )
@@ -72,8 +73,9 @@ CREATE POLICY "Allow stores and admin insert inventory_transactions" ON public.i
       AND (
         p.role IN ('super_admin', 'coordinator', 'national_coordinator')
         OR EXISTS (
-          SELECT 1 FROM public.departments d
-          WHERE d.id = p.department_id
+          SELECT 1 FROM public.hod_assignments ha
+          JOIN public.departments d ON d.id = ha.department_id
+          WHERE ha.profile_id = p.id
           AND LOWER(d.name) LIKE '%store%'
         )
       )
@@ -96,7 +98,6 @@ BEGIN
     RAISE EXCEPTION 'Restock quantity must be greater than zero.';
   END IF;
 
-  -- Atomic update with row lock
   UPDATE public.inventory_items
   SET current_stock = current_stock + p_restock_quantity,
       updated_at = now()
@@ -107,7 +108,6 @@ BEGIN
     RAISE EXCEPTION 'Inventory item not found.';
   END IF;
 
-  -- Append audit transaction ledger record
   INSERT INTO public.inventory_transactions (
     inventory_item_id,
     transaction_type,
@@ -150,7 +150,6 @@ BEGIN
     RAISE EXCEPTION 'Deduction quantity must be greater than zero.';
   END IF;
 
-  -- Lock row for update to prevent concurrent race condition
   SELECT current_stock INTO v_current_stock
   FROM public.inventory_items
   WHERE id = p_item_id
