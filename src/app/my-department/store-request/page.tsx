@@ -316,7 +316,13 @@ function StoreRequestContent() {
                     }}
                   >
                     <SelectTrigger className="w-full text-xs input-dark">
-                      <SelectValue placeholder="Choose from Catalog or Custom" />
+                      <SelectValue placeholder="Choose from Catalog or Custom">
+                        {selectedCatalogId === 'free_text'
+                          ? '+ Uncatalogued Item (Free-text)'
+                          : catalogItems.find(c => c.id === selectedCatalogId)
+                            ? `${catalogItems.find(c => c.id === selectedCatalogId)?.name} (${catalogItems.find(c => c.id === selectedCatalogId)?.current_stock} ${catalogItems.find(c => c.id === selectedCatalogId)?.unit || 'pcs'} in stock)`
+                            : null}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
                       <SelectItem value="free_text" className="text-amber-400 font-semibold cursor-pointer">
@@ -324,7 +330,7 @@ function StoreRequestContent() {
                       </SelectItem>
                       {catalogItems.map((cat: any) => (
                         <SelectItem key={cat.id} value={cat.id} className="cursor-pointer">
-                          📦 {cat.name} ({cat.current_stock} {cat.unit || 'pcs'} in stock)
+                          {cat.name} ({cat.current_stock} {cat.unit || 'pcs'} in stock)
                         </SelectItem>
                       ))}
                     </SelectContent>

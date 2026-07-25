@@ -636,18 +636,22 @@ export default function StoresInventoryPage() {
                 <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Select Target Item</Label>
                 <Select
                   value={selectedRestockItem?.id || ''}
-                  onValueChange={(val) => {
-                    const match = items.find(i => i.id === val)
-                    if (match) setSelectedRestockItem(match)
+                  onValueChange={(val: any) => {
+                    if (val) {
+                      const match = items.find(i => i.id === val)
+                      if (match) setSelectedRestockItem(match)
+                    }
                   }}
                 >
                   <SelectTrigger className="w-full text-xs input-dark">
-                    <SelectValue placeholder="Select item to restock..." />
+                    <SelectValue placeholder="Select item to restock...">
+                      {selectedRestockItem ? `${selectedRestockItem.name} (${selectedRestockItem.current_stock} ${selectedRestockItem.unit})` : null}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
                     {items.map(i => (
                       <SelectItem key={i.id} value={i.id} className="cursor-pointer">
-                        📦 {i.name} (Current: {i.current_stock} {i.unit})
+                        {i.name} ({i.current_stock} {i.unit})
                       </SelectItem>
                     ))}
                   </SelectContent>
