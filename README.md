@@ -34,3 +34,12 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## PWA Distribution & Architecture Policy
+
+> **ARCHITECTURAL DECISION**: This project is **PWA-only** by deliberate decision — no native APK or IPA static build/package should be introduced or served via raw file download links.
+>
+> Side-loaded APK files compiled with older Android target SDKs trigger Play Protect warnings (*"built for an older version of Android and doesn't include the latest privacy protections"*).
+>
+> Instead, installation uses browser-native WebAPK (`beforeinstallprompt` + `.prompt()`), which engages Google Chrome's WebAPK minting service. Chrome dynamically packages and installs the WebAPK using Google's current target SDK (Android 14+ / API level 34+), guaranteeing zero security or target SDK warnings.
+

@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { PwaInstallButton } from '@/components/pwa-install-button'
 
 export default function RootLandingPage() {
   const days = [
@@ -88,11 +89,14 @@ export default function RootLandingPage() {
               <span>⛪</span>
               <span>DTCE Reporting</span>
             </div>
-            <Link href="/login">
-              <Button variant="outline" className="border-ink-navy text-ink-navy hover:bg-ink-navy/5 font-semibold text-xs h-9">
-                Sign In ➔
-              </Button>
-            </Link>
+            <div className="flex items-center gap-3">
+              <PwaInstallButton variant="compact" />
+              <Link href="/login">
+                <Button variant="outline" className="border-ink-navy text-ink-navy hover:bg-ink-navy/5 font-semibold text-xs h-9">
+                  Sign In ➔
+                </Button>
+              </Link>
+            </div>
           </div>
 
           <div className="max-w-2xl my-auto py-12 space-y-6">
@@ -103,16 +107,17 @@ export default function RootLandingPage() {
               DTCE Reporting replaces the week of retyping forty department write-ups into a single document. Submit daily, review as you go, compile in minutes.
             </p>
 
-            <div className="pt-4 space-y-3">
+            <div className="pt-4 flex flex-wrap items-center gap-3">
               <Link href="/login">
                 <Button className="bg-ink-navy text-white hover:bg-ink-navy/95 font-semibold h-11 px-8 shadow-sm">
                   Sign In to Dashboard
                 </Button>
               </Link>
-              <p className="text-xs text-slate-400 font-sans">
-                ⚠️ Issued a login by your Secretariat? Use it here. Self-registration is disabled.
-              </p>
+              <PwaInstallButton variant="hero" />
             </div>
+            <p className="text-xs text-slate-400 font-sans mt-2">
+              ⚠️ Issued a login by your Secretariat? Use it here. Self-registration is disabled.
+            </p>
           </div>
 
           <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest pt-8 border-t border-hairline">
