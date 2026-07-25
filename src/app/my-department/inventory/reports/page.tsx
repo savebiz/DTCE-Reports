@@ -147,75 +147,35 @@ export default function InventoryReportsPage() {
     setSearchQuery('')
   }
 
-  // CSV Export Handler
-  const handleExportCSV = () => {
-    if (reportData.length === 0) {
-      showToast('No data to export', 'error')
-      return
+  // Multi-Format Server Export Handler (CSV, Excel .xlsx, Branded PDF)
+  const handleExport = (fmt: 'csv' | 'xlsx' | 'pdf') => {
+    let finalStart = startDate
+    let finalEnd = endDate
+
+    const now = new Date()
+    if (datePreset === 'today') {
+      finalStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
+      finalEnd = now.toISOString()
+    } else if (datePreset === 'week') {
+      finalStart = new Date(now.setDate(now.getDate() - 7)).toISOString()
+      finalEnd = new Date().toISOString()
+    } else if (datePreset === 'convention') {
+      finalStart = new Date(now.getFullYear(), 6, 20).toISOString()
+      finalEnd = new Date(now.getFullYear(), 6, 30).toISOString()
     }
 
-    let headers: string[] = []
-    let rows: string[][] = []
+    const params = new URLSearchParams({
+      reportType,
+      format: fmt,
+      ...(finalStart && { startDate: finalStart }),
+      ...(finalEnd && { endDate: finalEnd }),
+      ...(selectedItemIds.length > 0 && { itemIds: selectedItemIds.join(',') }),
+      ...(selectedDeptIds.length > 0 && { deptIds: selectedDeptIds.join(',') })
+    })
 
-    if (reportType === 'stock_summary') {
-      headers = ['ID', 'Item Name', 'Category', 'Unit', 'Current Stock', 'Low Stock Threshold', 'Is Low Stock', 'Total Restocked', 'Total Fulfilled']
-      rows = reportData.map(d => [
-        d.id,
-        `"${d.name}"`,
-        d.category,
-        d.unit,
-        String(d.current_stock),
-        String(d.low_stock_threshold),
-        d.is_low_stock ? 'YES' : 'NO',
-        String(d.total_restocked || 0),
-        String(d.total_fulfilled || 0)
-      ])
-    } else if (reportType === 'department_consumption') {
-      headers = ['Department ID', 'Department Name', 'Item ID', 'Item Name', 'Unit', 'Total Fulfilled Quantity', 'Fulfillment Order Count']
-      rows = reportData.map(d => [
-        d.department_id,
-        `"${d.department_name}"`,
-        d.item_id,
-        `"${d.item_name}"`,
-        d.unit,
-        String(d.total_fulfilled_qty),
-        String(d.fulfillment_count)
-      ])
-    } else if (reportType === 'fulfillment_history') {
-      headers = ['Transaction ID', 'Timestamp', 'Department', 'Item Name', 'Type', 'Quantity Change', 'Resulting Stock', 'Audit Note']
-      rows = reportData.map(d => [
-        d.id,
-        new Date(d.timestamp).toLocaleString(),
-        `"${d.department_name}"`,
-        `"${d.item_name}"`,
-        d.transaction_type,
-        String(d.quantity_change),
-        String(d.resulting_stock_level),
-        `"${d.note || ''}"`
-      ])
-    } else if (reportType === 'low_stock') {
-      headers = ['Item ID', 'Item Name', 'Category', 'Unit', 'Current Stock', 'Low Stock Threshold', 'Deficit Shortfall']
-      rows = reportData.map(d => [
-        d.id,
-        `"${d.name}"`,
-        d.category,
-        d.unit,
-        String(d.current_stock),
-        String(d.low_stock_threshold),
-        String(d.shortfall || Math.max(0, d.low_stock_threshold - d.current_stock))
-      ])
-    }
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement('a')
-    link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `dtce_inventory_report_${reportType}_${new Date().toISOString().slice(0, 10)}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    showToast('Inventory report exported as CSV!', 'success')
+    const exportUrl = `/api/inventory/export?${params.toString()}`
+    window.open(exportUrl, '_blank')
+    showToast(`Generating ${fmt.toUpperCase()} export with active filters...`, 'info')
   }
 
   // Filtered Display Data
@@ -268,7 +228,7 @@ export default function InventoryReportsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               onClick={() => loadReportData(true)}
               variant="outline"
@@ -278,13 +238,32 @@ export default function InventoryReportsPage() {
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Refresh Data
             </Button>
 
-            <Button
-              onClick={handleExportCSV}
-              size="sm"
-              className="text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer shadow-xs"
-            >
-              <Download className="w-3.5 h-3.5 mr-1.5" /> Export CSV
-            </Button>
+            <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-lg border border-border/70 shadow-xs">
+              <Button
+                onClick={() => handleExport('csv')}
+                size="sm"
+                variant="ghost"
+                className="text-xs font-bold h-7 px-2.5 hover:bg-emerald-500/20 hover:text-emerald-400 cursor-pointer"
+              >
+                📄 CSV
+              </Button>
+              <Button
+                onClick={() => handleExport('xlsx')}
+                size="sm"
+                variant="ghost"
+                className="text-xs font-bold h-7 px-2.5 hover:bg-blue-500/20 hover:text-blue-400 cursor-pointer"
+              >
+                📊 Excel (.xlsx)
+              </Button>
+              <Button
+                onClick={() => handleExport('pdf')}
+                size="sm"
+                variant="ghost"
+                className="text-xs font-bold h-7 px-2.5 hover:bg-amber-500/20 hover:text-amber-400 cursor-pointer"
+              >
+                🖨️ Branded PDF
+              </Button>
+            </div>
           </div>
         </div>
 
