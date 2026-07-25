@@ -560,7 +560,9 @@ export default function StoresInventoryPage() {
                   <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Category</Label>
                   <Select
                     value={newItemCategory}
-                    onValueChange={(val: 'durable' | 'consumable') => setNewItemCategory(val || 'consumable')}
+                    onValueChange={(val: any) => {
+                      if (val) setNewItemCategory(val)
+                    }}
                   >
                     <SelectTrigger className="w-full text-xs input-dark">
                       <SelectValue />

@@ -304,7 +304,7 @@ function StoreRequestContent() {
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select Item Source</Label>
                   <Select
                     value={selectedCatalogId}
-                    onValueChange={(val: string) => {
+                    onValueChange={(val: any) => {
                       const nextVal = val || 'free_text'
                       setSelectedCatalogId(nextVal)
                       if (nextVal !== 'free_text') {
