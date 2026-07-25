@@ -409,7 +409,7 @@ export default function LoginPage() {
               className="text-center text-[11px]"
               style={{ color: 'var(--muted-foreground)' }}
             >
-              RCCG Teens &amp; Children Directorate · Convention Edition
+              RCCG Directorate of Teens &amp; Children Education · Convention Edition
             </p>
           </div>
         </div>
