@@ -288,7 +288,15 @@ export default function StoresInventoryPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={() => router.push('/my-department/inventory/reports')}
+              variant="outline"
+              size="sm"
+              className="text-xs font-semibold h-9 border-amber-500/30 text-amber-500 hover:bg-amber-500/10 cursor-pointer shadow-xs"
+            >
+              📊 Inventory Reports
+            </Button>
             <Button
               onClick={() => setIsAddItemOpen(true)}
               variant="outline"
