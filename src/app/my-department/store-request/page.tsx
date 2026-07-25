@@ -304,10 +304,11 @@ function StoreRequestContent() {
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select Item Source</Label>
                   <Select
                     value={selectedCatalogId}
-                    onValueChange={(val) => {
-                      setSelectedCatalogId(val)
-                      if (val !== 'free_text') {
-                        const match = catalogItems.find(c => c.id === val)
+                    onValueChange={(val: string) => {
+                      const nextVal = val || 'free_text'
+                      setSelectedCatalogId(nextVal)
+                      if (nextVal !== 'free_text') {
+                        const match = catalogItems.find(c => c.id === nextVal)
                         if (match) setItemName(match.name)
                       } else {
                         setItemName('')
