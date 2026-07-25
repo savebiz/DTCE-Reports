@@ -158,10 +158,10 @@ export async function GET(request: NextRequest) {
           }
         })
 
-        if (startDate) history = history.filter(h => new Date(h.timestamp) >= new Date(startDate))
-        if (endDate) history = history.filter(h => new Date(h.timestamp) <= new Date(endDate))
-        if (itemIds.length > 0) history = history.filter(h => itemIds.includes(h.item_id))
-        if (deptIds.length > 0) history = history.filter(h => h.department_id && deptIds.includes(h.department_id))
+        if (startDate) history = history.filter((h: any) => new Date(h.timestamp) >= new Date(startDate))
+        if (endDate) history = history.filter((h: any) => new Date(h.timestamp) <= new Date(endDate))
+        if (itemIds.length > 0) history = history.filter((h: any) => itemIds.includes(h.item_id))
+        if (deptIds.length > 0) history = history.filter((h: any) => h.department_id && deptIds.includes(h.department_id))
 
         return NextResponse.json({ reportType, data: history })
       }
@@ -176,7 +176,7 @@ export async function GET(request: NextRequest) {
         // Fallback server query
         const { data: rawItems } = await supabaseAdmin.from('inventory_items').select('*').order('name', { ascending: true })
         let filtered = rawItems || []
-        if (itemIds.length > 0) filtered = filtered.filter(i => itemIds.includes(i.id))
+        if (itemIds.length > 0) filtered = filtered.filter((i: any) => itemIds.includes(i.id))
         return NextResponse.json({ reportType, data: filtered })
       }
       let result = data || []
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabaseAdmin.rpc('get_inventory_stock_summary', { p_only_low_stock: true })
       if (error) {
         const { data: rawItems } = await supabaseAdmin.from('inventory_items').select('*')
-        const filtered = (rawItems || []).filter(i => i.current_stock <= i.low_stock_threshold)
+        const filtered = (rawItems || []).filter((i: any) => i.current_stock <= i.low_stock_threshold)
         return NextResponse.json({ reportType, data: filtered })
       }
       let result = data || []
@@ -256,8 +256,8 @@ export async function GET(request: NextRequest) {
         department_name: t.requisition?.department?.name || (t.transaction_type === 'restock' ? 'Central Stores' : 'General Department')
       }))
 
-      if (itemIds.length > 0) history = history.filter(h => itemIds.includes(h.item_id))
-      if (deptIds.length > 0) history = history.filter(h => h.department_id && deptIds.includes(h.department_id))
+      if (itemIds.length > 0) history = history.filter((h: any) => itemIds.includes(h.item_id))
+      if (deptIds.length > 0) history = history.filter((h: any) => h.department_id && deptIds.includes(h.department_id))
 
       return NextResponse.json({ reportType, data: history })
     }
