@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { SchemaFormRenderer } from '@/components/schema-form-renderer'
 import { CheckCircle2, RotateCcw, Check, AlertCircle } from 'lucide-react'
+import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 
 interface Comment {
   id: string
