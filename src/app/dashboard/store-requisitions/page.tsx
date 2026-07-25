@@ -20,6 +20,13 @@ interface RequestItem {
   category?: string
 }
 
+interface EditableItem {
+  name: string
+  requested_quantity: number
+  approved_quantity: number
+  category?: string
+}
+
 type ReqStatus = 'pending_coordinator' | 'approved' | 'declined' | 'in_progress' | 'partially_fulfilled' | 'ready_for_collection' | 'delivered'
 
 interface StoreRequestTicket {
