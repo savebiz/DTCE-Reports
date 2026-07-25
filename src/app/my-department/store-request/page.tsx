@@ -39,6 +39,7 @@ interface StoreRequestTicket {
 function StoreRequestContent() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [deptName, setDeptName] = useState<string>('')
   const [activeEvent, setActiveEvent] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [requests, setRequests] = useState<StoreRequestTicket[]>([])
@@ -85,6 +86,16 @@ function StoreRequestContent() {
       }
     }
     setProfile(activeProfile)
+
+    // Fetch department name to check for Stores department privilege
+    if (activeProfile?.department_id && !isMock) {
+      const { data: d } = await supabase
+        .from('departments')
+        .select('name')
+        .eq('id', activeProfile.department_id)
+        .maybeSingle()
+      if (d?.name) setDeptName(d.name)
+    }
 
     // Fetch inventory catalog items for dropdown picker
     const { data: invData } = await supabase
@@ -317,22 +328,33 @@ function StoreRequestContent() {
                   >
                     <SelectTrigger className="w-full text-xs input-dark">
                       <SelectValue placeholder="Choose from Catalog or Custom">
-                        {selectedCatalogId === 'free_text'
-                          ? '+ Uncatalogued Item (Free-text)'
-                          : catalogItems.find(c => c.id === selectedCatalogId)
-                            ? `${catalogItems.find(c => c.id === selectedCatalogId)?.name} (${catalogItems.find(c => c.id === selectedCatalogId)?.current_stock} ${catalogItems.find(c => c.id === selectedCatalogId)?.unit || 'pcs'} in stock)`
-                            : null}
+                        {(() => {
+                          if (selectedCatalogId === 'free_text') return '+ Uncatalogued Item (Free-text)'
+                          const match = catalogItems.find(c => c.id === selectedCatalogId)
+                          if (!match) return null
+                          const canSeeStockQty = ['super_admin', 'coordinator', 'national_coordinator'].includes(profile?.role || '') || deptName.toLowerCase().includes('store')
+                          return canSeeStockQty
+                            ? `${match.name} (${match.current_stock} ${match.unit || 'pcs'} in stock)`
+                            : match.unit ? `${match.name} (${match.unit})` : match.name
+                        })()}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
                       <SelectItem value="free_text" className="text-amber-400 font-semibold cursor-pointer">
                         + Uncatalogued Item (Free-text)
                       </SelectItem>
-                      {catalogItems.map((cat: any) => (
-                        <SelectItem key={cat.id} value={cat.id} className="cursor-pointer">
-                          {cat.name} ({cat.current_stock} {cat.unit || 'pcs'} in stock)
-                        </SelectItem>
-                      ))}
+                      {catalogItems.map((cat: any) => {
+                        const canSeeStockQty = ['super_admin', 'coordinator', 'national_coordinator'].includes(profile?.role || '') || deptName.toLowerCase().includes('store')
+                        const label = canSeeStockQty
+                          ? `${cat.name} (${cat.current_stock} ${cat.unit || 'pcs'} in stock)`
+                          : cat.unit ? `${cat.name} (${cat.unit})` : cat.name
+
+                        return (
+                          <SelectItem key={cat.id} value={cat.id} className="cursor-pointer">
+                            {label}
+                          </SelectItem>
+                        )
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
