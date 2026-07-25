@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, mockDepartments, mockEventDays, Profile, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
