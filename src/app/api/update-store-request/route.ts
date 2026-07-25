@@ -176,6 +176,67 @@ export async function POST(request: NextRequest) {
           })
         }
       }
+
+      // --- INVENTORY STOCK DEDUCTION LEDGER ---
+      if (['in_progress', 'partially_fulfilled', 'ready_for_collection', 'delivered'].includes(status)) {
+        if (Array.isArray(finalItems)) {
+          for (const item of finalItems) {
+            if (item.inventory_item_id) {
+              const deductQty = Number(item.approved_quantity ?? item.quantity) || 0
+              if (deductQty > 0) {
+                // Ensure idempotency: check if already deducted for this item & requisition
+                const { data: existingTrans } = await supabaseAdmin
+                  .from('inventory_transactions')
+                  .select('id')
+                  .eq('inventory_item_id', item.inventory_item_id)
+                  .eq('related_requisition_id', requestId)
+                  .eq('transaction_type', 'fulfillment_deduction')
+                  .maybeSingle()
+
+                if (!existingTrans) {
+                  // Atomic stored function deduction
+                  const { data: rpcRes, error: rpcErr } = await supabaseAdmin.rpc('process_inventory_fulfillment', {
+                    p_item_id: item.inventory_item_id,
+                    p_deduct_quantity: deductQty,
+                    p_requisition_id: requestId,
+                    p_performed_by: user.id,
+                    p_note: `Fulfillment for ${deptName} (Status: ${status})`
+                  })
+
+                  if (rpcErr || !rpcRes) {
+                    // Fallback: manual atomic lookup, decrement stock & append transaction
+                    const { data: invItem } = await supabaseAdmin
+                      .from('inventory_items')
+                      .select('current_stock')
+                      .eq('id', item.inventory_item_id)
+                      .single()
+
+                    if (invItem) {
+                      const newStock = Math.max(0, invItem.current_stock - deductQty)
+                      await supabaseAdmin
+                        .from('inventory_items')
+                        .update({ current_stock: newStock, updated_at: new Date().toISOString() })
+                        .eq('id', item.inventory_item_id)
+
+                      await supabaseAdmin
+                        .from('inventory_transactions')
+                        .insert({
+                          inventory_item_id: item.inventory_item_id,
+                          transaction_type: 'fulfillment_deduction',
+                          quantity_change: -deductQty,
+                          related_requisition_id: requestId,
+                          performed_by: user.id,
+                          note: `Fulfillment for ${deptName} (Status: ${status})`,
+                          resulting_stock_level: newStock
+                        })
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     return NextResponse.json({ success: true, data })

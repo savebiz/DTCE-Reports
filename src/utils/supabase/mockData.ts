@@ -87,6 +87,42 @@ export interface AuditLog {
   report_id: string
 }
 
+export interface InventoryItem {
+  id: string
+  name: string
+  category: 'durable' | 'consumable'
+  unit: string
+  current_stock: number
+  low_stock_threshold: number
+  created_at: string
+  updated_at: string
+}
+
+export interface InventoryTransaction {
+  id: string
+  inventory_item_id: string
+  transaction_type: 'restock' | 'fulfillment_deduction' | 'adjustment' | 'return'
+  quantity_change: number
+  related_requisition_id?: string | null
+  performed_by?: string | null
+  note?: string | null
+  resulting_stock_level: number
+  created_at: string
+}
+
+export const mockInventoryItems: InventoryItem[] = [
+  { id: 'inv-1', name: 'A4 Paper (Chaka)', category: 'consumable', unit: 'reams', current_stock: 45, low_stock_threshold: 10, created_at: '2026-07-20T10:00:00Z', updated_at: '2026-07-20T10:00:00Z' },
+  { id: 'inv-2', name: 'Standard Mattress (Single)', category: 'durable', unit: 'pcs', current_stock: 120, low_stock_threshold: 15, created_at: '2026-07-20T10:00:00Z', updated_at: '2026-07-20T10:00:00Z' },
+  { id: 'inv-3', name: 'Executive Whiteboard Markers (Pack of 12)', category: 'consumable', unit: 'packs', current_stock: 4, low_stock_threshold: 8, created_at: '2026-07-20T10:00:00Z', updated_at: '2026-07-20T10:00:00Z' },
+  { id: 'inv-4', name: 'Rechargeable Megaphone 50W', category: 'durable', unit: 'pcs', current_stock: 18, low_stock_threshold: 5, created_at: '2026-07-20T10:00:00Z', updated_at: '2026-07-20T10:00:00Z' },
+  { id: 'inv-5', name: 'Hand Sanitizer 5L Gallon', category: 'consumable', unit: 'gallons', current_stock: 30, low_stock_threshold: 5, created_at: '2026-07-20T10:00:00Z', updated_at: '2026-07-20T10:00:00Z' }
+]
+
+export const mockInventoryTransactions: InventoryTransaction[] = [
+  { id: 'trans-1', inventory_item_id: 'inv-1', transaction_type: 'restock', quantity_change: 50, performed_by: 'user-admin', note: 'Initial Convention Stock Supply', resulting_stock_level: 50, created_at: '2026-07-20T10:00:00Z' },
+  { id: 'trans-2', inventory_item_id: 'inv-1', transaction_type: 'fulfillment_deduction', quantity_change: -5, related_requisition_id: 'req-mock-1', performed_by: 'user-admin', note: 'Fulfilled Requisition for Secretariat', resulting_stock_level: 45, created_at: '2026-07-22T14:30:00Z' }
+]
+
 // 40 departments
 export const mockDepartments: Department[] = [
   { id: 'dept-1', name: 'Accommodation' },

@@ -14,11 +14,13 @@ import { Label } from '@/components/ui/label'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 
 interface RequestItem {
+  inventory_item_id?: string | null
   name: string
   quantity: number
   requested_quantity?: number
   approved_quantity?: number
   category?: string
+  unit?: string
 }
 
 interface StoreRequestTicket {
@@ -41,7 +43,8 @@ function StoreRequestContent() {
   const [loading, setLoading] = useState(false)
   const [requests, setRequests] = useState<StoreRequestTicket[]>([])
 
-  // Durable/consumable classification is determined by catalog inventory items; manual selection removed from request form.
+  const [catalogItems, setCatalogItems] = useState<any[]>([])
+  const [selectedCatalogId, setSelectedCatalogId] = useState<string>('free_text')
   const [items, setItems] = useState<RequestItem[]>([])
   const [itemName, setItemName] = useState('')
   const [itemQty, setItemQty] = useState(1)
@@ -82,6 +85,19 @@ function StoreRequestContent() {
       }
     }
     setProfile(activeProfile)
+
+    // Fetch inventory catalog items for dropdown picker
+    const { data: invData } = await supabase
+      .from('inventory_items')
+      .select('*')
+      .order('name', { ascending: true })
+
+    if (invData && invData.length > 0) {
+      setCatalogItems(invData)
+    } else if (isMock) {
+      const { mockInventoryItems } = require('@/utils/supabase/mockData')
+      setCatalogItems(mockInventoryItems)
+    }
 
     // Fetch active event
     const { data: events } = await supabase.from('events').select('*')
@@ -156,17 +172,36 @@ function StoreRequestContent() {
   }, [loadData])
 
   const handleAddItem = () => {
-    if (!itemName.trim()) {
-      showToast('Item name cannot be empty', 'error')
-      return
+    let newItem: RequestItem
+
+    if (selectedCatalogId && selectedCatalogId !== 'free_text') {
+      const catMatch = catalogItems.find(c => c.id === selectedCatalogId)
+      if (!catMatch) return
+      newItem = {
+        inventory_item_id: catMatch.id,
+        name: catMatch.name,
+        category: catMatch.category,
+        unit: catMatch.unit,
+        quantity: Math.max(1, itemQty)
+      }
+    } else {
+      const name = itemName.trim()
+      if (!name) {
+        showToast('Please enter an item name', 'error')
+        return
+      }
+      newItem = {
+        inventory_item_id: null,
+        name,
+        category: 'consumable',
+        unit: 'pcs',
+        quantity: Math.max(1, itemQty)
+      }
     }
-    const newItem: RequestItem = {
-      name: itemName.trim(),
-      quantity: Math.max(1, itemQty),
-      category: 'consumable'
-    }
+
     setItems(prev => [...prev, newItem])
     setItemName('')
+    setSelectedCatalogId('free_text')
     setItemQty(1)
   }
 
@@ -266,15 +301,57 @@ function StoreRequestContent() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="item-name" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Item Name</Label>
-                  <Input
-                    id="item-name"
-                    value={itemName}
-                    onChange={(e) => setItemName(e.target.value)}
-                    placeholder="e.g. Mattresses, Stationery, Packets of rice"
-                    className="input-dark text-foreground"
-                  />
+                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select Item Source</Label>
+                  <Select
+                    value={selectedCatalogId}
+                    onValueChange={(val) => {
+                      setSelectedCatalogId(val)
+                      if (val !== 'free_text') {
+                        const match = catalogItems.find(c => c.id === val)
+                        if (match) setItemName(match.name)
+                      } else {
+                        setItemName('')
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-full text-xs input-dark">
+                      <SelectValue placeholder="Choose from Catalog or Custom" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                      <SelectItem value="free_text" className="text-amber-400 font-semibold cursor-pointer">
+                        + Uncatalogued Item (Free-text)
+                      </SelectItem>
+                      {catalogItems.map((cat: any) => (
+                        <SelectItem key={cat.id} value={cat.id} className="cursor-pointer">
+                          📦 {cat.name} ({cat.current_stock} {cat.unit || 'pcs'} in stock)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {selectedCatalogId === 'free_text' ? (
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <Label htmlFor="item-name" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Custom Item Name</Label>
+                      <span className="text-[10px] text-amber-500 font-medium">Free-text</span>
+                    </div>
+                    <Input
+                      id="item-name"
+                      value={itemName}
+                      onChange={(e) => setItemName(e.target.value)}
+                      placeholder="e.g. Special Whiteboard Duster"
+                      className="input-dark text-foreground"
+                    />
+                  </div>
+                ) : (
+                  <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1">
+                    <span className="text-emerald-400 font-bold block">✓ Linked to Catalog Inventory</span>
+                    <p className="text-[10px] text-muted-foreground">
+                      Tracked automatically in Stores stock upon fulfillment.
+                    </p>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="item-qty" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Quantity Requested</Label>
@@ -287,30 +364,41 @@ function StoreRequestContent() {
                   />
                 </div>
 
-                <Button onClick={handleAddItem} className="w-full text-xs font-semibold" variant="outline">
+                <Button onClick={handleAddItem} className="w-full text-xs font-semibold cursor-pointer" variant="outline">
                   + Add to Request List
                 </Button>
 
                 {/* Selected items array */}
                 {items.length > 0 && (
                   <div className="pt-4 border-t border-border space-y-2">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Items Added:</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Items Added ({items.length}):</span>
                     <div className="space-y-2">
                       {items.map((it, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-background/40 border border-border p-2.5 rounded-xl text-xs text-foreground">
-                          <span className="font-bold text-foreground">{it.name}</span>
+                        <div key={idx} className="flex flex-col gap-1.5 bg-background/40 border border-border p-2.5 rounded-xl text-xs text-foreground">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold">{it.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono bg-muted/60 px-2 py-0.5 rounded text-muted-foreground">x{it.quantity} {it.unit || 'pcs'}</span>
+                              <button onClick={() => handleRemoveItem(idx)} className="text-red-400 hover:text-red-300 font-bold text-sm cursor-pointer">
+                                ×
+                              </button>
+                            </div>
+                          </div>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-amber-500 text-xs px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
-                              × {it.quantity}
-                            </span>
-                            <button onClick={() => handleRemoveItem(idx)} className="text-red-500 hover:text-red-400 font-semibold px-1">
-                              ✕
-                            </button>
+                            {it.inventory_item_id ? (
+                              <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                Tracked in Inventory
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                Uncatalogued (Not tracked in stock)
+                              </span>
+                            )}
                           </div>
                         </div>
                       ))}
                     </div>
-                    <Button onClick={handleSubmitRequest} disabled={loading} className="w-full mt-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white">
+                    <Button onClick={handleSubmitRequest} disabled={loading} className="w-full mt-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer">
                       {loading ? 'Submitting...' : 'Submit Requisition Plan'}
                     </Button>
                   </div>

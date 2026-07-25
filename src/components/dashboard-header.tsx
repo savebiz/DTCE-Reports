@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { label: 'Reports',        href: '/dashboard/reports',           icon: FileText   },
   { label: 'YoY Analytics',  href: '/dashboard/yoy',               icon: BarChart2  },
   { label: 'Requisitions',   href: '/dashboard/store-requisitions',icon: PackageOpen },
+  { label: 'Inventory',     href: '/my-department/inventory',     icon: PackageOpen },
   { label: 'Team',           href: '/dashboard/team',              icon: Users      },
   { label: 'Settings',       href: '/dashboard/settings',          icon: Settings   },
 ]

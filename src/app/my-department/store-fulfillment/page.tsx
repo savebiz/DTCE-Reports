@@ -162,6 +162,44 @@ function StoreFulfillmentContent() {
     }
 
     if (isMock) {
+      if (['in_progress', 'partially_fulfilled', 'ready_for_collection', 'delivered'].includes(newStatus)) {
+        const targetReq = requisitions.find(r => r.id === reqId)
+        if (targetReq && Array.isArray(targetReq.items_json)) {
+          const { store: mockStore } = require('@/utils/supabase/mockClient')
+          for (const item of targetReq.items_json) {
+            if (item.inventory_item_id) {
+              const items = mockStore.inventoryItems
+              const invItem = items.find((i: any) => i.id === item.inventory_item_id)
+              if (invItem) {
+                const deductQty = Number(item.approved_quantity ?? item.quantity) || 0
+                if (deductQty > 0) {
+                  const transactions = mockStore.inventoryTransactions
+                  const existingTrans = transactions.find(
+                    (t: any) => t.inventory_item_id === item.inventory_item_id && t.related_requisition_id === reqId && t.transaction_type === 'fulfillment_deduction'
+                  )
+                  if (!existingTrans) {
+                    const newStock = Math.max(0, invItem.current_stock - deductQty)
+                    invItem.current_stock = newStock
+                    mockStore.inventoryItems = items
+                    transactions.push({
+                      id: `trans-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+                      inventory_item_id: item.inventory_item_id,
+                      transaction_type: 'fulfillment_deduction',
+                      quantity_change: -deductQty,
+                      related_requisition_id: reqId,
+                      performed_by: 'user-admin',
+                      note: `Fulfilled Requisition (Mock Status: ${newStatus})`,
+                      resulting_stock_level: newStock,
+                      created_at: new Date().toISOString()
+                    })
+                    mockStore.inventoryTransactions = transactions
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
       showToast(`Requisition updated to ${labelMap[newStatus]} (Mock)`, 'success')
       setRequisitions(prev => prev.map(r => r.id === reqId ? { ...r, status: newStatus } : r))
       setActionLoading(false)
@@ -245,6 +283,15 @@ function StoreFulfillmentContent() {
               Review, process, and track material requests submitted across all convention departments.
             </p>
           </div>
+
+          <Button
+            onClick={() => router.push('/my-department/inventory')}
+            variant="outline"
+            className="text-xs font-semibold h-9 border-amber-500/30 text-amber-500 hover:bg-amber-500/10 cursor-pointer w-fit"
+          >
+            📦 Inventory Catalog & Stock Ledger
+          </Button>
+        </div>
 
           {/* 3. Button Hierarchy: Informational Status Pill vs Secondary Refresh Button */}
           <div className="flex items-center gap-2.5">

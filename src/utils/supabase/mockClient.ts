@@ -7,11 +7,15 @@ import {
   mockProfiles,
   mockDailyReports,
   mockDepartmentNarratives,
+  mockInventoryItems,
+  mockInventoryTransactions,
   Profile,
   DailyReport,
   DepartmentNarrative,
   ReportVersion,
-  AuditLog
+  AuditLog,
+  InventoryItem,
+  InventoryTransaction
 } from './mockData'
 
 // Initialize localStorage state if empty
@@ -108,6 +112,20 @@ class MockSupabaseStore {
   set challengeResolutions(val: any[]) {
     setStorageItem('dtce_mock_challenge_resolutions', val)
   }
+
+  get inventoryItems(): InventoryItem[] {
+    return getStorageItem('dtce_mock_inventory_items', mockInventoryItems)
+  }
+  set inventoryItems(val: InventoryItem[]) {
+    setStorageItem('dtce_mock_inventory_items', val)
+  }
+
+  get inventoryTransactions(): InventoryTransaction[] {
+    return getStorageItem('dtce_mock_inventory_transactions', mockInventoryTransactions)
+  }
+  set inventoryTransactions(val: InventoryTransaction[]) {
+    setStorageItem('dtce_mock_inventory_transactions', val)
+  }
 }
 
 export const store = new MockSupabaseStore()
@@ -175,6 +193,10 @@ class MockQueryBuilder {
       data = [...store.notificationLogs]
     } else if (this.table === 'hod_assignments') {
       data = [...store.assignments]
+    } else if (this.table === 'inventory_items') {
+      data = [...store.inventoryItems]
+    } else if (this.table === 'inventory_transactions') {
+      data = [...store.inventoryTransactions]
     }
 
     // Apply filters
@@ -270,6 +292,27 @@ class MockInsertBuilder {
       const logs = store.auditLogs
       logs.push(insertedRow)
       store.auditLogs = logs
+    } else if (this.table === 'inventory_items') {
+      insertedRow = {
+        id: 'inv-' + Math.random().toString(36).substr(2, 9),
+        current_stock: 0,
+        low_stock_threshold: 5,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ...this.data
+      }
+      const items = store.inventoryItems
+      items.push(insertedRow)
+      store.inventoryItems = items
+    } else if (this.table === 'inventory_transactions') {
+      insertedRow = {
+        id: 'trans-' + Math.random().toString(36).substr(2, 9),
+        created_at: new Date().toISOString(),
+        ...this.data
+      }
+      const trans = store.inventoryTransactions
+      trans.push(insertedRow)
+      store.inventoryTransactions = trans
     }
 
     return { data: insertedRow ? [insertedRow] : [], error: null }
@@ -400,6 +443,14 @@ class MockUpdateBuilder {
         narratives[idx] = { ...narratives[idx], ...this.data }
         store.narratives = narratives
         updatedRows = [narratives[idx]]
+      }
+    } else if (this.table === 'inventory_items') {
+      const items = store.inventoryItems
+      const idx = items.findIndex(i => (i as any)[this.filterField || 'id'] === this.filterValue)
+      if (idx !== -1) {
+        items[idx] = { ...items[idx], ...this.data, updated_at: new Date().toISOString() }
+        store.inventoryItems = items
+        updatedRows = [items[idx]]
       }
     }
     return { data: updatedRows, error: null }

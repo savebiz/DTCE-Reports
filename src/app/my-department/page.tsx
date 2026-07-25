@@ -429,13 +429,22 @@ export default function MyDepartmentDashboard() {
                 Daily Logs Workspace
               </button>
               {isStoresDept ? (
-                <button
-                  className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 cursor-pointer shadow-xs"
-                  onClick={() => router.push('/my-department/store-fulfillment')}
-                >
-                  <span>📦</span>
-                  Stores Fulfillment Console {approvedRequests.length > 0 && `(${approvedRequests.length})`}
-                </button>
+                <>
+                  <button
+                    className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer shadow-xs"
+                    onClick={() => router.push('/my-department/inventory')}
+                  >
+                    <span>📊</span>
+                    Inventory Catalog
+                  </button>
+                  <button
+                    className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 cursor-pointer shadow-xs"
+                    onClick={() => router.push('/my-department/store-fulfillment')}
+                  >
+                    <span>📦</span>
+                    Fulfillment Console {approvedRequests.length > 0 && `(${approvedRequests.length})`}
+                  </button>
+                </>
               ) : (
                 <button
                   className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-border/70 bg-card hover:bg-accent/60 text-foreground cursor-pointer shadow-xs"
