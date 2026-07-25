@@ -86,6 +86,7 @@ function AdminRequisitionsContent() {
   
   // Available reviewers list for delegation dropdown
   const [approvers, setApprovers] = useState<Profile[]>([])
+  const [catalogItems, setCatalogItems] = useState<any[]>([])
   
   // Review Modal State
   const [selectedReq, setSelectedReq] = useState<StoreRequestTicket | null>(null)
@@ -106,10 +107,12 @@ function AdminRequisitionsContent() {
     setDelegateId(req.assigned_approver_id || 'none')
     setEditableItems(
       (req.items_json || []).map(it => ({
+        inventory_item_id: it.inventory_item_id || null,
         name: it.name,
         requested_quantity: it.requested_quantity ?? it.quantity,
         approved_quantity: it.approved_quantity ?? it.quantity,
-        category: it.category
+        category: it.category,
+        unit: it.unit
       }))
     )
   }
@@ -157,22 +160,21 @@ function AdminRequisitionsContent() {
     }
 
     if (!isMock) {
-      const { data: reqsData } = await supabase
-        .from('store_requests')
-        .select('*')
-        .order('created_at', { ascending: false })
+      const [reqsRes, usersRes, invRes] = await Promise.all([
+        supabase.from('store_requests').select('*').order('created_at', { ascending: false }),
+        supabase.from('profiles').select('*').in('role', ['super_admin', 'coordinator', 'national_coordinator', 'assistant']),
+        supabase.from('inventory_items').select('*')
+      ])
 
-      if (reqsData) {
-        const enhanced = await fetchEnhancedStoreRequests(supabase, reqsData)
+      if (reqsRes.data) {
+        const enhanced = await fetchEnhancedStoreRequests(supabase, reqsRes.data)
         setRequests(enhanced)
       }
-
-      const { data: allUsers } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('role', ['super_admin', 'coordinator', 'national_coordinator', 'assistant'])
-      setApprovers(allUsers || [])
+      if (usersRes.data) setApprovers(usersRes.data)
+      if (invRes.data) setCatalogItems(invRes.data)
     } else {
+      const { store: mockStore } = require('@/utils/supabase/mockClient')
+      setCatalogItems(mockStore.inventoryItems || [])
       setRequests([
         {
           id: 'req-mock-1',
@@ -620,43 +622,86 @@ function AdminRequisitionsContent() {
                     </p>
 
                     <div className="space-y-2">
-                      {editableItems.map((item, idx) => (
-                        <div key={idx} className="p-2.5 rounded-xl bg-background/60 border border-border/60 space-y-1.5 text-xs">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold text-foreground">{item.name}</span>
-                            <span className="text-[10px] text-muted-foreground bg-muted/40 px-2 py-0.5 rounded font-mono">
-                              Asked for: {item.requested_quantity}
-                            </span>
-                          </div>
+                      {editableItems.map((item, idx) => {
+                        const catItem = catalogItems.find(c =>
+                          (item.inventory_item_id && c.id === item.inventory_item_id) ||
+                          c.name.toLowerCase() === item.name.toLowerCase()
+                        )
+                        const isExceeding = catItem && item.approved_quantity > catItem.current_stock
 
-                          <div className="flex items-center gap-2 pt-1">
-                            <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Grant Qty:</Label>
-                            <Input
-                              type="number"
-                              min={0}
-                              value={item.approved_quantity}
-                              onChange={(e) => {
-                                const val = parseInt(e.target.value) || 0
-                                setEditableItems(prev => prev.map((it, i) => i === idx ? { ...it, approved_quantity: val } : it))
-                              }}
-                              className="w-20 h-7 text-xs font-mono bg-card text-foreground"
-                            />
-                            {item.approved_quantity !== item.requested_quantity && (
-                              <span className="text-[10px] text-amber-400 font-bold">
-                                Adjusted
+                        return (
+                          <div key={idx} className="p-3 rounded-xl bg-background/60 border border-border/60 space-y-2 text-xs">
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-foreground">{item.name}</span>
+                              <span className="text-[10px] text-muted-foreground bg-muted/40 px-2 py-0.5 rounded font-mono">
+                                Requested: {item.requested_quantity} {item.unit || ''}
                               </span>
+                            </div>
+
+                            {/* Live Stock Context Banner */}
+                            {catItem ? (
+                              <div className={`flex items-center justify-between p-2 rounded-lg text-[11px] font-mono border ${
+                                catItem.current_stock <= catItem.low_stock_threshold
+                                  ? 'bg-red-500/10 border-red-500/30 text-red-400'
+                                  : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                              }`}>
+                                <div className="flex items-center gap-1.5 font-bold">
+                                  <span>Currently in stock:</span>
+                                  <span>{catItem.current_stock} {catItem.unit || 'pcs'}</span>
+                                  {catItem.current_stock <= catItem.low_stock_threshold && (
+                                    <span className="text-[9px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.2 rounded border border-red-500/20">
+                                      ⚠️ Low Stock
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[10px] text-muted-foreground">
+                                  Threshold: {catItem.low_stock_threshold}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 p-1.5 rounded border border-amber-500/20">
+                                ⚠️ Uncatalogued Item — Not tracked in stock inventory
+                              </div>
                             )}
-                            <button
-                              type="button"
-                              onClick={() => setEditableItems(prev => prev.filter((_, i) => i !== idx))}
-                              className="ml-auto text-red-400 hover:text-red-300 font-bold px-1.5 py-0.5 rounded text-xs hover:bg-red-500/10"
-                              title="Remove item"
-                            >
-                              ✕
-                            </button>
+
+                            {/* Approval Quantity Input & Validation Warning */}
+                            <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
+                              <div className="flex items-center gap-2">
+                                <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Grant Qty:</Label>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  value={item.approved_quantity}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value) || 0
+                                    setEditableItems(prev => prev.map((it, i) => i === idx ? { ...it, approved_quantity: val } : it))
+                                  }}
+                                  className="w-20 h-7 text-xs font-mono bg-card text-foreground"
+                                />
+                              </div>
+
+                              {isExceeding ? (
+                                <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30">
+                                  ⚠️ Exceeds Stock ({catItem.current_stock})
+                                </span>
+                              ) : item.approved_quantity !== item.requested_quantity ? (
+                                <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                  Adjusted
+                                </span>
+                              ) : null}
+
+                              <button
+                                type="button"
+                                onClick={() => setEditableItems(prev => prev.filter((_, i) => i !== idx))}
+                                className="ml-auto text-red-400 hover:text-red-300 font-bold px-1.5 py-0.5 rounded text-xs hover:bg-red-500/10"
+                                title="Remove item"
+                              >
+                                ✕
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
 
