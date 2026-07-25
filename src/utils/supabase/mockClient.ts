@@ -547,5 +547,30 @@ export const mockSupabaseClient = {
         return new MockUpsertBuilder(table, data)
       }
     }
+  },
+
+  channel(name: string) {
+    return {
+      on(event: string, config: any, callback: (payload: any) => void) {
+        return this
+      },
+      subscribe(callback?: (status: string) => void) {
+        if (callback) callback('SUBSCRIBED')
+        return this
+      },
+      unsubscribe() {
+        return this
+      }
+    }
+  },
+
+  removeChannel(channel: any) {
+    return Promise.resolve('ok')
+  }
+}
+
+export function emitMockDataChange(table: string, payload?: any) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dtce_mock_data_change', { detail: { table, payload } }))
   }
 }

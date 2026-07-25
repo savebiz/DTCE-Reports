@@ -55,12 +55,13 @@ const isSameEventDay = (dayIdA?: string, dayIdB?: string, daysList: any[] = []) 
 }
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
-  pending_coordinator: { label: 'Pending', bg: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' },
-  approved:           { label: 'Approved', bg: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' },
-  in_progress:        { label: 'In Progress', bg: 'rgba(139,92,246,0.1)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.2)' },
-  partially_fulfilled:{ label: 'Partial', bg: 'rgba(236,72,153,0.1)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.2)' },
-  declined:           { label: 'Declined', bg: 'rgba(239,68,68,0.1)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.2)' },
-  delivered:          { label: 'Delivered', bg: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' },
+  pending_coordinator:  { label: 'Pending', bg: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' },
+  approved:            { label: 'Approved', bg: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' },
+  in_progress:         { label: 'In Progress', bg: 'rgba(139,92,246,0.1)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.2)' },
+  partially_fulfilled: { label: 'Partial', bg: 'rgba(236,72,153,0.1)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.2)' },
+  ready_for_collection:{ label: 'Ready for Collection', bg: 'rgba(245,158,11,0.2)', color: '#D97706', border: '1px solid rgba(245,158,11,0.4)' },
+  declined:            { label: 'Declined', bg: 'rgba(239,68,68,0.1)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.2)' },
+  delivered:           { label: 'Delivered', bg: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' },
 }
 
 export default function SecretariatDashboard() {
@@ -97,7 +98,7 @@ export default function SecretariatDashboard() {
   
   const isCoordinatorAssistant = profile?.role === 'assistant'
 
-  const loadResolutions = async () => {
+  const loadResolutions = useCallback(async () => {
     try {
       const res = await fetch('/api/challenges/resolve')
       const data = await res.json()
@@ -111,9 +112,9 @@ export default function SecretariatDashboard() {
     } catch (err) {
       console.warn('Failed to load challenge resolutions:', err)
     }
-  }
+  }, [])
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const supabase = getClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -171,11 +172,27 @@ export default function SecretariatDashboard() {
     setApprovers(allUsers || [])
 
     await loadResolutions()
-  }
+  }, [loadResolutions, router])
+
+  const refreshAllData = useCallback(() => {
+    loadData()
+  }, [loadData])
+
+  // Shared Platform-Wide Realtime Subscription for Executive Dashboard Oversight
+  useRealtimeSubscription({
+    channelName: 'secretariat-dashboard-oversight',
+    subscriptions: [
+      { table: 'daily_reports' },
+      { table: 'department_narratives' },
+      { table: 'store_requests' },
+      { table: 'challenge_resolutions' }
+    ],
+    onDataChange: refreshAllData,
+  })
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [loadData])
 
   const visibleStoreRequests = useMemo(() => {
     if (isCoordinatorAssistant && profile?.id) {
@@ -695,15 +712,32 @@ export default function SecretariatDashboard() {
                             </span>
                           </div>
 
-                          <div className="p-3 bg-background/40 border border-border rounded-lg space-y-1.5">
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">Requested Items:</span>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                              {req.items_json.map((it, idx) => (
-                                <div key={idx} className="flex justify-between border-b border-border/40 pb-1">
-                                  <span className="text-foreground">{it.name} <span className="text-[10px] text-muted-foreground capitalize">({it.category})</span></span>
-                                  <span className="font-bold text-foreground font-mono">x {it.quantity}</span>
-                                </div>
-                              ))}
+                          <div className="p-3 bg-background/40 border border-border rounded-lg space-y-2">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">Requisition Items:</span>
+                            <div className="space-y-1.5 text-xs">
+                              {req.items_json.map((it: any, idx: number) => {
+                                const reqQty = it.requested_quantity ?? it.quantity
+                                const appQty = it.approved_quantity ?? it.quantity
+                                const isAdjusted = reqQty !== undefined && appQty !== undefined && reqQty !== appQty
+
+                                return (
+                                  <div key={idx} className="flex justify-between items-center p-2 rounded-lg bg-background/60 border border-border/40">
+                                    <span className="text-foreground font-semibold">{it.name}</span>
+                                    <div className="flex items-center gap-2 font-mono">
+                                      {isAdjusted ? (
+                                        <span className="text-xs">
+                                          <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
+                                          <span className="font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
+                                        </span>
+                                      ) : (
+                                        <span className="font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded">
+                                          × {appQty || reqQty}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              })}
                             </div>
                           </div>
 

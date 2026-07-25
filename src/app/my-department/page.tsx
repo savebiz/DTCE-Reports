@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, mockEventDays, Profile, DailyReport, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { syncQueuedSubmissions, getSyncQueue } from '@/utils/offline'
 import { store } from '@/utils/supabase/mockClient'
+import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 
 export default function MyDepartmentDashboard() {
   const router = useRouter()
@@ -87,7 +88,7 @@ export default function MyDepartmentDashboard() {
   }, [profile?.department_id, department?.name])
 
   // 2. Load User Profile and Data
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const supabase = getClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -217,11 +218,31 @@ export default function MyDepartmentDashboard() {
     // Load offline sync queue
     const queue = await getSyncQueue()
     setPendingSyncCount(queue.length)
-  }
+  }, [department?.name, router])
+
+  // Shared Platform-Wide Realtime Subscription scoped to current department
+  useRealtimeSubscription({
+    channelName: `hod-dept-dashboard-${profile?.department_id}`,
+    subscriptions: [
+      {
+        table: 'daily_reports',
+        filter: profile?.department_id ? `department_id=eq.${profile.department_id}` : undefined,
+      },
+      {
+        table: 'department_narratives',
+        filter: profile?.department_id ? `department_id=eq.${profile.department_id}` : undefined,
+      },
+      {
+        table: 'store_requests',
+      },
+    ],
+    onDataChange: () => loadData(),
+    enabled: !!profile?.department_id,
+  })
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [loadData])
 
   // 3. Trigger Offline Sync
   const triggerSync = async () => {

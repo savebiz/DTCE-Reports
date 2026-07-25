@@ -1,23 +1,26 @@
 'use client'
 
-import React, { useEffect, useState, Suspense } from 'react'
+import React, { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, Profile } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 
 interface RequestItem {
   name: string
   quantity: number
-  category?: 'durable' | 'consumable'
+  requested_quantity?: number
+  approved_quantity?: number
+  category?: string
 }
 
 interface RequisitionTicket {
   id: string
   items_json: RequestItem[]
-  status: 'pending_coordinator' | 'approved' | 'declined' | 'in_progress' | 'partially_fulfilled' | 'delivered'
+  status: 'pending_coordinator' | 'approved' | 'declined' | 'in_progress' | 'partially_fulfilled' | 'ready_for_collection' | 'delivered'
   reviewer_comments?: string
   reviewed_at?: string
   created_at: string
@@ -37,10 +40,10 @@ function StoreFulfillmentContent() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [requisitions, setRequisitions] = useState<RequisitionTicket[]>([])
-  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'processing' | 'delivered'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'processing' | 'ready' | 'delivered'>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const loadData = async (showLoadingSpinner = true) => {
+  const loadData = useCallback(async (showLoadingSpinner = true) => {
     if (showLoadingSpinner) setLoading(true)
     const supabase = getClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -123,8 +126,8 @@ function StoreFulfillmentContent() {
         {
           id: 'req-mock-1',
           items_json: [
-            { name: 'Mattresses', quantity: 50, category: 'durable' },
-            { name: 'Packs of Tissue Paper', quantity: 20, category: 'consumable' }
+            { name: 'Mattresses', quantity: 50, requested_quantity: 50, approved_quantity: 50 },
+            { name: 'Packs of Tissue Paper', quantity: 20, requested_quantity: 20, approved_quantity: 20 }
           ],
           status: 'pending_coordinator',
           created_at: new Date().toISOString(),
@@ -134,8 +137,8 @@ function StoreFulfillmentContent() {
         {
           id: 'req-mock-2',
           items_json: [
-            { name: 'Stand Fans', quantity: 4, category: 'durable' },
-            { name: 'A4 Paper Rims', quantity: 5, category: 'consumable' }
+            { name: 'Stand Fans', quantity: 4, requested_quantity: 5, approved_quantity: 4 },
+            { name: 'A4 Paper Rims', quantity: 5, requested_quantity: 5, approved_quantity: 5 }
           ],
           status: 'approved',
           created_at: new Date(Date.now() - 3600000).toISOString(),
@@ -146,22 +149,22 @@ function StoreFulfillmentContent() {
     }
 
     if (showLoadingSpinner) setLoading(false)
-  }
+  }, [router])
+
+  // Platform-Wide Realtime Subscription for Stores Fulfillment Hub
+  useRealtimeSubscription({
+    channelName: 'stores-fulfillment-hub',
+    subscriptions: [{ table: 'store_requests' }],
+    onDataChange: () => loadData(false),
+  })
 
   useEffect(() => {
     loadData(true)
-
-    // Automatic 20-Second Polling
-    const interval = setInterval(() => {
-      loadData(false)
-    }, 20000)
-
-    return () => clearInterval(interval)
-  }, [])
+  }, [loadData])
 
   const handleUpdateStatus = async (
     reqId: string,
-    newStatus: 'pending_coordinator' | 'approved' | 'in_progress' | 'partially_fulfilled' | 'delivered' | 'declined'
+    newStatus: 'pending_coordinator' | 'approved' | 'in_progress' | 'partially_fulfilled' | 'ready_for_collection' | 'delivered' | 'declined'
   ) => {
     setActionLoading(true)
     const labelMap: Record<string, string> = {
@@ -169,6 +172,7 @@ function StoreFulfillmentContent() {
       approved: 'Approved',
       in_progress: 'In Progress',
       partially_fulfilled: 'Partially Fulfilled',
+      ready_for_collection: 'Ready for Collection',
       delivered: 'Delivered',
       declined: 'Declined'
     }
@@ -213,6 +217,7 @@ function StoreFulfillmentContent() {
     if (activeTab === 'pending') return r.status === 'pending_coordinator'
     if (activeTab === 'approved') return r.status === 'approved'
     if (activeTab === 'processing') return r.status === 'in_progress' || r.status === 'partially_fulfilled'
+    if (activeTab === 'ready') return r.status === 'ready_for_collection'
     if (activeTab === 'delivered') return r.status === 'delivered'
     return true
   })
@@ -221,6 +226,7 @@ function StoreFulfillmentContent() {
   const pendingCount = requisitions.filter(r => r.status === 'pending_coordinator').length
   const approvedCount = requisitions.filter(r => r.status === 'approved').length
   const processingCount = requisitions.filter(r => r.status === 'in_progress' || r.status === 'partially_fulfilled').length
+  const readyCount = requisitions.filter(r => r.status === 'ready_for_collection').length
   const deliveredCount = requisitions.filter(r => r.status === 'delivered').length
 
   return (
@@ -305,6 +311,7 @@ function StoreFulfillmentContent() {
               { id: 'pending', label: 'Pending', count: pendingCount },
               { id: 'approved', label: 'Approved', count: approvedCount },
               { id: 'processing', label: 'In Progress', count: processingCount },
+              { id: 'ready', label: 'Ready for Collection', count: readyCount },
               { id: 'delivered', label: 'Delivered', count: deliveredCount },
             ].map(tab => (
               <button
@@ -360,6 +367,7 @@ function StoreFulfillmentContent() {
                       req.status === 'approved' ? '#3B82F6' :
                       req.status === 'in_progress' ? '#8B5CF6' :
                       req.status === 'partially_fulfilled' ? '#EC4899' :
+                      (req.status as string) === 'ready_for_collection' ? '#F59E0B' :
                       req.status === 'delivered' ? '#10B981' : '#EF4444'
                   }}
                 />
@@ -386,6 +394,7 @@ function StoreFulfillmentContent() {
                           req.status === 'approved' ? { background: 'rgba(59,130,246,0.12)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.3)' } :
                           req.status === 'in_progress' ? { background: 'rgba(139,92,246,0.12)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.3)' } :
                           req.status === 'partially_fulfilled' ? { background: 'rgba(236,72,153,0.12)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.3)' } :
+                          (req.status as string) === 'ready_for_collection' ? { background: 'rgba(245,158,11,0.2)', color: '#D97706', border: '1px solid rgba(245,158,11,0.4)' } :
                           req.status === 'delivered' ? { background: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.3)' } :
                           { background: 'rgba(239,68,68,0.12)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.3)' }
                         }
@@ -394,6 +403,7 @@ function StoreFulfillmentContent() {
                          req.status === 'approved' ? 'Approved' :
                          req.status === 'in_progress' ? 'In Progress' :
                          req.status === 'partially_fulfilled' ? 'Partially Fulfilled' :
+                         (req.status as string) === 'ready_for_collection' ? 'Ready for Collection' :
                          req.status === 'delivered' ? 'Delivered' : 'Declined'}
                       </span>
                     </div>
@@ -401,23 +411,33 @@ function StoreFulfillmentContent() {
                 </CardHeader>
 
                 <CardContent className="pl-5 sm:pl-6 pr-4 sm:pr-6 pt-4 pb-4 space-y-4">
-                  {/* Requested Material Items Chips */}
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-2">Requested Material Items</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                      {req.items_json && Array.isArray(req.items_json) && req.items_json.map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-muted/30 dark:bg-slate-800/40 border border-border/50 text-xs hover:border-border/80 transition-colors">
-                          <div className="space-y-0.5">
-                            <span className="font-semibold text-foreground block">{item.name}</span>
-                            <span className="inline-block text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded bg-muted/60 text-muted-foreground">
-                              {item.category || 'durable'}
-                            </span>
+                  {/* Structured Vertical Item List Layout */}
+                  <div className="p-3 bg-muted/30 dark:bg-slate-900/40 rounded-xl border border-border/50 space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">Requested Material Items</span>
+                    <div className="space-y-1.5">
+                      {req.items_json && Array.isArray(req.items_json) && req.items_json.map((item, idx) => {
+                        const reqQty = item.requested_quantity ?? item.quantity
+                        const appQty = item.approved_quantity ?? item.quantity
+                        const isAdjusted = reqQty !== undefined && appQty !== undefined && reqQty !== appQty
+
+                        return (
+                          <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg bg-background/60 border border-border/40 text-xs">
+                            <span className="font-semibold text-foreground">{item.name}</span>
+                            <div className="flex items-center gap-2 font-mono">
+                              {isAdjusted ? (
+                                <span className="text-xs">
+                                  <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
+                                  <span className="font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
+                                </span>
+                              ) : (
+                                <span className="font-bold text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                                  × {appQty || reqQty}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <span className="font-mono font-bold text-amber-600 dark:text-amber-400 text-xs px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                            × {item.quantity}
-                          </span>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
 
@@ -440,6 +460,11 @@ function StoreFulfillmentContent() {
                           <span>✅</span> Requisition Approved — Ready for Fulfillment
                         </span>
                       )}
+                      {(req.status as string) === 'ready_for_collection' && (
+                        <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1.5">
+                          <span>📦</span> Set Aside at Stores — Ready for Department Collection
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
@@ -459,6 +484,14 @@ function StoreFulfillmentContent() {
                           <Button
                             size="sm"
                             disabled={actionLoading}
+                            onClick={() => handleUpdateStatus(req.id, 'ready_for_collection')}
+                            className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs h-8 shadow-xs"
+                          >
+                            Mark Ready for Collection
+                          </Button>
+                          <Button
+                            size="sm"
+                            disabled={actionLoading}
                             onClick={() => handleUpdateStatus(req.id, 'partially_fulfilled')}
                             className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs h-8 shadow-xs"
                           >
@@ -475,15 +508,46 @@ function StoreFulfillmentContent() {
                         </>
                       )}
 
+                      {(req.status as string) === 'ready_for_collection' && (
+                        <>
+                          <Button
+                            size="sm"
+                            disabled={actionLoading}
+                            onClick={() => handleUpdateStatus(req.id, 'delivered')}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8 shadow-xs"
+                          >
+                            Mark Handed Over / Delivered
+                          </Button>
+                          <Button
+                            size="sm"
+                            disabled={actionLoading}
+                            onClick={() => handleUpdateStatus(req.id, 'partially_fulfilled')}
+                            className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs h-8 shadow-xs"
+                          >
+                            Partial Handover
+                          </Button>
+                        </>
+                      )}
+
                       {req.status === 'partially_fulfilled' && (
-                        <Button
-                          size="sm"
-                          disabled={actionLoading}
-                          onClick={() => handleUpdateStatus(req.id, 'delivered')}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8 shadow-xs"
-                        >
-                          Mark Fully Delivered
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            disabled={actionLoading}
+                            onClick={() => handleUpdateStatus(req.id, 'ready_for_collection')}
+                            className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs h-8 shadow-xs"
+                          >
+                            Mark Ready for Collection
+                          </Button>
+                          <Button
+                            size="sm"
+                            disabled={actionLoading}
+                            onClick={() => handleUpdateStatus(req.id, 'delivered')}
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8 shadow-xs"
+                          >
+                            Mark Fully Delivered
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>

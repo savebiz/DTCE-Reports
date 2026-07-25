@@ -21,10 +21,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { requestId, status, reviewerComments } = body as {
+    const { requestId, status, reviewerComments, items_json } = body as {
       requestId: string
       status: string
       reviewerComments?: string
+      items_json?: any[]
     }
 
     if (!requestId || !status) {
@@ -52,6 +53,10 @@ export async function POST(request: NextRequest) {
       status
     }
 
+    if (items_json && Array.isArray(items_json)) {
+      updatePayload.items_json = items_json
+    }
+
     if (reviewerComments !== undefined) {
       updatePayload.reviewer_comments = reviewerComments
       updatePayload.reviewed_at = new Date().toISOString()
@@ -73,15 +78,30 @@ export async function POST(request: NextRequest) {
     if (existingReq) {
       const deptName = existingReq.department?.name || 'Department'
       const requesterId = existingReq.requester_profile_id
+      const finalItems = items_json || existingReq.items_json || []
 
       if (status === 'approved') {
+        // Build detailed items summary if quantities were adjusted
+        let itemsSummary = ''
+        if (Array.isArray(finalItems) && finalItems.length > 0) {
+          const summaryParts = finalItems.map((it: any) => {
+            const reqQty = it.requested_quantity ?? it.quantity
+            const appQty = it.approved_quantity ?? it.quantity
+            if (reqQty !== undefined && appQty !== undefined && reqQty !== appQty) {
+              return `${appQty} of ${reqQty} requested ${it.name}`
+            }
+            return `${appQty || reqQty} ${it.name}`
+          })
+          itemsSummary = ` (Approved: ${summaryParts.join(', ')})`
+        }
+
         // 1. Notify requesting submitter
         if (requesterId) {
           await notify({
             recipientId: requesterId,
             type: 'requisition_approved',
             title: `Requisition Approved: ${deptName}`,
-            body: `Your store requisition has been approved by the National Coordinator. It is now routed to Stores for fulfillment.`,
+            body: `Your store requisition has been approved by the National Coordinator${itemsSummary}. It is now routed to Stores for fulfillment.`,
             relatedEntity: { type: 'requisition', id: requestId }
           })
         }
@@ -105,11 +125,32 @@ export async function POST(request: NextRequest) {
                 recipientId: staff.id,
                 type: 'requisition_routed_to_stores',
                 title: `New Approved Requisition: ${deptName}`,
-                body: `An approved requisition for ${deptName} is ready for fulfillment.`,
+                body: `An approved requisition for ${deptName} is ready for fulfillment${itemsSummary}.`,
                 relatedEntity: { type: 'requisition', id: requestId }
               })
             }
           }
+        }
+      } else if (status === 'ready_for_collection') {
+        // Build ready for collection notification
+        let readyDetail = ''
+        if (Array.isArray(finalItems) && finalItems.length > 0) {
+          const parts = finalItems.map((it: any) => {
+            const qty = it.approved_quantity ?? it.quantity
+            const reqQty = it.requested_quantity
+            return reqQty ? `${qty} of ${reqQty} requested ${it.name}` : `${qty} ${it.name}`
+          })
+          readyDetail = ` (${parts.join(', ')})`
+        }
+
+        if (requesterId) {
+          await notify({
+            recipientId: requesterId,
+            type: 'requisition_fulfilled',
+            title: `Requisition Ready for Collection: ${deptName}`,
+            body: `Your requisition${readyDetail} is ready for collection at Stores. ${reviewerComments ? `Note: ${reviewerComments}` : ''}`,
+            relatedEntity: { type: 'requisition', id: requestId }
+          })
         }
       } else if (status === 'declined') {
         // Notify submitter of rejection with reason

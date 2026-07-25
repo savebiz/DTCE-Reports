@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, Suspense } from 'react'
+import React, { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, Profile } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { NumberField } from '@/components/ui/number-field'
 import { Label } from '@/components/ui/label'
+import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 
 interface RequestItem {
   name: string
@@ -38,13 +39,12 @@ function StoreRequestContent() {
   const [loading, setLoading] = useState(false)
   const [requests, setRequests] = useState<StoreRequestTicket[]>([])
 
-  // New Request Form State
+  // Durable/consumable classification is determined by catalog inventory items; manual selection removed from request form.
   const [items, setItems] = useState<RequestItem[]>([])
   const [itemName, setItemName] = useState('')
   const [itemQty, setItemQty] = useState(1)
-  const [itemCategory, setItemCategory] = useState<'durable' | 'consumable'>('consumable')
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const supabase = getClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -127,18 +127,31 @@ function StoreRequestContent() {
       setRequests([
         {
           id: 'req-mock-1',
-          items_json: [{ name: 'Analgesics', quantity: 200, category: 'consumable' }],
+          items_json: [{ name: 'Analgesics', quantity: 200, requested_quantity: 200, approved_quantity: 200, category: 'consumable' }],
           status: 'approved',
           created_at: new Date(Date.now() - 3600000).toISOString(),
           reviewer_comments: 'Approved for urgent medical deck support.'
         }
       ])
     }
-  }
+  }, [router])
+
+  // Shared Platform-Wide Realtime Subscription scoped to requester / department requests
+  useRealtimeSubscription({
+    channelName: `hod-store-request-${profile?.id}`,
+    subscriptions: [
+      {
+        table: 'store_requests',
+        filter: profile?.id ? `requester_profile_id=eq.${profile.id}` : undefined,
+      },
+    ],
+    onDataChange: () => loadData(),
+    enabled: !!profile?.id,
+  })
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [loadData])
 
   const handleAddItem = () => {
     if (!itemName.trim()) {
@@ -148,7 +161,7 @@ function StoreRequestContent() {
     const newItem: RequestItem = {
       name: itemName.trim(),
       quantity: Math.max(1, itemQty),
-      category: itemCategory
+      category: 'consumable'
     }
     setItems(prev => [...prev, newItem])
     setItemName('')
@@ -161,22 +174,34 @@ function StoreRequestContent() {
 
   const handleSubmitRequest = async () => {
     if (items.length === 0) {
-      showToast('Please add at least one item to the request', 'error')
+      showToast('Please add at least one item to your requisition plan', 'error')
       return
     }
-    if (!profile || !profile.department_id || !activeEvent) {
-      showToast('Failed to resolve department or event context', 'error')
+
+    if (!profile?.department_id) {
+      showToast('Department profile missing. Please log in again.', 'error')
       return
     }
 
     setLoading(true)
-    const supabase = getClient()
+
+    const payload = {
+      event_id: activeEvent?.id || null,
+      department_id: profile.department_id,
+      requester_profile_id: profile.id,
+      items_json: items.map(it => ({
+        ...it,
+        requested_quantity: it.quantity,
+        approved_quantity: it.quantity
+      })),
+      status: 'pending_coordinator'
+    }
 
     if (isMock) {
-      showToast('Mock request logged locally', 'success')
+      showToast('Requisition plan submitted successfully (Mock)', 'success')
       setRequests(prev => [
         {
-          id: 'req-mock-' + Math.random().toString(36).substr(2, 9),
+          id: `req-${Date.now()}`,
           items_json: items,
           status: 'pending_coordinator',
           created_at: new Date().toISOString()
@@ -189,50 +214,20 @@ function StoreRequestContent() {
     }
 
     try {
-      const { data: newReqs, error } = await supabase
+      const supabase = getClient()
+      const { error } = await supabase
         .from('store_requests')
-        .insert({
-          requester_profile_id: profile.id,
-          department_id: profile.department_id,
-          event_id: activeEvent.id,
-          items_json: items,
-          status: 'pending_coordinator'
-        })
-        .select()
+        .insert(payload)
 
-      const newReq = Array.isArray(newReqs) ? newReqs[0] : newReqs
-
-      if (error) throw error
-
-      // Notify National Coordinator & Super Admins of new submission
-      const { data: coords } = await supabase
-        .from('profiles')
-        .select('id')
-        .in('role', ['national_coordinator', 'super_admin', 'coordinator'])
-
-      if (coords) {
-        const { data: deptRow } = await supabase.from('departments').select('name').eq('id', profile.department_id).maybeSingle()
-        const deptName = deptRow?.name || 'Department'
-        for (const coord of coords) {
-          await fetch('/api/notifications/dispatch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              recipientId: coord.id,
-              type: 'requisition_submitted',
-              title: `New Store Requisition: ${deptName}`,
-              body: `${profile.full_name || 'HOD'} submitted a store requisition with ${items.length} items for ${deptName}.`,
-              relatedEntity: { type: 'requisition', id: newReq?.id || '' }
-            })
-          }).catch(console.error)
-        }
+      if (error) {
+        throw new Error(error.message)
       }
 
-      showToast('Material Requisition submitted to National Coordinator!', 'success')
+      showToast('Requisition plan submitted to National Coordinator!', 'success')
       setItems([])
       loadData()
     } catch (err: any) {
-      showToast(`Failed to submit request: ${err.message}`, 'error')
+      showToast(`Submission failed: ${err.message}`, 'error')
     } finally {
       setLoading(false)
     }
@@ -279,32 +274,15 @@ function StoreRequestContent() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="item-qty" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Quantity</Label>
-                    <NumberField
-                      id="item-qty"
-                      value={itemQty}
-                      onChange={setItemQty}
-                      min={1}
-                      className="input-dark text-foreground font-mono"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="item-cat" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Category</Label>
-                    <Select
-                      value={itemCategory}
-                      onValueChange={(val: any) => setItemCategory(val)}
-                    >
-                      <SelectTrigger id="item-cat" className="h-10 text-foreground bg-card border-border">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="consumable">Consumable</SelectItem>
-                        <SelectItem value="durable">Durable</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="item-qty" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Quantity Requested</Label>
+                  <NumberField
+                    id="item-qty"
+                    value={itemQty}
+                    onChange={setItemQty}
+                    min={1}
+                    className="input-dark text-foreground font-mono"
+                  />
                 </div>
 
                 <Button onClick={handleAddItem} className="w-full text-xs font-semibold" variant="outline">
@@ -315,19 +293,21 @@ function StoreRequestContent() {
                 {items.length > 0 && (
                   <div className="pt-4 border-t border-border space-y-2">
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">Items Added:</span>
-                    <ul className="space-y-2">
+                    <div className="space-y-2">
                       {items.map((it, idx) => (
-                        <li key={idx} className="flex justify-between items-center bg-background/40 border border-border p-2 rounded-lg text-xs text-foreground">
-                          <div>
-                            <span className="font-bold">{it.name}</span>
-                            <span className="text-[10px] text-muted-foreground block capitalize">{it.category} • Qty {it.quantity}</span>
+                        <div key={idx} className="flex justify-between items-center bg-background/40 border border-border p-2.5 rounded-xl text-xs text-foreground">
+                          <span className="font-bold text-foreground">{it.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-amber-500 text-xs px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                              × {it.quantity}
+                            </span>
+                            <button onClick={() => handleRemoveItem(idx)} className="text-red-500 hover:text-red-400 font-semibold px-1">
+                              ✕
+                            </button>
                           </div>
-                          <button onClick={() => handleRemoveItem(idx)} className="text-red-500 hover:text-red-400 font-semibold px-2">
-                            ✕
-                          </button>
-                        </li>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                     <Button onClick={handleSubmitRequest} disabled={loading} className="w-full mt-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white">
                       {loading ? 'Submitting...' : 'Submit Requisition Plan'}
                     </Button>
@@ -364,24 +344,46 @@ function StoreRequestContent() {
                               req.status === 'approved' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
                               req.status === 'in_progress' ? { background: 'rgba(139,92,246,0.1)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.2)' } :
                               req.status === 'partially_fulfilled' ? { background: 'rgba(236,72,153,0.1)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.2)' } :
+                              (req.status as string) === 'ready_for_collection' ? { background: 'rgba(245,158,11,0.2)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.4)' } :
                               req.status === 'delivered' ? { background: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' } :
                               { background: 'rgba(239,68,68,0.1)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.2)' }
                             }
                           >
-                            {req.status === 'pending_coordinator' ? 'Pending' : req.status === 'partially_fulfilled' ? 'Partial' : req.status === 'in_progress' ? 'In Progress' : req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                            {req.status === 'pending_coordinator' ? 'Pending' :
+                             req.status === 'partially_fulfilled' ? 'Partial' :
+                             req.status === 'in_progress' ? 'In Progress' :
+                             (req.status as string) === 'ready_for_collection' ? 'Ready for Collection' :
+                             req.status.charAt(0).toUpperCase() + req.status.slice(1)}
                           </span>
                         </div>
 
-                        {/* List items requested */}
-                        <div className="p-3 bg-background/40 border border-border rounded-lg space-y-1.5">
+                        {/* List items requested - Structured Vertical Card Layout */}
+                        <div className="p-3 bg-background/40 border border-border rounded-lg space-y-2">
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Requisition Ledger:</span>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                            {req.items_json.map((it, itIdx) => (
-                              <div key={itIdx} className="flex justify-between border-b border-border/40 pb-1">
-                                <span className="text-foreground font-medium">{it.name} <span className="text-[10px] text-muted-foreground capitalize">({it.category})</span></span>
-                                <span className="font-bold text-foreground font-mono">x {it.quantity}</span>
-                              </div>
-                            ))}
+                          <div className="space-y-1.5 text-xs">
+                            {req.items_json.map((it: any, itIdx: number) => {
+                              const reqQty = it.requested_quantity ?? it.quantity
+                              const appQty = it.approved_quantity ?? it.quantity
+                              const isAdjusted = reqQty !== undefined && appQty !== undefined && reqQty !== appQty
+
+                              return (
+                                <div key={itIdx} className="flex justify-between items-center p-2 rounded-lg bg-background/60 border border-border/50">
+                                  <span className="text-foreground font-semibold">{it.name}</span>
+                                  <div className="flex items-center gap-2">
+                                    {isAdjusted ? (
+                                      <span className="font-mono text-xs">
+                                        <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
+                                        <span className="font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
+                                      </span>
+                                    ) : (
+                                      <span className="font-mono font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded">
+                                        × {appQty || reqQty}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )
+                            })}
                           </div>
                         </div>
 

@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, CheckCheck, Package, FileText, AlertTriangle, ExternalLink } from 'lucide-react'
 import { getClient, isMock, store } from '@/utils/supabase'
+import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 
 export interface NotificationItem {
   id: string
@@ -25,7 +26,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
   const [loading, setLoading] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!userId) return
     setLoading(true)
 
@@ -51,45 +52,26 @@ export function NotificationBell({ userId }: { userId?: string }) {
       setUnreadCount(data.filter((n: NotificationItem) => !n.read).length)
     }
     setLoading(false)
-  }
+  }, [userId])
+
+  // Shared Realtime Subscription scoped to current user's notifications
+  useRealtimeSubscription({
+    channelName: `notifications-user-${userId}`,
+    subscriptions: [
+      {
+        table: 'notifications',
+        filter: userId ? `recipient_id=eq.${userId}` : undefined,
+      },
+    ],
+    onDataChange: () => fetchNotifications(),
+    enabled: !!userId,
+  })
 
   useEffect(() => {
     if (!userId) return
     fetchNotifications()
 
-    if (isMock) return
-
-    const supabase: any = getClient()
-
-    // 1. Supabase Realtime Subscription for Live Unread Count & Toast Alerts
-    const channel = supabase
-      .channel(`notifications-user-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `recipient_id=eq.${userId}`,
-        },
-        (payload: any) => {
-          const newNotif = payload.new as NotificationItem
-          setNotifications(prev => [newNotif, ...prev])
-          setUnreadCount(prev => prev + 1)
-        }
-      )
-      .subscribe()
-
-    // 2. Foreground Visibility Catch-up (re-fetch count when returning from background tab/app)
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        fetchNotifications()
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    // 3. Outside Click Listener to Close Dropdown Panel
+    // Outside Click Listener to Close Dropdown Panel
     const handleClickOutside = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setIsOpen(false)
@@ -97,13 +79,10 @@ export function NotificationBell({ userId }: { userId?: string }) {
     }
 
     document.addEventListener('mousedown', handleClickOutside)
-
     return () => {
-      supabase.removeChannel(channel)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [userId])
+  }, [userId, fetchNotifications])
 
   const markAsRead = async (id: string, relatedId?: string, relatedType?: string) => {
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
