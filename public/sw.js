@@ -1,42 +1,73 @@
-const CACHE_NAME = 'dtce-reports-cache-v1';
-const urlsToCache = [
+const CACHE_NAME = 'dtce-reports-shell-v2';
+
+// Core routes and static assets that constitute the app shell
+const APP_SHELL = [
+  '/',
   '/login',
   '/dashboard',
   '/my-department',
+  '/my-department/daily-log',
+  '/dashboard/reports',
+  '/dashboard/store-requisitions',
+  '/dashboard/manual-entry',
+  '/icon-192.png',
+  '/icon-192-maskable.png',
+  '/icon-512.png',
+  '/icon-512-maskable.png',
+  '/apple-touch-icon.png',
   '/dtce-logo.png',
   '/manifest.json'
 ];
 
+// Install Event — Pre-cache App Shell
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('[SW] Pre-caching App Shell');
+      return cache.addAll(APP_SHELL).catch(err => {
+        console.warn('[SW] App Shell partial cache warning:', err);
+      });
+    })
   );
 });
 
+// Activate Event — Clean old caches and claim clients immediately
 self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames
+          .filter(name => name !== CACHE_NAME)
+          .map(name => {
+            console.log('[SW] Deleting legacy cache:', name);
+            return caches.delete(name);
+          })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
+// Fetch Event — Handle Navigation and Static Assets Strategy
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // 1. Bypass non-GET requests, API routes, and Supabase calls
-  if (event.request.method !== 'GET' || 
-      url.pathname.startsWith('/api') || 
-      url.pathname.includes('/auth/v1') ||
-      url.hostname.includes('supabase.co')) {
-    return; // Let the browser handle natively
+  // 1. Bypass non-GET requests, API routes, Supabase endpoints, and auth callback
+  if (
+    event.request.method !== 'GET' ||
+    url.pathname.startsWith('/api') ||
+    url.pathname.includes('/auth/v1') ||
+    url.hostname.includes('supabase.co')
+  ) {
+    return;
   }
 
-  // 2. Navigation requests: Network-First, Cache-Fallback
+  // 2. Navigation Requests (HTML pages): Network-First with Cache Fallback
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then(networkResponse => {
-          // Cache the live version for offline fallback
-          if (networkResponse.status === 200) {
+          if (networkResponse && networkResponse.status === 200) {
             const cacheCopy = networkResponse.clone();
             caches.open(CACHE_NAME).then(cache => {
               cache.put(event.request, cacheCopy);
@@ -44,51 +75,84 @@ self.addEventListener('fetch', event => {
           }
           return networkResponse;
         })
-        .catch(() => {
-          // Offline fallback
-          return caches.match(event.request)
-            .then(cachedResponse => {
-              return cachedResponse || caches.match('/my-department');
-            });
+        .catch(async () => {
+          console.log('[SW] Network unavailable. Serving cached navigation for:', url.pathname);
+          const cachedResponse = await caches.match(event.request);
+          if (cachedResponse) return cachedResponse;
+
+          // Generic fallback to cached dashboard or offline page
+          const fallbackDashboard = await caches.match('/dashboard');
+          if (fallbackDashboard) return fallbackDashboard;
+
+          const fallbackLogin = await caches.match('/login');
+          if (fallbackLogin) return fallbackLogin;
+
+          return new Response(
+            `<!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="utf-8"/>
+              <meta name="viewport" content="width=device-width, initial-scale=1"/>
+              <title>DTCE Reports — Offline</title>
+              <style>
+                body { background: #06090F; color: #F1F5F9; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; padding: 20px; }
+                .card { background: #0F1A2E; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+                h1 { color: #F59E0B; margin-top: 0; font-size: 20px; }
+                p { color: #94A3B8; font-size: 14px; line-height: 1.5; }
+                button { background: #3B82F6; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <h1>DTCE Reports — Offline</h1>
+                <p>You are currently offline. Pages you've previously visited remain available, and form submissions will sync automatically once network connectivity is restored.</p>
+                <button onclick="window.location.reload()">Retry Connection</button>
+              </div>
+            </body>
+            </html>`,
+            { headers: { 'Content-Type': 'text/html' } }
+          );
         })
     );
     return;
   }
 
-  // 3. Static Assets & Cached URLs: Cache-First, Network-Fallback
-  const isStaticAsset = url.pathname.startsWith('/_next/') || 
-                        url.pathname.endsWith('.png') || 
-                        url.pathname.endsWith('.jpg') || 
-                        url.pathname.endsWith('.svg') || 
-                        url.pathname.endsWith('.css') || 
-                        url.pathname.endsWith('.js') || 
-                        url.pathname.endsWith('.json') ||
-                        urlsToCache.includes(url.pathname);
+  // 3. Static Assets: Cache-First, Network-Fallback with Cache Update
+  const isStaticAsset =
+    url.pathname.startsWith('/_next/') ||
+    url.pathname.endsWith('.png') ||
+    url.pathname.endsWith('.jpg') ||
+    url.pathname.endsWith('.jpeg') ||
+    url.pathname.endsWith('.svg') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.json') ||
+    APP_SHELL.includes(url.pathname);
 
   if (isStaticAsset) {
     event.respondWith(
-      caches.match(event.request)
-        .then(cachedResponse => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          return fetch(event.request).then(networkResponse => {
-            if (networkResponse.status === 200) {
+      caches.match(event.request).then(cachedResponse => {
+        if (cachedResponse) {
+          // Serve cached version immediately, update cache in background
+          fetch(event.request).then(networkResponse => {
+            if (networkResponse && networkResponse.status === 200) {
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse));
+            }
+          }).catch(() => {});
+          return cachedResponse;
+        }
+
+        return fetch(event.request)
+          .then(networkResponse => {
+            if (networkResponse && networkResponse.status === 200) {
               const cacheCopy = networkResponse.clone();
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, cacheCopy);
-              });
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, cacheCopy));
             }
             return networkResponse;
-          }).catch(() => {
-            // Fallback gracefully to network failure
-            return new Response('Network error fetching static asset', { status: 408 });
-          });
-        })
+          })
+          .catch(() => new Response('Asset unavailable offline', { status: 503 }));
+      })
     );
     return;
   }
-
-  // 4. Default: Let browser handle natively
-  return;
 });

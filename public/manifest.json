@@ -1,24 +1,37 @@
 {
-  "name": "DTCE Reporting System",
-  "short_name": "DTCE Reports",
-  "description": "Progressive Web App for DTCE Convention Daily Reporting and Collation",
-  "start_url": "/dashboard",
+  "name": "DTCE Reporting",
+  "short_name": "DTCE",
+  "description": "Secure departmental reporting tools for DTCE Junior Church Global convention operations.",
+  "start_url": "/",
+  "id": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#1B3A6B",
-  "theme_color": "#1B3A6B",
+  "background_color": "#06090F",
+  "theme_color": "#0F2A4A",
   "icons": [
     {
-      "src": "/dtce-logo.png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/dtce-logo.png",
+      "src": "/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

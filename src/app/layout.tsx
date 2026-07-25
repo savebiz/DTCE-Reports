@@ -1,7 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { EventThemeProvider } from "@/components/event-theme-provider";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
+
+export const viewport: Viewport = {
+  themeColor: "#0F2A4A",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export const metadata: Metadata = {
   title: {
@@ -10,26 +18,30 @@ export const metadata: Metadata = {
   },
   description:
     "Secure departmental reporting tools for DTCE Junior Church Global convention operations.",
-  applicationName: "DTCE Reports",
+  applicationName: "DTCE Reporting",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "DTCE Reports",
+  },
   keywords: ["DTCE", "Junior Church", "RCCG", "Convention", "Daily Report"],
   authors: [{ name: "DTCE Junior Church Global" }],
   icons: {
     icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/dtce-logo.png", type: "image/png" },
     ],
-    apple: "/apple-touch-icon.png",
-    shortcut: "/dtce-logo.png",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/icon-192.png",
   },
   manifest: "/manifest.json",
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#06090F" },
-    { media: "(prefers-color-scheme: light)", color: "#F7F5F0" },
-  ],
   openGraph: {
     title: "DTCE Daily Reporting System",
     description: "Secure departmental reporting for DTCE Junior Church Global.",
     siteName: "DTCE Reports",
-    images: [{ url: "/dtce-logo.png", width: 512, height: 512 }],
+    images: [{ url: "/icon-512.png", width: 512, height: 512 }],
     type: "website",
   },
 };
@@ -50,6 +62,7 @@ export default function RootLayout({
         >
           <EventThemeProvider>
             {children}
+            <PwaInstallPrompt />
           </EventThemeProvider>
         </ThemeProvider>
         <script
