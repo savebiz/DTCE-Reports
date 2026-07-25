@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { SchemaFormRenderer } from '@/components/schema-form-renderer'
+import { CheckCircle2, RotateCcw, Check, AlertCircle } from 'lucide-react'
 
 interface Comment {
   id: string
@@ -88,7 +89,29 @@ export default function SecretariatDashboard() {
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedKPIDay, setSelectedKPIDay] = useState<string>('day-1')
   
+  // Challenge Resolutions state
+  const [resolutionsMap, setResolutionsMap] = useState<Record<string, any>>({})
+  const [resolvingItem, setResolvingItem] = useState<any | null>(null)
+  const [resolutionNoteInput, setResolutionNoteInput] = useState('')
+  const [resolvingLoading, setResolvingLoading] = useState(false)
+  
   const isCoordinatorAssistant = profile?.role === 'assistant'
+
+  const loadResolutions = async () => {
+    try {
+      const res = await fetch('/api/challenges/resolve')
+      const data = await res.json()
+      if (data.resolutions && Array.isArray(data.resolutions)) {
+        const map: Record<string, any> = {}
+        data.resolutions.forEach((r: any) => {
+          map[r.challenge_key] = r
+        })
+        setResolutionsMap(map)
+      }
+    } catch (err) {
+      console.warn('Failed to load challenge resolutions:', err)
+    }
+  }
 
   const loadData = async () => {
     const supabase = getClient()
@@ -146,6 +169,8 @@ export default function SecretariatDashboard() {
       .select('*')
       .in('role', ['super_admin', 'coordinator', 'national_coordinator', 'assistant'])
     setApprovers(allUsers || [])
+
+    await loadResolutions()
   }
 
   useEffect(() => {
@@ -320,6 +345,10 @@ export default function SecretariatDashboard() {
       dayId: string
       challenges: string
       solutions?: string
+      status: 'open' | 'resolved'
+      resolutionNote?: string
+      resolvedByName?: string
+      resolvedAt?: string
     }> = []
 
     reports.forEach(r => {
@@ -330,13 +359,19 @@ export default function SecretariatDashboard() {
       if (challengeText && String(challengeText).trim().length > 0) {
         const dept = departments.find(d => d.id === r.department_id)
         const day = eventDays.find(e => isSameEventDay(e.id, r.event_day_id, eventDays))
+        const key = `rep-${r.id}`
+        const res = resolutionsMap[key]
         list.push({
-          id: `rep-${r.id}`,
+          id: key,
           deptName: dept?.name || 'Department',
           dayNumber: day?.day_number || 1,
           dayId: r.event_day_id,
           challenges: String(challengeText).trim(),
           solutions: solutionText ? String(solutionText).trim() : undefined,
+          status: res?.resolution_status === 'resolved' ? 'resolved' : 'open',
+          resolutionNote: res?.resolution_note || undefined,
+          resolvedByName: res?.resolved_by_name || undefined,
+          resolvedAt: res?.resolved_at || undefined,
         })
       }
     })
@@ -345,22 +380,94 @@ export default function SecretariatDashboard() {
       if (n.challenges && n.challenges.trim().length > 0) {
         const dept = departments.find(d => d.id === n.department_id)
         const day = eventDays.find(e => isSameEventDay(e.id, n.event_day_id, eventDays))
+        const key = `narr-${n.id}`
+        const res = resolutionsMap[key]
         const exists = list.some(item => item.deptName === (dept?.name || 'Department') && item.challenges === n.challenges.trim())
         if (!exists) {
           list.push({
-            id: `narr-${n.id}`,
+            id: key,
             deptName: dept?.name || 'Department',
             dayNumber: day?.day_number || 1,
             dayId: n.event_day_id,
             challenges: n.challenges.trim(),
             solutions: n.solutions ? n.solutions.trim() : undefined,
+            status: res?.resolution_status === 'resolved' ? 'resolved' : 'open',
+            resolutionNote: res?.resolution_note || undefined,
+            resolvedByName: res?.resolved_by_name || undefined,
+            resolvedAt: res?.resolved_at || undefined,
           })
         }
       }
     })
 
-    return list
-  }, [reports, narratives, departments, eventDays])
+    // Open challenges at top; Resolved challenges at bottom, sorted by most-recently-resolved first
+    const openItems = list.filter(i => i.status === 'open')
+    const resolvedItems = list.filter(i => i.status === 'resolved').sort((a, b) => {
+      return new Date(b.resolvedAt || 0).getTime() - new Date(a.resolvedAt || 0).getTime()
+    })
+
+    return [...openItems, ...resolvedItems]
+  }, [reports, narratives, departments, eventDays, resolutionsMap])
+
+  const handleConfirmResolve = async () => {
+    if (!resolvingItem) return
+    setResolvingLoading(true)
+
+    try {
+      const res = await fetch('/api/challenges/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          challengeKey: resolvingItem.id,
+          status: 'resolved',
+          resolutionNote: resolutionNoteInput.trim() || undefined
+        })
+      })
+      const data = await res.json()
+
+      if (data.success && data.resolution) {
+        setResolutionsMap(prev => ({
+          ...prev,
+          [resolvingItem.id]: data.resolution
+        }))
+        showToast(`Challenge for ${resolvingItem.deptName} marked as treated / resolved`, 'success')
+        setResolvingItem(null)
+        setResolutionNoteInput('')
+      } else {
+        showToast(data.error || 'Failed to update challenge status', 'error')
+      }
+    } catch (err: any) {
+      showToast(`Error: ${err.message}`, 'error')
+    } finally {
+      setResolvingLoading(false)
+    }
+  }
+
+  const handleReopenChallenge = async (challengeKey: string, deptName: string) => {
+    try {
+      const res = await fetch('/api/challenges/resolve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          challengeKey,
+          status: 'open'
+        })
+      })
+      const data = await res.json()
+
+      if (data.success) {
+        setResolutionsMap(prev => ({
+          ...prev,
+          [challengeKey]: { resolution_status: 'open' }
+        }))
+        showToast(`Challenge for ${deptName} reopened`, 'success')
+      } else {
+        showToast(data.error || 'Failed to reopen challenge', 'error')
+      }
+    } catch (err: any) {
+      showToast(`Error: ${err.message}`, 'error')
+    }
+  }
 
   const getCellStatusStyle = (deptId: string, dayId: string): React.CSSProperties => {
     const report = reports.find(r => r.department_id === deptId && isSameEventDay(r.event_day_id, dayId, eventDays))
@@ -725,29 +832,117 @@ export default function SecretariatDashboard() {
         {/* TAB 4: REPORTED CHALLENGES */}
         {activeTab === 'challenges' && (
           <Card className="glass-card border-none animate-fade-in-up">
-            <CardHeader>
-              <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                Aggregated Operational Challenges &amp; Solutions
-              </CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between gap-4 flex-wrap">
+              <div>
+                <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
+                  Aggregated Operational Challenges &amp; Solutions
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Review departmental bottlenecks, track resolutions, and log corrective actions.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-bold text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">
+                  {aggregatedChallenges.filter(c => c.status === 'open').length} Open
+                </span>
+                <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                  {aggregatedChallenges.filter(c => c.status === 'resolved').length} Treated
+                </span>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               {aggregatedChallenges.length === 0 ? (
-                <p className="text-xs text-muted-foreground italic">No operational challenges reported across departments yet.</p>
+                <p className="text-xs text-muted-foreground italic p-4 text-center">No operational challenges reported across departments yet.</p>
               ) : (
-                aggregatedChallenges.map((item) => (
-                  <div key={item.id} className="p-4 rounded-xl border border-border space-y-2 bg-background/25">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="font-bold text-foreground">{item.deptName} Department</span>
-                      <span className="text-[10px] font-semibold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">Day {item.dayNumber}</span>
-                    </div>
-                    <div className="text-xs space-y-1">
-                      <p className="text-red-400"><strong className="text-muted-foreground uppercase tracking-wider text-[10px] block">Challenge:</strong> {item.challenges}</p>
-                      {item.solutions && (
-                        <p className="text-emerald-400"><strong className="text-muted-foreground uppercase tracking-wider text-[10px] block mt-1">Proposed Solution:</strong> {item.solutions}</p>
+                aggregatedChallenges.map((item) => {
+                  const isResolved = item.status === 'resolved'
+
+                  return (
+                    <div
+                      key={item.id}
+                      className={`p-4 rounded-xl border transition-all duration-200 space-y-3 ${
+                        isResolved
+                          ? 'bg-slate-900/30 border-emerald-500/20 opacity-80 hover:opacity-100'
+                          : 'bg-background/40 border-border hover:border-slate-700'
+                      }`}
+                    >
+                      {/* Header Row */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-foreground">{item.deptName} Department</span>
+                          <span className="text-[10px] font-semibold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                            Day {item.dayNumber}
+                          </span>
+                        </div>
+                        {isResolved ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                            <CheckCircle2 size={12} />
+                            <span>Treated / Resolved</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/30">
+                            <AlertCircle size={12} />
+                            <span>Open Bottlenecks</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Content Row */}
+                      <div className="text-xs space-y-2">
+                        <p className={isResolved ? 'text-slate-300' : 'text-red-400'}>
+                          <strong className="text-muted-foreground uppercase tracking-wider text-[10px] block">Challenge:</strong> {item.challenges}
+                        </p>
+                        {item.solutions && (
+                          <p className="text-emerald-400">
+                            <strong className="text-muted-foreground uppercase tracking-wider text-[10px] block mt-1">Proposed Solution:</strong> {item.solutions}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Resolved Details & Note Box */}
+                      {isResolved && (
+                        <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/20 space-y-1 text-xs">
+                          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
+                            <CheckCircle2 size={13} />
+                            <span>Resolved by {item.resolvedByName || 'Secretariat Staff'} {item.resolvedAt ? `on ${new Date(item.resolvedAt).toLocaleDateString()} at ${new Date(item.resolvedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+                          </div>
+                          {item.resolutionNote && (
+                            <p className="text-slate-300 text-xs pl-4 border-l-2 border-emerald-500/40 mt-1 italic">
+                              "{item.resolutionNote}"
+                            </p>
+                          )}
+                        </div>
                       )}
+
+                      {/* Actions Footer Row */}
+                      <div className="pt-2 border-t border-border/40 flex justify-end">
+                        {isResolved ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleReopenChallenge(item.id, item.deptName)}
+                            className="h-8 px-3 text-xs border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white"
+                          >
+                            <RotateCcw size={12} className="mr-1.5" />
+                            <span>Reopen Challenge</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setResolvingItem(item)
+                              setResolutionNoteInput('')
+                            }}
+                            className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-xs"
+                          >
+                            <Check size={13} className="mr-1.5" />
+                            <span>Mark as Treated</span>
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </CardContent>
           </Card>
@@ -1069,6 +1264,63 @@ export default function SecretariatDashboard() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* ── RESOLUTION CONFIRMATION MODAL ── */}
+      {resolvingItem && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-emerald-400" />
+                <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Mark Challenge as Treated</h3>
+              </div>
+              <button
+                onClick={() => setResolvingItem(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1 text-xs">
+              <div className="flex justify-between items-center text-slate-400 font-semibold">
+                <span>{resolvingItem.deptName} Department</span>
+                <span>Day {resolvingItem.dayNumber}</span>
+              </div>
+              <p className="text-red-400 font-sans mt-1">"{resolvingItem.challenges}"</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-slate-300">
+                Resolution Note <span className="text-slate-500 font-normal">(Optional: What was done to address this?)</span>
+              </Label>
+              <Textarea
+                value={resolutionNoteInput}
+                onChange={(e) => setResolutionNoteInput(e.target.value)}
+                placeholder="e.g. Dispatched 50 extra mattresses via General Welfare and assigned 2 additional personnel."
+                className="bg-slate-950/80 border-slate-700 text-xs text-slate-100 min-h-[90px] focus:border-emerald-500"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setResolvingItem(null)}
+                className="text-xs border-slate-700 text-slate-300 hover:bg-slate-800"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmResolve}
+                disabled={resolvingLoading}
+                className="text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white"
+              >
+                {resolvingLoading ? 'Saving...' : 'Confirm Treated'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

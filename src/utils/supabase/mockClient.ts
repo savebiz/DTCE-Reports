@@ -101,6 +101,13 @@ class MockSupabaseStore {
   set assignments(val: any[]) {
     setStorageItem('dtce_mock_assignments', val)
   }
+
+  get challengeResolutions(): any[] {
+    return getStorageItem('dtce_mock_challenge_resolutions', [])
+  }
+  set challengeResolutions(val: any[]) {
+    setStorageItem('dtce_mock_challenge_resolutions', val)
+  }
 }
 
 export const store = new MockSupabaseStore()
