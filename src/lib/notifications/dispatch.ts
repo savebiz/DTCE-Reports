@@ -1,4 +1,3 @@
-import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
 import { sendWebPushNotification, PushSubscriptionObj } from './webpush'
@@ -75,10 +74,10 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
       const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
-      let supabase: any
       if (serviceKey && supabaseUrl) {
         supabase = createSupabaseAdminClient(supabaseUrl, serviceKey)
       } else {
+        const { createClient: createServerClient } = await import('@/utils/supabase/server')
         supabase = await createServerClient()
       }
 
