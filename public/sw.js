@@ -176,7 +176,9 @@ self.addEventListener('push', event => {
     body: data.body,
     icon: data.icon || '/icon-192.png',
     badge: '/icon-192.png',
-    vibrate: [100, 50, 100],
+    vibrate: [200, 100, 200],
+    silent: false,
+    requireInteraction: false,
     data: data.data || { url: '/dashboard' },
     actions: [
       { action: 'open', title: 'Open DTCE App' }

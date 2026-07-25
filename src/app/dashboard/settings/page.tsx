@@ -491,6 +491,28 @@ function SettingsContent() {
                     <span>Web Push Manager is not supported on this browser version. In-App and Email alerts remain active.</span>
                   </div>
                 )}
+
+                {/* Device & Platform Specific Notification Notes */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
+                    <div className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
+                      <Info size={13} />
+                      Android Sound &amp; Vibration Settings
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Android 8+ gates sound and vibration per-site via a device Notification Channel created when notifications are first granted. If notifications appear silently, check <strong>Phone Settings &rarr; Apps &rarr; Chrome/DTCE &rarr; Notifications</strong> and ensure sound and vibration are enabled.
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
+                    <div className="text-[11px] font-bold text-purple-400 flex items-center gap-1.5">
+                      <Info size={13} />
+                      iOS Safari Vibration Notice
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      On installed iOS PWAs (iOS 16.4+), sound alerts play according to your device sound profile. Custom vibration pulse patterns are restricted by Apple iOS Safari system policy.
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
