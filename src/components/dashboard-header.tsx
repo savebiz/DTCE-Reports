@@ -6,6 +6,7 @@ import { getClient, isMock, mockDepartments } from '@/utils/supabase'
 import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, PackageOpen, Settings, FileEdit } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { NotificationBell } from '@/components/notification-bell'
 
 const NAV_ITEMS = [
   { label: 'Overview',       href: '/dashboard',                   icon: LayoutGrid },
@@ -235,9 +236,9 @@ export function DashboardHeader() {
             )}
           </div>
 
-          {/* Right — Theme toggle + Role badge + User + Sign out */}
+          {/* Right — Theme toggle & Notification Bell + Role badge + User + Sign out */}
           <div className="flex items-center gap-3">
-            {/* Theme toggle */}
+            <NotificationBell userId={user?.id || profile?.id || (isMock ? 'mock-admin' : undefined)} />
             <ThemeToggle compact />
 
             {/* Role badge */}

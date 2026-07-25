@@ -189,15 +189,44 @@ function StoreRequestContent() {
     }
 
     try {
-      const { error } = await supabase.from('store_requests').insert({
-        requester_profile_id: profile.id,
-        department_id: profile.department_id,
-        event_id: activeEvent.id,
-        items_json: items,
-        status: 'pending_coordinator'
-      })
+      const { data: newReqs, error } = await supabase
+        .from('store_requests')
+        .insert({
+          requester_profile_id: profile.id,
+          department_id: profile.department_id,
+          event_id: activeEvent.id,
+          items_json: items,
+          status: 'pending_coordinator'
+        })
+        .select()
+
+      const newReq = Array.isArray(newReqs) ? newReqs[0] : newReqs
 
       if (error) throw error
+
+      // Notify National Coordinator & Super Admins of new submission
+      const { data: coords } = await supabase
+        .from('profiles')
+        .select('id')
+        .in('role', ['national_coordinator', 'super_admin', 'coordinator'])
+
+      if (coords) {
+        const { data: deptRow } = await supabase.from('departments').select('name').eq('id', profile.department_id).maybeSingle()
+        const deptName = deptRow?.name || 'Department'
+        for (const coord of coords) {
+          await fetch('/api/notifications/dispatch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipientId: coord.id,
+              type: 'requisition_submitted',
+              title: `New Store Requisition: ${deptName}`,
+              body: `${profile.full_name || 'HOD'} submitted a store requisition with ${items.length} items for ${deptName}.`,
+              relatedEntity: { type: 'requisition', id: newReq?.id || '' }
+            })
+          }).catch(console.error)
+        }
+      }
 
       showToast('Material Requisition submitted to National Coordinator!', 'success')
       setItems([])

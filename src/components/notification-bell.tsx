@@ -1,0 +1,266 @@
+'use client'
+
+import React, { useEffect, useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { Bell, CheckCheck, Package, FileText, AlertTriangle, ExternalLink } from 'lucide-react'
+import { getClient, isMock, store } from '@/utils/supabase'
+
+export interface NotificationItem {
+  id: string
+  recipient_id: string
+  type: string
+  title: string
+  body: string
+  related_entity_type?: string
+  related_entity_id?: string
+  read: boolean
+  created_at: string
+}
+
+export function NotificationBell({ userId }: { userId?: string }) {
+  const router = useRouter()
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [isOpen, setIsOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  const fetchNotifications = async () => {
+    if (!userId) return
+    setLoading(true)
+
+    if (isMock) {
+      const allLogs = store.notificationLogs || []
+      const userNotifs = allLogs.filter((n: any) => n.recipient_id === userId || !n.recipient_id)
+      setNotifications(userNotifs)
+      setUnreadCount(userNotifs.filter((n: any) => !n.read).length)
+      setLoading(false)
+      return
+    }
+
+    const supabase: any = getClient()
+    const { data } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('recipient_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(30)
+
+    if (data) {
+      setNotifications(data)
+      setUnreadCount(data.filter((n: NotificationItem) => !n.read).length)
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    if (!userId) return
+    fetchNotifications()
+
+    if (isMock) return
+
+    const supabase: any = getClient()
+
+    // 1. Supabase Realtime Subscription for Live Unread Count & Toast Alerts
+    const channel = supabase
+      .channel(`notifications-user-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `recipient_id=eq.${userId}`,
+        },
+        (payload: any) => {
+          const newNotif = payload.new as NotificationItem
+          setNotifications(prev => [newNotif, ...prev])
+          setUnreadCount(prev => prev + 1)
+        }
+      )
+      .subscribe()
+
+    // 2. Foreground Visibility Catch-up (re-fetch count when returning from background tab/app)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchNotifications()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    // 3. Outside Click Listener to Close Dropdown Panel
+    const handleClickOutside = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      supabase.removeChannel(channel)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [userId])
+
+  const markAsRead = async (id: string, relatedId?: string, relatedType?: string) => {
+    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
+    setUnreadCount(prev => Math.max(0, prev - 1))
+
+    if (!isMock) {
+      const supabase: any = getClient()
+      await supabase.from('notifications').update({ read: true }).eq('id', id)
+    } else {
+      const logs = store.notificationLogs
+      store.notificationLogs = logs.map((n: any) => (n.id === id ? { ...n, read: true } : n))
+    }
+
+    setIsOpen(false)
+
+    if (relatedType === 'requisition' || relatedId) {
+      router.push(`/dashboard/store-requisitions?id=${relatedId || ''}`)
+    }
+  }
+
+  const markAllAsRead = async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+    setUnreadCount(0)
+
+    if (!isMock && userId) {
+      const supabase: any = getClient()
+      await supabase.from('notifications').update({ read: true }).eq('recipient_id', userId).eq('read', false)
+    } else {
+      const logs = store.notificationLogs
+      store.notificationLogs = logs.map((n: any) => ({ ...n, read: true }))
+    }
+  }
+
+  const formatRelativeTime = (isoString: string) => {
+    try {
+      const diffSec = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000)
+      if (diffSec < 60) return 'Just now'
+      if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`
+      if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`
+      return `${Math.floor(diffSec / 86400)}d ago`
+    } catch {
+      return 'Recently'
+    }
+  }
+
+  if (!userId) return null
+
+  return (
+    <div className="relative inline-block" ref={panelRef}>
+      {/* Bell Trigger Button */}
+      <button
+        onClick={() => {
+          setIsOpen(prev => !prev)
+          if (!isOpen) fetchNotifications()
+        }}
+        className="relative flex items-center justify-center h-9 w-9 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors focus:outline-none cursor-pointer"
+        aria-label="Notifications"
+      >
+        <Bell size={18} />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-extrabold text-white animate-pulse">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {/* Notification Dropdown Panel */}
+      {isOpen && (
+        <div
+          className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border shadow-2xl backdrop-blur-2xl z-[999] overflow-hidden animate-fade-in-up"
+          style={{
+            background: 'rgba(15, 26, 46, 0.96)',
+            borderColor: 'rgba(255, 255, 255, 0.12)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(59,130,246,0.1)',
+          }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-slate-950/40">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                Notifications
+              </span>
+              {unreadCount > 0 && (
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                  {unreadCount} new
+                </span>
+              )}
+            </div>
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                className="flex items-center gap-1 text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+              >
+                <CheckCheck size={13} />
+                Mark all read
+              </button>
+            )}
+          </div>
+
+          {/* Notification Items List */}
+          <div className="max-h-80 overflow-y-auto divide-y divide-white/5 scrollbar-thin">
+            {loading && notifications.length === 0 ? (
+              <div className="py-8 text-center text-xs text-slate-400">Loading notifications...</div>
+            ) : notifications.length === 0 ? (
+              <div className="py-10 text-center space-y-1 px-4">
+                <Bell size={24} className="mx-auto text-slate-500 opacity-40" />
+                <p className="text-xs font-medium text-slate-400">No notifications yet</p>
+                <p className="text-[11px] text-slate-500">You're all caught up with your operational alerts.</p>
+              </div>
+            ) : (
+              notifications.map(n => (
+                <div
+                  key={n.id}
+                  onClick={() => markAsRead(n.id, n.related_entity_id, n.related_entity_type)}
+                  className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer hover:bg-white/5 ${
+                    !n.read ? 'bg-blue-500/5' : 'bg-transparent'
+                  }`}
+                >
+                  <div className="mt-0.5 shrink-0">
+                    {n.type.includes('requisition') ? (
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <Package size={14} />
+                      </span>
+                    ) : n.type.includes('stale') ? (
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10 text-red-400 border border-red-500/20">
+                        <AlertTriangle size={14} />
+                      </span>
+                    ) : (
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        <FileText size={14} />
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h5 className={`text-xs truncate ${!n.read ? 'font-bold text-slate-100' : 'font-semibold text-slate-300'}`}>
+                        {n.title}
+                      </h5>
+                      <span className="text-[10px] text-slate-500 shrink-0 font-mono">
+                        {formatRelativeTime(n.created_at)}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-snug">
+                      {n.body}
+                    </p>
+                  </div>
+
+                  {!n.read && (
+                    <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

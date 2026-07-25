@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { isMock, mockDepartments, mockProfiles, Profile } from '@/utils/supabase'
+import { isMock, mockDepartments, Profile } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
 import { createClient } from '@/utils/supabase/server'
+import { notify } from '@/lib/notifications/dispatch'
 
 export async function POST(request: Request) {
   try {
@@ -46,79 +47,39 @@ export async function POST(request: Request) {
     const missingDepts = departments.filter(d => !submittedDeptIds.has(d.id))
     const missingDeptsNames = missingDepts.map(d => d.name)
 
-    const notificationEntries: any[] = []
+    const results: any[] = []
 
-    // 1. Generate reminders for HODs of missing departments
-    missingDepts.forEach(dept => {
+    // 1. Dispatch reminders for HODs of missing departments via unified notify() service
+    for (const dept of missingDepts) {
       const hods = profiles.filter(p => p.department_id === dept.id && (p.role === 'hod' || p.role === 'assistant'))
       
-      hods.forEach(hod => {
-        const body = `Dear ${hod.full_name},\n\nThis is a reminder that the daily report for the ${dept.name} Department is missing for Day ${dayNumber} of the convention.\n\nPlease log in to the DTCE Reporting System to enter today's metrics and narrative before the ${cutoffTime} cutoff.\n\nThank you,\nDTCE Secretariat`
+      for (const hod of hods) {
+        const body = `Reminder: The daily report for the ${dept.name} Department is missing for Day ${dayNumber}.\n\nPlease log in to enter today's metrics and narrative before the ${cutoffTime} cutoff.`
         
-        notificationEntries.push({
-          id: 'notif-' + Math.random().toString(36).substr(2, 9),
-          recipient: hod.email,
-          recipient_name: hod.full_name,
-          subject: `DTCE Reporting Reminder: ${dept.name} (Day ${dayNumber})`,
+        const dispatchRes = await notify({
+          recipientId: hod.id,
+          type: 'missing_report_reminder',
+          title: `DTCE Reporting Reminder: ${dept.name} (Day ${dayNumber})`,
           body,
-          type: 'hod-reminder',
-          created_at: new Date().toISOString()
+          relatedEntity: { type: 'report', id: currentDayObj.id }
         })
-      })
-    })
-
-    // 2. Generate summary email for the Secretariat
-    const secretariatEmails = profiles.filter(p => p.role === 'super_admin' || p.role === 'coordinator')
-    const secBody = `Hi DTCE Secretariat,\n\nThe following ${missingDepts.length} departments have not submitted their reports for Day ${dayNumber} as of today's ${cutoffTime} cutoff:\n\n${missingDeptsNames.map((name, i) => `${i + 1}. ${name}`).join('\n')}\n\nDTCE Automated Digests System`
-
-    secretariatEmails.forEach(sec => {
-      notificationEntries.push({
-        id: 'notif-' + Math.random().toString(36).substr(2, 9),
-        recipient: sec.email,
-        recipient_name: sec.full_name,
-        subject: `DTCE Daily Collation Summary: Day ${dayNumber}`,
-        body: secBody,
-        type: 'secretariat-summary',
-        created_at: new Date().toISOString()
-      })
-    })
-
-    // 3. Send via Resend or log to Mock store
-    const apiKey = process.env.RESEND_API_KEY
-    const sentResults: any[] = []
-
-    for (const notif of notificationEntries) {
-      if (apiKey) {
-        // Send real email using Resend REST API
-        try {
-          const res = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-              from: 'DTCE Reporting System <notifications@dtce.org>',
-              to: notif.recipient,
-              subject: notif.subject,
-              text: notif.body
-            })
-          })
-          const resData = await res.json()
-          sentResults.push({ notifId: notif.id, status: 'sent', resendId: resData.id })
-        } catch (err: any) {
-          sentResults.push({ notifId: notif.id, status: 'failed', error: err.message })
-        }
-      } else {
-        // Mock Mode: log statefully to store
-        sentResults.push({ notifId: notif.id, status: 'simulated' })
+        results.push({ recipient: hod.email, type: 'hod-reminder', dispatchRes })
       }
     }
 
-    // Always log to store in mock/simulation runs
-    if (isMock || !apiKey) {
-      const logs = store.notificationLogs
-      store.notificationLogs = [...logs, ...notificationEntries]
+    // 2. Dispatch summary notification for Secretariat via unified notify() service
+    const secretariatUsers = profiles.filter(p => p.role === 'super_admin' || p.role === 'coordinator' || p.role === 'national_coordinator')
+    const secBody = `The following ${missingDepts.length} departments have not submitted their reports for Day ${dayNumber} as of today's ${cutoffTime} cutoff:\n\n${missingDeptsNames.map((name, i) => `${i + 1}. ${name}`).join('\n')}`
+
+    for (const sec of secretariatUsers) {
+      const dispatchRes = await notify({
+        recipientId: sec.id,
+        type: 'secretariat_summary',
+        title: `DTCE Daily Collation Summary: Day ${dayNumber}`,
+        body: secBody,
+        relatedEntity: { type: 'report', id: currentDayObj.id }
+      })
+      results.push({ recipient: sec.email, type: 'secretariat-summary', dispatchRes })
     }
 
     return NextResponse.json({
@@ -126,9 +87,8 @@ export async function POST(request: Request) {
       day: dayNumber,
       cutoff: cutoffTime,
       missing_departments_count: missingDepts.length,
-      notifications_sent: notificationEntries.length,
-      delivery_mode: apiKey ? 'live' : 'mock-simulation',
-      results: sentResults
+      notifications_dispatched: results.length,
+      results
     })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
