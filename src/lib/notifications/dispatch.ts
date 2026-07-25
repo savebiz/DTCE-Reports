@@ -74,6 +74,7 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
       const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
+      let supabase: any
       if (serviceKey && supabaseUrl) {
         supabase = createSupabaseAdminClient(supabaseUrl, serviceKey)
       } else {
