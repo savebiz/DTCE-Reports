@@ -496,6 +496,9 @@ export const mockSupabaseClient = {
       if (!profile) {
         return { data: { user: null }, error: new Error('User not found') }
       }
+      if (profile.is_active === false) {
+        return { data: { user: null }, error: new Error('This account has been deactivated.') }
+      }
       store.currentUser = profile
       return { data: { user: { id: profile.id, email, user_metadata: { role: profile.role, full_name: profile.full_name } } }, error: null }
     },

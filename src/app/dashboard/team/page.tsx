@@ -839,6 +839,7 @@ export default function SecretariatTeamManagement() {
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Department</th>
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Role</th>
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Status</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
@@ -908,14 +909,57 @@ export default function SecretariatTeamManagement() {
                         )}
                       </td>
                       <td className="p-3">
-                        {u.must_change_password ? (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' }}>
-                            Pending Reset
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }}>
-                            Active
-                          </span>
+                        <div className="flex items-center gap-2">
+                          {u.is_active !== false ? (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }}>
+                              Active
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(239,68,68,0.1)', color: '#F87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                              Deactivated
+                            </span>
+                          )}
+                          {u.must_change_password && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' }}>
+                              Pending Reset
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-3 text-right">
+                        {u.id !== profile?.id && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                const currentStatus = u.is_active !== false
+                                if (isMock) {
+                                  const { store: mockStore } = require('@/utils/supabase/mockClient')
+                                  const match = mockStore.profiles.find((p: any) => p.id === u.id)
+                                  if (match) match.is_active = !currentStatus
+                                } else {
+                                  const res = await fetch('/api/toggle-assistant-status', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ targetUserId: u.id, currentStatus })
+                                  })
+                                  const data = await res.json()
+                                  if (data.error) throw new Error(data.error)
+                                }
+                                showToast(`Account ${currentStatus ? 'deactivated' : 'reactivated'} successfully.`, 'success')
+                                loadData()
+                              } catch (err: any) {
+                                showToast(`Status update failed: ${err.message}`, 'error')
+                              }
+                            }}
+                            className="h-7 rounded-lg px-2.5 text-[11px] font-semibold transition-all duration-150 cursor-pointer"
+                            style={
+                              u.is_active !== false 
+                                ? { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#F87171' } 
+                                : { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34D399' }
+                            }
+                          >
+                            {u.is_active !== false ? 'Deactivate' : 'Reactivate'}
+                          </button>
                         )}
                       </td>
                     </tr>

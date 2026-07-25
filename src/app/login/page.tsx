@@ -95,6 +95,16 @@ export default function LoginPage() {
         .eq('id', data.user.id)
         .maybeSingle()
 
+      if (prof && prof.is_active === false) {
+        document.cookie = 'sb-mock-token=; path=/; max-age=0'
+        setFormMessage({
+          type: 'error',
+          text: 'This account has been deactivated. Please contact your HOD or Secretariat.'
+        })
+        setLoading(false)
+        return
+      }
+
       setTimeout(() => {
         const meta = (data.user.user_metadata || {}) as any
         const activeRole = prof?.role || meta.role || 'hod'
@@ -128,6 +138,16 @@ export default function LoginPage() {
             .select('*')
             .eq('id', data.user.id)
             .maybeSingle()
+
+          if (prof && prof.is_active === false) {
+            await supabase.auth.signOut()
+            setFormMessage({
+              type: 'error',
+              text: 'This account has been deactivated. Please contact your HOD or Secretariat.'
+            })
+            setLoading(false)
+            return
+          }
 
           const meta = (data.user.user_metadata || {}) as any
           const activeRole = prof?.role || meta.role || 'hod'

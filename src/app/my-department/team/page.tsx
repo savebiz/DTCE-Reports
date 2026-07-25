@@ -211,22 +211,24 @@ export default function HODTeamManagement() {
   }
 
   const toggleAssistantActive = async (asstId: string, currentStatus: boolean) => {
-    const supabase = getClient()
     try {
       if (isMock) {
         const { store } = require('@/utils/supabase/mockClient')
         const match = store.profiles.find((p: any) => p.id === asstId)
         if (match) match.is_active = !currentStatus
+      } else {
+        const res = await fetch('/api/toggle-assistant-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetUserId: asstId, currentStatus })
+        })
+        const data = await res.json()
+        if (data.error) throw new Error(data.error)
       }
       
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_active: !currentStatus })
-        .eq('id', asstId)
-
-      if (error) throw error
-      showToast(`Account status updated successfully.`, 'success')
-      loadData()
+      const newStatus = !currentStatus
+      showToast(`Assistant account ${newStatus ? 'reactivated' : 'deactivated'} successfully.`, 'success')
+      await loadData()
     } catch (err: any) {
       showToast(`Status update failed: ${err.message}`, 'error')
     }
