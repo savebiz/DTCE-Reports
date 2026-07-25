@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
-import { notify } from '@/lib/notifications/dispatch'
+import { notify, checkAndDispatchLowStockAlert } from '@/lib/notifications/dispatch'
 
 export const runtime = 'nodejs'
 
@@ -230,6 +230,23 @@ export async function POST(request: NextRequest) {
                           resulting_stock_level: newStock
                         })
                     }
+                  }
+
+                  // Low-Stock Threshold Alert Trigger (Moment of Deduction)
+                  const { data: updatedItem } = await supabaseAdmin
+                    .from('inventory_items')
+                    .select('id, name, current_stock, low_stock_threshold, unit')
+                    .eq('id', item.inventory_item_id)
+                    .single()
+
+                  if (updatedItem && updatedItem.current_stock <= updatedItem.low_stock_threshold) {
+                    await checkAndDispatchLowStockAlert({
+                      itemId: updatedItem.id,
+                      name: updatedItem.name,
+                      currentStock: updatedItem.current_stock,
+                      unit: updatedItem.unit,
+                      threshold: updatedItem.low_stock_threshold
+                    })
                   }
                 }
               }

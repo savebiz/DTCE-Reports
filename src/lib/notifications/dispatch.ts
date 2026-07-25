@@ -15,6 +15,7 @@ export interface NotifyParams {
     | 'requisition_stale'
     | 'missing_report_reminder'
     | 'secretariat_summary'
+    | 'low_stock_alert'
     | string
   title: string
   body: string
@@ -246,5 +247,94 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
     console.error('[Notify] Dispatch exception:', err)
     resResult.error = err.message
     return resResult
+  }
+}
+
+/**
+ * Moment-of-Deduction Low Stock Alert Dispatcher.
+ * Triggered at the exact moment stock drops to or below threshold during fulfillment.
+ * Sends alert to Stores Department Staff/HOD and National Coordinator via shared notify().
+ */
+export async function checkAndDispatchLowStockAlert(params: {
+  itemId: string
+  name: string
+  currentStock: number
+  unit: string
+  threshold: number
+}) {
+  const { itemId, name, currentStock, unit, threshold } = params
+  if (currentStock > threshold) return
+
+  const title = `Low Stock Alert: ${name}`
+  const body = `Low stock alert: ${name} is at ${currentStock} ${unit} (threshold: ${threshold}).`
+
+  if (isMock) {
+    // Notify Stores Staff/HOD and National Coordinator in Mock Mode
+    const recipients = store.profiles.filter(p =>
+      p.role === 'national_coordinator' ||
+      p.role === 'super_admin' ||
+      p.email?.includes('stores') ||
+      p.email?.includes('store')
+    )
+
+    for (const r of recipients) {
+      await notify({
+        recipientId: r.id,
+        type: 'low_stock_alert',
+        title,
+        body,
+        relatedEntity: { type: 'system', id: itemId }
+      })
+    }
+    return
+  }
+
+  // Live Supabase Execution
+  const serviceKey =
+    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!supabaseUrl || !serviceKey) return
+
+  const supabaseAdmin = createSupabaseAdminClient(supabaseUrl, serviceKey)
+
+  // 1. Fetch National Coordinator(s)
+  const { data: natCoords } = await supabaseAdmin
+    .from('profiles')
+    .select('id')
+    .eq('role', 'national_coordinator')
+
+  // 2. Fetch Stores Department Staff / HOD
+  const { data: storesDept } = await supabaseAdmin
+    .from('departments')
+    .select('id')
+    .ilike('name', '%store%')
+    .maybeSingle()
+
+  let storesStaff: any[] = []
+  if (storesDept?.id) {
+    const { data: staff } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('department_id', storesDept.id)
+    storesStaff = staff || []
+  }
+
+  // Combine unique recipient IDs
+  const recipientIds = new Set<string>()
+  if (natCoords) natCoords.forEach(c => recipientIds.add(c.id))
+  if (storesStaff) storesStaff.forEach(s => recipientIds.add(s.id))
+
+  for (const recipientId of Array.from(recipientIds)) {
+    await notify({
+      recipientId,
+      type: 'low_stock_alert',
+      title,
+      body,
+      relatedEntity: { type: 'system', id: itemId }
+    })
   }
 }
