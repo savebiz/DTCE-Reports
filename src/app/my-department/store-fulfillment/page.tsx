@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
+import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
+import { TableSkeleton } from '@/components/ui/skeleton-loader'
 
 interface RequestItem {
   name: string
@@ -100,25 +102,7 @@ function StoreFulfillmentContent() {
         .order('created_at', { ascending: false })
 
       if (reqsData) {
-        const enhanced = await Promise.all(
-          reqsData.map(async (r: any) => {
-            const { data: reqProfile } = await supabase
-              .from('profiles')
-              .select('full_name, email')
-              .eq('id', r.requester_profile_id)
-              .maybeSingle()
-            const { data: requesterDept } = await supabase
-              .from('departments')
-              .select('name')
-              .eq('id', r.department_id)
-              .maybeSingle()
-            return {
-              ...r,
-              requester: reqProfile || { full_name: 'Unknown HOD', email: '' },
-              department: requesterDept || { name: 'Unknown Department' }
-            }
-          })
-        )
+        const enhanced = await fetchEnhancedStoreRequests(supabase, reqsData)
         setRequisitions(enhanced)
       }
     } else {
@@ -343,9 +327,7 @@ function StoreFulfillmentContent() {
 
         {/* 6. Requisition List Item Cards (Left Status Accent Bar & Material Chips) */}
         {loading ? (
-          <div className="text-center py-16 space-y-2">
-            <span className="text-sm font-mono animate-pulse text-muted-foreground">Loading Requisitions Console...</span>
-          </div>
+          <TableSkeleton rows={4} cols={3} />
         ) : filteredRequisitions.length === 0 ? (
           <Card className="bg-card rounded-xl p-12 text-center space-y-3 border border-border/50 shadow-xs">
             <span className="text-4xl block">📦</span>

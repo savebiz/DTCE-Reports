@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
+import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
+import { TableSkeleton } from '@/components/ui/skeleton-loader'
 
 interface RequestItem {
   name: string
@@ -157,27 +159,7 @@ function AdminRequisitionsContent() {
         .order('created_at', { ascending: false })
 
       if (reqsData) {
-        const enhanced: StoreRequestTicket[] = await Promise.all(
-          reqsData.map(async (r: any) => {
-            const { data: reqProfile } = await supabase
-              .from('profiles')
-              .select('full_name, email')
-              .eq('id', r.requester_profile_id)
-              .maybeSingle()
-            
-            const { data: dept } = await supabase
-              .from('departments')
-              .select('name')
-              .eq('id', r.department_id)
-              .maybeSingle()
-
-            return {
-              ...r,
-              requester: reqProfile || { full_name: 'Unknown HOD', email: '' },
-              department: dept || { name: 'Unknown Department' }
-            }
-          })
-        )
+        const enhanced = await fetchEnhancedStoreRequests(supabase, reqsData)
         setRequests(enhanced)
       }
 
@@ -472,7 +454,9 @@ function AdminRequisitionsContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Requisitions List Column */}
           <div className="lg:col-span-2 space-y-4">
-            {filteredRequests.length === 0 ? (
+            {loading && requests.length === 0 ? (
+              <TableSkeleton rows={4} cols={3} />
+            ) : filteredRequests.length === 0 ? (
               <Card className="glass-card border-none p-12 text-center text-xs text-muted-foreground italic">
                 No store requisitions match your filter or search criteria.
               </Card>

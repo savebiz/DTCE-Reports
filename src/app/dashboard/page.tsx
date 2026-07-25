@@ -9,10 +9,13 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import dynamic from 'next/dynamic'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
-import { SchemaFormRenderer } from '@/components/schema-form-renderer'
 import { CheckCircle2, RotateCcw, Check, AlertCircle } from 'lucide-react'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
+import { KPIGridSkeleton, MatrixGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
+
+const SchemaFormRenderer = dynamic(() => import('@/components/schema-form-renderer').then(mod => mod.SchemaFormRenderer), { ssr: false })
 
 interface Comment {
   id: string
@@ -503,6 +506,17 @@ export default function SecretariatDashboard() {
     const report = reports.find(r => r.department_id === deptId && r.event_day_id === dayId)
     if (!report) return 'Missing'
     return report.status.charAt(0).toUpperCase() + report.status.slice(1)
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+        <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
+          <KPIGridSkeleton count={4} />
+          <MatrixGridSkeleton />
+        </main>
+      </div>
+    )
   }
 
   return (

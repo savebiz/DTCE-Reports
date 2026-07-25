@@ -7,8 +7,9 @@ import { showToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { syncQueuedSubmissions, getSyncQueue } from '@/utils/offline'
-import { store } from '@/utils/supabase/mockClient'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
+import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
+import { KPIGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
 
 export default function MyDepartmentDashboard() {
   const router = useRouter()
@@ -189,15 +190,7 @@ export default function MyDepartmentDashboard() {
             .order('created_at', { ascending: false })
           
           if (appReqs) {
-            const enhanced = await Promise.all(appReqs.map(async (r: any) => {
-              const { data: reqProfile } = await supabase.from('profiles').select('full_name, email').eq('id', r.requester_profile_id).maybeSingle()
-              const { data: requesterDept } = await supabase.from('departments').select('name').eq('id', r.department_id).maybeSingle()
-              return {
-                ...r,
-                requester: reqProfile || { full_name: 'Unknown HOD', email: '' },
-                department: requesterDept || { name: 'Unknown Department' }
-              }
-            }))
+            const enhanced = await fetchEnhancedStoreRequests(supabase, appReqs)
             setApprovedRequests(enhanced)
           }
         } else {
@@ -346,8 +339,11 @@ export default function MyDepartmentDashboard() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
-        <p className="text-sm font-mono animate-pulse text-slate-500">Loading Dashboard Checklist...</p>
+      <div className="min-h-screen" style={{ background: 'var(--background)' }}>
+        <main className="max-w-[1200px] mx-auto px-4 md:px-6 py-8 space-y-6">
+          <KPIGridSkeleton count={3} />
+          <TableSkeleton rows={4} cols={4} />
+        </main>
       </div>
     )
   }
