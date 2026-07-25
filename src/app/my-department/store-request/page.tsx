@@ -16,7 +16,9 @@ import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 interface RequestItem {
   name: string
   quantity: number
-  category: 'durable' | 'consumable'
+  requested_quantity?: number
+  approved_quantity?: number
+  category?: string
 }
 
 interface StoreRequestTicket {
