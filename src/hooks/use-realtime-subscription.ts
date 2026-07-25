@@ -92,8 +92,8 @@ export function useRealtimeSubscription({
     }
 
     // 3. Real Supabase Realtime Subscription Setup
-    const supabase = getClient()
-    const channel = supabase.channel(channelName)
+    const supabase: any = getClient()
+    const channel: any = supabase.channel(channelName)
 
     subscriptions.forEach(sub => {
       const config: any = {
@@ -105,7 +105,7 @@ export function useRealtimeSubscription({
         config.filter = sub.filter
       }
 
-      channel.on('postgres_changes', config, (payload: any) => {
+      channel.on('postgres_changes' as any, config, (payload: any) => {
         triggerDataChange(payload)
       })
     })
