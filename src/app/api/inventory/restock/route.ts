@@ -1,23 +1,23 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { createClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/utils/supabase/admin'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies()
     const { inventoryItemId, restockQuantity, note } = await request.json()
 
-    if (!inventoryItemId || !restockQuantity || Number(restockQuantity) <= 0) {
-      return NextResponse.json({ error: 'Valid inventoryItemId and positive restockQuantity are required.' }, { status: 400 })
+    if (!inventoryItemId || !restockQuantity || restockQuantity <= 0) {
+      return NextResponse.json({ error: 'Valid inventoryItemId and restockQuantity (> 0) are required.' }, { status: 400 })
     }
 
     const supabaseUser = createServerClient(
       supabaseUrl,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      anonKey,
       {
         cookies: {
           getAll() { return cookieStore.getAll() },
@@ -32,46 +32,40 @@ export async function POST(request: Request) {
     }
 
     const qty = Number(restockQuantity)
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
-      auth: { persistSession: false, autoRefreshToken: false }
-    })
+    const supabaseAdmin = getAdminClient()
 
-    // Try calling stored procedure process_inventory_restock first
-    const { data: rpcRes, error: rpcErr } = await supabaseAdmin.rpc('process_inventory_restock', {
+    // 1. Try atomic stored procedure process_inventory_restock
+    const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc('process_inventory_restock', {
       p_item_id: inventoryItemId,
       p_restock_quantity: qty,
       p_performed_by: user.id,
-      p_note: note || 'Restocked via Stores Inventory Console'
+      p_note: note?.trim() || 'Manual restock via Stores Inventory Console'
     })
 
-    if (!rpcErr && rpcRes) {
-      return NextResponse.json({ success: true, result: rpcRes })
+    if (!rpcErr && rpcData) {
+      return NextResponse.json({ success: true, result: rpcData })
     }
 
-    // Fallback: Atomic lookup, update stock, and append transaction row
-    const { data: item, error: fetchErr } = await supabaseAdmin
+    // Fallback: manual lookup, stock increment & audit log transaction
+    const { data: currentItem, error: getErr } = await supabaseAdmin
       .from('inventory_items')
       .select('current_stock')
       .eq('id', inventoryItemId)
       .single()
 
-    if (fetchErr || !item) {
-      return NextResponse.json({ error: 'Inventory item not found' }, { status: 404 })
+    if (getErr || !currentItem) {
+      return NextResponse.json({ error: 'Inventory item not found.' }, { status: 404 })
     }
 
-    const newStock = (item.current_stock || 0) + qty
+    const newStock = currentItem.current_stock + qty
 
-    // Update item stock
-    const { error: updateErr } = await supabaseAdmin
+    // Update current_stock
+    await supabaseAdmin
       .from('inventory_items')
       .update({ current_stock: newStock, updated_at: new Date().toISOString() })
       .eq('id', inventoryItemId)
 
-    if (updateErr) {
-      return NextResponse.json({ error: `Stock update failed: ${updateErr.message}` }, { status: 500 })
-    }
-
-    // Append audit transaction
+    // Insert append-only transaction
     const { data: trans, error: transErr } = await supabaseAdmin
       .from('inventory_transactions')
       .insert({
@@ -79,21 +73,17 @@ export async function POST(request: Request) {
         transaction_type: 'restock',
         quantity_change: qty,
         performed_by: user.id,
-        note: note || 'Restocked via Stores Inventory Console',
+        note: note?.trim() || 'Manual restock via Stores Inventory Console',
         resulting_stock_level: newStock
       })
       .select()
       .single()
 
     if (transErr) {
-      return NextResponse.json({ error: `Ledger record creation failed: ${transErr.message}` }, { status: 500 })
+      return NextResponse.json({ error: transErr.message }, { status: 500 })
     }
 
-    return NextResponse.json({
-      success: true,
-      new_stock: newStock,
-      transaction: trans
-    })
+    return NextResponse.json({ success: true, transaction: trans, newStock })
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal Server Error' }, { status: 500 })
   }

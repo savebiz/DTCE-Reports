@@ -15,7 +15,7 @@ CREATE INDEX IF NOT EXISTS idx_daily_reports_status ON public.daily_reports(stat
 
 -- Department Narratives Indexes
 CREATE INDEX IF NOT EXISTS idx_department_narratives_department_id ON public.department_narratives(department_id);
-CREATE INDEX IF NOT EXISTS idx_department_narratives_event_day_id ON public.department_narratives(event_day_id);
+CREATE INDEX IF NOT EXISTS idx_department_narratives_daily_report_id ON public.department_narratives(daily_report_id);
 
 -- HOD Assignments & Profiles Indexes
 CREATE INDEX IF NOT EXISTS idx_hod_assignments_profile_id ON public.hod_assignments(profile_id);
