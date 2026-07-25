@@ -15,18 +15,22 @@ import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
 
 interface RequestItem {
+  inventory_item_id?: string | null
   name: string
   quantity: number
   requested_quantity?: number
   approved_quantity?: number
   category?: string
+  unit?: string
 }
 
 interface EditableItem {
+  inventory_item_id?: string | null
   name: string
   requested_quantity: number
   approved_quantity: number
   category?: string
+  unit?: string
 }
 
 type ReqStatus = 'pending_coordinator' | 'approved' | 'declined' | 'in_progress' | 'partially_fulfilled' | 'ready_for_collection' | 'delivered'

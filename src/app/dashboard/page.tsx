@@ -27,7 +27,7 @@ interface Comment {
 
 interface StoreRequestTicket {
   id: string
-  items_json: Array<{ name: string; quantity: number; requested_quantity?: number; approved_quantity?: number; category?: string }>
+  items_json: Array<{ inventory_item_id?: string | null; name: string; quantity: number; requested_quantity?: number; approved_quantity?: number; category?: string; unit?: string }>
   status: 'pending_coordinator' | 'approved' | 'declined' | 'in_progress' | 'partially_fulfilled' | 'delivered'
   reviewer_comments?: string
   reviewed_at?: string

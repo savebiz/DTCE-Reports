@@ -12,11 +12,13 @@ import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
 
 interface RequestItem {
+  inventory_item_id?: string | null
   name: string
   quantity: number
   requested_quantity?: number
   approved_quantity?: number
   category?: string
+  unit?: string
 }
 
 interface RequisitionTicket {
