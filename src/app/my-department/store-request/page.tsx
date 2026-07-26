@@ -346,7 +346,7 @@ function StoreRequestContent() {
                         })()}
                       </SelectValue>
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                    <SelectContent>
                       <SelectItem value="free_text" className="text-amber-400 font-semibold cursor-pointer">
                         + Uncatalogued Item (Free-text)
                       </SelectItem>

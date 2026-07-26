@@ -413,7 +413,7 @@ export default function DurableReturnsTrackerPage() {
               <SelectTrigger className="w-48 text-xs input-dark h-8">
                 <SelectValue placeholder="All Departments" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-800 text-slate-200 max-h-60">
+              <SelectContent className="max-h-60">
                 <SelectItem value="all">All Departments</SelectItem>
                 {uniqueDepts.map(d => (
                   <SelectItem key={d} value={d}>{d}</SelectItem>
@@ -586,7 +586,7 @@ export default function DurableReturnsTrackerPage() {
                     <SelectTrigger className="w-full text-xs input-dark">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                    <SelectContent>
                       <SelectItem value="good">✓ Good Condition (Restores Stock &amp; Logs Return)</SelectItem>
                       <SelectItem value="damaged">⚠️ Damaged (Restores Stock &amp; Flags Damaged Note)</SelectItem>
                       <SelectItem value="lost">❌ Lost / Missing (Does NOT Restore Stock)</SelectItem>

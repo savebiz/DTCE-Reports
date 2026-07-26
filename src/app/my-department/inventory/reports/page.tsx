@@ -323,7 +323,7 @@ export default function InventoryReportsPage() {
                 <SelectTrigger className="w-full text-xs input-dark h-9">
                   <SelectValue placeholder="Select Date Range..." />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                <SelectContent>
                   <SelectItem value="all">📅 All Time History</SelectItem>
                   <SelectItem value="today">⚡ Today Only</SelectItem>
                   <SelectItem value="week">📅 Past 7 Days</SelectItem>
