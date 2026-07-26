@@ -7,15 +7,21 @@ import { showToast } from '@/components/ui/toast'
 import { triggerHaptic } from '@/utils/haptics'
 import { getVapidPublicKey } from '@/lib/notifications/webpush'
 
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-  const rawData = window.atob(base64)
-  const outputArray = new Uint8Array(rawData.length)
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i)
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  try {
+    const cleanStr = (base64String || '').trim()
+    const padding = '='.repeat((4 - (cleanStr.length % 4)) % 4)
+    const base64 = (cleanStr + padding).replace(/-/g, '+').replace(/_/g, '/')
+    const rawData = window.atob(base64)
+    const outputArray = new Uint8Array(rawData.length)
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i)
+    }
+    return outputArray
+  } catch (err: any) {
+    console.error('Invalid VAPID key base64 encoding:', err)
+    throw new Error('VAPID public key encoding error. Please verify VAPID key.')
   }
-  return outputArray
 }
 
 export function PushPermissionBanner({ userId }: { userId?: string }) {

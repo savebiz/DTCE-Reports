@@ -21,7 +21,7 @@ export interface VapidKeys {
 }
 
 // Generate or retrieve default VAPID keys for DTCE Reporting
-const DEFAULT_VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BEl62iUYgUivxIkv69yViEuiBIa-m9GYvZJ7h-pL-v6_nE8f7k-v9A2_w8G8o_E3-r-Y9Z-y-v_nE8f7k-v9A'
+const DEFAULT_VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BBEiM0RVZmWImQCqq83u7_8hIjNEVVpmiJkAqqvN7v_77d27qqAJmIh3ZlVENyIR_77d27qqAJmIh3ZlVENyIQ'
 const DEFAULT_VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'
 
 function base64UrlToBuffer(base64Url: string): Buffer {

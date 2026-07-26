@@ -26,6 +26,23 @@ interface CategoryPref {
   pushEnabled: boolean
 }
 
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  try {
+    const cleanStr = (base64String || '').trim()
+    const padding = '='.repeat((4 - (cleanStr.length % 4)) % 4)
+    const base64 = (cleanStr + padding).replace(/-/g, '+').replace(/_/g, '/')
+    const rawData = window.atob(base64)
+    const outputArray = new Uint8Array(rawData.length)
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i)
+    }
+    return outputArray
+  } catch (err: any) {
+    console.error('Invalid VAPID key base64 encoding:', err)
+    throw new Error('VAPID public key encoding error.')
+  }
+}
+
 function SettingsContent() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -249,7 +266,7 @@ function SettingsContent() {
         const vapidPublicKey = getVapidPublicKey()
         const sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: vapidPublicKey,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
         })
 
         await fetch('/api/push/subscribe', {
