@@ -152,7 +152,7 @@ export function DashboardHeader() {
   return (
     <>
       <header
-        className="sticky top-0 z-50 w-full"
+        className="sticky top-0 z-50 w-full overflow-x-clip"
         style={{
           background: 'var(--chrome-bg)',
           backdropFilter: 'blur(20px)',
@@ -160,14 +160,14 @@ export function DashboardHeader() {
           borderBottom: '1px solid rgba(255,255,255,0.07)',
         }}
       >
-        <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 md:px-6">
+        <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-3 md:px-6 w-full">
 
-          {/* Left — Logo + Nav */}
-          <div className="flex items-center gap-4">
+          {/* Left — Logo + Department Badge */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             {/* Logo */}
             <button
               onClick={() => router.push(showNav ? '/dashboard' : '/my-department')}
-              className="flex items-center gap-2.5 group"
+              className="flex items-center gap-2 group cursor-pointer"
             >
               {/* DTCE Logo badge */}
               <div
@@ -195,76 +195,79 @@ export function DashboardHeader() {
 
             {/* Active Department Label */}
             <div className="h-4 w-px bg-slate-800 hidden sm:block" />
-            <div className="text-[11px] font-bold text-amber-400 tracking-wider uppercase bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full select-none max-w-[150px] md:max-w-none truncate">
+            <div className="text-[10px] sm:text-[11px] font-bold text-amber-400 tracking-wider uppercase bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 sm:px-2.5 rounded-full select-none max-w-[110px] sm:max-w-[180px] lg:max-w-none truncate">
               {activeDeptName}
             </div>
-
-            {/* Desktop Nav */}
-            {showNav && (
-              <nav className="hidden md:flex items-center gap-1">
-                {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                  if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings' || label === 'Manual Entry')) return null;
-                  if (role === 'coordinator' && label === 'Manual Entry') return null;
-                  const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
-                  return (
-                    <button
-                      key={href}
-                      onClick={() => router.push(href)}
-                      className="relative flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-all duration-200"
-                      style={{
-                        color:      active ? 'var(--chrome-text)' : 'var(--chrome-text-muted)',
-                        background: active ? 'var(--chrome-surface)' : 'transparent',
-                      }}
-                      onMouseEnter={e => {
-                        if (!active) (e.currentTarget as HTMLElement).style.color = 'var(--chrome-text)'
-                      }}
-                      onMouseLeave={e => {
-                        if (!active) (e.currentTarget as HTMLElement).style.color = 'var(--chrome-text-muted)'
-                      }}
-                    >
-                      <Icon size={13} />
-                      {label}
-                      {active && (
-                        <span
-                          className="absolute bottom-0 left-3 right-3 h-px rounded-full"
-                          style={{ background: 'linear-gradient(90deg, transparent, var(--chrome-accent), transparent)' }}
-                        />
-                      )}
-                    </button>
-                  )
-                })}
-              </nav>
-            )}
           </div>
 
-          {/* Right — Theme toggle & Notification Bell + Role badge + User + Sign out */}
-          <div className="flex items-center gap-3">
+          {/* Center — Desktop Nav (visible on XL screens with horizontal overflow protection) */}
+          {showNav && (
+            <nav className="hidden xl:flex items-center gap-1 overflow-x-auto scrollbar-hide max-w-[620px] 2xl:max-w-none flex-nowrap mx-2">
+              {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+                if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings' || label === 'Manual Entry')) return null;
+                if (role === 'coordinator' && label === 'Manual Entry') return null;
+                const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
+                return (
+                  <button
+                    key={href}
+                    onClick={() => router.push(href)}
+                    className="relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12px] font-medium transition-all duration-200 whitespace-nowrap cursor-pointer"
+                    style={{
+                      color:      active ? 'var(--chrome-text)' : 'var(--chrome-text-muted)',
+                      background: active ? 'var(--chrome-surface)' : 'transparent',
+                    }}
+                    onMouseEnter={e => {
+                      if (!active) (e.currentTarget as HTMLElement).style.color = 'var(--chrome-text)'
+                    }}
+                    onMouseLeave={e => {
+                      if (!active) (e.currentTarget as HTMLElement).style.color = 'var(--chrome-text-muted)'
+                    }}
+                  >
+                    <Icon size={13} />
+                    {label}
+                    {active && (
+                      <span
+                        className="absolute bottom-0 left-2.5 right-2.5 h-px rounded-full"
+                        style={{ background: 'linear-gradient(90deg, transparent, var(--chrome-accent), transparent)' }}
+                      />
+                    )}
+                  </button>
+                )
+              })}
+            </nav>
+          )}
+
+          {/* Right — Notification Bell + Theme Toggle + User Avatar + Role + Sign out / Hamburger */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <NotificationBell userId={user?.id || profile?.id || (isMock ? 'mock-admin' : undefined)} />
-            <ThemeToggle compact />
+            
+            <div className="hidden sm:block">
+              <ThemeToggle compact />
+            </div>
 
             {/* Role badge */}
-            <span className={`hidden sm:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize tracking-wide ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
+            <span className={`hidden lg:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize tracking-wide ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
               {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (ROLE_LABELS[role] || role)}
             </span>
 
             {/* User avatar */}
-            <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2">
               <div
                 className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold text-white"
                 style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}
               >
                 {initials || '?'}
               </div>
-              <span className="hidden lg:block text-[12px] font-medium" style={{ color: 'var(--chrome-text-muted)' }}>
+              <span className="hidden 2xl:block text-[12px] font-medium" style={{ color: 'var(--chrome-text-muted)' }}>
                 {name.split(' ')[0]}
               </span>
             </div>
 
-            {/* Sign out */}
+            {/* Desktop Sign out (visible on LG+ screens) */}
             <button
               onClick={handleSignOut}
               disabled={signing}
-              className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-all duration-200"
+              className="hidden lg:flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-medium transition-all duration-200 cursor-pointer"
               style={{
                 background:   'transparent',
                 borderColor:  'rgba(255,255,255,0.1)',
@@ -284,52 +287,96 @@ export function DashboardHeader() {
               }}
             >
               <LogOut size={13} />
-              <span className="hidden sm:block">{signing ? 'Signing out…' : 'Sign out'}</span>
+              <span>{signing ? 'Signing out…' : 'Sign out'}</span>
             </button>
 
-            {/* Mobile hamburger */}
-            {showNav && (
-              <button
-                className="flex md:hidden items-center justify-center rounded-lg p-1.5 text-slate-400 transition-colors hover:text-white"
-                style={{ border: '1px solid rgba(255,255,255,0.08)' }}
-                onClick={() => setOpen(o => !o)}
-              >
-                {open ? <X size={15} /> : <Menu size={15} />}
-              </button>
-            )}
+            {/* Mobile / Compact Screen Hamburger Trigger */}
+            <button
+              className="flex xl:hidden items-center justify-center rounded-lg p-1.5 text-slate-400 transition-colors hover:text-white cursor-pointer"
+              style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+              onClick={() => setOpen(o => !o)}
+              aria-label="Toggle Navigation Menu"
+            >
+              {open ? <X size={16} /> : <Menu size={16} />}
+            </button>
           </div>
         </div>
 
-        {/* Mobile nav drawer */}
-        {showNav && open && (
+        {/* Vertical Scrollable Menu Drawer (for Mobile, Tablet & Compact screens) */}
+        {open && (
           <div
-            className="border-t md:hidden"
+            className="border-t xl:hidden max-h-[calc(100vh-3.5rem)] overflow-y-auto animate-fade-in-up"
             style={{
               background:   'rgba(6,9,15,0.98)',
               borderColor:  'rgba(255,255,255,0.07)',
             }}
           >
-            <nav className="flex flex-col gap-1 p-3">
-              {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings' || label === 'Manual Entry')) return null;
-                if (role === 'coordinator' && label === 'Manual Entry') return null;
-                const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
-                return (
-                  <button
-                    key={href}
-                    onClick={() => { router.push(href); setOpen(false) }}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-[13px] font-medium transition-colors"
-                    style={{
-                      color:      active ? '#F1F5F9' : '#64748B',
-                      background: active ? 'rgba(59,130,246,0.08)' : 'transparent',
-                    }}
+            <div className="p-4 space-y-4">
+              {/* User Profile Header in Drawer */}
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
+                    style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}
                   >
-                    <Icon size={15} />
-                    {label}
-                  </button>
-                )
-              })}
-            </nav>
+                    {initials || '?'}
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-200 block">{name}</span>
+                    <span className="text-[10px] text-amber-400 font-medium uppercase tracking-wider">{activeDeptName}</span>
+                  </div>
+                </div>
+                <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
+                  {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (ROLE_LABELS[role] || role)}
+                </span>
+              </div>
+
+              {/* Navigation Items (Vertical List) */}
+              {showNav && (
+                <nav className="flex flex-col gap-1">
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-1">
+                    Navigation Menu
+                  </span>
+                  {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+                    if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings' || label === 'Manual Entry')) return null;
+                    if (role === 'coordinator' && label === 'Manual Entry') return null;
+                    const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
+                    return (
+                      <button
+                        key={href}
+                        onClick={() => { router.push(href); setOpen(false) }}
+                        className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold transition-all cursor-pointer"
+                        style={{
+                          color:      active ? '#F1F5F9' : '#94A3B8',
+                          background: active ? 'rgba(59,130,246,0.12)' : 'transparent',
+                          border:     active ? '1px solid rgba(59,130,246,0.25)' : '1px solid transparent',
+                        }}
+                      >
+                        <Icon size={15} className={active ? 'text-blue-400' : 'text-slate-400'} />
+                        {label}
+                      </button>
+                    )
+                  })}
+                </nav>
+              )}
+
+              {/* Quick Actions & Controls (Theme Toggle + Sign Out) */}
+              <div className="pt-3 border-t border-white/10 space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-xs text-slate-400 font-medium">Appearance Theme</span>
+                  <ThemeToggle compact />
+                </div>
+
+                <button
+                  onClick={handleSignOut}
+                  disabled={signing}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all cursor-pointer"
+                >
+                  <LogOut size={14} />
+                  <span>{signing ? 'Signing out…' : 'Sign Out of Account'}</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </header>
