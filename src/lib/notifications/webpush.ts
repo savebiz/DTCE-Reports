@@ -164,7 +164,7 @@ export async function sendWebPushNotification(
       title: payload.title,
       body: payload.body,
       icon: payload.icon || '/icon-192.png',
-      badge: '/icon-192.png',
+      badge: '/icon-192-maskable.png',
       data: {
         url: payload.url || '/dashboard',
         tag: payload.tag || 'dtce-notification',

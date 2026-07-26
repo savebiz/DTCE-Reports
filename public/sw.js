@@ -175,7 +175,7 @@ self.addEventListener('push', event => {
   const options = {
     body: data.body,
     icon: data.icon || '/icon-192.png',
-    badge: '/icon-192.png',
+    badge: '/icon-192-maskable.png',
     vibrate: [150, 75, 150, 75, 200],
     renotify: true,
     tag: data.tag || 'dtce-push-alert',

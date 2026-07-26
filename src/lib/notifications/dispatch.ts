@@ -71,7 +71,13 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
       resResult.notificationId = insertedNotifId
     } else {
       // Production Supabase Execution
-      const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+      const serviceKey =
+        process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE ||
+        process.env.SUPABASE_SERVICE_ROLE_KEY ||
+        process.env.SUPABASE_SERVICE_ROLE ||
+        process.env.SUPABASE_SERVICE_KEY ||
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
       let supabase: any

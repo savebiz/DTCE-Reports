@@ -44,6 +44,14 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
     setIsIos(iosDevice)
     setIsStandalone(standaloneMode)
 
+    // Check if user already enabled push on this device
+    const isAlreadySubscribed = localStorage.getItem('dtce_push_subscribed') === 'true'
+    if (isAlreadySubscribed) {
+      setSubscribed(true)
+      setShowBanner(false)
+      return
+    }
+
     // Check dismiss memory (7 days)
     const dismissedTime = localStorage.getItem('dtce_push_banner_dismissed')
     if (dismissedTime) {
@@ -61,18 +69,11 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
 
     if (!isSupported) return
 
-    // If permission already granted, check active subscription
+    // If permission already granted, check active subscription or save subscribed state
     if (Notification.permission === 'granted') {
-      navigator.serviceWorker.ready.then(reg => {
-        reg.pushManager.getSubscription().then(sub => {
-          if (sub) {
-            setSubscribed(true)
-            setShowBanner(false)
-          } else {
-            setShowBanner(true)
-          }
-        }).catch(() => setShowBanner(true))
-      })
+      localStorage.setItem('dtce_push_subscribed', 'true')
+      setSubscribed(true)
+      setShowBanner(false)
     } else if (Notification.permission === 'default') {
       setShowBanner(true)
     }
@@ -118,7 +119,8 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
       }
 
       triggerHaptic('success')
-      showToast('🔔 Background WhatsApp-style alerts enabled!', 'success')
+      localStorage.setItem('dtce_push_subscribed', 'true')
+      showToast('🔔 Background alerts enabled!', 'success')
       setSubscribed(true)
       setShowBanner(false)
     } catch (err: any) {
