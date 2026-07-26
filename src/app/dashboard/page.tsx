@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, mockDepartments, mockEventDays, Profile, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
+import { PushPermissionBanner } from '@/components/push-permission-banner'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -522,6 +523,9 @@ export default function SecretariatDashboard() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
+
+        {/* Background Web Push Alert Banner */}
+        <PushPermissionBanner userId={profile?.id} />
 
         {/* Header Bar */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-fade-in-up">

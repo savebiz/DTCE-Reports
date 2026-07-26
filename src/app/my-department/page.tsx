@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, mockEventDays, Profile, DailyReport, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
+import { PushPermissionBanner } from '@/components/push-permission-banner'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { syncQueuedSubmissions, getSyncQueue } from '@/utils/offline'
@@ -385,7 +386,10 @@ export default function MyDepartmentDashboard() {
         )}
       </div>
 
-      <main className="mx-auto max-w-4xl px-4 md:px-6 py-8">
+      <main className="mx-auto max-w-4xl px-4 md:px-6 py-8 space-y-6">
+        {/* Background Web Push Alert Banner */}
+        <PushPermissionBanner userId={profile?.id} />
+
         <div className="space-y-6 animate-fade-in-up">
           {/* Department Switcher for Admin/Coordinators */}
           {(profile.role === 'super_admin' || profile.role === 'coordinator') && allDepartments.length > 0 && (
