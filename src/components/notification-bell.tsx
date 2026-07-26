@@ -6,6 +6,8 @@ import { Bell, CheckCheck, Package, FileText, AlertTriangle, ExternalLink } from
 import { getClient, isMock, store } from '@/utils/supabase'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 
+import { triggerHaptic, playNotificationChime } from '@/utils/haptics'
+
 export interface NotificationItem {
   id: string
   recipient_id: string
@@ -25,6 +27,16 @@ export function NotificationBell({ userId }: { userId?: string }) {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
+  const prevUnreadRef = useRef<number | null>(null)
+
+  // Haptic and audio chime trigger when unread count increases
+  useEffect(() => {
+    if (prevUnreadRef.current !== null && unreadCount > prevUnreadRef.current) {
+      triggerHaptic('notification')
+      playNotificationChime()
+    }
+    prevUnreadRef.current = unreadCount
+  }, [unreadCount])
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) return
@@ -85,6 +97,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
   }, [userId, fetchNotifications])
 
   const markAsRead = async (id: string, relatedId?: string, relatedType?: string) => {
+    triggerHaptic('medium')
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
     setUnreadCount(prev => Math.max(0, prev - 1))
 
@@ -104,6 +117,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
   }
 
   const markAllAsRead = async () => {
+    triggerHaptic('success')
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
     setUnreadCount(0)
 
@@ -135,6 +149,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
       {/* Bell Trigger Button */}
       <button
         onClick={() => {
+          triggerHaptic('light')
           setIsOpen(prev => !prev)
           if (!isOpen) fetchNotifications()
         }}

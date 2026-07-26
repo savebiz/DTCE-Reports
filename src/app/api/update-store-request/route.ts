@@ -1,7 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/utils/supabase/server'
-import { notify, checkAndDispatchLowStockAlert } from '@/lib/notifications/dispatch'
+import { notify, checkAndDispatchLowStockAlert, getDepartmentRecipientIds, getStoresRecipientIds } from '@/lib/notifications/dispatch'
 
 export const runtime = 'nodejs'
 
@@ -95,41 +92,31 @@ export async function POST(request: NextRequest) {
           itemsSummary = ` (Approved: ${summaryParts.join(', ')})`
         }
 
-        // 1. Notify requesting submitter
-        if (requesterId) {
+        // Resolve ALL department members (HODs + Assistants)
+        const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
+        if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
+
+        // 1. Notify all members of the requesting department
+        for (const recipientId of deptRecipients) {
           await notify({
-            recipientId: requesterId,
+            recipientId,
             type: 'requisition_approved',
             title: `Requisition Approved: ${deptName}`,
-            body: `Your store requisition has been approved by the National Coordinator${itemsSummary}. It is now routed to Stores for fulfillment.`,
+            body: `Your department's store requisition has been approved by the National Coordinator${itemsSummary}. It is now routed to Stores for fulfillment.`,
             relatedEntity: { type: 'requisition', id: requestId }
           })
         }
 
-        // 2. Notify Stores Department HOD/Staff
-        const { data: storesDept } = await supabaseAdmin
-          .from('departments')
-          .select('id')
-          .ilike('name', '%store%')
-          .maybeSingle()
-
-        if (storesDept?.id) {
-          const { data: storesStaff } = await supabaseAdmin
-            .from('profiles')
-            .select('id')
-            .eq('department_id', storesDept.id)
-
-          if (storesStaff) {
-            for (const staff of storesStaff) {
-              await notify({
-                recipientId: staff.id,
-                type: 'requisition_routed_to_stores',
-                title: `New Approved Requisition: ${deptName}`,
-                body: `An approved requisition for ${deptName} is ready for fulfillment${itemsSummary}.`,
-                relatedEntity: { type: 'requisition', id: requestId }
-              })
-            }
-          }
+        // 2. Notify ALL Stores Department HOD/Staff
+        const storesRecipients = await getStoresRecipientIds(supabaseAdmin)
+        for (const staffId of storesRecipients) {
+          await notify({
+            recipientId: staffId,
+            type: 'requisition_routed_to_stores',
+            title: `New Approved Requisition: ${deptName}`,
+            body: `An approved requisition for ${deptName} is ready for fulfillment${itemsSummary}.`,
+            relatedEntity: { type: 'requisition', id: requestId }
+          })
         }
       } else if (status === 'ready_for_collection') {
         // Build ready for collection notification
@@ -143,35 +130,42 @@ export async function POST(request: NextRequest) {
           readyDetail = ` (${parts.join(', ')})`
         }
 
-        if (requesterId) {
+        const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
+        if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
+
+        for (const recipientId of deptRecipients) {
           await notify({
-            recipientId: requesterId,
+            recipientId,
             type: 'requisition_fulfilled',
             title: `Requisition Ready for Collection: ${deptName}`,
-            body: `Your requisition${readyDetail} is ready for collection at Stores. ${reviewerComments ? `Note: ${reviewerComments}` : ''}`,
+            body: `Your department's requisition${readyDetail} is ready for collection at Stores. ${reviewerComments ? `Note: ${reviewerComments}` : ''}`,
             relatedEntity: { type: 'requisition', id: requestId }
           })
         }
       } else if (status === 'declined') {
-        // Notify submitter of rejection with reason
-        if (requesterId) {
+        const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
+        if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
+
+        for (const recipientId of deptRecipients) {
           await notify({
-            recipientId: requesterId,
+            recipientId,
             type: 'requisition_rejected',
             title: `Requisition Declined: ${deptName}`,
-            body: `Your store requisition was declined.\nReason: ${reviewerComments?.trim() || 'No reason provided.'}`,
+            body: `Your department's store requisition was declined.\nReason: ${reviewerComments?.trim() || 'No reason provided.'}`,
             relatedEntity: { type: 'requisition', id: requestId }
           })
         }
       } else if (['delivered', 'partially_fulfilled', 'in_progress'].includes(status)) {
-        // Notify submitter of fulfillment / partial delivery
-        if (requesterId) {
-          const statusText = status === 'delivered' ? 'Delivered' : status === 'partially_fulfilled' ? 'Partially Fulfilled' : 'In Progress'
+        const statusText = status === 'delivered' ? 'Delivered' : status === 'partially_fulfilled' ? 'Partially Fulfilled' : 'In Progress'
+        const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
+        if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
+
+        for (const recipientId of deptRecipients) {
           await notify({
-            recipientId: requesterId,
+            recipientId,
             type: 'requisition_fulfilled',
             title: `Requisition Update (${statusText}): ${deptName}`,
-            body: `Your store request status is now '${statusText}'. ${reviewerComments ? `Note: ${reviewerComments}` : ''}`,
+            body: `Your department's store request status is now '${statusText}'. ${reviewerComments ? `Note: ${reviewerComments}` : ''}`,
             relatedEntity: { type: 'requisition', id: requestId }
           })
         }

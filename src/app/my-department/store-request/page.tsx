@@ -262,13 +262,19 @@ function StoreRequestContent() {
     }
 
     try {
-      const supabase = getClient()
-      const { error } = await supabase
-        .from('store_requests')
-        .insert(payload)
+      const res = await fetch('/api/inventory/submit-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          departmentId: profile.department_id,
+          eventId: activeEvent?.id || null,
+          items
+        })
+      })
 
-      if (error) {
-        throw new Error(error.message)
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to submit requisition')
       }
 
       showToast('Requisition plan submitted to National Coordinator!', 'success')

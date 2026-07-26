@@ -251,6 +251,84 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
 }
 
 /**
+ * Multi-Assignment Department Recipient Resolution Helper.
+ * Fetches ALL profiles linked to a department via BOTH profiles.department_id AND hod_assignments.department_id.
+ */
+export async function getDepartmentRecipientIds(supabaseAdmin: any, departmentId: string): Promise<string[]> {
+  if (!departmentId) return []
+
+  const recipientSet = new Set<string>()
+
+  // 1. Direct profiles with matching department_id
+  const { data: directProfiles } = await supabaseAdmin
+    .from('profiles')
+    .select('id')
+    .eq('department_id', departmentId)
+
+  if (directProfiles) {
+    directProfiles.forEach((p: any) => recipientSet.add(p.id))
+  }
+
+  // 2. HOD Assignments table matching department_id (covers multi-assignment HODs and Assistants)
+  const { data: hodAssigns } = await supabaseAdmin
+    .from('hod_assignments')
+    .select('profile_id')
+    .eq('department_id', departmentId)
+
+  if (hodAssigns) {
+    hodAssigns.forEach((h: any) => recipientSet.add(h.profile_id))
+  }
+
+  return Array.from(recipientSet)
+}
+
+/**
+ * Stores Department Staff Recipient Resolution Helper.
+ * Combines department lookup across profiles, hod_assignments, and store email fallbacks.
+ */
+export async function getStoresRecipientIds(supabaseAdmin: any): Promise<string[]> {
+  const recipientSet = new Set<string>()
+
+  const { data: storesDept } = await supabaseAdmin
+    .from('departments')
+    .select('id')
+    .ilike('name', '%store%')
+    .maybeSingle()
+
+  if (storesDept?.id) {
+    const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, storesDept.id)
+    deptRecipients.forEach(id => recipientSet.add(id))
+  }
+
+  const { data: storeProfiles } = await supabaseAdmin
+    .from('profiles')
+    .select('id, email')
+
+  if (storeProfiles) {
+    storeProfiles.forEach((p: any) => {
+      if ((p.email || '').toLowerCase().includes('store')) {
+        recipientSet.add(p.id)
+      }
+    })
+  }
+
+  return Array.from(recipientSet)
+}
+
+/**
+ * Executive Admin & Coordinator Recipient Resolution Helper.
+ * Resolves National Coordinators, Secretariat Coordinators, and Super Admins.
+ */
+export async function getAdminRecipientIds(supabaseAdmin: any): Promise<string[]> {
+  const { data: admins } = await supabaseAdmin
+    .from('profiles')
+    .select('id')
+    .in('role', ['super_admin', 'coordinator', 'national_coordinator'])
+
+  return (admins || []).map((a: any) => a.id)
+}
+
+/**
  * Moment-of-Deduction Low Stock Alert Dispatcher.
  * Triggered at the exact moment stock drops to or below threshold during fulfillment.
  * Sends alert to Stores Department Staff/HOD and National Coordinator via shared notify().
@@ -301,32 +379,10 @@ export async function checkAndDispatchLowStockAlert(params: {
 
   const supabaseAdmin = createSupabaseAdminClient(supabaseUrl, serviceKey)
 
-  // 1. Fetch National Coordinator(s)
-  const { data: natCoords } = await supabaseAdmin
-    .from('profiles')
-    .select('id')
-    .eq('role', 'national_coordinator')
+  const adminIds = await getAdminRecipientIds(supabaseAdmin)
+  const storesIds = await getStoresRecipientIds(supabaseAdmin)
 
-  // 2. Fetch Stores Department Staff / HOD
-  const { data: storesDept } = await supabaseAdmin
-    .from('departments')
-    .select('id')
-    .ilike('name', '%store%')
-    .maybeSingle()
-
-  let storesStaff: any[] = []
-  if (storesDept?.id) {
-    const { data: staff } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('department_id', storesDept.id)
-    storesStaff = staff || []
-  }
-
-  // Combine unique recipient IDs
-  const recipientIds = new Set<string>()
-  if (natCoords) natCoords.forEach(c => recipientIds.add(c.id))
-  if (storesStaff) storesStaff.forEach(s => recipientIds.add(s.id))
+  const recipientIds = new Set<string>([...adminIds, ...storesIds])
 
   for (const recipientId of Array.from(recipientIds)) {
     await notify({

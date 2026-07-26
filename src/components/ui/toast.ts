@@ -1,11 +1,16 @@
+import { triggerHaptic } from '@/utils/haptics'
+
 export type ToastType = 'success' | 'error' | 'info' | 'warning'
 
 /**
- * Renders a premium, glassmorphic toast notification in the DOM.
+ * Renders a premium, glassmorphic toast notification in the DOM with haptic feedback.
  * Slides in from the top right with micro-animations and glowing border.
  */
 export function showToast(message: string, type: ToastType = 'info') {
   if (typeof window === 'undefined') return
+
+  // Trigger tactile mobile haptic response matching toast type
+  triggerHaptic(type)
 
   // Find or create global toast container
   let container = document.getElementById('glowing-toast-container')

@@ -15,6 +15,8 @@ export async function POST(request: Request) {
     let dailyReports: any[] = []
     let profiles: Profile[] = []
 
+    let hodAssignments: any[] = []
+
     if (isMock) {
       activeEventDays = [{ id: 'day-1', day_number: 1 }, { id: 'day-2', day_number: 2 }]
       departments = mockDepartments
@@ -30,6 +32,8 @@ export async function POST(request: Request) {
       dailyReports = reps || []
       const { data: profs } = await supabase.from('profiles').select('*')
       profiles = profs || []
+      const { data: assigns } = await supabase.from('hod_assignments').select('*')
+      hodAssignments = assigns || []
     }
 
     const currentDayObj = activeEventDays.find(d => d.day_number === dayNumber)
@@ -49,21 +53,35 @@ export async function POST(request: Request) {
 
     const results: any[] = []
 
-    // 1. Dispatch reminders for HODs of missing departments via unified notify() service
+    // 1. Dispatch reminders for HODs and Assistants of missing departments
     for (const dept of missingDepts) {
-      const hods = profiles.filter(p => p.department_id === dept.id && (p.role === 'hod' || p.role === 'assistant'))
+      const assignedProfileIds = new Set<string>()
       
-      for (const hod of hods) {
+      profiles.forEach(p => {
+        if (p.department_id === dept.id && (p.role === 'hod' || p.role === 'assistant')) {
+          assignedProfileIds.add(p.id)
+        }
+      })
+
+      hodAssignments.forEach(h => {
+        if (h.department_id === dept.id) {
+          assignedProfileIds.add(h.profile_id)
+        }
+      })
+
+      const deptStaff = profiles.filter(p => assignedProfileIds.has(p.id))
+      
+      for (const staff of deptStaff) {
         const body = `Reminder: The daily report for the ${dept.name} Department is missing for Day ${dayNumber}.\n\nPlease log in to enter today's metrics and narrative before the ${cutoffTime} cutoff.`
         
         const dispatchRes = await notify({
-          recipientId: hod.id,
+          recipientId: staff.id,
           type: 'missing_report_reminder',
           title: `DTCE Reporting Reminder: ${dept.name} (Day ${dayNumber})`,
           body,
           relatedEntity: { type: 'report', id: currentDayObj.id }
         })
-        results.push({ recipient: hod.email, type: 'hod-reminder', dispatchRes })
+        results.push({ recipient: staff.email, type: 'hod-reminder', dispatchRes })
       }
     }
 
