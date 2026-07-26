@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
-import { BarChart3, Download, Filter, RefreshCw, Layers, ShieldAlert, FileText, ArrowLeft, Building2, PackageCheck } from 'lucide-react'
+import { BarChart3, Download, Filter, RefreshCw, Layers, ShieldAlert, FileText, ArrowLeft, Building2, PackageCheck, Truck, XCircle, AlertCircle, Clock } from 'lucide-react'
 
 export default function InventoryReportsPage() {
   const router = useRouter()
@@ -692,20 +692,20 @@ export default function InventoryReportsPage() {
                           <td className="p-3 text-right font-mono font-bold text-amber-400 text-sm">{r.outstanding_quantity}</td>
                           <td className="p-3 text-center">
                             {r.return_status === 'return_initiated' ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider animate-pulse">
-                                🚚 Return Initiated
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider animate-pulse flex items-center justify-center gap-1">
+                                <Truck className="w-3 h-3" /> Return Initiated
                               </span>
                             ) : r.return_status === 'returned_damaged' ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase tracking-wider">
-                                ⚠️ Returned Damaged
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
+                                <AlertCircle className="w-3 h-3" /> Returned Damaged
                               </span>
                             ) : r.return_status === 'lost' ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider">
-                                ❌ Lost / Missing
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
+                                <XCircle className="w-3 h-3" /> Lost / Missing
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">
-                                ⏳ Outstanding
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
+                                <Clock className="w-3 h-3" /> Outstanding
                               </span>
                             )}
                           </td>

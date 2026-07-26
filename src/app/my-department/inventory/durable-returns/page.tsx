@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
-import { ArrowLeft, Building2, PackageCheck, AlertTriangle, CheckCircle2, ShieldAlert, Clock, RefreshCw, Send, Layers } from 'lucide-react'
+import { ArrowLeft, Building2, PackageCheck, AlertTriangle, CheckCircle2, ShieldAlert, Clock, RefreshCw, Send, Layers, Truck, XCircle, AlertCircle } from 'lucide-react'
 
 export interface OutstandingDurableItem {
   requestId: string
@@ -497,20 +497,20 @@ export default function DurableReturnsTrackerPage() {
                           <td className="p-3 text-right font-mono font-bold text-amber-400 text-sm">{it.outstandingQty}</td>
                           <td className="p-3 text-center">
                             {it.returnStatus === 'return_initiated' ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider animate-pulse">
-                                🚚 Return Initiated
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider animate-pulse flex items-center justify-center gap-1">
+                                <Truck className="w-3 h-3" /> Return Initiated
                               </span>
                             ) : it.returnStatus === 'returned_damaged' ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase tracking-wider">
-                                ⚠️ Returned Damaged
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
+                                <AlertCircle className="w-3 h-3" /> Returned Damaged
                               </span>
                             ) : it.returnStatus === 'lost' ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider">
-                                ❌ Lost / Missing
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
+                                <XCircle className="w-3 h-3" /> Lost / Missing
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">
-                                ⏳ Outstanding
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
+                                <Clock className="w-3 h-3" /> Outstanding
                               </span>
                             )}
                           </td>

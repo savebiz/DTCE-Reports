@@ -120,7 +120,7 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
 
       triggerHaptic('success')
       localStorage.setItem('dtce_push_subscribed', 'true')
-      showToast('🔔 Background alerts enabled!', 'success')
+      showToast('Background alerts enabled!', 'success')
       setSubscribed(true)
       setShowBanner(false)
     } catch (err: any) {
@@ -182,9 +182,10 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
             size="sm"
             onClick={handleEnablePush}
             disabled={loading}
-            className="h-9 px-4 text-xs font-bold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/20 cursor-pointer"
+            className="h-9 px-4 text-xs font-bold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/20 cursor-pointer flex items-center gap-1.5"
           >
-            {loading ? 'Setting up...' : '🔔 Enable Alerts in 1-Click'}
+            <Bell className="h-3.5 w-3.5" />
+            {loading ? 'Setting up...' : 'Enable Alerts in 1-Click'}
           </Button>
 
           <button

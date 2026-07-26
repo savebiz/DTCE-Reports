@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { NumberField } from '@/components/ui/number-field'
 import { Label } from '@/components/ui/label'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
+import { Truck, RefreshCw } from 'lucide-react'
 
 interface RequestItem {
   inventory_item_id?: string | null
@@ -518,8 +519,8 @@ function StoreRequestContent() {
                                     <div className="flex items-center justify-between text-[10px] pt-1 border-t border-border/40 mt-1">
                                       <span className="text-muted-foreground">Return Status:</span>
                                       {isInitiated ? (
-                                        <span className="font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
-                                          🚚 Return Initiated
+                                        <span className="font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1">
+                                          <Truck className="w-3 h-3" /> Return Initiated
                                         </span>
                                       ) : isOutstanding ? (
                                         <button
@@ -538,9 +539,9 @@ function StoreRequestContent() {
                                               showToast(`Failed: ${err.message}`, 'error')
                                             }
                                           }}
-                                          className="font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-0.5 rounded border border-amber-500/30 cursor-pointer transition-colors"
+                                          className="font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-0.5 rounded border border-amber-500/30 cursor-pointer transition-colors flex items-center gap-1"
                                         >
-                                          🔄 Initiate Return
+                                          <RefreshCw className="w-3 h-3" /> Initiate Return
                                         </button>
                                       ) : (
                                         <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">

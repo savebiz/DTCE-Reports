@@ -23,7 +23,7 @@ import {
   CatalogValidationRow,
   RestockValidationRow
 } from '@/utils/inventory-bulk'
-import { Download, Upload, AlertTriangle, CheckCircle2, FileSpreadsheet, Plus, RefreshCw, Layers } from 'lucide-react'
+import { Download, Upload, AlertTriangle, CheckCircle2, FileSpreadsheet, Plus, RefreshCw, Layers, BarChart3, FileText } from 'lucide-react'
 
 export default function StoresInventoryPage() {
   const router = useRouter()
@@ -548,17 +548,19 @@ export default function StoresInventoryPage() {
               onClick={() => router.push('/my-department/inventory/durable-returns')}
               variant="outline"
               size="sm"
-              className="text-xs font-bold h-9 border-amber-500/40 text-amber-400 hover:bg-amber-500/10 cursor-pointer shadow-xs"
+              className="text-xs font-bold h-9 border-amber-500/40 text-amber-400 hover:bg-amber-500/10 cursor-pointer shadow-xs flex items-center gap-1.5"
             >
-              🔄 Durable Returns Tracker
+              <RefreshCw className="h-3.5 w-3.5" />
+              Durable Returns Tracker
             </Button>
             <Button
               onClick={() => router.push('/my-department/inventory/reports')}
               variant="outline"
               size="sm"
-              className="text-xs font-semibold h-9 border-amber-500/30 text-amber-500 hover:bg-amber-500/10 cursor-pointer shadow-xs"
+              className="text-xs font-semibold h-9 border-amber-500/30 text-amber-500 hover:bg-amber-500/10 cursor-pointer shadow-xs flex items-center gap-1.5"
             >
-              📊 Reports
+              <BarChart3 className="h-3.5 w-3.5" />
+              Reports
             </Button>
             <Button
               onClick={() => setIsAddItemOpen(true)}
@@ -629,29 +631,33 @@ export default function StoresInventoryPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 rounded-xl bg-card border border-border">
           <div className="flex flex-wrap items-center gap-1.5">
             {[
-              { id: 'all', label: 'All Catalog Items', count: items.length },
-              { id: 'low_stock', label: '⚠️ Low Stock Alerts', count: lowStockCount },
-              { id: 'consumable', label: 'Consumables', count: items.filter(i => i.category === 'consumable').length },
-              { id: 'durable', label: 'Durables', count: items.filter(i => i.category === 'durable').length },
-              { id: 'ledger', label: '📜 Transaction Audit Ledger', count: transactions.length }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
-                  activeTab === tab.id
-                    ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
-                }`}
-              >
-                <span>{tab.label}</span>
-                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                  activeTab === tab.id ? 'bg-slate-950/20 text-slate-950 font-bold' : 'bg-muted/60 text-muted-foreground'
-                }`}>
-                  {tab.count}
-                </span>
-              </button>
-            ))}
+              { id: 'all', label: 'All Catalog Items', icon: null, count: items.length },
+              { id: 'low_stock', label: 'Low Stock Alerts', icon: AlertTriangle, count: lowStockCount },
+              { id: 'consumable', label: 'Consumables', icon: null, count: items.filter(i => i.category === 'consumable').length },
+              { id: 'durable', label: 'Durables', icon: null, count: items.filter(i => i.category === 'durable').length },
+              { id: 'ledger', label: 'Transaction Audit Ledger', icon: FileText, count: transactions.length }
+            ].map(tab => {
+              const TabIcon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                    activeTab === tab.id
+                      ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
+                  }`}
+                >
+                  {TabIcon && <TabIcon className="w-3.5 h-3.5 shrink-0" />}
+                  <span>{tab.label}</span>
+                  <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                    activeTab === tab.id ? 'bg-slate-950/20 text-slate-950 font-bold' : 'bg-muted/60 text-muted-foreground'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </button>
+              )
+            })}
           </div>
 
           {activeTab !== 'ledger' && (

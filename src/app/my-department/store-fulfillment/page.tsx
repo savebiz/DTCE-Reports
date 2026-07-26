@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
+import { CheckCircle2, Package } from 'lucide-react'
 
 interface RequestItem {
   inventory_item_id?: string | null
@@ -498,12 +499,12 @@ function StoreFulfillmentContent() {
                       )}
                       {req.status === 'approved' && (
                         <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1.5">
-                          <span>✅</span> Requisition Approved — Ready for Fulfillment
+                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> Requisition Approved — Ready for Fulfillment
                         </span>
                       )}
                       {(req.status as string) === 'ready_for_collection' && (
                         <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1.5">
-                          <span>📦</span> Set Aside at Stores — Ready for Department Collection
+                          <Package className="w-3.5 h-3.5 text-amber-400" /> Set Aside at Stores — Ready for Department Collection
                         </span>
                       )}
                     </div>

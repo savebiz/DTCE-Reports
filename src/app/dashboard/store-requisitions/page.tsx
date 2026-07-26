@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
+import { AlertTriangle } from 'lucide-react'
 
 interface RequestItem {
   inventory_item_id?: string | null
@@ -681,8 +682,8 @@ function AdminRequisitionsContent() {
                               </div>
 
                               {isExceeding ? (
-                                <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30">
-                                  ⚠️ Exceeds Stock ({catItem.current_stock})
+                                <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30 flex items-center gap-1">
+                                  <AlertTriangle className="w-3 h-3 text-red-400" /> Exceeds Stock ({catItem.current_stock})
                                 </span>
                               ) : item.approved_quantity !== item.requested_quantity ? (
                                 <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">

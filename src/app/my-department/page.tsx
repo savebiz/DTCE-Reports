@@ -11,6 +11,7 @@ import { syncQueuedSubmissions, getSyncQueue } from '@/utils/offline'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { KPIGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
+import { Calendar, Layers, Package } from 'lucide-react'
 
 export default function MyDepartmentDashboard() {
   const router = useRouter()
@@ -429,7 +430,7 @@ export default function MyDepartmentDashboard() {
                 className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all bg-blue-600 hover:bg-blue-500 text-white cursor-pointer shadow-xs"
                 onClick={() => router.push('/my-department/daily-log')}
               >
-                <span>📅</span>
+                <Calendar className="w-3.5 h-3.5" />
                 Daily Logs Workspace
               </button>
               {isStoresDept ? (
@@ -438,14 +439,14 @@ export default function MyDepartmentDashboard() {
                     className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer shadow-xs"
                     onClick={() => router.push('/my-department/inventory')}
                   >
-                    <span>📊</span>
+                    <Layers className="w-3.5 h-3.5" />
                     Inventory Catalog
                   </button>
                   <button
                     className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 cursor-pointer shadow-xs"
                     onClick={() => router.push('/my-department/store-fulfillment')}
                   >
-                    <span>📦</span>
+                    <Package className="w-3.5 h-3.5" />
                     Fulfillment Console {approvedRequests.length > 0 && `(${approvedRequests.length})`}
                   </button>
                 </>
@@ -454,7 +455,7 @@ export default function MyDepartmentDashboard() {
                   className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-border/70 bg-card hover:bg-accent/60 text-foreground cursor-pointer shadow-xs"
                   onClick={() => router.push('/my-department/store-request')}
                 >
-                  <span>📦</span>
+                  <Package className="w-3.5 h-3.5" />
                   Store Request
                 </button>
               )}

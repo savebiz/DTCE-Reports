@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { store } from '@/utils/supabase/mockClient'
 import Link from 'next/link'
+import { Bell } from 'lucide-react'
 
 export default function ReportsExportPage() {
   const router = useRouter()
@@ -194,7 +195,9 @@ export default function ReportsExportPage() {
 
           {/* Card 2: Daily Reminders */}
           <div className="glass-card p-5">
-            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">🔔 Daily Reminders</h2>
+            <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1 flex items-center gap-1.5 font-sans">
+              <Bell className="w-3.5 h-3.5 text-amber-400" /> Daily Reminders
+            </h2>
             <p className="text-[12px] text-muted-foreground mb-4">Send reminders to HODs and collation logs to Secretariat.</p>
             
             <div className="space-y-4">

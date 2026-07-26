@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { SchemaFormRenderer } from '@/components/schema-form-renderer'
 import { NumberField } from '@/components/ui/number-field'
 import { CurrencyField } from '@/components/ui/currency-field'
+import { ClipboardList } from 'lucide-react'
 
 // Departments without workforce attendance breakdown
 const DEPTS_WITHOUT_ATTENDANCE = ['dept-6', 'dept-9', 'dept-13', 'dept-19', 'dept-20', 'dept-25', 'dept-26', 'dept-29', 'dept-30', 'dept-39']
@@ -551,7 +552,7 @@ function DailyLogContent() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
         <div className="text-center space-y-4 max-w-md">
-          <span className="text-4xl block">📋</span>
+          <ClipboardList className="w-12 h-12 text-muted-foreground mx-auto block" />
           <h2 className="text-xl font-bold text-foreground">Daily Log Not Available</h2>
           <p className="text-sm text-muted-foreground">
             {!activeDay
