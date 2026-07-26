@@ -19,7 +19,7 @@ export interface NotifyParams {
   title: string
   body: string
   relatedEntity?: {
-    type: 'requisition' | 'report' | 'system'
+    type: 'requisition' | 'report' | 'system' | 'event' | 'inventory'
     id: string
   }
 }
