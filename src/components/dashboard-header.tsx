@@ -19,6 +19,16 @@ const NAV_ITEMS = [
   { label: 'Settings',       href: '/dashboard/settings',          icon: Settings   },
 ]
 
+const DEPT_NAV_ITEMS = [
+  { label: 'Department Home',      href: '/my-department',                  icon: LayoutGrid },
+  { label: 'Daily Logs Workspace',  href: '/my-department/daily-log',        icon: FileEdit   },
+  { label: 'Inventory Catalog',    href: '/my-department/inventory',        icon: Boxes      },
+  { label: 'Store Requests',       href: '/my-department/store-request',    icon: ShoppingCart },
+  { label: 'Fulfillment Console',  href: '/my-department/store-fulfillment',icon: ShoppingCart },
+  { label: 'Event Narrative',      href: '/my-department/narrative',        icon: FileText   },
+  { label: 'Manage Team',          href: '/my-department/team',             icon: Users      },
+]
+
 const ROLE_LABELS: Record<string, string> = {
   super_admin:  'Admin',
   national_coordinator: 'Nat. Coordinator',
@@ -250,17 +260,15 @@ export function DashboardHeader() {
               <span>{signing ? 'Signing out…' : 'Sign out'}</span>
             </button>
 
-            {/* Mobile / Tablet Hamburger Trigger (opens Right Drawer) */}
-            {showNav && (
-              <button
-                className="flex lg:hidden items-center justify-center rounded-lg p-1.5 text-slate-400 transition-colors hover:text-white cursor-pointer"
-                style={{ border: '1px solid rgba(255,255,255,0.08)' }}
-                onClick={() => setOpen(o => !o)}
-                aria-label="Toggle Mobile Navigation Drawer"
-              >
-                {open ? <X size={18} /> : <Menu size={18} />}
-              </button>
-            )}
+            {/* Mobile / Tablet Hamburger Trigger (Visible on Mobile & Tablet ONLY, hidden on Desktop & Laptop) */}
+            <button
+              className="flex lg:hidden items-center justify-center rounded-lg p-1.5 text-slate-400 transition-colors hover:text-white cursor-pointer"
+              style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+              onClick={() => setOpen(o => !o)}
+              aria-label="Toggle Mobile Navigation Drawer"
+            >
+              {open ? <X size={18} /> : <Menu size={18} />}
+            </button>
           </div>
         </div>
       </header>
@@ -327,7 +335,7 @@ export function DashboardHeader() {
       )}
 
       {/* ── MOBILE & TABLET RIGHT-SLIDING DRAWER (50% Width + Blurred Backdrop) ── */}
-      {showNav && open && (
+      {open && (
         <>
           {/* Blurred Translucent Overlay */}
           <div
@@ -375,31 +383,57 @@ export function DashboardHeader() {
                 </span>
               </div>
 
-              {/* Vertical Navigation List */}
+              {/* Vertical Navigation List (Role-Aware) */}
               <nav className="flex flex-col gap-1.5 pt-2">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2 mb-1">
                   Navigation Menu
                 </span>
-                {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                  if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings' || label === 'Manual Entry')) return null;
-                  if (role === 'coordinator' && label === 'Manual Entry') return null;
-                  const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
-                  return (
-                    <button
-                      key={href}
-                      onClick={() => { router.push(href); setOpen(false) }}
-                      className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold transition-all cursor-pointer"
-                      style={{
-                        color:      active ? '#F1F5F9' : '#94A3B8',
-                        background: active ? 'rgba(59,130,246,0.14)' : 'transparent',
-                        border:     active ? '1px solid rgba(59,130,246,0.3)' : '1px solid transparent',
-                      }}
-                    >
-                      <Icon size={16} className={active ? 'text-blue-400' : 'text-slate-400'} />
-                      {label}
-                    </button>
-                  )
-                })}
+                
+                {showNav ? (
+                  /* Admin / Coordinator / Nat Coordinator Nav Links */
+                  NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+                    if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings' || label === 'Manual Entry')) return null;
+                    if (role === 'coordinator' && label === 'Manual Entry') return null;
+                    const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
+                    return (
+                      <button
+                        key={href}
+                        onClick={() => { router.push(href); setOpen(false) }}
+                        className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold transition-all cursor-pointer"
+                        style={{
+                          color:      active ? '#F1F5F9' : '#94A3B8',
+                          background: active ? 'rgba(59,130,246,0.14)' : 'transparent',
+                          border:     active ? '1px solid rgba(59,130,246,0.3)' : '1px solid transparent',
+                        }}
+                      >
+                        <Icon size={16} className={active ? 'text-blue-400' : 'text-slate-400'} />
+                        {label}
+                      </button>
+                    )
+                  })
+                ) : (
+                  /* HOD & Assistant Department Quick Nav Links */
+                  DEPT_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+                    // Hide fulfillment console for non-stores departments
+                    if (label === 'Fulfillment Console' && !activeDeptName.toLowerCase().includes('store')) return null;
+                    const active = pathname === href || (href !== '/my-department' && pathname?.startsWith(href))
+                    return (
+                      <button
+                        key={href}
+                        onClick={() => { router.push(href); setOpen(false) }}
+                        className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold transition-all cursor-pointer"
+                        style={{
+                          color:      active ? '#F1F5F9' : '#94A3B8',
+                          background: active ? 'rgba(59,130,246,0.14)' : 'transparent',
+                          border:     active ? '1px solid rgba(59,130,246,0.3)' : '1px solid transparent',
+                        }}
+                      >
+                        <Icon size={16} className={active ? 'text-blue-400' : 'text-slate-400'} />
+                        {label}
+                      </button>
+                    )
+                  })
+                )}
               </nav>
             </div>
 
