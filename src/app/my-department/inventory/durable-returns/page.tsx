@@ -127,7 +127,7 @@ export default function DurableReturnsTrackerPage() {
       const itemsList: OutstandingDurableItem[] = []
 
       if (storeReqs) {
-        storeReqs.forEach(req => {
+        storeReqs.forEach((req: any) => {
           const deptName = req.department?.name || 'Department'
           const reqItems = req.items_json || []
 
@@ -310,7 +310,7 @@ export default function DurableReturnsTrackerPage() {
 
   // Group by department name
   const groupedByDept: Record<string, OutstandingDurableItem[]> = {}
-  filteredDisplayItems: filteredItems.forEach(item => {
+  filteredItems.forEach(item => {
     if (!groupedByDept[item.departmentName]) {
       groupedByDept[item.departmentName] = []
     }
