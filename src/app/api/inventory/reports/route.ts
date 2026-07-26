@@ -165,6 +165,54 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ reportType, data: history })
       }
+
+      if (reportType === 'durable_returns') {
+        const result: any[] = []
+        reqs.forEach((req: any) => {
+          if (['delivered', 'ready_for_collection', 'partially_fulfilled'].includes(req.status)) {
+            const deptId = req.department_id || 'dept-1'
+            const deptObj = depts.find((d: any) => d.id === deptId)
+            const deptName = deptObj?.name || req.department_name || 'Department'
+            const itemsList = req.items_json || []
+
+            itemsList.forEach((it: any, idx: number) => {
+              const isDurable = it.category === 'durable' || (!it.category && (it.return_status === 'outstanding' || it.return_status === 'return_initiated'))
+              const status = it.return_status || 'outstanding'
+              const isRelevant = ['outstanding', 'return_initiated', 'returned_damaged', 'lost'].includes(status)
+
+              if (isDurable && isRelevant && status !== 'not_applicable') {
+                const issued = Number(it.approved_quantity ?? it.quantity) || 0
+                const returned = Number(it.returned_quantity) || 0
+                const outstanding = Math.max(0, issued - returned)
+
+                result.push({
+                  id: `${req.id}_${idx}`,
+                  request_id: req.id,
+                  department_id: deptId,
+                  department_name: deptName,
+                  item_id: it.inventory_item_id || it.id,
+                  item_name: it.name,
+                  item_code: it.item_code || '',
+                  quantity_issued: issued,
+                  quantity_returned: returned,
+                  outstanding_quantity: outstanding,
+                  return_status: status,
+                  condition_note: it.condition_note || '',
+                  delivered_at: req.reviewed_at || req.updated_at || req.created_at
+                })
+              }
+            })
+          }
+        })
+
+        let filtered = result
+        if (deptIds.length > 0) filtered = filtered.filter((r: any) => deptIds.includes(r.department_id))
+        if (itemIds.length > 0) filtered = filtered.filter((r: any) => itemIds.includes(r.item_id))
+        if (startDate) filtered = filtered.filter((r: any) => new Date(r.delivered_at) >= new Date(startDate))
+        if (endDate) filtered = filtered.filter((r: any) => new Date(r.delivered_at) <= new Date(endDate))
+
+        return NextResponse.json({ reportType, data: filtered })
+      }
     }
 
     // --- Production Live Supabase Execution via Server-Side RPC Functions ---
@@ -260,6 +308,59 @@ export async function GET(request: NextRequest) {
       if (deptIds.length > 0) history = history.filter((h: any) => h.department_id && deptIds.includes(h.department_id))
 
       return NextResponse.json({ reportType, data: history })
+    }
+
+    if (reportType === 'durable_returns') {
+      const { data: storeReqs } = await supabaseAdmin
+        .from('store_requests')
+        .select('*, department:departments(id, name)')
+        .in('status', ['delivered', 'ready_for_collection', 'partially_fulfilled'])
+
+      const result: any[] = []
+
+      if (storeReqs) {
+        storeReqs.forEach(req => {
+          const deptId = req.department?.id || req.department_id
+          const deptName = req.department?.name || 'Department'
+          const itemsList = req.items_json || []
+
+          itemsList.forEach((it: any, idx: number) => {
+            const isDurable = it.category === 'durable' || (!it.category && (it.return_status === 'outstanding' || it.return_status === 'return_initiated'))
+            const status = it.return_status || 'outstanding'
+            const isRelevant = ['outstanding', 'return_initiated', 'returned_damaged', 'lost'].includes(status)
+
+            if (isDurable && isRelevant && status !== 'not_applicable') {
+              const issued = Number(it.approved_quantity ?? it.quantity) || 0
+              const returned = Number(it.returned_quantity) || 0
+              const outstanding = Math.max(0, issued - returned)
+
+              result.push({
+                id: `${req.id}_${idx}`,
+                request_id: req.id,
+                department_id: deptId,
+                department_name: deptName,
+                item_id: it.inventory_item_id || it.id,
+                item_name: it.name,
+                item_code: it.item_code || '',
+                quantity_issued: issued,
+                quantity_returned: returned,
+                outstanding_quantity: outstanding,
+                return_status: status,
+                condition_note: it.condition_note || '',
+                delivered_at: req.reviewed_at || req.updated_at || req.created_at
+              })
+            }
+          })
+        })
+      }
+
+      let filtered = result
+      if (deptIds.length > 0) filtered = filtered.filter((r: any) => deptIds.includes(r.department_id))
+      if (itemIds.length > 0) filtered = filtered.filter((r: any) => itemIds.includes(r.item_id))
+      if (startDate) filtered = filtered.filter((r: any) => new Date(r.delivered_at) >= new Date(startDate))
+      if (endDate) filtered = filtered.filter((r: any) => new Date(r.delivered_at) <= new Date(endDate))
+
+      return NextResponse.json({ reportType, data: filtered })
     }
 
     return NextResponse.json({ error: 'Invalid reportType requested' }, { status: 400 })

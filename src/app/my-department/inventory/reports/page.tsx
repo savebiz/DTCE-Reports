@@ -22,7 +22,7 @@ export default function InventoryReportsPage() {
   const [departments, setDepartments] = useState<any[]>([])
 
   // Filters State
-  const [reportType, setReportType] = useState<'stock_summary' | 'department_consumption' | 'fulfillment_history' | 'low_stock'>('stock_summary')
+  const [reportType, setReportType] = useState<'stock_summary' | 'department_consumption' | 'fulfillment_history' | 'low_stock' | 'durable_returns'>('stock_summary')
   const [datePreset, setDatePreset] = useState<'all' | 'today' | 'week' | 'convention' | 'custom'>('all')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -268,12 +268,13 @@ export default function InventoryReportsPage() {
         </div>
 
         {/* 3. Report Type Selector Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-1.5 rounded-xl bg-card border border-border">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 p-1.5 rounded-xl bg-card border border-border">
           {[
-            { id: 'stock_summary', label: 'Stock Level Summary', icon: Layers, desc: 'Current stock vs thresholds' },
-            { id: 'department_consumption', label: 'Department Consumption', icon: Building2, desc: 'Equitable distribution metrics' },
-            { id: 'fulfillment_history', label: 'Fulfillment History', icon: FileText, desc: 'Audit log of disbursements' },
-            { id: 'low_stock', label: 'Low Stock Deficits', icon: ShieldAlert, desc: 'Items requiring restock' }
+            { id: 'stock_summary', label: 'Stock Summary', icon: Layers, desc: 'Current stock vs threshold' },
+            { id: 'department_consumption', label: 'Dept Consumption', icon: Building2, desc: 'Equitable distribution' },
+            { id: 'fulfillment_history', label: 'Fulfillment Log', icon: FileText, desc: 'Audit log disbursements' },
+            { id: 'low_stock', label: 'Low Stock Deficits', icon: ShieldAlert, desc: 'Items requiring restock' },
+            { id: 'durable_returns', label: 'Durable Returns & Lost', icon: PackageCheck, desc: 'Borrowed equipment returns' }
           ].map(tab => {
             const Icon = tab.icon
             const active = reportType === tab.id
@@ -281,14 +282,14 @@ export default function InventoryReportsPage() {
               <button
                 key={tab.id}
                 onClick={() => setReportType(tab.id as any)}
-                className={`p-3 rounded-lg text-left transition-all cursor-pointer border ${
+                className={`p-2.5 rounded-lg text-left transition-all cursor-pointer border ${
                   active
                     ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 font-bold shadow-xs'
                     : 'bg-background/40 border-transparent text-muted-foreground hover:bg-background/70 hover:text-foreground'
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon className={`w-4 h-4 ${active ? 'text-amber-500' : 'text-muted-foreground'}`} />
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Icon className={`w-3.5 h-3.5 ${active ? 'text-amber-500' : 'text-muted-foreground'}`} />
                   <span className="text-xs font-bold truncate">{tab.label}</span>
                 </div>
                 <span className="text-[10px] text-muted-foreground block truncate">{tab.desc}</span>
@@ -647,6 +648,72 @@ export default function InventoryReportsPage() {
                           </tr>
                         )
                       })
+                    )}
+                  </tbody>
+                </table>
+              )}
+
+              {reportType === 'durable_returns' && (
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/40 text-muted-foreground font-semibold uppercase text-[10px] tracking-wider">
+                      <th className="p-3">Department Name</th>
+                      <th className="p-3">Item Code</th>
+                      <th className="p-3">Equipment Name</th>
+                      <th className="p-3 text-right">Issued Qty</th>
+                      <th className="p-3 text-right">Returned Qty</th>
+                      <th className="p-3 text-right">Outstanding Qty</th>
+                      <th className="p-3 text-center">Return Status</th>
+                      <th className="p-3">Condition Note / Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60 text-foreground">
+                    {filteredDisplayData.length === 0 ? (
+                      <tr><td colSpan={8} className="p-8 text-center text-muted-foreground italic">No durable return records match your filter criteria.</td></tr>
+                    ) : (
+                      filteredDisplayData.map(r => (
+                        <tr key={r.id} className="hover:bg-muted/20 transition-colors">
+                          <td className="p-3 font-semibold text-foreground flex items-center gap-2">
+                            <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                            {r.department_name}
+                          </td>
+                          <td className="p-3 font-mono">
+                            {r.item_code ? (
+                              <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                {r.item_code}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground text-[10px] italic">Unassigned</span>
+                            )}
+                          </td>
+                          <td className="p-3 font-semibold text-amber-500">{r.item_name}</td>
+                          <td className="p-3 text-right font-mono font-bold text-foreground">{r.quantity_issued}</td>
+                          <td className="p-3 text-right font-mono font-bold text-emerald-400">{r.quantity_returned}</td>
+                          <td className="p-3 text-right font-mono font-bold text-amber-400 text-sm">{r.outstanding_quantity}</td>
+                          <td className="p-3 text-center">
+                            {r.return_status === 'return_initiated' ? (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider animate-pulse">
+                                🚚 Return Initiated
+                              </span>
+                            ) : r.return_status === 'returned_damaged' ? (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase tracking-wider">
+                                ⚠️ Returned Damaged
+                              </span>
+                            ) : r.return_status === 'lost' ? (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider">
+                                ❌ Lost / Missing
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">
+                                ⏳ Outstanding
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 text-muted-foreground text-[11px] max-w-xs truncate">
+                            {r.condition_note || '—'}
+                          </td>
+                        </tr>
+                      ))
                     )}
                   </tbody>
                 </table>

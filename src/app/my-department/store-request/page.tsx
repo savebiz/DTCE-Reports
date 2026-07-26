@@ -491,21 +491,64 @@ function StoreRequestContent() {
                               const appQty = it.approved_quantity ?? it.quantity
                               const isAdjusted = reqQty !== undefined && appQty !== undefined && reqQty !== appQty
 
+                              const isDurable = it.category === 'durable' || (it.return_status && it.return_status !== 'not_applicable')
+                              const isOutstanding = it.return_status === 'outstanding' || (!it.return_status && isDurable && req.status === 'delivered')
+                              const isInitiated = it.return_status === 'return_initiated'
+
                               return (
-                                <div key={itIdx} className="flex justify-between items-center p-2 rounded-lg bg-background/60 border border-border/50">
-                                  <span className="text-foreground font-semibold">{it.name}</span>
-                                  <div className="flex items-center gap-2">
-                                    {isAdjusted ? (
-                                      <span className="font-mono text-xs">
-                                        <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
-                                        <span className="font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
-                                      </span>
-                                    ) : (
-                                      <span className="font-mono font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded">
-                                        × {appQty || reqQty}
-                                      </span>
-                                    )}
+                                <div key={itIdx} className="flex flex-col gap-1.5 p-2 rounded-lg bg-background/60 border border-border/50">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-foreground font-semibold">{it.name}</span>
+                                    <div className="flex items-center gap-2">
+                                      {isAdjusted ? (
+                                        <span className="font-mono text-xs">
+                                          <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
+                                          <span className="font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
+                                        </span>
+                                      ) : (
+                                        <span className="font-mono font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded">
+                                          × {appQty || reqQty}
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
+
+                                  {/* Durable Return Status & Initiate Return Action */}
+                                  {isDurable && req.status === 'delivered' && (
+                                    <div className="flex items-center justify-between text-[10px] pt-1 border-t border-border/40 mt-1">
+                                      <span className="text-muted-foreground">Return Status:</span>
+                                      {isInitiated ? (
+                                        <span className="font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                                          🚚 Return Initiated
+                                        </span>
+                                      ) : isOutstanding ? (
+                                        <button
+                                          onClick={async () => {
+                                            try {
+                                              const res = await fetch('/api/inventory/initiate-return', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ requestId: req.id, itemIndex: itIdx })
+                                              })
+                                              if (res.ok) {
+                                                showToast('Return initiated! Stores notified.', 'success')
+                                                loadMyRequests()
+                                              }
+                                            } catch (err: any) {
+                                              showToast(`Failed: ${err.message}`, 'error')
+                                            }
+                                          }}
+                                          className="font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-0.5 rounded border border-amber-500/30 cursor-pointer transition-colors"
+                                        >
+                                          🔄 Initiate Return
+                                        </button>
+                                      ) : (
+                                        <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                                          ✓ {it.return_status?.replace('_', ' ')}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               )
                             })}

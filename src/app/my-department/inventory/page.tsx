@@ -545,6 +545,14 @@ export default function StoresInventoryPage() {
 
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              onClick={() => router.push('/my-department/inventory/durable-returns')}
+              variant="outline"
+              size="sm"
+              className="text-xs font-bold h-9 border-amber-500/40 text-amber-400 hover:bg-amber-500/10 cursor-pointer shadow-xs"
+            >
+              🔄 Durable Returns Tracker
+            </Button>
+            <Button
               onClick={() => router.push('/my-department/inventory/reports')}
               variant="outline"
               size="sm"

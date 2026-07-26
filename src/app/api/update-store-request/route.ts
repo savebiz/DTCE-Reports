@@ -63,6 +63,42 @@ export async function POST(request: NextRequest) {
     }
 
     // Perform update with admin privileges
+    // Fetch inventory item categories to initialize return_status for durable items
+    if (['delivered', 'ready_for_collection', 'partially_fulfilled', 'in_progress'].includes(status)) {
+      const itemsToAnnotate = items_json || existingReq?.items_json
+      if (Array.isArray(itemsToAnnotate) && itemsToAnnotate.length > 0) {
+        const itemIds = itemsToAnnotate.map(it => it.inventory_item_id).filter(Boolean)
+        let catMap: Record<string, string> = {}
+
+        if (itemIds.length > 0) {
+          const { data: invItems } = await supabaseAdmin
+            .from('inventory_items')
+            .select('id, category, item_code')
+            .in('id', itemIds)
+
+          if (invItems) {
+            invItems.forEach(i => {
+              catMap[i.id] = i.category
+            })
+          }
+        }
+
+        const annotatedItems = itemsToAnnotate.map(it => {
+          const cat = it.category || catMap[it.inventory_item_id] || 'consumable'
+          const isDurable = cat === 'durable'
+
+          return {
+            ...it,
+            category: cat,
+            return_status: isDurable ? (it.return_status || 'outstanding') : 'not_applicable',
+            returned_quantity: isDurable ? (it.returned_quantity || 0) : undefined
+          }
+        })
+
+        updatePayload.items_json = annotatedItems
+      }
+    }
+
     const { data, error } = await supabaseAdmin
       .from('store_requests')
       .update(updatePayload)
