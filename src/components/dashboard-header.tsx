@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getClient, isMock, mockDepartments } from '@/utils/supabase'
-import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, PackageOpen, Settings, FileEdit } from 'lucide-react'
+import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
@@ -13,8 +13,8 @@ const NAV_ITEMS = [
   { label: 'Manual Entry',   href: '/dashboard/manual-entry',      icon: FileEdit   },
   { label: 'Reports',        href: '/dashboard/reports',           icon: FileText   },
   { label: 'YoY Analytics',  href: '/dashboard/yoy',               icon: BarChart2  },
-  { label: 'Requisitions',   href: '/dashboard/store-requisitions',icon: PackageOpen },
-  { label: 'Inventory',     href: '/my-department/inventory',     icon: PackageOpen },
+  { label: 'Requisitions',   href: '/dashboard/store-requisitions',icon: ShoppingCart },
+  { label: 'Inventory',     href: '/my-department/inventory',     icon: Boxes      },
   { label: 'Team',           href: '/dashboard/team',              icon: Users      },
   { label: 'Settings',       href: '/dashboard/settings',          icon: Settings   },
 ]
@@ -197,7 +197,7 @@ export function DashboardHeader() {
             </div>
           </div>
 
-          {/* Right Controls (Swapped order: 1. ThemeToggle, 2. NotificationBell, 3. Role/Avatar/SignOut, 4. Hamburger) */}
+          {/* Right Controls (Strict Left-to-Right: 1. ThemeToggle, 2. NotificationBell, 3. Role/Avatar/SignOut, 4. Hamburger) */}
           <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             {/* 1. Theme toggle FIRST */}
             <ThemeToggle compact />
