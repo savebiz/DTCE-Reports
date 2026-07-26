@@ -532,7 +532,7 @@ function StoreRequestContent() {
                                               })
                                               if (res.ok) {
                                                 showToast('Return initiated! Stores notified.', 'success')
-                                                loadMyRequests()
+                                                loadData()
                                               }
                                             } catch (err: any) {
                                               showToast(`Failed: ${err.message}`, 'error')
