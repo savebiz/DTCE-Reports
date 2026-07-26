@@ -202,7 +202,7 @@ export function DashboardHeader() {
             </button>
 
             <div className="h-4 w-px bg-slate-800 hidden sm:block" />
-            <div className="text-[10px] sm:text-[11px] font-bold text-amber-400 tracking-wider uppercase bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 sm:px-2.5 rounded-full select-none max-w-[130px] sm:max-w-[200px] lg:max-w-none truncate">
+            <div className="hidden sm:inline-flex text-[10px] sm:text-[11px] font-bold text-amber-400 tracking-wider uppercase bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 sm:px-2.5 rounded-full select-none max-w-[130px] sm:max-w-[200px] lg:max-w-none truncate">
               {activeDeptName}
             </div>
           </div>
