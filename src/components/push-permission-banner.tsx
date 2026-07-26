@@ -152,10 +152,10 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white tracking-tight">
-                Enable WhatsApp-Style Background Alerts
+                Enable Background Alerts
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/20">
-                <Sparkles className="h-3 w-3" /> Recommended
+              <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/20">
+                Recommended
               </span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed max-w-xl">
