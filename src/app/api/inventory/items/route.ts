@@ -38,7 +38,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies()
-    const { name, category, unit, current_stock, low_stock_threshold } = await request.json()
+    const { name, item_code, category, unit, current_stock, low_stock_threshold } = await request.json()
 
     if (!name || !category || !unit) {
       return NextResponse.json({ error: 'Name, category, and unit are required fields.' }, { status: 400 })
@@ -70,15 +70,21 @@ export async function POST(request: Request) {
     const supabaseAdmin = getAdminClient()
 
     // Insert new item
+    const insertPayload: Record<string, any> = {
+      name,
+      category,
+      unit,
+      current_stock: initialStock,
+      low_stock_threshold: threshold
+    }
+
+    if (item_code && typeof item_code === 'string' && item_code.trim()) {
+      insertPayload.item_code = item_code.trim().toUpperCase()
+    }
+
     const { data: newItem, error: itemErr } = await supabaseAdmin
       .from('inventory_items')
-      .insert({
-        name,
-        category,
-        unit,
-        current_stock: initialStock,
-        low_stock_threshold: threshold
-      })
+      .insert(insertPayload)
       .select()
       .single()
 

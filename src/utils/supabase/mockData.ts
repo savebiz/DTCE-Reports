@@ -90,6 +90,7 @@ export interface AuditLog {
 export interface InventoryItem {
   id: string
   name: string
+  item_code?: string
   category: 'durable' | 'consumable'
   unit: string
   current_stock: number
