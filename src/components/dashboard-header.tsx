@@ -149,14 +149,15 @@ export function DashboardHeader() {
 
   return (
     <>
-      {/* ── TOP HEADER BAR (Chrome Layer, fixed theme-invariant dark) ── */}
+      {/* ── FIXED FLOATING GLASSMORPHISM TOP NAVIGATION BAR ── */}
       <header
-        className="sticky top-0 z-50 w-full overflow-x-clip"
+        className="fixed top-0 left-0 right-0 z-50 w-full overflow-x-clip"
         style={{
-          background: 'var(--chrome-bg)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          background:           'rgba(10, 24, 38, 0.82)',
+          backdropFilter:       'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom:         '1px solid rgba(255, 255, 255, 0.1)',
+          boxShadow:            '0 8px 32px rgba(0, 0, 0, 0.37)',
         }}
       >
         <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-3 md:px-6 w-full">
@@ -196,12 +197,13 @@ export function DashboardHeader() {
             </div>
           </div>
 
-          {/* Right — Notification Bell + Theme Toggle (Mobile/Tablet & Desktop) + User controls */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <NotificationBell userId={user?.id || profile?.id || (isMock ? 'mock-admin' : undefined)} />
-            
-            {/* Theme toggle directly in navbar for Mobile, Tablet & Desktop */}
+          {/* Right Controls (Swapped order: 1. ThemeToggle, 2. NotificationBell, 3. Role/Avatar/SignOut, 4. Hamburger) */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+            {/* 1. Theme toggle FIRST */}
             <ThemeToggle compact />
+
+            {/* 2. Notification Bell SECOND */}
+            <NotificationBell userId={user?.id || profile?.id || (isMock ? 'mock-admin' : undefined)} />
 
             {/* Role badge (Desktop) */}
             <span className={`hidden lg:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize tracking-wide ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
@@ -272,10 +274,10 @@ export function DashboardHeader() {
             isHovered ? 'w-56 shadow-2xl' : 'w-14'
           }`}
           style={{
-            background:     'rgba(10, 24, 38, 0.96)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderColor:    'rgba(255, 255, 255, 0.08)',
+            background:           'rgba(10, 24, 38, 0.96)',
+            backdropFilter:       'blur(24px)',
+            WebkitBackdropFilter: 'blur(24px)',
+            borderColor:          'rgba(255, 255, 255, 0.1)',
           }}
         >
           <div className="flex flex-col gap-1.5 p-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
@@ -360,7 +362,7 @@ export function DashboardHeader() {
 
                 <button
                   onClick={() => setOpen(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors"
+                  className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <X size={18} />
                 </button>
