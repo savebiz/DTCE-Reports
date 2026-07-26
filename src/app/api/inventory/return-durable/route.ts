@@ -133,14 +133,9 @@ export async function POST(request: Request) {
       .filter((it: any) => it.category === 'durable')
       .every((it: any) => ['returned', 'returned_damaged', 'lost'].includes(it.return_status))
 
-    const updatePayload: Record<string, any> = {
-      items_json: updatedItems,
-      updated_at: new Date().toISOString()
-    }
-
     const { data: updatedReq, error: updateErr } = await supabaseAdmin
       .from('store_requests')
-      .update(updatePayload)
+      .update({ items_json: updatedItems })
       .eq('id', requestId)
       .select()
       .single()
