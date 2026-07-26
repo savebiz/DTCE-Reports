@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
-import { BarChart3, Download, Filter, RefreshCw, Layers, ShieldAlert, FileText, ArrowLeft, Building2 } from 'lucide-react'
+import { BarChart3, Download, Filter, RefreshCw, Layers, ShieldAlert, FileText, ArrowLeft, Building2, PackageCheck } from 'lucide-react'
 
 export default function InventoryReportsPage() {
   const router = useRouter()
