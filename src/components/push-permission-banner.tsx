@@ -110,7 +110,7 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
       const res = await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sub)
+        body: JSON.stringify({ subscription: sub.toJSON() })
       })
 
       if (!res.ok) {
