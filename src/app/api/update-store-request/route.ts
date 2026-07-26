@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
     // --- REQUISITION LIFECYCLE NOTIFICATION TRIGGERS ---
     if (existingReq) {
       const deptName = existingReq.department?.name || 'Department'
+      const deptId = existingReq.department_id
       const requesterId = existingReq.requester_profile_id
       const finalItems = items_json || existingReq.items_json || []
 
