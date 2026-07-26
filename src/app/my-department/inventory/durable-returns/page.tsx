@@ -409,7 +409,7 @@ export default function DurableReturnsTrackerPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 rounded-xl bg-card border border-border">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold text-muted-foreground">Filter by Dept:</span>
-            <Select value={selectedDeptFilter} onValueChange={setSelectedDeptFilter}>
+            <Select value={selectedDeptFilter} onValueChange={(val: any) => { if (val) setSelectedDeptFilter(val) }}>
               <SelectTrigger className="w-48 text-xs input-dark h-8">
                 <SelectValue placeholder="All Departments" />
               </SelectTrigger>
