@@ -3,7 +3,7 @@
  * Provides tactile haptic vibration patterns and Web Audio API chime sounds.
  */
 
-export type HapticPattern = 'light' | 'medium' | 'heavy' | 'notification' | 'success' | 'warning' | 'error'
+export type HapticPattern = 'light' | 'medium' | 'heavy' | 'notification' | 'success' | 'warning' | 'error' | 'info'
 
 /**
  * Triggers mobile device vibration using the Web Vibration API.
@@ -16,8 +16,9 @@ export const triggerHaptic = (pattern: HapticPattern = 'light') => {
 
   try {
     switch (pattern) {
+      case 'info':
       case 'light':
-        // Short soft tap for buttons and toggles
+        // Short soft tap for buttons, info popups, and toggles
         navigator.vibrate(15)
         break
       case 'medium':
