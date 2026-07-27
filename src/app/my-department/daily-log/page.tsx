@@ -37,12 +37,10 @@ function DailyLogContent() {
   const [attendanceMorning, setAttendanceMorning] = useState(0)
   const [attendanceEvening, setAttendanceEvening] = useState(0)
   
-  // Workforce Breakdown
+  // Workforce Breakdown (Teachers/Helpers & Teenagers ONLY)
   const [workforce, setWorkforce] = useState({
     teachersMale: 0, teachersFemale: 0,
     teenagersMale: 0, teenagersFemale: 0,
-    preteensMale: 0, preteensFemale: 0,
-    childrenMale: 0, childrenFemale: 0,
   })
 
   // Financials
@@ -359,8 +357,6 @@ function DailyLogContent() {
       setWorkforce(mData.workforce || {
         teachersMale: 0, teachersFemale: 0,
         teenagersMale: 0, teenagersFemale: 0,
-        preteensMale: 0, preteensFemale: 0,
-        childrenMale: 0, childrenFemale: 0,
       })
       
       const dNarrative = mData.daily_narrative || {}
@@ -397,8 +393,6 @@ function DailyLogContent() {
       setWorkforce({
         teachersMale: 0, teachersFemale: 0,
         teenagersMale: 0, teenagersFemale: 0,
-        preteensMale: 0, preteensFemale: 0,
-        childrenMale: 0, childrenFemale: 0,
       })
       setDailyOverview('')
       setDailyAchievements('')
@@ -648,19 +642,22 @@ function DailyLogContent() {
         </div>
       )}
 
-      {/* Date Day Selector */}
-      <div className="glass-card p-5 space-y-3">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Event reporting Day</span>
-        <div className="flex flex-wrap gap-2">
+      {/* Date Day Selector — Horizontal Apple-Style Scrollable Rail */}
+      <div className="glass-card p-4 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Event Reporting Day</span>
+          <span className="text-[10px] text-amber-500 font-mono font-semibold sm:hidden">Swipe ← →</span>
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none snap-x -mx-1 px-1">
           {eventDays.map((d: any) => {
             const active = d.id === activeDay.id
             return (
               <button
                 key={d.id}
                 onClick={() => handleDayChange(d.id)}
-                className={`px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all border cursor-pointer ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer snap-center ${
                   active
-                    ? 'bg-amber-500/10 text-amber-550 dark:text-amber-400 border-amber-500/30'
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-xs'
                     : 'bg-card text-muted-foreground border-border hover:border-slate-400 dark:hover:border-slate-700'
                 }`}
               >
@@ -675,121 +672,87 @@ function DailyLogContent() {
         {/* Core numbers form */}
         <div className="lg:col-span-2 space-y-6">
           <Card className="glass-card border-none">
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
                 1. Core Daily Attendance
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Enter total attendees logged for both morning and evening services.
+                Enter total attendees logged for morning and evening services.
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="m-att" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Morning Session</Label>
+            <CardContent className="grid grid-cols-2 gap-3.5">
+              <div className="space-y-1.5">
+                <Label htmlFor="m-att" className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest block truncate">Morning Session</Label>
                 <NumberField
                   id="m-att"
                   value={attendanceMorning}
                   onChange={setAttendanceMorning}
                   disabled={isReadOnly || loading}
-                  className="input-dark font-mono text-lg text-center text-foreground"
+                  className="input-dark font-mono text-base sm:text-lg text-center text-foreground h-10"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="e-att" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Evening Session</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="e-att" className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest block truncate">Evening Session</Label>
                 <NumberField
                   id="e-att"
                   value={attendanceEvening}
                   onChange={setAttendanceEvening}
                   disabled={isReadOnly || loading}
-                  className="input-dark font-mono text-lg text-center text-foreground"
+                  className="input-dark font-mono text-base sm:text-lg text-center text-foreground h-10"
                 />
               </div>
             </CardContent>
           </Card>
 
-          {/* Workforce breakdown section */}
+          {/* Workforce breakdown section (Streamlined to Teachers/Helpers & Teenagers across ALL devices) */}
           {hasWorkforce && (
             <Card className="glass-card border-none">
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
                   2. Attendee Category Breakdown
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Break down logged attendee counts by age category and gender.
+                  Break down logged attendee counts by category and gender.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3">
                 <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-bold text-muted-foreground uppercase tracking-wider pb-2 border-b border-border">
                   <div className="text-left">Category</div>
                   <div>Male</div>
                   <div>Female</div>
                 </div>
 
-                {/* Teachers */}
-                <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
+                {/* Teachers / Helpers */}
+                <div className="grid grid-cols-3 gap-2 items-center text-xs sm:text-sm py-1">
                   <span className="font-semibold text-foreground">Teachers / Helpers</span>
                   <NumberField
                     value={workforce.teachersMale}
                     onChange={(val) => setWorkforce(w => ({ ...w, teachersMale: val }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground"
+                    className="input-dark font-mono text-center text-foreground h-9"
                   />
                   <NumberField
                     value={workforce.teachersFemale}
                     onChange={(val) => setWorkforce(w => ({ ...w, teachersFemale: val }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground"
+                    className="input-dark font-mono text-center text-foreground h-9"
                   />
                 </div>
 
                 {/* Teenagers */}
-                <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
+                <div className="grid grid-cols-3 gap-2 items-center text-xs sm:text-sm py-1">
                   <span className="font-semibold text-foreground">Teenagers</span>
                   <NumberField
                     value={workforce.teenagersMale}
                     onChange={(val) => setWorkforce(w => ({ ...w, teenagersMale: val }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground"
+                    className="input-dark font-mono text-center text-foreground h-9"
                   />
                   <NumberField
                     value={workforce.teenagersFemale}
                     onChange={(val) => setWorkforce(w => ({ ...w, teenagersFemale: val }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground"
-                  />
-                </div>
-
-                {/* Pre-teens */}
-                <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
-                  <span className="font-semibold text-foreground">Pre-Teens</span>
-                  <NumberField
-                    value={workforce.preteensMale}
-                    onChange={(val) => setWorkforce(w => ({ ...w, preteensMale: val }))}
-                    disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground"
-                  />
-                  <NumberField
-                    value={workforce.preteensFemale}
-                    onChange={(val) => setWorkforce(w => ({ ...w, preteensFemale: val }))}
-                    disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground"
-                  />
-                </div>
-
-                {/* Children */}
-                <div className="grid grid-cols-3 gap-2 items-center text-sm py-1">
-                  <span className="font-semibold text-foreground">Children</span>
-                  <NumberField
-                    value={workforce.childrenMale}
-                    onChange={(val) => setWorkforce(w => ({ ...w, childrenMale: val }))}
-                    disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground"
-                  />
-                  <NumberField
-                    value={workforce.childrenFemale}
-                    onChange={(val) => setWorkforce(w => ({ ...w, childrenFemale: val }))}
-                    disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground"
+                    className="input-dark font-mono text-center text-foreground h-9"
                   />
                 </div>
               </CardContent>
@@ -799,7 +762,7 @@ function DailyLogContent() {
           {/* Financial offering section */}
           {hasOffering && (
             <Card className="glass-card border-none">
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
                   3. Collections &amp; Financials
                 </CardTitle>
@@ -824,7 +787,7 @@ function DailyLogContent() {
 
           {/* Daily Qualitative Report & Feedback */}
           <Card className="glass-card border-none">
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
                 Daily Qualitative Report &amp; Feedback
               </CardTitle>
@@ -900,52 +863,52 @@ function DailyLogContent() {
 
         {/* Right side: Schema metrics & save panel */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Custom Schema Form rendering */}
-          <Card className="glass-card border-none">
-            <CardHeader>
-              <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                Department Custom Metrics
-              </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">
-                Log metrics specific to {department.name} operations.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {department.default_metrics_schema ? (
+          {/* Custom Schema Form rendering (Conditional: rendered ONLY when custom fields exist) */}
+          {department.default_metrics_schema &&
+           department.default_metrics_schema.fields &&
+           department.default_metrics_schema.fields.length > 0 && (
+            <Card className="glass-card border-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
+                  Department Custom Metrics
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">
+                  Log metrics specific to {department.name} operations.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
                 <SchemaFormRenderer
                   fields={department.default_metrics_schema.fields}
                   value={metricsData}
                   onChange={setMetricsData}
                   readOnly={isReadOnly}
                 />
-              ) : (
-                <p className="text-muted-foreground italic text-[12px]">No custom metrics schema required for this department.</p>
-              )}
 
-              {/* Dynamic Add Diagnosis Input */}
-              {!isReadOnly && department.name.toLowerCase().includes('medical') && (
-                <div className="mt-6 pt-6 border-t border-border/60 space-y-2">
-                  <Label htmlFor="add-diag-opt" className="text-xs font-bold text-foreground uppercase tracking-widest block">Add Custom Diagnosis Option</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="add-diag-opt"
-                      placeholder="e.g. CHOLERA"
-                      value={newDiagText}
-                      onChange={(e) => setNewDiagText(e.target.value)}
-                      className="input-dark h-9 text-xs flex-1 text-foreground"
-                    />
-                    <Button
-                      onClick={handleAddDiagnosisInline}
-                      size="sm"
-                      className="h-9 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4"
-                    >
-                      Add option
-                    </Button>
+                {/* Dynamic Add Diagnosis Input */}
+                {!isReadOnly && department.name.toLowerCase().includes('medical') && (
+                  <div className="mt-6 pt-6 border-t border-border/60 space-y-2">
+                    <Label htmlFor="add-diag-opt" className="text-xs font-bold text-foreground uppercase tracking-widest block">Add Custom Diagnosis Option</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="add-diag-opt"
+                        placeholder="e.g. CHOLERA"
+                        value={newDiagText}
+                        onChange={(e) => setNewDiagText(e.target.value)}
+                        className="input-dark h-9 text-xs flex-1 text-foreground"
+                      />
+                      <Button
+                        onClick={handleAddDiagnosisInline}
+                        size="sm"
+                        className="h-9 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4"
+                      >
+                        Add option
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Submission panel */}
           <Card className="glass-card border-none">
