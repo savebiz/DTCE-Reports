@@ -14,7 +14,6 @@ const NAV_ITEMS = [
   { label: 'Reports',        href: '/dashboard/reports',           icon: FileText   },
   { label: 'YoY Analytics',  href: '/dashboard/yoy',               icon: BarChart2  },
   { label: 'Requisitions',   href: '/dashboard/store-requisitions',icon: ShoppingCart },
-  { label: 'Inventory',     href: '/my-department/inventory',     icon: Boxes      },
   { label: 'Team',           href: '/dashboard/team',              icon: Users      },
   { label: 'Settings',       href: '/dashboard/settings',          icon: Settings   },
 ]
@@ -414,8 +413,10 @@ export function DashboardHeader() {
                 ) : (
                   /* HOD & Assistant Department Quick Nav Links */
                   DEPT_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                    // Hide fulfillment console for non-stores departments
-                    if (label === 'Fulfillment Console' && !activeDeptName.toLowerCase().includes('store')) return null;
+                    const isStoresDept = activeDeptName.toLowerCase().includes('store')
+                    // Hide fulfillment console and inventory catalog for non-stores departments
+                    if (label === 'Fulfillment Console' && !isStoresDept) return null;
+                    if (label === 'Inventory Catalog' && !isStoresDept) return null;
                     const active = pathname === href || (href !== '/my-department' && pathname?.startsWith(href))
                     return (
                       <button

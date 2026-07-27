@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import dynamic from 'next/dynamic'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
-import { CheckCircle2, RotateCcw, Check, AlertCircle } from 'lucide-react'
+import { CheckCircle2, RotateCcw, Check, AlertCircle, X } from 'lucide-react'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { KPIGridSkeleton, MatrixGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
 
@@ -696,101 +696,116 @@ export default function SecretariatDashboard() {
 
         {/* TAB 2: STORE REQUISITIONS CONSOLE */}
         {activeTab === 'store-requisitions' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up">
-            <div className="lg:col-span-2 space-y-4">
-              <Card className="glass-card border-none">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                      Pending &amp; Active Store Requisitions
-                    </CardTitle>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Review, approve, or delegate material requests from departments.
-                    </p>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {visibleStoreRequests.length === 0 ? (
-                    <p className="text-xs text-muted-foreground italic">No store requisitions found.</p>
-                  ) : (
-                    visibleStoreRequests.map((req) => {
-                      const cfg = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending_coordinator
-                      return (
-                        <div key={req.id} className="border border-border rounded-xl p-4 space-y-3 bg-background/25">
-                          <div className="flex justify-between items-start gap-4">
-                            <div>
-                              <span className="text-[13px] font-bold text-foreground block">
-                                {req.department?.name} Department
-                              </span>
-                              <span className="text-[10px] text-muted-foreground block mt-0.5">
-                                Submitted on {new Date(req.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full" style={{ background: cfg.bg, color: cfg.color, border: cfg.border }}>
-                              {cfg.label}
+          <div className="space-y-4 animate-fade-in-up">
+            <Card className="glass-card border-none">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
+                    Pending &amp; Active Store Requisitions
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Review, approve, or delegate material requests from departments.
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {visibleStoreRequests.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">No store requisitions found.</p>
+                ) : (
+                  visibleStoreRequests.map((req) => {
+                    const cfg = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending_coordinator
+                    return (
+                      <div key={req.id} className="border border-border rounded-xl p-4 space-y-3 bg-background/25">
+                        <div className="flex justify-between items-start gap-4">
+                          <div>
+                            <span className="text-[13px] font-bold text-foreground block">
+                              {req.department?.name} Department
+                            </span>
+                            <span className="text-[10px] text-muted-foreground block mt-0.5">
+                              Submitted on {new Date(req.created_at).toLocaleDateString()}
                             </span>
                           </div>
-
-                          <div className="p-3 bg-background/40 border border-border rounded-lg space-y-2">
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">Requisition Items:</span>
-                            <div className="space-y-1.5 text-xs">
-                              {req.items_json.map((it: any, idx: number) => {
-                                const reqQty = it.requested_quantity ?? it.quantity
-                                const appQty = it.approved_quantity ?? it.quantity
-                                const isAdjusted = reqQty !== undefined && appQty !== undefined && reqQty !== appQty
-
-                                return (
-                                  <div key={idx} className="flex justify-between items-center p-2 rounded-lg bg-background/60 border border-border/40">
-                                    <span className="text-foreground font-semibold">{it.name}</span>
-                                    <div className="flex items-center gap-2 font-mono">
-                                      {isAdjusted ? (
-                                        <span className="text-xs">
-                                          <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
-                                          <span className="font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
-                                        </span>
-                                      ) : (
-                                        <span className="font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded">
-                                          × {appQty || reqQty}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                )
-                              })}
-                            </div>
-                          </div>
-
-                          {req.reviewer_comments && (
-                            <div className="text-[11px] p-2 bg-background/50 border border-border rounded-lg text-muted-foreground">
-                              <strong>Remarks:</strong> {req.reviewer_comments}
-                            </div>
-                          )}
-
-                          {req.status === 'pending_coordinator' && (
-                            <div className="flex gap-2 justify-end pt-1">
-                              <Button size="sm" variant="outline" onClick={() => setSelectedReq(req)} className="text-xs h-8 cursor-pointer">
-                                Review &amp; Approve
-                              </Button>
-                            </div>
-                          )}
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full" style={{ background: cfg.bg, color: cfg.color, border: cfg.border }}>
+                            {cfg.label}
+                          </span>
                         </div>
-                      )
-                    })
-                  )}
-                </CardContent>
-              </Card>
-            </div>
 
-            {/* Sticky Action Panel */}
-            <div className="lg:col-span-1">
-              {selectedReq ? (
-                <Card className="glass-card border-none sticky top-20">
-                  <CardHeader>
-                    <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                      Review: {selectedReq.department?.name} Order
-                    </CardTitle>
+                        <div className="p-3 bg-background/40 border border-border rounded-lg space-y-2">
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">Requisition Items:</span>
+                          <div className="space-y-1.5 text-xs">
+                            {req.items_json.map((it: any, idx: number) => {
+                              const reqQty = it.requested_quantity ?? it.quantity
+                              const appQty = it.approved_quantity ?? it.quantity
+                              const isAdjusted = reqQty !== undefined && appQty !== undefined && reqQty !== appQty
+
+                              return (
+                                <div key={idx} className="flex justify-between items-center p-2 rounded-lg bg-background/60 border border-border/40">
+                                  <span className="text-foreground font-semibold">{it.name}</span>
+                                  <div className="flex items-center gap-2 font-mono">
+                                    {isAdjusted ? (
+                                      <span className="text-xs">
+                                        <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
+                                        <span className="font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
+                                      </span>
+                                    ) : (
+                                      <span className="font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded">
+                                        × {appQty || reqQty}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+
+                        {req.reviewer_comments && (
+                          <div className="text-[11px] p-2 bg-background/50 border border-border rounded-lg text-muted-foreground">
+                            <strong>Remarks:</strong> {req.reviewer_comments}
+                          </div>
+                        )}
+
+                        {req.status === 'pending_coordinator' && (
+                          <div className="flex gap-2 justify-end pt-1">
+                            <Button size="sm" variant="outline" onClick={() => setSelectedReq(req)} className="text-xs h-8 cursor-pointer">
+                              Review &amp; Approve
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Requisition Review Glassmorphism Modal Overlay */}
+            {selectedReq && (
+              <div
+                className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in-up"
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) setSelectedReq(null)
+                }}
+              >
+                <Card className="w-full max-w-lg bg-[#0B1726]/96 border border-blue-500/30 text-slate-100 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+                  <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-border/40">
+                    <div>
+                      <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
+                        Review: {selectedReq.department?.name} Order
+                      </CardTitle>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        ID: #{selectedReq.id.substring(0, 8)} • {selectedReq.items_json.length} line item(s)
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setSelectedReq(null)}
+                      className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                      title="Close modal"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 p-5 overflow-y-auto max-h-[calc(90vh-120px)]">
                     <div className="space-y-2 pb-4 border-b border-border">
                       <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Delegate Task</Label>
                       <div className="flex gap-2">
@@ -830,18 +845,10 @@ export default function SecretariatDashboard() {
                         Approve Order
                       </Button>
                     </div>
-
-                    <Button size="sm" variant="ghost" onClick={() => setSelectedReq(null)} className="w-full text-xs mt-2">
-                      Cancel
-                    </Button>
                   </CardContent>
                 </Card>
-              ) : (
-                <Card className="glass-card border-none p-6 text-center text-xs text-muted-foreground italic sticky top-20">
-                  Select a pending requisition from the list to approve, decline, or delegate.
-                </Card>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
 

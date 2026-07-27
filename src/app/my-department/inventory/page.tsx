@@ -92,6 +92,27 @@ export default function StoresInventoryPage() {
 
     if (prof) setProfile(prof)
 
+    // Department Access Guard: Inventory Catalog is restricted strictly to Stores department
+    const meta = (user.user_metadata || {}) as any
+    const userRole = prof?.role || meta.role || 'hod'
+    const deptId = prof?.department_id || meta.department_id || ''
+    
+    // Check department name from database if not super_admin
+    if (userRole !== 'super_admin' && userRole !== 'coordinator' && userRole !== 'national_coordinator') {
+      const { data: deptData } = await supabase
+        .from('departments')
+        .select('name')
+        .eq('id', deptId)
+        .maybeSingle()
+      
+      const deptName = deptData?.name || ''
+      if (!deptName.toLowerCase().includes('store') && deptId !== 'dept-29') {
+        showToast('Inventory Catalog access is restricted strictly to the Stores Department.', 'warning')
+        router.push('/my-department')
+        return
+      }
+    }
+
     if (isMock) {
       const { store: mockStore } = require('@/utils/supabase/mockClient')
       setItems(mockStore.inventoryItems || [])

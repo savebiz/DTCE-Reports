@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Bell, CheckCheck, Package, FileText, AlertTriangle, ExternalLink } from 'lucide-react'
 import { getClient, isMock, store } from '@/utils/supabase'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
+import { showToast } from '@/components/ui/toast'
 
 import { triggerHaptic, playNotificationChime } from '@/utils/haptics'
 
@@ -96,23 +97,46 @@ export function NotificationBell({ userId }: { userId?: string }) {
     }
   }, [userId, fetchNotifications])
 
-  const markAsRead = async (id: string, relatedId?: string, relatedType?: string) => {
+  const markAsRead = async (notif: NotificationItem) => {
     triggerHaptic('medium')
-    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
+    setNotifications(prev => prev.map(n => (n.id === notif.id ? { ...n, read: true } : n)))
     setUnreadCount(prev => Math.max(0, prev - 1))
 
     if (!isMock) {
       const supabase: any = getClient()
-      await supabase.from('notifications').update({ read: true }).eq('id', id)
+      await supabase.from('notifications').update({ read: true }).eq('id', notif.id)
     } else {
       const logs = store.notificationLogs
-      store.notificationLogs = logs.map((n: any) => (n.id === id ? { ...n, read: true } : n))
+      store.notificationLogs = logs.map((n: any) => (n.id === notif.id ? { ...n, read: true } : n))
     }
 
     setIsOpen(false)
 
-    if (relatedType === 'requisition' || relatedId) {
-      router.push(`/dashboard/store-requisitions?id=${relatedId || ''}`)
+    // Role and Department context check for interactive click action
+    const supabase: any = getClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: prof } = await supabase.from('profiles').select('role, department_id').eq('id', user?.id || userId).maybeSingle()
+
+    const role = prof?.role || user?.user_metadata?.role || 'hod'
+    const deptId = prof?.department_id || user?.user_metadata?.department_id || ''
+
+    const isAdminRole = role === 'super_admin' || role === 'coordinator' || role === 'national_coordinator'
+    
+    let isStoresDept = deptId === 'dept-29'
+    if (!isStoresDept && deptId && !isMock) {
+      const { data: deptData } = await supabase.from('departments').select('name').eq('id', deptId).maybeSingle()
+      if (deptData?.name?.toLowerCase().includes('store')) isStoresDept = true
+    }
+
+    if (isAdminRole) {
+      // Executive / Oversight roles: route directly to Store Requisitions Console
+      router.push(`/dashboard/store-requisitions?id=${notif.related_entity_id || ''}`)
+    } else if (isStoresDept) {
+      // Stores Department: route directly to Fulfillment Console
+      router.push(`/my-department/store-fulfillment?id=${notif.related_entity_id || ''}`)
+    } else {
+      // HOD Departments: display detail toast popup (no further action required)
+      showToast(`${notif.title}: ${notif.body}`, 'info')
     }
   }
 
@@ -211,7 +235,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
               notifications.map(n => (
                 <div
                   key={n.id}
-                  onClick={() => markAsRead(n.id, n.related_entity_id, n.related_entity_type)}
+                  onClick={() => markAsRead(n)}
                   className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer hover:bg-white/5 ${
                     !n.read ? 'bg-blue-500/5' : 'bg-transparent'
                   }`}
