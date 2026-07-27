@@ -501,22 +501,26 @@ export default function MyDepartmentDashboard() {
               eventDays.map((day) => (
                 <div
                   key={day.id}
-                  className="flex items-center justify-between px-5 py-4 transition-all duration-150 border-b border-border/40 last:border-b-0 hover:bg-slate-900/5 dark:hover:bg-white/5"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:px-5 sm:py-4 gap-3 border-b border-border/40 last:border-b-0 hover:bg-slate-900/5 dark:hover:bg-white/5 transition-colors"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className="font-tabular text-[11px] font-bold text-slate-500 w-10">
-                      Day {day.day_number}
-                    </span>
-                    <span className="text-[14px] font-medium">
-                      {new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'short' })}
-                    </span>
+                  <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 w-full sm:w-auto min-w-0">
+                    <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
+                      <span className="font-tabular text-[11px] font-bold text-slate-500 shrink-0">
+                        Day {day.day_number}
+                      </span>
+                      <span className="text-[13px] sm:text-[14px] font-semibold text-foreground truncate">
+                        {new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
+                    <div className="shrink-0">
+                      {getStatusPill(day.id)}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    {getStatusPill(day.id)}
+                  <div className="flex items-center justify-end w-full sm:w-auto shrink-0 pt-1 sm:pt-0 border-t border-border/20 sm:border-t-0">
                     <button
                       onClick={() => openEntryForm(day)}
-                      className="h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-150 cursor-pointer border border-border bg-card hover:bg-slate-950/10 dark:hover:bg-white/10"
+                      className="w-full sm:w-auto h-8.5 sm:h-8 rounded-lg px-4 text-[12px] font-bold whitespace-nowrap shrink-0 transition-all duration-150 cursor-pointer border border-border bg-card hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:border-blue-500 text-foreground flex items-center justify-center gap-1.5 shadow-xs"
                     >
                       {getButtonText(day.id)}
                     </button>
