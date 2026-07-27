@@ -782,66 +782,66 @@ export default function SecretariatDashboard() {
             {/* Requisition Review Glassmorphism Modal Overlay */}
             {selectedReq && (
               <div
-                className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in-up"
+                className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in-up"
                 onClick={(e) => {
                   if (e.target === e.currentTarget) setSelectedReq(null)
                 }}
               >
-                <Card className="w-full max-w-lg bg-[#0B1726]/96 border border-blue-500/30 text-slate-100 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-                  <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-border/40">
+                <Card className="w-full max-w-lg bg-[#0A1826] border border-blue-500/40 text-slate-100 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+                  <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-slate-800">
                     <div>
-                      <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
+                      <CardTitle className="text-base font-bold text-white uppercase tracking-wider">
                         Review: {selectedReq.department?.name} Order
                       </CardTitle>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                      <p className="text-[11px] text-slate-400 mt-0.5">
                         ID: #{selectedReq.id.substring(0, 8)} • {selectedReq.items_json.length} line item(s)
                       </p>
                     </div>
                     <button
                       onClick={() => setSelectedReq(null)}
-                      className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
                       title="Close modal"
                     >
                       <X className="w-5 h-5" />
                     </button>
                   </CardHeader>
                   <CardContent className="space-y-4 p-5 overflow-y-auto max-h-[calc(90vh-120px)]">
-                    <div className="space-y-2 pb-4 border-b border-border">
-                      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Delegate Task</Label>
+                    <div className="space-y-2 pb-4 border-b border-slate-800">
+                      <Label className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Task</Label>
                       <div className="flex gap-2">
                         <Select value={delegateId} onValueChange={(val) => setDelegateId(val || 'none')}>
-                          <SelectTrigger className="h-9 text-foreground bg-card border-border flex-1">
+                          <SelectTrigger className="h-9 text-slate-100 bg-slate-900 border-slate-700 flex-1 text-xs">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="bg-slate-900 border-slate-700 text-slate-100">
                             <SelectItem value="none">None (Review Myself)</SelectItem>
                             {approvers.filter(a => a.id !== profile?.id).map((a) => (
                               <SelectItem key={a.id} value={a.id}>{a.full_name || a.email} ({a.role})</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
-                        <Button onClick={handleDelegate} disabled={actionLoading} size="sm" variant="outline" className="h-9">
+                        <Button onClick={handleDelegate} disabled={actionLoading} size="sm" className="h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-xs">
                           Assign
                         </Button>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Review Remarks</Label>
+                      <Label className="text-xs font-bold text-slate-300 uppercase tracking-widest">Review Remarks</Label>
                       <Textarea
                         value={actionComments}
                         onChange={(e) => setActionComments(e.target.value)}
                         placeholder="Add instructions or reasons..."
                         rows={3}
-                        className="input-dark text-foreground text-xs"
+                        className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500 text-xs"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 pt-2">
-                      <Button onClick={() => handleReqAction('declined')} disabled={actionLoading} variant="destructive" className="w-full text-xs font-semibold">
+                      <Button onClick={() => handleReqAction('declined')} disabled={actionLoading} variant="destructive" className="w-full text-xs font-bold py-2.5">
                         Decline
                       </Button>
-                      <Button onClick={() => handleReqAction('approved')} disabled={actionLoading} className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white">
+                      <Button onClick={() => handleReqAction('approved')} disabled={actionLoading} className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 shadow-xs">
                         Approve Order
                       </Button>
                     </div>

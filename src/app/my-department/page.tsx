@@ -498,35 +498,60 @@ export default function MyDepartmentDashboard() {
                 </button>
               </div>
             ) : (
-              eventDays.map((day) => (
-                <div
-                  key={day.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 sm:px-5 sm:py-4 gap-3 border-b border-border/40 last:border-b-0 hover:bg-slate-900/5 dark:hover:bg-white/5 transition-colors"
-                >
-                  <div className="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 w-full sm:w-auto min-w-0">
-                    <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
-                      <span className="font-tabular text-[11px] font-bold text-slate-500 shrink-0">
+              eventDays.map((day) => {
+                const shortDay = new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short' })
+                const dayDate = new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'short' })
+                return (
+                  <div
+                    key={day.id}
+                    className="border-b border-border/40 last:border-b-0 hover:bg-slate-900/5 dark:hover:bg-white/5 transition-colors"
+                  >
+                    {/* ── MOBILE: single compact row (hidden on sm+) ── */}
+                    <div className="flex items-center gap-2 px-3.5 py-2.5 sm:hidden">
+                      <span className="font-tabular text-[10px] font-bold text-slate-500 shrink-0 w-10">
                         Day {day.day_number}
                       </span>
-                      <span className="text-[13px] sm:text-[14px] font-semibold text-foreground truncate">
-                        {new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'short' })}
+                      <span className="text-[12px] font-semibold text-foreground shrink-0">
+                        {shortDay} {dayDate}
                       </span>
+                      <div className="shrink-0">
+                        {getStatusPill(day.id)}
+                      </div>
+                      <div className="ml-auto shrink-0">
+                        <button
+                          onClick={() => openEntryForm(day)}
+                          className="h-7 rounded-lg px-3 text-[11px] font-bold whitespace-nowrap cursor-pointer border border-border bg-card hover:bg-blue-600 hover:text-white hover:border-blue-500 text-foreground transition-all duration-150 flex items-center gap-1"
+                        >
+                          {getButtonText(day.id)} ›
+                        </button>
+                      </div>
                     </div>
-                    <div className="shrink-0">
-                      {getStatusPill(day.id)}
-                    </div>
-                  </div>
 
-                  <div className="flex items-center justify-end w-full sm:w-auto shrink-0 pt-1 sm:pt-0 border-t border-border/20 sm:border-t-0">
-                    <button
-                      onClick={() => openEntryForm(day)}
-                      className="w-full sm:w-auto h-8.5 sm:h-8 rounded-lg px-4 text-[12px] font-bold whitespace-nowrap shrink-0 transition-all duration-150 cursor-pointer border border-border bg-card hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:border-blue-500 text-foreground flex items-center justify-center gap-1.5 shadow-xs"
-                    >
-                      {getButtonText(day.id)}
-                    </button>
+                    {/* ── DESKTOP: original spacious layout (hidden on mobile) ── */}
+                    <div className="hidden sm:flex sm:items-center justify-between px-5 py-4 gap-3">
+                      <div className="flex items-center gap-4 min-w-0">
+                        <span className="font-tabular text-[11px] font-bold text-slate-500 shrink-0">
+                          Day {day.day_number}
+                        </span>
+                        <span className="text-[14px] font-semibold text-foreground truncate">
+                          {new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'short' })}
+                        </span>
+                        <div className="shrink-0">
+                          {getStatusPill(day.id)}
+                        </div>
+                      </div>
+                      <div className="shrink-0">
+                        <button
+                          onClick={() => openEntryForm(day)}
+                          className="h-8 rounded-lg px-4 text-[12px] font-bold whitespace-nowrap cursor-pointer border border-border bg-card hover:bg-blue-600 hover:text-white hover:border-blue-500 text-foreground transition-all duration-150 flex items-center gap-1.5 shadow-xs"
+                        >
+                          {getButtonText(day.id)}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </div>

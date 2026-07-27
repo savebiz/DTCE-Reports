@@ -557,24 +557,24 @@ function AdminRequisitionsContent() {
         {/* Requisition Review Glassmorphism Modal Overlay */}
         {selectedReq && (
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in-up"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in-up"
             onClick={(e) => {
               if (e.target === e.currentTarget) setSelectedReq(null)
             }}
           >
-            <Card className="w-full max-w-xl bg-[#0B1726]/96 border border-blue-500/30 text-slate-100 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-border/40">
+            <Card className="w-full max-w-xl bg-[#0A1826] border border-blue-500/40 text-slate-100 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-slate-800">
                 <div>
-                  <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
+                  <CardTitle className="text-base font-bold text-white uppercase tracking-wider">
                     Review: {selectedReq.department?.name} Request
                   </CardTitle>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                  <p className="text-[11px] text-slate-400 mt-0.5">
                     ID: #{selectedReq.id.substring(0, 8)} • {selectedReq.items_json.length} line item(s)
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedReq(null)}
-                  className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
                   title="Close modal"
                 >
                   <X className="w-5 h-5" />
@@ -582,11 +582,11 @@ function AdminRequisitionsContent() {
               </CardHeader>
               <CardContent className="space-y-4 p-5 overflow-y-auto max-h-[calc(90vh-120px)]">
                 {/* Editable Line Items Section */}
-                <div className="space-y-2.5 pb-4 border-b border-border">
-                  <Label className="text-xs font-bold text-amber-500 uppercase tracking-wider block">
+                <div className="space-y-2.5 pb-4 border-b border-slate-800">
+                  <Label className="text-xs font-bold text-amber-400 uppercase tracking-wider block">
                     Edit Approved Quantities
                   </Label>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-[11px] text-slate-400">
                     Adjust quantities or remove line items before approving. Original requested amounts are preserved.
                   </p>
 
@@ -599,10 +599,10 @@ function AdminRequisitionsContent() {
                       const isExceeding = catItem && item.approved_quantity > catItem.current_stock
 
                       return (
-                        <div key={idx} className="p-3 rounded-xl bg-background/60 border border-border/60 space-y-2 text-xs">
+                        <div key={idx} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 text-xs">
                           <div className="flex justify-between items-center">
-                            <span className="font-bold text-foreground">{item.name}</span>
-                            <span className="text-[10px] text-muted-foreground bg-muted/40 px-2 py-0.5 rounded font-mono">
+                            <span className="font-bold text-white">{item.name}</span>
+                            <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
                               Requested: {item.requested_quantity} {item.unit || ''}
                             </span>
                           </div>
@@ -623,7 +623,7 @@ function AdminRequisitionsContent() {
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[10px] text-muted-foreground">
+                              <span className="text-[10px] text-slate-400">
                                 Threshold: {catItem.low_stock_threshold}
                               </span>
                             </div>
@@ -634,9 +634,9 @@ function AdminRequisitionsContent() {
                           )}
 
                           {/* Approval Quantity Input & Validation Warning */}
-                          <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
+                          <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800">
                             <div className="flex items-center gap-2">
-                              <Label className="text-[10px] font-semibold text-muted-foreground uppercase">Grant Qty:</Label>
+                              <Label className="text-[10px] font-semibold text-slate-400 uppercase">Grant Qty:</Label>
                               <Input
                                 type="number"
                                 min={0}
@@ -645,7 +645,7 @@ function AdminRequisitionsContent() {
                                   const val = parseInt(e.target.value) || 0
                                   setEditableItems(prev => prev.map((it, i) => i === idx ? { ...it, approved_quantity: val } : it))
                                 }}
-                                className="w-20 h-7 text-xs font-mono bg-card text-foreground"
+                                className="w-20 h-7 text-xs font-mono bg-slate-950 border-slate-700 text-white"
                               />
                             </div>
 
@@ -675,17 +675,17 @@ function AdminRequisitionsContent() {
                 </div>
 
                 {/* Delegate selector */}
-                <div className="space-y-2 pb-4 border-b border-border">
-                  <Label htmlFor="del-user" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Delegate Approval Task</Label>
+                <div className="space-y-2 pb-4 border-b border-slate-800">
+                  <Label htmlFor="del-user" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Approval Task</Label>
                   <div className="flex gap-2">
                     <Select
                       value={delegateId}
                       onValueChange={(val) => setDelegateId(val || 'none')}
                     >
-                      <SelectTrigger id="del-user" className="h-9 text-foreground bg-card border-border flex-1">
+                      <SelectTrigger id="del-user" className="h-9 text-slate-100 bg-slate-900 border-slate-700 flex-1 text-xs">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-slate-900 border-slate-700 text-slate-100">
                         <SelectItem value="none">Delegate (None)</SelectItem>
                         {approvers
                           .filter(a => a.id !== profile?.id)
@@ -696,7 +696,7 @@ function AdminRequisitionsContent() {
                           ))}
                       </SelectContent>
                     </Select>
-                    <Button onClick={handleDelegate} disabled={loading} size="sm" variant="outline" className="h-9">
+                    <Button onClick={handleDelegate} disabled={loading} size="sm" className="h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-xs">
                       Assign
                     </Button>
                   </div>
@@ -704,22 +704,22 @@ function AdminRequisitionsContent() {
 
                 {/* Standard review comments */}
                 <div className="space-y-2">
-                  <Label htmlFor="review-comments" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Review Comments</Label>
+                  <Label htmlFor="review-comments" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Review Comments</Label>
                   <Textarea
                     id="review-comments"
                     value={actionComments}
                     onChange={(e) => setActionComments(e.target.value)}
                     placeholder="Add approval comments or reasons for declining..."
                     rows={3}
-                    className="input-dark text-foreground text-xs"
+                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500 text-xs"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 pt-2">
-                  <Button onClick={() => handleAction('declined')} disabled={loading} variant="destructive" className="w-full text-xs font-semibold">
+                  <Button onClick={() => handleAction('declined')} disabled={loading} variant="destructive" className="w-full text-xs font-bold py-2.5">
                     Decline
                   </Button>
-                  <Button onClick={() => handleAction('approved')} disabled={loading} className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white">
+                  <Button onClick={() => handleAction('approved')} disabled={loading} className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 shadow-xs">
                     Approve Order
                   </Button>
                 </div>

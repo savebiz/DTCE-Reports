@@ -492,7 +492,7 @@ export default function DepartmentNarrativePage() {
 
               {/* 3. Discrete Challenges */}
               <div className="space-y-4 pt-6 border-t border-border">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div>
                     <span className="text-[14px] font-bold text-foreground uppercase tracking-wider block">
                       3. Department Challenges / Issues
@@ -505,7 +505,7 @@ export default function DepartmentNarrativePage() {
                     <button
                       type="button"
                       onClick={handleAddChallenge}
-                      className="h-8 rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 shrink-0 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer"
+                      className="h-8 rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 shrink-0 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer self-start sm:self-auto"
                     >
                       + Add Challenge
                     </button>
@@ -542,7 +542,7 @@ export default function DepartmentNarrativePage() {
 
               {/* 4. Structured Recommendations */}
               <div className="space-y-4 pt-6 border-t border-border">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div>
                     <span className="text-[14px] font-bold text-foreground uppercase tracking-wider block">
                       4. Strategic Recommendations
@@ -555,7 +555,7 @@ export default function DepartmentNarrativePage() {
                     <button
                       type="button"
                       onClick={handleAddRecommendation}
-                      className="h-8 rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 shrink-0 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer"
+                      className="h-8 rounded-lg px-3 text-[12px] font-semibold transition-all duration-150 shrink-0 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer self-start sm:self-auto"
                     >
                       + Add Recommendation
                     </button>
