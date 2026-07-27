@@ -512,7 +512,7 @@ export default function MyDepartmentDashboard() {
                         Day {day.day_number}
                       </span>
                       <span className="text-[12px] font-semibold text-foreground shrink-0">
-                        {shortDay} {dayDate}
+                        {shortDay}
                       </span>
                       <div className="shrink-0">
                         {getStatusPill(day.id)}
