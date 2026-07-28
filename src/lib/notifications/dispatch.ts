@@ -159,14 +159,8 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
       }
     }
 
-    // If recipient profile missing, exit early
-    if (!recipientProfile || !recipientProfile.email) {
-      console.warn(`[Notify] Recipient profile or email not found for ID: ${recipientId}`)
-      return resResult
-    }
-
     // --- B. EMAIL CHANNEL DISPATCH ---
-    if (prefs.email_enabled) {
+    if (prefs.email_enabled && recipientProfile && recipientProfile.email) {
       const resendApiKey = process.env.RESEND_API_KEY
       const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dtcereports.vercel.app'
       const actionUrl = relatedEntity?.type === 'requisition'

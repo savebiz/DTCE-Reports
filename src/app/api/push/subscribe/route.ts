@@ -35,16 +35,33 @@ export async function POST(request: NextRequest) {
 
     if (!isMock) {
       try {
-        const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+        const serviceKey =
+          process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE ||
+          process.env.SUPABASE_SERVICE_ROLE_KEY ||
+          process.env.SUPABASE_SERVICE_ROLE ||
+          process.env.SUPABASE_SERVICE_KEY ||
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
         if (serviceKey && supabaseUrl) {
           const adminSupabase = createSupabaseAdminClient(supabaseUrl, serviceKey)
-          await adminSupabase.from('push_subscriptions').upsert({
+          
+          const subPayload = {
             profile_id: userId,
             endpoint: sub.endpoint,
             keys: sub.keys,
             created_at: new Date().toISOString()
-          }, { onConflict: 'endpoint' })
+          }
+
+          const { error: upsertErr } = await adminSupabase
+            .from('push_subscriptions')
+            .upsert(subPayload, { onConflict: 'endpoint' })
+
+          if (upsertErr) {
+            console.warn('[PushSubscribe] Upsert fallback triggered:', upsertErr.message)
+            await adminSupabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)
+            await adminSupabase.from('push_subscriptions').insert(subPayload)
+          }
         }
       } catch (dbErr: any) {
         console.warn('[PushSubscribe] DB store warning:', dbErr.message)
