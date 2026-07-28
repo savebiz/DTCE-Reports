@@ -28,6 +28,7 @@ export function FloatingNotificationPrompt() {
   const [loading, setLoading] = useState(false)
   const [isIos, setIsIos] = useState(false)
   const [isStandalone, setIsStandalone] = useState(false)
+  const [isMobileDevice, setIsMobileDevice] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -35,11 +36,13 @@ export function FloatingNotificationPrompt() {
     // Detect iOS & Standalone PWA state
     const userAgent = window.navigator.userAgent.toLowerCase()
     const iosDevice = /iphone|ipad|ipod/.test(userAgent)
+    const mobileDevice = /mobile|android|iphone|ipad|ipod|webos|blackberry|opera mini|iemobile/.test(userAgent) || window.innerWidth < 640
     const standaloneMode =
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone === true
 
     setIsIos(iosDevice)
+    setIsMobileDevice(mobileDevice)
     setIsStandalone(standaloneMode)
 
     // Check browser Push Notification API support
@@ -113,6 +116,18 @@ export function FloatingNotificationPrompt() {
 
       triggerHaptic('success')
       localStorage.setItem('dtce_push_subscribed', 'true')
+
+      // Fire a local test notification so user gets immediate visual proof
+      try {
+        const reg = await navigator.serviceWorker.ready
+        await reg.showNotification('DTCE Reports', {
+          body: 'Notifications enabled! You\'ll now receive alerts even when the app is closed.',
+          icon: '/icon-192.png',
+          badge: '/icon-192-maskable.png',
+          tag: 'dtce-test-notification',
+        } as NotificationOptions)
+      } catch (_) { /* test notification is non-critical */ }
+
       showToast('System notifications enabled successfully!', 'success')
       setShowPrompt(false)
     } catch (err: any) {
@@ -147,7 +162,7 @@ export function FloatingNotificationPrompt() {
             <Bell className="h-4 w-4 animate-pulse" />
           </div>
           <h3 className="text-sm font-bold text-slate-100 tracking-tight leading-snug">
-            Receive desktop notifications from DTCE Reports
+            Receive {isMobileDevice ? 'mobile' : 'desktop'} notifications from DTCE Reports
           </h3>
         </div>
 
@@ -162,7 +177,7 @@ export function FloatingNotificationPrompt() {
       </div>
 
       <p className="text-xs text-slate-300 leading-relaxed mb-4 pl-1">
-        Allowing notifications lets DTCE Reports alert you about store requisitions, daily report submissions, and critical operational updates even when you&apos;re in another tab or app.
+        Allowing notifications lets DTCE Reports alert you about store requisitions, daily report submissions, and critical operational updates {isMobileDevice ? 'even when your phone is locked or the app is closed.' : 'even when you\u0027re in another tab or browser.'}
       </p>
 
       {/* iOS Special Note */}

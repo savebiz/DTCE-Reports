@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtce-reports-shell-v2';
+const CACHE_NAME = 'dtce-reports-shell-v3';
 
 // Core routes and static assets that constitute the app shell
 const APP_SHELL = [
@@ -162,20 +162,43 @@ self.addEventListener('fetch', event => {
 // Push Event — Handle Web Push Notifications
 self.addEventListener('push', event => {
   console.log('[SW] Push notification received');
-  let data = { title: 'DTCE Reporting System', body: 'New operational update received.', data: { url: '/dashboard' } };
+
+  let data = {
+    title: 'DTCE Reporting System',
+    body: 'New operational update received.',
+    icon: '/icon-192.png',
+    badge: '/icon-192-maskable.png',
+    data: { url: '/dashboard' }
+  };
 
   if (event.data) {
     try {
-      data = event.data.json();
+      const parsed = event.data.json();
+      // Merge parsed data — support both flat and nested payload shapes
+      data.title = parsed.title || data.title;
+      data.body = parsed.body || data.body;
+      data.icon = parsed.icon || data.icon;
+      data.badge = parsed.badge || data.badge;
+      if (parsed.data) {
+        data.data = { ...data.data, ...parsed.data };
+      }
+      if (parsed.tag) {
+        data.tag = parsed.tag;
+      }
     } catch (e) {
-      data.body = event.data.text();
+      console.warn('[SW] Failed to parse push data as JSON, using text fallback');
+      try {
+        data.body = event.data.text();
+      } catch (_) {
+        // fallback already set
+      }
     }
   }
 
   const options = {
     body: data.body,
     icon: data.icon || '/icon-192.png',
-    badge: '/icon-192-maskable.png',
+    badge: data.badge || '/icon-192-maskable.png',
     vibrate: [150, 75, 150, 75, 200],
     renotify: true,
     tag: data.tag || 'dtce-push-alert',
@@ -189,6 +212,9 @@ self.addEventListener('push', event => {
 
   event.waitUntil(
     self.registration.showNotification(data.title, options)
+      .catch(err => {
+        console.error('[SW] showNotification failed:', err);
+      })
   );
 });
 
@@ -210,3 +236,19 @@ self.addEventListener('notificationclick', event => {
     })
   );
 });
+
+// Message Event — Handle client-to-SW communication
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'TEST_PUSH') {
+    self.registration.showNotification('DTCE Reports — Test', {
+      body: 'Push notifications are working correctly on this device!',
+      icon: '/icon-192.png',
+      badge: '/icon-192-maskable.png',
+      tag: 'dtce-test-push',
+      vibrate: [100, 50, 100],
+    }).catch(err => {
+      console.error('[SW] Test notification failed:', err);
+    });
+  }
+});
+

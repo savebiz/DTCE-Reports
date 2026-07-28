@@ -30,6 +30,7 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
   const [isIos, setIsIos] = useState(false)
   const [isStandalone, setIsStandalone] = useState(false)
   const [subscribed, setSubscribed] = useState(false)
+  const [isMobileDevice, setIsMobileDevice] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -37,11 +38,13 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
     // Detect iOS & Standalone PWA state
     const userAgent = window.navigator.userAgent.toLowerCase()
     const iosDevice = /iphone|ipad|ipod/.test(userAgent)
+    const mobileDevice = /mobile|android|iphone|ipad|ipod|webos|blackberry|opera mini|iemobile/.test(userAgent) || window.innerWidth < 640
     const standaloneMode =
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone === true
 
     setIsIos(iosDevice)
+    setIsMobileDevice(mobileDevice)
     setIsStandalone(standaloneMode)
 
     // Check if user already enabled push on this device
@@ -120,6 +123,17 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
 
       triggerHaptic('success')
       localStorage.setItem('dtce_push_subscribed', 'true')
+
+      // Fire a local test notification so user gets immediate visual proof
+      try {
+        await reg.showNotification('DTCE Reports', {
+          body: 'Background alerts are now active! You\'ll receive notifications even when the app is closed.',
+          icon: '/icon-192.png',
+          badge: '/icon-192-maskable.png',
+          tag: 'dtce-test-alert',
+        } as NotificationOptions)
+      } catch (_) { /* test notification is non-critical */ }
+
       showToast('Background alerts enabled!', 'success')
       setSubscribed(true)
       setShowBanner(false)
@@ -154,14 +168,14 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-white tracking-tight">
-                Enable Background Alerts
+                Enable {isMobileDevice ? 'Mobile' : 'Desktop'} Background Alerts
               </span>
               <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/20">
                 Recommended
               </span>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed max-w-xl">
-              Get instant alerts for Store Requisitions &amp; Department Reports on your lock screen, even when the DTCE App is closed or your phone is locked.
+              Get instant alerts for Store Requisitions &amp; Department Reports {isMobileDevice ? 'on your lock screen, even when the DTCE App is closed or your phone is locked.' : 'on your desktop, even when you\'re in another tab or browser.'}
             </p>
 
             {/* Special iOS Guidance note if on iPhone outside standalone PWA */}
