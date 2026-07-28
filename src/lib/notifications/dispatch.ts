@@ -243,7 +243,13 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
       let recipientUnreadCount = 1
       if (!isMock) {
         try {
-          const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+          const serviceKey =
+            process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE ||
+            process.env.SUPABASE_SERVICE_ROLE_KEY ||
+            process.env.SUPABASE_SERVICE_ROLE ||
+            process.env.SUPABASE_SERVICE_KEY ||
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
           const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
           if (serviceKey && supabaseUrl) {
             const adminSupabase = createSupabaseAdminClient(supabaseUrl, serviceKey)
@@ -251,13 +257,17 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
               .from('notifications')
               .select('*', { count: 'exact', head: true })
               .eq('recipient_id', recipientId)
-              .eq('read', false)
-            if (count !== null && count !== undefined) {
+              .or('read.eq.false,read.is.null')
+
+            if (count !== null && count !== undefined && count > 0) {
               recipientUnreadCount = count
             }
           }
         } catch (_) {}
       }
+
+      // Unique tag for every notification so Android/iOS stacks all alerts in the shade (like WhatsApp)
+      const uniqueTag = `dtce-notif-${insertedNotifId}-${Date.now()}`
 
       for (const sub of pushSubs) {
         const pushRes = await sendWebPushNotification(sub, {
@@ -265,7 +275,7 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
           body,
           url: pushUrl,
           unreadCount: recipientUnreadCount,
-          tag: `dtce-${type}-${relatedEntity?.id || 'alert'}`
+          tag: uniqueTag
         })
 
         if (pushRes.success) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtce-reports-shell-v7';
+const CACHE_NAME = 'dtce-reports-shell-v8';
 
 // Core routes and static assets that constitute the app shell
 const APP_SHELL = [
@@ -204,7 +204,7 @@ self.addEventListener('push', event => {
     badge: data.badge || '/icon-192-maskable.png',
     vibrate: [150, 75, 150, 75, 200],
     renotify: true,
-    tag: data.tag || 'dtce-push-alert',
+    tag: data.tag || ('dtce-push-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5)),
     silent: false,
     requireInteraction: false,
     data: data.data || { url: '/dashboard' },
@@ -213,18 +213,30 @@ self.addEventListener('push', event => {
     ]
   };
 
-  // Set/Increment App Badge icon count on mobile / PWA home screen in real time
-  if ('setAppBadge' in self.navigator) {
-    self.navigator.setAppBadge(unreadCount).catch(err => {
-      console.warn('[SW] setAppBadge error:', err);
-    });
-  }
-
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
-      .catch(err => {
+    (async () => {
+      // Query active notifications currently stacked in the OS notification shade
+      let activeCount = 1;
+      try {
+        const activeNotifs = await self.registration.getNotifications();
+        activeCount = (activeNotifs ? activeNotifs.length : 0) + 1;
+      } catch (_) {}
+
+      // Use DB unreadCount or stacked notification count (whichever is higher)
+      const badgeCount = Math.max(unreadCount, activeCount);
+
+      if ('setAppBadge' in self.navigator) {
+        try {
+          await self.navigator.setAppBadge(badgeCount);
+        } catch (_) {}
+      }
+
+      try {
+        await self.registration.showNotification(data.title, options);
+      } catch (err) {
         console.error('[SW] showNotification failed:', err);
-      })
+      }
+    })()
   );
 });
 
