@@ -64,7 +64,7 @@ export function generateVapidKeys(): VapidKeys {
  */
 export async function sendWebPushNotification(
   subscription: PushSubscriptionObj,
-  payload: { title: string; body: string; icon?: string; url?: string; tag?: string }
+  payload: { title: string; body: string; icon?: string; url?: string; tag?: string; unreadCount?: number }
 ): Promise<{ success: boolean; status?: number; error?: string }> {
   try {
     const wp = getWebPushModule()
@@ -86,9 +86,11 @@ export async function sendWebPushNotification(
       body:   payload.body,
       icon:   payload.icon || '/icon-192.png',
       badge:  '/icon-192-maskable.png',
+      unreadCount: payload.unreadCount || 1,
       data: {
         url: payload.url || '/dashboard',
         tag: payload.tag || 'dtce-notification',
+        unreadCount: payload.unreadCount || 1,
       },
     })
 

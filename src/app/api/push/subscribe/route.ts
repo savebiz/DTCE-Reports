@@ -13,17 +13,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid push subscription payload' }, { status: 400 })
     }
 
-    let userId: string | null = null
+    let userId: string | null = body.profileId || body.userId || null
 
-    if (isMock) {
+    if (!userId && isMock) {
       const u = store.currentUser
       userId = u?.id || 'mock-admin'
-    } else {
-      const supabaseUserClient = await createServerClient()
-      const { data: { user } } = await supabaseUserClient.auth.getUser()
-      if (user) {
-        userId = user.id
-      }
+    } else if (!userId) {
+      try {
+        const supabaseUserClient = await createServerClient()
+        const { data: { user } } = await supabaseUserClient.auth.getUser()
+        if (user) {
+          userId = user.id
+        }
+      } catch (_) {}
     }
 
     // Default to fallback user if unauthenticated in dev/demo mode

@@ -86,9 +86,6 @@ export function PwaInstallPrompt() {
                   <h4 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
                     Install DTCE App on iOS
                   </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    Add DTCE to your Home Screen for instant offline access.
-                  </p>
                 </div>
               </div>
               <button

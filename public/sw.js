@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtce-reports-shell-v5';
+const CACHE_NAME = 'dtce-reports-shell-v6';
 
 // Core routes and static assets that constitute the app shell
 const APP_SHELL = [
@@ -171,6 +171,7 @@ self.addEventListener('push', event => {
     data: { url: '/dashboard' }
   };
 
+  let unreadCount = 1;
   if (event.data) {
     try {
       const parsed = event.data.json();
@@ -179,8 +180,10 @@ self.addEventListener('push', event => {
       data.body = parsed.body || data.body;
       data.icon = parsed.icon || data.icon;
       data.badge = parsed.badge || data.badge;
+      if (parsed.unreadCount) unreadCount = parsed.unreadCount;
       if (parsed.data) {
         data.data = { ...data.data, ...parsed.data };
+        if (parsed.data.unreadCount) unreadCount = parsed.data.unreadCount;
       }
       if (parsed.tag) {
         data.tag = parsed.tag;
@@ -210,9 +213,11 @@ self.addEventListener('push', event => {
     ]
   };
 
-  // Set/Increment App Badge icon count on mobile / PWA home screen
+  // Set/Increment App Badge icon count on mobile / PWA home screen in real time
   if ('setAppBadge' in self.navigator) {
-    self.navigator.setAppBadge(1).catch(() => {});
+    self.navigator.setAppBadge(unreadCount).catch(err => {
+      console.warn('[SW] setAppBadge error:', err);
+    });
   }
 
   event.waitUntil(

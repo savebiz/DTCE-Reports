@@ -123,6 +123,21 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
         }))
       }
 
+      // Fallback: If no sub found under exact profile_id, include any unassigned / anon-user subscriptions
+      if (pushSubs.length === 0) {
+        const { data: fallbackSubs } = await supabase
+          .from('push_subscriptions')
+          .select('*')
+          .or('profile_id.eq.anon-user,profile_id.is.null')
+
+        if (fallbackSubs && fallbackSubs.length > 0) {
+          pushSubs = fallbackSubs.map((s: any) => ({
+            endpoint: s.endpoint,
+            keys: s.keys
+          }))
+        }
+      }
+
       // 4. Insert Row into notifications Table (In-App)
       const { data: notifData, error: notifErr } = await supabase
         .from('notifications')
@@ -224,11 +239,32 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
         ? `${appUrl}/dashboard/store-requisitions?id=${relatedEntity.id}`
         : `${appUrl}/dashboard`
 
+      // Calculate exact unread count for badge icon on mobile/PWA home screen
+      let recipientUnreadCount = 1
+      if (!isMock) {
+        try {
+          const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+          if (serviceKey && supabaseUrl) {
+            const adminSupabase = createSupabaseAdminClient(supabaseUrl, serviceKey)
+            const { count } = await adminSupabase
+              .from('notifications')
+              .select('*', { count: 'exact', head: true })
+              .eq('recipient_id', recipientId)
+              .eq('read', false)
+            if (count !== null && count !== undefined) {
+              recipientUnreadCount = count
+            }
+          }
+        } catch (_) {}
+      }
+
       for (const sub of pushSubs) {
         const pushRes = await sendWebPushNotification(sub, {
           title,
           body,
           url: pushUrl,
+          unreadCount: recipientUnreadCount,
           tag: `dtce-${type}-${relatedEntity?.id || 'alert'}`
         })
 

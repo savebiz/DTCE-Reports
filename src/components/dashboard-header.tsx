@@ -82,6 +82,23 @@ export function DashboardHeader() {
           }
         }
 
+        // Auto-bind browser push subscription to active user profile ID
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && activeProfile?.id) {
+          navigator.serviceWorker.ready.then(async (reg) => {
+            const sub = await reg.pushManager.getSubscription()
+            if (sub) {
+              fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  subscription: sub.toJSON(),
+                  profileId: activeProfile.id
+                })
+              }).catch(() => {})
+            }
+          }).catch(() => {})
+        }
+
         const userRole = activeProfile?.role || 'hod'
         let deptId = deptIdParam
         if (userRole === 'super_admin' || userRole === 'coordinator' || userRole === 'national_coordinator') {

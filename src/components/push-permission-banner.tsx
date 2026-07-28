@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { showToast } from '@/components/ui/toast'
 import { triggerHaptic } from '@/utils/haptics'
 import { getVapidPublicKey } from '@/lib/notifications/vapid-public'
+import { getClient } from '@/utils/supabase'
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   try {
@@ -111,10 +112,20 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
       }
 
       // Save subscription to server
+      let currentProfileId: string | null = null
+      try {
+        const supabase = getClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) currentProfileId = user.id
+      } catch (_) {}
+
       const res = await fetch('/api/push/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription: sub.toJSON() })
+        body: JSON.stringify({
+          subscription: sub.toJSON(),
+          profileId: currentProfileId,
+        }),
       })
 
       if (!res.ok) {
