@@ -138,10 +138,10 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
       // Fire a local test notification so user gets immediate visual proof
       try {
         await reg.showNotification('DTCE Reports', {
-          body: 'Background alerts are now active! You\'ll receive notifications even when the app is closed.',
+          body: 'Notifications enabled! You\'ll now receive alerts even when the app is closed.',
           icon: '/icon-192.png',
-          badge: '/icon-192-maskable.png',
-          tag: 'dtce-test-alert',
+          badge: '/notification-badge.png',
+          tag: 'dtce-test-notification',
         } as NotificationOptions)
       } catch (_) { /* test notification is non-critical */ }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtce-reports-shell-v8';
+const CACHE_NAME = 'dtce-reports-shell-v9';
 
 // Core routes and static assets that constitute the app shell
 const APP_SHELL = [
@@ -163,11 +163,11 @@ self.addEventListener('fetch', event => {
 self.addEventListener('push', event => {
   console.log('[SW] Push notification received');
 
-  let data = {
-    title: 'DTCE Reporting System',
-    body: 'New operational update received.',
+  const data = {
+    title: 'DTCE Reports',
+    body: 'New notification received',
     icon: '/icon-192.png',
-    badge: '/icon-192-maskable.png',
+    badge: '/notification-badge.png',
     data: { url: '/dashboard' }
   };
 
@@ -201,7 +201,7 @@ self.addEventListener('push', event => {
   const options = {
     body: data.body,
     icon: data.icon || '/icon-192.png',
-    badge: data.badge || '/icon-192-maskable.png',
+    badge: data.badge || '/notification-badge.png',
     vibrate: [150, 75, 150, 75, 200],
     renotify: true,
     tag: data.tag || ('dtce-push-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5)),
@@ -269,7 +269,7 @@ self.addEventListener('message', event => {
     self.registration.showNotification('DTCE Reports — Test', {
       body: 'Push notifications are working correctly on this device!',
       icon: '/icon-192.png',
-      badge: '/icon-192-maskable.png',
+      badge: '/notification-badge.png',
       tag: 'dtce-test-push',
       vibrate: [100, 50, 100],
     }).catch(err => {

@@ -145,7 +145,7 @@ export function FloatingNotificationPrompt() {
         await reg.showNotification('DTCE Reports', {
           body: 'Notifications enabled! You\'ll now receive alerts even when the app is closed.',
           icon: '/icon-192.png',
-          badge: '/icon-192-maskable.png',
+          badge: '/notification-badge.png',
           tag: 'dtce-test-notification',
         } as NotificationOptions)
       } catch (_) { /* test notification is non-critical */ }

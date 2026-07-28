@@ -86,7 +86,7 @@ export async function sendWebPushNotification(
       title:  payload.title,
       body:   payload.body,
       icon:   payload.icon || '/icon-192.png',
-      badge:  '/icon-192-maskable.png',
+      badge:  '/notification-badge.png',
       unreadCount: payload.unreadCount || 1,
       data: {
         url: payload.url || '/dashboard',
