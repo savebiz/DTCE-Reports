@@ -3,6 +3,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  * Web Push notification dispatch using the `web-push` library.
  * This module is server-side only (Next.js API routes / Server Actions).
+ * Marked as external in next.config.ts via serverExternalPackages.
  */
 
 // ── VAPID Configuration ───────────────────────────────────────────────────────
@@ -12,13 +13,13 @@ const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:notifications@dtce.or
 
 function getWebPushModule(): any {
   try {
-    // Dynamic require so bundlers do not choke when node_modules is missing in dev environment
-    const req = eval('require')
-    const wp = req('web-push')
-    wp.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE)
+    const wp = require('web-push')
+    if (wp && typeof wp.setVapidDetails === 'function') {
+      wp.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE)
+    }
     return wp
   } catch (err) {
-    console.warn('[WebPush] web-push module not loaded:', err)
+    console.warn('[WebPush] web-push module not loaded at runtime:', err)
     return null
   }
 }
@@ -69,7 +70,7 @@ export async function sendWebPushNotification(
   try {
     const wp = getWebPushModule()
     if (!wp) {
-      console.warn('[WebPush] web-push module unavailable')
+      console.warn('[WebPush] web-push module unavailable at runtime')
       return { success: false, error: 'web-push module not installed' }
     }
 
