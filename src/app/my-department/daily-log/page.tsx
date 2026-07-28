@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, Suspense } from 'react'
+import React, { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient, isMock, mockDepartments, mockEventDays, Profile, DailyReport, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/button'
 import { SchemaFormRenderer } from '@/components/schema-form-renderer'
 import { NumberField } from '@/components/ui/number-field'
 import { CurrencyField } from '@/components/ui/currency-field'
-import { ClipboardList } from 'lucide-react'
+import { ClipboardList, Wifi, WifiOff, Clock } from 'lucide-react'
+import { useOfflineDraft } from '@/hooks/use-offline-draft'
 
 // Departments without workforce attendance breakdown
 const DEPTS_WITHOUT_ATTENDANCE = ['dept-6', 'dept-9', 'dept-13', 'dept-19', 'dept-20', 'dept-25', 'dept-26', 'dept-29', 'dept-30', 'dept-39']
@@ -64,6 +65,21 @@ function DailyLogContent() {
   const [newDiagText, setNewDiagText] = useState('')
   const [allDepartments, setAllDepartments] = useState<Department[]>([])
   const [dataLoaded, setDataLoaded] = useState(false)
+
+  // ── Offline draft hook ─────────────────────────────────────────────────────
+  const draftKey = department?.id && activeDay?.id
+    ? `${department.id}_${activeDay.id}`
+    : 'pending'
+  const {
+    isOnline,
+    draftSaved,
+    hasPendingSync,
+    loadDraft,
+    saveDraft,
+    clearDraft,
+    queueForSync,
+    getPendingPayload,
+  } = useOfflineDraft<any>(draftKey)
 
   // 1. Fetch User profile and Event Days
   const loadData = async () => {
@@ -406,6 +422,53 @@ function DailyLogContent() {
     loadData()
   }, [deptIdParam, dayIdParam])
 
+  // ── Auto-save draft on every form field change ────────────────────────────
+  useEffect(() => {
+    if (!dataLoaded || !department?.id || !activeDay?.id) return
+    // Only auto-save new/draft reports (not submitted/approved)
+    if (status === 'submitted' || status === 'approved') return
+    saveDraft({
+      attendanceMorning, attendanceEvening,
+      workforce, offering,
+      dailyOverview, dailyAchievements, dailyChallenges, dailyRecommendations,
+      metricsData,
+    })
+  }, [
+    attendanceMorning, attendanceEvening, workforce, offering,
+    dailyOverview, dailyAchievements, dailyChallenges, dailyRecommendations,
+    metricsData, dataLoaded, department, activeDay, status, saveDraft,
+  ])
+
+  // ── Listen for SW Background Sync trigger (app was offline, now back) ─────
+  useEffect(() => {
+    const handleSwSync = (e: Event) => {
+      const custom = e as CustomEvent
+      if (custom.detail?.key !== draftKey) return
+      const pending = getPendingPayload()
+      if (pending) {
+        handleOfflineFlush(pending)
+      }
+    }
+    window.addEventListener('dtce-sync-flush', handleSwSync)
+    // Also listen for SW postMessage trigger
+    const handleSwMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'SW_SYNC_TRIGGER') {
+        const pending = getPendingPayload()
+        if (pending) handleOfflineFlush(pending)
+      }
+    }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleSwMessage)
+    }
+    return () => {
+      window.removeEventListener('dtce-sync-flush', handleSwSync)
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleSwMessage)
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey, getPendingPayload])
+
   // Run validation checks on fields
   useEffect(() => {
     const errors: string[] = []
@@ -433,12 +496,54 @@ function DailyLogContent() {
     }
   }
 
+  // ── Core submit: works online AND as the flush target for offline queue ───
+  const performSubmit = useCallback(async (payload: any, submit: boolean) => {
+    const supabase = getClient()
+    const targetStatus = submit ? 'submitted' : 'draft'
+    payload.status = targetStatus
+
+    if (reportId) {
+      const { error } = await supabase
+        .from('daily_reports')
+        .update(payload)
+        .eq('id', reportId)
+      if (error) throw error
+    } else {
+      const { data, error } = await supabase
+        .from('daily_reports')
+        .insert(payload)
+        .select()
+      if (error) throw error
+      if (data && data.length > 0) setReportId(data[0].id)
+    }
+
+    setStatus(targetStatus)
+    clearDraft()
+    showToast(submit ? 'Daily Log submitted!' : 'Draft saved!', 'success')
+
+    if (isSuperAdminActing) {
+      setTimeout(() => router.push('/dashboard'), 1000)
+    } else {
+      await loadReportForDay(activeDay!.id, department!.id)
+    }
+  }, [reportId, clearDraft, isSuperAdminActing, router, activeDay, department])
+
+  // ── Auto-flush when connection returns with a pending offline payload ──────
+  const handleOfflineFlush = useCallback(async (pendingPayload: any) => {
+    setLoading(true)
+    try {
+      await performSubmit(pendingPayload, true)
+      showToast('✅ Report auto-submitted — you\'re back online!', 'success')
+    } catch (err: any) {
+      showToast(`Auto-submit failed: ${err.message}. Will retry on next load.`, 'error')
+    } finally {
+      setLoading(false)
+    }
+  }, [performSubmit])
+
   const handleSubmit = async (submit = false) => {
     if (!profile || !department || !activeDay) return
     setLoading(true)
-
-    const targetStatus = submit ? 'submitted' : 'draft'
-    const supabase = getClient()
 
     const payload = {
       event_id: activeDay.event_id,
@@ -447,7 +552,7 @@ function DailyLogContent() {
       submitted_by: profile.id,
       attendance_morning: attendanceMorning,
       attendance_evening: attendanceEvening,
-      status: targetStatus,
+      status: submit ? 'submitted' : 'draft',
       submitted_on_behalf_by: isSuperAdminActing ? profile.id : null,
       metrics_data: {
         custom_schema: metricsData,
@@ -462,35 +567,18 @@ function DailyLogContent() {
       }
     }
 
-    try {
-      if (reportId) {
-        const { error } = await supabase
-          .from('daily_reports')
-          .update(payload)
-          .eq('id', reportId)
-        if (error) throw error
-      } else {
-        const { data, error } = await supabase
-          .from('daily_reports')
-          .insert(payload)
-          .select()
-        if (error) throw error
-        if (data && data.length > 0) {
-          setReportId(data[0].id)
-        }
-      }
+    // ── OFFLINE: queue for auto-submit when connectivity returns ──────────
+    if (submit && !navigator.onLine) {
+      queueForSync(payload)
+      setStatus('submitted') // Optimistic: show as submitted from HOD's perspective
+      clearDraft()
+      setLoading(false)
+      showToast('📶 No signal — report saved locally. Will auto-submit when back online.', 'warning')
+      return
+    }
 
-      setStatus(targetStatus)
-      showToast(submit ? 'Daily Log submitted successfully!' : 'Draft daily log saved!', 'success')
-      
-      // If super admin, refresh or go back to board
-      if (isSuperAdminActing) {
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 1000)
-      } else {
-        await loadReportForDay(activeDay.id, department.id)
-      }
+    try {
+      await performSubmit(payload, submit)
     } catch (err: any) {
       showToast(`Submission failed: ${err.message}`, 'error')
     } finally {
@@ -913,21 +1001,45 @@ function DailyLogContent() {
           {/* Submission panel */}
           <Card className="glass-card border-none">
             <CardContent className="pt-6 space-y-4">
-              <div className="flex justify-between items-center text-[12px] pb-3 border-b border-border">
-                <span className="text-muted-foreground">Current Status:</span>
+
+              {/* Network + Draft status indicators */}
+              <div className="flex items-center justify-between text-[11px] pb-3 border-b border-border gap-2">
+                <div className="flex items-center gap-1.5">
+                  {isOnline
+                    ? <Wifi className="h-3.5 w-3.5 text-emerald-400" />
+                    : <WifiOff className="h-3.5 w-3.5 text-amber-400 animate-pulse" />}
+                  <span className={isOnline ? 'text-emerald-400 font-semibold' : 'text-amber-400 font-semibold'}>
+                    {isOnline ? 'Online' : 'No signal'}
+                  </span>
+                  {draftSaved && (
+                    <span className="ml-2 text-slate-400 italic">· Draft saved</span>
+                  )}
+                </div>
                 <span
                   className="font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
                   style={
+                    hasPendingSync ? { background: 'rgba(245,158,11,0.12)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' } :
                     status === 'draft' ? { background: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' } :
                     status === 'submitted' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
                     { background: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' }
                   }
                 >
-                  {status}
+                  {hasPendingSync ? 'Pending Sync' : status}
                 </span>
               </div>
 
-              {/* Form Validation Warnings (Task 8) */}
+              {/* Pending sync banner */}
+              {hasPendingSync && (
+                <div className="flex items-start gap-2.5 rounded-xl p-3 text-[11px]" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
+                  <Clock className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="text-amber-300">
+                    <span className="font-bold block">Report queued for sync</span>
+                    <span className="text-amber-400/80">This report will auto-submit the moment your connection is restored. No action needed.</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Form Validation Warnings */}
               {!isReadOnly && validationErrors.length > 0 && (
                 <div className="rounded-xl p-3 text-[11px] space-y-1.5" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', color: '#D97706' }}>
                   <span className="font-bold uppercase tracking-wide">⚠️ Gating Warnings</span>
@@ -945,7 +1057,7 @@ function DailyLogContent() {
                 <div className="flex flex-col gap-2">
                   <Button
                     onClick={() => handleSubmit(false)}
-                    disabled={loading}
+                    disabled={loading || hasPendingSync}
                     variant="outline"
                     className="w-full text-xs font-semibold"
                   >
@@ -956,7 +1068,7 @@ function DailyLogContent() {
                     disabled={loading}
                     className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white"
                   >
-                    {loading ? 'Submitting...' : 'Submit Daily Log'}
+                    {loading ? 'Submitting...' : !isOnline ? '📶 Submit (queues offline)' : 'Submit Daily Log'}
                   </Button>
                 </div>
               )}

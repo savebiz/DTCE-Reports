@@ -109,6 +109,8 @@ export default function LoginPage() {
         const meta = (data.user.user_metadata || {}) as any
         const activeRole = prof?.role || meta.role || 'hod'
         const mustChangePassword = prof ? prof.must_change_password : !!meta.must_change_password
+        // Signal to the notification prompt whether to wait for password reset
+        localStorage.setItem('dtce_must_change_password', mustChangePassword ? 'true' : 'false')
         if (mustChangePassword) {
           window.location.href = '/reset-password'
         } else {
@@ -152,6 +154,8 @@ export default function LoginPage() {
           const meta = (data.user.user_metadata || {}) as any
           const activeRole = prof?.role || meta.role || 'hod'
           const mustChangePassword = prof ? prof.must_change_password : !!meta.must_change_password
+          // Signal to the notification prompt whether to wait for password reset
+          localStorage.setItem('dtce_must_change_password', mustChangePassword ? 'true' : 'false')
 
           if (mustChangePassword) {
             router.push('/reset-password')

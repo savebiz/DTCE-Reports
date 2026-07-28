@@ -196,22 +196,7 @@ function StoreFulfillmentContent() {
                       created_at: new Date().toISOString()
                     })
                     if (newStock <= invItem.low_stock_threshold) {
-                      const { notify } = require('@/lib/notifications/dispatch')
-                      const recipients = mockStore.profiles.filter((p: any) =>
-                        p.role === 'national_coordinator' ||
-                        p.role === 'super_admin' ||
-                        p.email?.includes('stores') ||
-                        p.email?.includes('store')
-                      )
-                      for (const r of recipients) {
-                        notify({
-                          recipientId: r.id,
-                          type: 'low_stock_alert',
-                          title: `Low Stock Alert: ${invItem.name}`,
-                          body: `Low stock alert: ${invItem.name} is at ${newStock} ${invItem.unit} (threshold: ${invItem.low_stock_threshold}).`,
-                          relatedEntity: { type: 'system', id: invItem.id }
-                        })
-                      }
+                      showToast(`Low Stock Alert: ${invItem.name} is at ${newStock} ${invItem.unit} (threshold: ${invItem.low_stock_threshold}).`, 'warning')
                     }
                   }
                 }

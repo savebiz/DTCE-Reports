@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { Bell, X, Smartphone } from 'lucide-react'
 import { showToast } from '@/components/ui/toast'
 import { triggerHaptic } from '@/utils/haptics'
-import { getVapidPublicKey } from '@/lib/notifications/webpush'
+import { getVapidPublicKey } from '@/lib/notifications/vapid-public'
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   try {
@@ -24,6 +25,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 export function FloatingNotificationPrompt() {
+  const pathname = usePathname()
   const [showPrompt, setShowPrompt] = useState(false)
   const [loading, setLoading] = useState(false)
   const [isIos, setIsIos] = useState(false)
@@ -32,6 +34,14 @@ export function FloatingNotificationPrompt() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+
+    // ── Route guard: only show on authenticated app pages ─────────────────
+    const authRoutes = ['/', '/login', '/reset-password']
+    if (!pathname || authRoutes.some(r => pathname === r || pathname.startsWith('/login'))) return
+
+    // ── Password change guard: don't prompt before first password reset ───
+    const mustChangePw = localStorage.getItem('dtce_must_change_password')
+    if (mustChangePw === 'true') return
 
     // Detect iOS & Standalone PWA state
     const userAgent = window.navigator.userAgent.toLowerCase()

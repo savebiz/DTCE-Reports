@@ -5,7 +5,7 @@ import { Bell, Sparkles, X, Smartphone, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/components/ui/toast'
 import { triggerHaptic } from '@/utils/haptics'
-import { getVapidPublicKey } from '@/lib/notifications/webpush'
+import { getVapidPublicKey } from '@/lib/notifications/vapid-public'
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   try {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtce-reports-shell-v3';
+const CACHE_NAME = 'dtce-reports-shell-v4';
 
 // Core routes and static assets that constitute the app shell
 const APP_SHELL = [
@@ -252,3 +252,21 @@ self.addEventListener('message', event => {
   }
 });
 
+// Background Sync Event — Auto-submit queued daily log when connectivity returns
+self.addEventListener('sync', event => {
+  if (!event.tag || !event.tag.startsWith('dtce-daily-log-sync-')) return
+
+  console.log('[SW] Background sync triggered for tag:', event.tag)
+
+  // Notify all open clients to flush their pending payload
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      for (const client of clientList) {
+        client.postMessage({
+          type: 'SW_SYNC_TRIGGER',
+          tag: event.tag,
+        })
+      }
+    })
+  )
+})

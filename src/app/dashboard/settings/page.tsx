@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Bell, Mail, Smartphone, ShieldCheck, Check, AlertCircle, Share, PlusSquare, Info } from 'lucide-react'
-import { getVapidPublicKey } from '@/lib/notifications/webpush'
+import { getVapidPublicKey } from '@/lib/notifications/vapid-public'
 
 interface LookupItem {
   id: string

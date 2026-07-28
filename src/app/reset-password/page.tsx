@@ -135,6 +135,8 @@ export default function ResetPasswordPage() {
       if (dbErr) throw dbErr
 
       showToast('Password updated successfully! Welcome to DTCE Reporting.', 'success')
+      // Unblock notification prompt now that password is set
+      localStorage.setItem('dtce_must_change_password', 'false')
       const path = (profile.role === 'super_admin' || profile.role === 'coordinator') ? '/dashboard' : '/my-department'
       window.location.href = path // hard redirect refreshes sessions/middleware
     } catch (err: any) {
