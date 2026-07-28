@@ -96,20 +96,33 @@ export default function StoresInventoryPage() {
     const meta = (user.user_metadata || {}) as any
     const userRole = prof?.role || meta.role || 'hod'
     const deptId = prof?.department_id || meta.department_id || ''
-    
-    // Check department name from database if not super_admin
+
+    // Known Stores department IDs (mock + production UUIDs)
+    const STORES_IDS = ['dept-29', '43fe996e-db9b-4e94-8311-99528b8bb690']
+
+    // Check department name from database if not super_admin / coordinator
     if (userRole !== 'super_admin' && userRole !== 'coordinator' && userRole !== 'national_coordinator') {
-      const { data: deptData } = await supabase
-        .from('departments')
-        .select('name')
-        .eq('id', deptId)
-        .maybeSingle()
-      
-      const deptName = deptData?.name || ''
-      if (!deptName.toLowerCase().includes('store') && deptId !== 'dept-29') {
-        showToast('Inventory Catalog access is restricted strictly to the Stores Department.', 'warning')
-        router.push('/my-department')
-        return
+      // If the deptId is a known Stores ID, allow immediately
+      const isKnownStoresId = STORES_IDS.includes(deptId)
+
+      if (!isKnownStoresId) {
+        // Fall back to looking up the department name
+        const { data: deptData } = await supabase
+          .from('departments')
+          .select('name')
+          .eq('id', deptId)
+          .maybeSingle()
+
+        const deptName = deptData?.name || ''
+
+        // Only block if we got a name back AND it's confirmed not Stores
+        if (deptName && !deptName.toLowerCase().includes('store')) {
+          showToast('Inventory Catalog access is restricted strictly to the Stores Department.', 'warning')
+          router.push('/my-department')
+          return
+        }
+        // If deptName is empty (lookup failed), allow through — better to let Supabase
+        // row-level security handle it than to block a legitimate Stores user
       }
     }
 
