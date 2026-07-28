@@ -81,7 +81,10 @@ export default function LoginPage() {
       })
 
       if (error) {
-        setFormMessage({ type: 'error', text: error.message })
+        const errorText = error.message?.toLowerCase().includes('failed to fetch') || error.message?.toLowerCase().includes('fetch failed') || !navigator.onLine
+          ? 'Check your internet connection and try again.'
+          : error.message
+        setFormMessage({ type: 'error', text: errorText })
         setLoading(false)
         return
       }
@@ -128,6 +131,8 @@ export default function LoginPage() {
           let errorText = error.message
           if (!errorText || errorText === '{}' || (typeof error === 'object' && Object.keys(error).length === 0)) {
             errorText = 'Invalid username or password. Please check your credentials.'
+          } else if (errorText.toLowerCase().includes('failed to fetch') || errorText.toLowerCase().includes('fetch failed') || !navigator.onLine) {
+            errorText = 'Check your internet connection and try again.'
           }
           setFormMessage({ type: 'error', text: errorText })
           setLoading(false)
@@ -171,7 +176,10 @@ export default function LoginPage() {
         }
       } catch (err: any) {
         console.error('Login Exception:', err)
-        setFormMessage({ type: 'error', text: err.message || 'An unexpected error occurred during login.' })
+        const errText = err?.message?.toLowerCase().includes('failed to fetch') || err?.message?.toLowerCase().includes('fetch failed') || !navigator.onLine
+          ? 'Check your internet connection and try again.'
+          : (err.message || 'An unexpected error occurred during login.')
+        setFormMessage({ type: 'error', text: errText })
         setLoading(false)
       }
     }

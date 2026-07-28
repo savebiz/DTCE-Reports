@@ -30,13 +30,22 @@ export function NotificationBell({ userId }: { userId?: string }) {
   const panelRef = useRef<HTMLDivElement>(null)
   const prevUnreadRef = useRef<number | null>(null)
 
-  // Haptic and audio chime trigger when unread count increases
+  // Haptic, audio chime, and PWA app icon badge update when unread count changes
   useEffect(() => {
     if (prevUnreadRef.current !== null && unreadCount > prevUnreadRef.current) {
       triggerHaptic('notification')
       playNotificationChime()
     }
     prevUnreadRef.current = unreadCount
+
+    // Update PWA home screen app icon notification badge (WhatsApp / Outlook style)
+    if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
+      if (unreadCount > 0) {
+        navigator.setAppBadge(unreadCount).catch(() => {})
+      } else {
+        navigator.clearAppBadge().catch(() => {})
+      }
+    }
   }, [unreadCount])
 
   const fetchNotifications = useCallback(async () => {

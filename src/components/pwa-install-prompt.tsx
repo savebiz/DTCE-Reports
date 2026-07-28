@@ -144,7 +144,6 @@ export function PwaInstallPrompt() {
                   <Smartphone size={13} className="text-blue-400" />
                   Install DTCE Reporting App
                 </h4>
-                <p className="text-[10px] text-slate-400">Fast offline reporting on home screen</p>
               </div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
