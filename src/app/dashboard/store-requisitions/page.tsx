@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useMemo, useCallback, Suspense } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient, isMock, Profile } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
@@ -217,9 +217,22 @@ function AdminRequisitionsContent() {
     onDataChange: () => loadData(),
   })
 
+  const searchParams = useSearchParams()
+  const targetId = searchParams.get('id')
+
   useEffect(() => {
     loadData()
   }, [loadData])
+
+  // Automatically open review modal when navigated with ?id=[req.id]
+  useEffect(() => {
+    if (targetId && requests.length > 0) {
+      const match = requests.find(r => r.id === targetId || r.id.substring(0, 8) === targetId.substring(0, 8))
+      if (match) {
+        selectReqForReview(match)
+      }
+    }
+  }, [targetId, requests])
 
   const filteredRequests = useMemo(() => {
     let results = requests
