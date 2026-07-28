@@ -98,6 +98,10 @@ export async function sendWebPushNotification(
     const result = await wp.sendNotification(pushSubscription, payloadString, {
       urgency: 'high',
       TTL: 86400, // 24 hours — messages persist until device comes online
+      headers: {
+        'Urgency': 'high',
+        'Topic': 'dtce-alerts',
+      },
     })
 
     return { success: true, status: result.statusCode }

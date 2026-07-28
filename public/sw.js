@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtce-reports-shell-v10';
+const CACHE_NAME = 'dtce-reports-shell-v11';
 
 // Core routes and static assets that constitute the app shell
 const APP_SHELL = [
@@ -200,10 +200,10 @@ self.addEventListener('push', event => {
 
   const options = {
     body: data.body,
-    icon: data.icon || '/icon-192.png',
-    badge: data.badge || '/notification-badge.png',
-    vibrate: [150, 75, 150, 75, 200],
+    badge: '/notification-badge.png',
+    vibrate: [300, 100, 300, 100, 300], // High-priority vibration pattern forces Android Heads-Up drop-down banner
     renotify: true,
+    timestamp: Date.now(),
     tag: data.tag || ('dtce-push-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5)),
     silent: false,
     requireInteraction: false,
@@ -212,6 +212,11 @@ self.addEventListener('push', event => {
       { action: 'open', title: 'Open DTCE App' }
     ]
   };
+
+  // Only set right-side content thumbnail icon if it's a specific attachment photo (not standard logo)
+  if (data.icon && data.icon !== '/icon-192.png' && data.icon !== '/icon-192-maskable.png' && data.icon !== '/dtce-logo.png') {
+    options.icon = data.icon;
+  }
 
   event.waitUntil(
     (async () => {
