@@ -66,12 +66,12 @@ export default function LoginPage() {
           body: JSON.stringify({ username: loginEmail })
         })
         const resolved = await res.json()
-        loginEmail = resolved?.email || `${loginEmail}@accounts.dtce-reports.vercel.app`
+        loginEmail = resolved?.email || `${loginEmail}@accounts.dtcereports.vercel.app`
       } catch {
-        loginEmail = `${loginEmail}@accounts.dtce-reports.vercel.app`
+        loginEmail = `${loginEmail}@accounts.dtcereports.vercel.app`
       }
     } else if (isMock && !loginEmail.includes('@')) {
-      loginEmail = `${loginEmail}@accounts.dtce-reports.vercel.app`
+      loginEmail = `${loginEmail}@accounts.dtcereports.vercel.app`
     }
 
     if (isMock) {

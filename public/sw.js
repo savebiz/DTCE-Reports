@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtce-reports-shell-v11';
+const CACHE_NAME = 'dtce-reports-shell-v12';
 
 // Core routes and static assets that constitute the app shell
 const APP_SHELL = [
@@ -248,7 +248,12 @@ self.addEventListener('push', event => {
 // Notification Click Event — Open or Focus Window Tab
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || '/dashboard';
+  let targetUrl = event.notification.data?.url || '/dashboard';
+
+  // Automatically replace legacy domain with live production domain if present
+  if (targetUrl.includes('dtce-reports.vercel.app')) {
+    targetUrl = targetUrl.replace('dtce-reports.vercel.app', 'dtcereports.vercel.app');
+  }
 
   if ('clearAppBadge' in self.navigator) {
     self.navigator.clearAppBadge().catch(() => {});

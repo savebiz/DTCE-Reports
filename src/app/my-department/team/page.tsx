@@ -159,7 +159,7 @@ export default function HODTeamManagement() {
           suffix++
         }
 
-        const placeholderEmail = `${finalUsername}@accounts.dtce-reports.vercel.app`
+        const placeholderEmail = `${finalUsername}@accounts.dtcereports.vercel.app`
         const newUserId = 'mock-asst-' + Math.random().toString(36).substr(2, 9)
 
         const newProfile = {

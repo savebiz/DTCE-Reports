@@ -218,7 +218,7 @@ export default function SecretariatTeamManagement() {
     setSavingSingle(true)
     const supabase = getClient()
     const password = generateCompliantPassword()
-    const placeholderEmail = singleEmail || `${singleUsernameInput}@accounts.dtce-reports.vercel.app`
+    const placeholderEmail = singleEmail || `${singleUsernameInput}@accounts.dtcereports.vercel.app`
 
     try {
       if (isMock) {

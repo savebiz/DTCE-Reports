@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     // No profile found — fall back to placeholder email
-    return NextResponse.json({ email: `${normalizedUsername}@accounts.dtce-reports.vercel.app` })
+    return NextResponse.json({ email: `${normalizedUsername}@accounts.dtcereports.vercel.app` })
   } catch (err: any) {
     console.error('resolve-username error:', err)
     return NextResponse.json({ email: null })

@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     }
 
     const tempPassword = generateCompliantPassword()
-    const placeholderEmail = `${finalUsername}@accounts.dtce-reports.vercel.app`
+    const placeholderEmail = `${finalUsername}@accounts.dtcereports.vercel.app`
 
     // 7. Create User with email_confirm: true via Admin Client
     let newUserId = ''

@@ -168,7 +168,7 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
     // --- B. EMAIL CHANNEL DISPATCH ---
     if (prefs.email_enabled) {
       const resendApiKey = process.env.RESEND_API_KEY
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dtce-reports.vercel.app'
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dtcereports.vercel.app'
       const actionUrl = relatedEntity?.type === 'requisition'
         ? `${appUrl}/dashboard/store-requisitions?id=${relatedEntity.id}`
         : `${appUrl}/dashboard`
@@ -234,10 +234,9 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
 
     // --- C. WEB PUSH CHANNEL DISPATCH ---
     if (prefs.push_enabled && pushSubs.length > 0) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dtce-reports.vercel.app'
       const pushUrl = relatedEntity?.type === 'requisition'
-        ? `${appUrl}/dashboard/store-requisitions?id=${relatedEntity.id}`
-        : `${appUrl}/dashboard`
+        ? `/dashboard/store-requisitions?id=${relatedEntity.id}`
+        : `/dashboard`
 
       // Calculate exact unread count for badge icon on mobile/PWA home screen
       let recipientUnreadCount = 1

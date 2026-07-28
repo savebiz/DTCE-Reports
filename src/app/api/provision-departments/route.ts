@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     // 7. Provision loop
     for (const item of departments) {
       const password = generateCompliantPassword()
-      const emailAddress = item.email || `${item.username}@accounts.dtce-reports.vercel.app`
+      const emailAddress = item.email || `${item.username}@accounts.dtcereports.vercel.app`
 
       // Resolve the department UUID by matching the name if it is a mock ID (e.g. "dept-25")
       let resolvedDeptId = item.id || null
