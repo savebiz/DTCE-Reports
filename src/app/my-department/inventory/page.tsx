@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
+import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { InventoryItem, InventoryTransaction } from '@/utils/supabase/mockData'
 import {
   downloadCatalogTemplate,
@@ -34,6 +35,16 @@ export default function StoresInventoryPage() {
 
   const [activeTab, setActiveTab] = useState<'all' | 'low_stock' | 'consumable' | 'durable' | 'ledger'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [ledgerPage, setLedgerPage] = useState(1)
+  const [ledgerPageSize, setLedgerPageSize] = useState(10)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeTab, searchQuery])
 
   // 1. Single Add Item Modal state
   const [isAddItemOpen, setIsAddItemOpen] = useState(false)
@@ -740,7 +751,9 @@ export default function StoresInventoryPage() {
                       </td>
                     </tr>
                   ) : (
-                    transactions.map((t: any) => {
+                    transactions
+                      .slice((ledgerPage - 1) * ledgerPageSize, ledgerPage * ledgerPageSize)
+                      .map((t: any) => {
                       const itemMatch = items.find(i => i.id === t.inventory_item_id)
                       const itemName = itemMatch?.name || t.item?.name || 'Inventory Item'
                       const itemCode = itemMatch?.item_code || t.item?.item_code
@@ -785,6 +798,17 @@ export default function StoresInventoryPage() {
                 </tbody>
               </table>
             </div>
+
+            <div className="p-4 border-t border-border/50">
+              <DataTablePagination
+                currentPage={ledgerPage}
+                totalPages={Math.ceil(transactions.length / ledgerPageSize)}
+                totalItems={transactions.length}
+                pageSize={ledgerPageSize}
+                onPageChange={setLedgerPage}
+                onPageSizeChange={setLedgerPageSize}
+              />
+            </div>
           </div>
         ) : (
           /* Catalog Items Table */
@@ -811,7 +835,9 @@ export default function StoresInventoryPage() {
                       </td>
                     </tr>
                   ) : (
-                    filteredItems.map(item => {
+                    filteredItems
+                      .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                      .map(item => {
                       const isLowStock = item.current_stock <= item.low_stock_threshold
 
                       return (
@@ -872,6 +898,17 @@ export default function StoresInventoryPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            <div className="p-4 border-t border-border/50">
+              <DataTablePagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(filteredItems.length / pageSize)}
+                totalItems={filteredItems.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+              />
             </div>
           </div>
         )}

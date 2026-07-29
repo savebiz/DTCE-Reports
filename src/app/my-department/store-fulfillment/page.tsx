@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
+import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { CheckCircle2, Package } from 'lucide-react'
 
 interface RequestItem {
@@ -47,6 +48,14 @@ function StoreFulfillmentContent() {
   const [requisitions, setRequisitions] = useState<RequisitionTicket[]>([])
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'processing' | 'ready' | 'delivered'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(5)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeTab, searchQuery])
 
   const loadData = useCallback(async (showLoadingSpinner = true) => {
     if (showLoadingSpinner) setLoading(true)
@@ -380,7 +389,9 @@ function StoreFulfillmentContent() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {filteredRequisitions.map(req => (
+            {filteredRequisitions
+              .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+              .map(req => (
               <Card
                 key={req.id}
                 className="relative bg-card rounded-xl border border-border/50 overflow-hidden shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_4px_12px_rgba(15,42,74,0.08)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.6)]"
@@ -581,6 +592,17 @@ function StoreFulfillmentContent() {
                 </CardContent>
               </Card>
             ))}
+
+            <div className="pt-2">
+              <DataTablePagination
+                currentPage={currentPage}
+                totalPages={Math.ceil(filteredRequisitions.length / pageSize)}
+                totalItems={filteredRequisitions.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+              />
+            </div>
           </div>
         )}
       </main>

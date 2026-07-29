@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, Profile, Department } from '@/utils/supabase'
 import { generateCompliantPassword } from '@/lib/password-policy'
 import { showToast } from '@/components/ui/toast'
+import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import Link from 'next/link'
 
 interface CredentialSlip {
@@ -49,6 +50,10 @@ export default function SecretariatTeamManagement() {
   const [collisions, setCollisions] = useState<string[]>([])
 
   const [dbDepartments, setDbDepartments] = useState<Department[]>([])
+
+  // Pagination State for Bulk Department Grid
+  const [bulkPage, setBulkPage] = useState(1)
+  const [bulkPageSize, setBulkPageSize] = useState(10)
 
   const loadData = async () => {
     const supabase = getClient()
@@ -761,63 +766,79 @@ export default function SecretariatTeamManagement() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800 text-slate-300">
-                    {bulkList.map((item, idx) => (
-                      <tr key={item.id} className="hover:bg-slate-900/10">
-                        <td className="p-3 font-semibold text-slate-400">{item.name}</td>
-                        <td className="p-2">
-                          <input
-                            value={item.leaderName}
-                            onChange={(e) => handleBulkNameChange(idx, e.target.value)}
-                            disabled={item.isCreated || provisioningBulk}
-                            placeholder={item.isCreated ? 'HOD Created' : 'Enter leader name'}
-                            className="input-dark h-8 text-[12px] py-0"
-                          />
-                        </td>
-                        <td className="p-2">
-                          <input
-                            value={item.username}
-                            onChange={(e) => handleBulkUsernameChange(idx, e.target.value)}
-                            disabled={item.isCreated || provisioningBulk}
-                            placeholder="username.hod"
-                            className="input-dark h-8 text-[12px] py-0 font-mono"
-                          />
-                        </td>
-                        <td className="p-2">
-                          <input
-                            value={item.email}
-                            onChange={(e) => handleBulkEmailChange(idx, e.target.value)}
-                            disabled={item.isCreated || provisioningBulk}
-                            placeholder="Optional email"
-                            className="input-dark h-8 text-[12px] py-0"
-                          />
-                        </td>
-                        <td className="p-3 text-right">
-                          {item.isCreated ? (
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }}>
-                              Created
-                            </span>
-                          ) : (
-                            <div className="flex justify-end gap-1.5">
-                              {item.leaderName.trim().length > 0 && (
-                                <button
-                                  onClick={() => handleProvisionRow(item)}
-                                  disabled={provisioningBulk || collisions.length > 0}
-                                  className="h-6 rounded px-2 text-[10px] font-bold text-white transition-all"
-                                  style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}
-                                >
-                                  Provision
-                                </button>
-                              )}
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-slate-500" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                Not Created
+                    {bulkList
+                      .slice((bulkPage - 1) * bulkPageSize, bulkPage * bulkPageSize)
+                      .map((item, idx) => {
+                      const actualIdx = (bulkPage - 1) * bulkPageSize + idx
+                      return (
+                        <tr key={item.id} className="hover:bg-slate-900/10">
+                          <td className="p-3 font-semibold text-slate-400">{item.name}</td>
+                          <td className="p-2">
+                            <input
+                              value={item.leaderName}
+                              onChange={(e) => handleBulkNameChange(actualIdx, e.target.value)}
+                              disabled={item.isCreated || provisioningBulk}
+                              placeholder={item.isCreated ? 'HOD Created' : 'Enter leader name'}
+                              className="input-dark h-8 text-[12px] py-0"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              value={item.username}
+                              onChange={(e) => handleBulkUsernameChange(actualIdx, e.target.value)}
+                              disabled={item.isCreated || provisioningBulk}
+                              placeholder="username.hod"
+                              className="input-dark h-8 text-[12px] py-0 font-mono"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              value={item.email}
+                              onChange={(e) => handleBulkEmailChange(actualIdx, e.target.value)}
+                              disabled={item.isCreated || provisioningBulk}
+                              placeholder="Optional email"
+                              className="input-dark h-8 text-[12px] py-0"
+                            />
+                          </td>
+                          <td className="p-3 text-right">
+                            {item.isCreated ? (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.2)' }}>
+                                Created
                               </span>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                            ) : (
+                              <div className="flex justify-end gap-1.5">
+                                {item.leaderName.trim().length > 0 && (
+                                  <button
+                                    onClick={() => handleProvisionRow(item)}
+                                    disabled={provisioningBulk || collisions.length > 0}
+                                    className="h-6 rounded px-2 text-[10px] font-bold text-white transition-all cursor-pointer"
+                                    style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)' }}
+                                  >
+                                    Provision
+                                  </button>
+                                )}
+                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-slate-500" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                                  Not Created
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="p-4 border-t border-border/50">
+                <DataTablePagination
+                  currentPage={bulkPage}
+                  totalPages={Math.ceil(bulkList.length / bulkPageSize)}
+                  totalItems={bulkList.length}
+                  pageSize={bulkPageSize}
+                  onPageChange={setBulkPage}
+                  onPageSizeChange={setBulkPageSize}
+                />
               </div>
             </div>
           </div>

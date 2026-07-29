@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
+import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import {
   BarChart3, Download, Filter, RefreshCw, Layers, ShieldAlert, FileText,
   Building2, PackageCheck, Truck, XCircle, AlertCircle, Clock, ChevronDown, ChevronUp, Eye
@@ -28,7 +29,6 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
   const [departments, setDepartments] = useState<any[]>([])
 
   // Primary & Secondary View State
-  // For readOnly (National Coordinator), default priority: stock_summary + department_consumption prominent, secondary drill-downs in expandable tabs
   const [activeReportTab, setActiveReportTab] = useState<'stock_summary' | 'department_consumption' | 'secondary_drilldowns'>('stock_summary')
   const [secondaryType, setSecondaryType] = useState<'fulfillment_history' | 'low_stock' | 'durable_returns'>('fulfillment_history')
 
@@ -44,6 +44,16 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
   const [stockSummaryData, setStockSummaryData] = useState<any[]>([])
   const [deptConsumptionData, setDeptConsumptionData] = useState<any[]>([])
   const [secondaryData, setSecondaryData] = useState<any[]>([])
+
+  // Section Pagination State (Default 10 rows per page)
+  const [stockPage, setStockPage] = useState(1)
+  const [stockPageSize, setStockPageSize] = useState(10)
+
+  const [deptPage, setDeptPage] = useState(1)
+  const [deptPageSize, setDeptPageSize] = useState(10)
+
+  const [secondaryPage, setSecondaryPage] = useState(1)
+  const [secondaryPageSize, setSecondaryPageSize] = useState(10)
 
   // Load initial filter dropdown options
   const loadOptions = useCallback(async () => {
@@ -89,7 +99,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
 
     try {
       if (readOnly) {
-        // Load Stock Summary & Dept Consumption concurrently for National Coordinator Executive view
+        // Load Stock Summary, Dept Consumption, and Secondary Drill-Down concurrently
         const [stockRes, deptRes, secondaryRes] = await Promise.all([
           fetch(`/api/inventory/reports?${new URLSearchParams({
             reportType: 'stock_summary',
@@ -153,6 +163,13 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
     loadReportData(true)
   }, [loadReportData])
 
+  // Reset pagination on search query or filter changes
+  useEffect(() => {
+    setStockPage(1)
+    setDeptPage(1)
+    setSecondaryPage(1)
+  }, [searchQuery, selectedItemIds, selectedDeptIds, datePreset, secondaryType])
+
   // Multi-Select Item Toggle
   const toggleItemFilter = (itemId: string) => {
     setSelectedItemIds(prev =>
@@ -175,9 +192,13 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
     setSelectedItemIds([])
     setSelectedDeptIds([])
     setSearchQuery('')
+    setStockPage(1)
+    setDeptPage(1)
+    setSecondaryPage(1)
   }
 
   // Multi-Format Server Export Handler (CSV, Excel .xlsx, Branded PDF)
+  // When triggered from top-level bar in readOnly mode, defaults to 'comprehensive_oversight' covering all 3 sections!
   const handleExport = (fmt: 'csv' | 'xlsx' | 'pdf', targetReportType?: string) => {
     let finalStart = startDate
     let finalEnd = endDate
@@ -194,7 +215,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
       finalEnd = new Date(now.getFullYear(), 6, 30).toISOString()
     }
 
-    const typeToExport = targetReportType || (readOnly ? (activeReportTab === 'secondary_drilldowns' ? secondaryType : activeReportTab) : currentReportType)
+    const typeToExport = targetReportType || (readOnly ? 'comprehensive_oversight' : currentReportType)
 
     const params = new URLSearchParams({
       reportType: typeToExport,
@@ -207,7 +228,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
 
     const exportUrl = `/api/inventory/export?${params.toString()}`
     window.open(exportUrl, '_blank')
-    showToast(`Generating ${fmt.toUpperCase()} export for ${typeToExport.replace('_', ' ')}...`, 'info')
+    showToast(`Generating ${fmt.toUpperCase()} export for all inventory oversight sections...`, 'info')
   }
 
   // Search filtering helpers
@@ -228,9 +249,14 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
 
   const lowStockCount = filteredStock.filter(it => it.is_low_stock || it.current_stock <= it.low_stock_threshold).length
 
+  // Sliced Data for Pagination
+  const paginatedStock = filteredStock.slice((stockPage - 1) * stockPageSize, stockPage * stockPageSize)
+  const paginatedDept = filteredDept.slice((deptPage - 1) * deptPageSize, deptPage * deptPageSize)
+  const paginatedSecondary = filteredSecondary.slice((secondaryPage - 1) * secondaryPageSize, secondaryPage * secondaryPageSize)
+
   return (
     <div className="space-y-6">
-      {/* 1. Header & Export Action Row */}
+      {/* 1. Header & Comprehensive Export Action Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
@@ -259,28 +285,31 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
             <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Refresh Data
           </Button>
 
-          {/* Reuse Batch 4 Export Buttons */}
+          {/* Comprehensive Export Buttons (Applies to ALL 3 Sections) */}
           <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-lg border border-border/70 shadow-xs">
             <Button
-              onClick={() => handleExport('csv')}
+              onClick={() => handleExport('csv', 'comprehensive_oversight')}
               size="sm"
               variant="ghost"
+              title="Export Full Multi-Section Inventory Report as CSV"
               className="text-xs font-bold h-6 px-2 hover:bg-emerald-500/20 hover:text-emerald-400 cursor-pointer"
             >
               📄 CSV
             </Button>
             <Button
-              onClick={() => handleExport('xlsx')}
+              onClick={() => handleExport('xlsx', 'comprehensive_oversight')}
               size="sm"
               variant="ghost"
+              title="Export Multi-Tab Excel Workbook (.xlsx) Covering All Sections"
               className="text-xs font-bold h-6 px-2 hover:bg-blue-500/20 hover:text-blue-400 cursor-pointer"
             >
               📊 Excel
             </Button>
             <Button
-              onClick={() => handleExport('pdf')}
+              onClick={() => handleExport('pdf', 'comprehensive_oversight')}
               size="sm"
               variant="ghost"
+              title="Print or Save Full Executive PDF Document Covering All 3 Sections"
               className="text-xs font-bold h-6 px-2 hover:bg-amber-500/20 hover:text-amber-400 cursor-pointer"
             >
               🖨️ PDF
@@ -289,7 +318,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
         </div>
       </div>
 
-      {/* 2. Combinable Multi-Select Filter Toolbar (Reused from Batch 3) */}
+      {/* 2. Combinable Multi-Select Filter Toolbar */}
       <Card className="glass-card bg-card border-border p-4 space-y-4">
         <div className="flex items-center justify-between border-b border-border/50 pb-2">
           <div className="flex items-center gap-2">
@@ -415,9 +444,9 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
         <TableSkeleton rows={8} cols={6} />
       ) : (
         <div className="space-y-8">
-          {/* Priority View 1: Stock Level Summary (Top View) */}
-          <div className="glass-card overflow-hidden rounded-xl border border-border bg-card shadow-md">
-            <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-muted/20">
+          {/* Priority View 1: Stock Level Summary (Paginated) */}
+          <div className="glass-card overflow-hidden rounded-xl border border-border bg-card shadow-md p-4 space-y-3">
+            <div className="pb-3 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-amber-500" />
                 <div>
@@ -452,10 +481,10 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60 text-foreground">
-                  {filteredStock.length === 0 ? (
+                  {paginatedStock.length === 0 ? (
                     <tr><td colSpan={8} className="p-6 text-center text-muted-foreground italic">No stock records match filter parameters.</td></tr>
                   ) : (
-                    filteredStock.map(item => {
+                    paginatedStock.map(item => {
                       const isLow = item.is_low_stock || item.current_stock <= item.low_stock_threshold
                       return (
                         <tr key={item.id} className={`hover:bg-muted/20 transition-colors ${isLow ? 'bg-red-500/5' : ''}`}>
@@ -492,11 +521,21 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                 </tbody>
               </table>
             </div>
+
+            {/* Section 1 Pagination */}
+            <DataTablePagination
+              currentPage={stockPage}
+              totalPages={Math.ceil(filteredStock.length / stockPageSize)}
+              totalItems={filteredStock.length}
+              pageSize={stockPageSize}
+              onPageChange={setStockPage}
+              onPageSizeChange={setStockPageSize}
+            />
           </div>
 
-          {/* Priority View 2: Department Consumption & Distribution Equity (Prominent View) */}
-          <div className="glass-card overflow-hidden rounded-xl border border-border bg-card shadow-md">
-            <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-muted/20">
+          {/* Priority View 2: Department Consumption & Distribution Equity (Paginated) */}
+          <div className="glass-card overflow-hidden rounded-xl border border-border bg-card shadow-md p-4 space-y-3">
+            <div className="pb-3 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-blue-400" />
                 <div>
@@ -522,10 +561,10 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60 text-foreground">
-                  {filteredDept.length === 0 ? (
+                  {paginatedDept.length === 0 ? (
                     <tr><td colSpan={5} className="p-6 text-center text-muted-foreground italic">No department consumption data available for active filters.</td></tr>
                   ) : (
-                    filteredDept.map((row, idx) => {
+                    paginatedDept.map((row, idx) => {
                       const totalItemConsumption = filteredDept
                         .filter(d => d.item_name === row.item_name)
                         .reduce((acc, curr) => acc + Number(curr.total_fulfilled_qty || 0), 0)
@@ -562,14 +601,24 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                 </tbody>
               </table>
             </div>
+
+            {/* Section 2 Pagination */}
+            <DataTablePagination
+              currentPage={deptPage}
+              totalPages={Math.ceil(filteredDept.length / deptPageSize)}
+              totalItems={filteredDept.length}
+              pageSize={deptPageSize}
+              onPageChange={setDeptPage}
+              onPageSizeChange={setDeptPageSize}
+            />
           </div>
 
-          {/* Secondary Views / Drill-Down Sub-Tabs */}
+          {/* Secondary Views / Drill-Down Sub-Tabs (Paginated) */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-2">
               <div className="flex items-center gap-2">
                 <Eye className="w-4 h-4 text-purple-400" />
-                <span className="text-xs font-bold text-foreground uppercase tracking-wider">Secondary Operational Drill-Downs</span>
+                <span className="text-xs font-bold text-foreground uppercase tracking-wider">3. Secondary Operational Drill-Downs</span>
               </div>
               <div className="flex gap-2">
                 {[
@@ -579,7 +628,10 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                 ].map(sub => (
                   <button
                     key={sub.id}
-                    onClick={() => setSecondaryType(sub.id as any)}
+                    onClick={() => {
+                      setSecondaryType(sub.id as any)
+                      setSecondaryPage(1)
+                    }}
                     className={`text-[11px] font-bold px-3 py-1 rounded-lg transition-all cursor-pointer border ${
                       secondaryType === sub.id
                         ? 'bg-purple-500/10 text-purple-400 border-purple-500/30 font-bold'
@@ -592,7 +644,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
               </div>
             </div>
 
-            <div className="glass-card overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <div className="glass-card overflow-hidden rounded-xl border border-border bg-card shadow-sm p-4 space-y-3">
               <div className="overflow-x-auto text-xs">
                 {secondaryType === 'fulfillment_history' && (
                   <table className="w-full text-left border-collapse">
@@ -608,10 +660,10 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/60 text-foreground">
-                      {filteredSecondary.length === 0 ? (
+                      {paginatedSecondary.length === 0 ? (
                         <tr><td colSpan={7} className="p-6 text-center text-muted-foreground italic">No fulfillment history logs match criteria.</td></tr>
                       ) : (
-                        filteredSecondary.map(h => {
+                        paginatedSecondary.map(h => {
                           const isRestock = h.transaction_type === 'restock'
                           return (
                             <tr key={h.id} className="hover:bg-muted/20 transition-colors">
@@ -659,10 +711,10 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/60 text-foreground">
-                      {filteredSecondary.length === 0 ? (
+                      {paginatedSecondary.length === 0 ? (
                         <tr><td colSpan={6} className="p-6 text-center text-emerald-400 font-semibold italic">✓ All inventory items are optimal. No low-stock deficits recorded!</td></tr>
                       ) : (
-                        filteredSecondary.map(item => {
+                        paginatedSecondary.map(item => {
                           const shortfall = item.shortfall ?? Math.max(0, item.low_stock_threshold - item.current_stock)
                           return (
                             <tr key={item.id} className="hover:bg-muted/20 transition-colors bg-red-500/5">
@@ -700,10 +752,10 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/60 text-foreground">
-                      {filteredSecondary.length === 0 ? (
+                      {paginatedSecondary.length === 0 ? (
                         <tr><td colSpan={7} className="p-6 text-center text-muted-foreground italic">No durable return records match criteria.</td></tr>
                       ) : (
-                        filteredSecondary.map(r => (
+                        paginatedSecondary.map(r => (
                           <tr key={r.id} className="hover:bg-muted/20 transition-colors">
                             <td className="p-3 font-semibold text-foreground flex items-center gap-2">
                               <Building2 className="w-3.5 h-3.5 text-blue-400" />
@@ -748,6 +800,16 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                   </table>
                 )}
               </div>
+
+              {/* Section 3 Pagination */}
+              <DataTablePagination
+                currentPage={secondaryPage}
+                totalPages={Math.ceil(filteredSecondary.length / secondaryPageSize)}
+                totalItems={filteredSecondary.length}
+                pageSize={secondaryPageSize}
+                onPageChange={setSecondaryPage}
+                onPageSizeChange={setSecondaryPageSize}
+              />
             </div>
           </div>
         </div>

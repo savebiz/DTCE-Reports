@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
+import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { AlertTriangle, X } from 'lucide-react'
 
 interface RequestItem {
@@ -98,6 +99,14 @@ function AdminRequisitionsContent() {
   // Filter & Search State
   const [activeFilter, setActiveFilter] = useState<ReqStatus | 'all'>('all')
   const [searchQuery, setSearchQuery] = useState('')
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeFilter, searchQuery])
 
   // Batch selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -480,7 +489,9 @@ function AdminRequisitionsContent() {
               <p className="text-sm font-semibold text-muted-foreground">No store requisitions found matching this filter.</p>
             </Card>
           ) : (
-            filteredRequests.map(req => {
+            filteredRequests
+              .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+              .map(req => {
               const statusCfg = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending_coordinator
 
               return (
@@ -565,6 +576,15 @@ function AdminRequisitionsContent() {
               )
             })
           )}
+
+          <DataTablePagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredRequests.length / pageSize)}
+            totalItems={filteredRequests.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+          />
         </div>
 
         {/* Requisition Review Glassmorphism Modal Overlay */}

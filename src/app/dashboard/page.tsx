@@ -16,6 +16,7 @@ import { CheckCircle2, RotateCcw, Check, AlertCircle, X } from 'lucide-react'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { KPIGridSkeleton, MatrixGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
 import { InventoryReportsView } from '@/components/inventory/inventory-reports-view'
+import { DataTablePagination } from '@/components/ui/data-table-pagination'
 
 const SchemaFormRenderer = dynamic(() => import('@/components/schema-form-renderer').then(mod => mod.SchemaFormRenderer), { ssr: false })
 
@@ -109,6 +110,16 @@ function SecretariatDashboardContent() {
 
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedFocusDays, setSelectedFocusDays] = useState<string[]>(['all'])
+
+  // Pagination State for Dashboard Tables & Consoles
+  const [matrixPage, setMatrixPage] = useState(1)
+  const [matrixPageSize, setMatrixPageSize] = useState(10)
+
+  const [reqsPage, setReqsPage] = useState(1)
+  const [reqsPageSize, setReqsPageSize] = useState(5)
+
+  const [challengesPage, setChallengesPage] = useState(1)
+  const [challengesPageSize, setChallengesPageSize] = useState(5)
 
   useEffect(() => {
     if (tabParam) {
@@ -774,7 +785,7 @@ function SecretariatDashboardContent() {
                   </tr>
                 </thead>
                 <tbody>
-                  {departments.map((dept) => (
+                  {departments.slice((matrixPage - 1) * matrixPageSize, matrixPage * matrixPageSize).map((dept) => (
                     <tr key={dept.id} className="border-b border-border/50 hover:bg-muted/10 transition-colors">
                       <td className="py-2 px-4 text-[13px] font-medium text-foreground border-r border-border">
                         {dept.name}
@@ -794,6 +805,17 @@ function SecretariatDashboardContent() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div className="p-4 border-t border-border/50">
+              <DataTablePagination
+                currentPage={matrixPage}
+                totalPages={Math.ceil(departments.length / matrixPageSize)}
+                totalItems={departments.length}
+                pageSize={matrixPageSize}
+                onPageChange={setMatrixPage}
+                onPageSizeChange={setMatrixPageSize}
+              />
             </div>
           </div>
         </div>
@@ -817,7 +839,9 @@ function SecretariatDashboardContent() {
                 {visibleStoreRequests.length === 0 ? (
                   <p className="text-xs text-muted-foreground italic">No store requisitions found.</p>
                 ) : (
-                  visibleStoreRequests.map((req) => {
+                  visibleStoreRequests
+                    .slice((reqsPage - 1) * reqsPageSize, reqsPage * reqsPageSize)
+                    .map((req) => {
                     const cfg = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending_coordinator
                     return (
                       <div key={req.id} className="border border-border rounded-xl p-4 space-y-3 bg-background/25">
@@ -895,6 +919,16 @@ function SecretariatDashboardContent() {
                     )
                   })
                 )}
+
+                <DataTablePagination
+                  currentPage={reqsPage}
+                  totalPages={Math.ceil(visibleStoreRequests.length / reqsPageSize)}
+                  totalItems={visibleStoreRequests.length}
+                  pageSize={reqsPageSize}
+                  onPageChange={setReqsPage}
+                  onPageSizeChange={setReqsPageSize}
+                  pageSizeOptions={[5, 10, 20]}
+                />
               </CardContent>
             </Card>
           </div>
@@ -969,7 +1003,9 @@ function SecretariatDashboardContent() {
               {aggregatedChallenges.length === 0 ? (
                 <p className="text-xs text-muted-foreground italic p-4 text-center">No operational challenges reported across departments yet.</p>
               ) : (
-                aggregatedChallenges.map((item) => {
+                aggregatedChallenges
+                  .slice((challengesPage - 1) * challengesPageSize, challengesPage * challengesPageSize)
+                  .map((item) => {
                   const isResolved = item.status === 'resolved'
 
                   return (
@@ -1014,23 +1050,19 @@ function SecretariatDashboardContent() {
                         )}
                       </div>
 
-                      {/* Resolved Details & Note Box */}
-                      {isResolved && (
-                        <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-500/20 space-y-1 text-xs">
-                          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
-                            <CheckCircle2 size={13} />
-                            <span>Resolved by {item.resolvedByName || 'Secretariat Staff'} {item.resolvedAt ? `on ${new Date(item.resolvedAt).toLocaleDateString()} at ${new Date(item.resolvedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+                      {/* Resolution Audit Note */}
+                      {item.resolutionNote && (
+                        <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-xs space-y-1">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-emerald-400 uppercase">
+                            <span>Log Action Note:</span>
+                            <span>{item.resolvedAt ? new Date(item.resolvedAt).toLocaleDateString() : ''}</span>
                           </div>
-                          {item.resolutionNote && (
-                            <p className="text-slate-300 text-xs pl-4 border-l-2 border-emerald-500/40 mt-1 italic">
-                              "{item.resolutionNote}"
-                            </p>
-                          )}
+                          <p className="text-emerald-200">{item.resolutionNote}</p>
                         </div>
                       )}
 
-                      {/* Actions Footer Row */}
-                      <div className="pt-2 border-t border-border/40 flex justify-end">
+                      {/* Footer Actions */}
+                      <div className="flex justify-end pt-1">
                         {isResolved ? (
                           <Button
                             size="sm"
@@ -1059,6 +1091,16 @@ function SecretariatDashboardContent() {
                   )
                 })
               )}
+
+              <DataTablePagination
+                currentPage={challengesPage}
+                totalPages={Math.ceil(aggregatedChallenges.length / challengesPageSize)}
+                totalItems={aggregatedChallenges.length}
+                pageSize={challengesPageSize}
+                onPageChange={setChallengesPage}
+                onPageSizeChange={setChallengesPageSize}
+                pageSizeOptions={[5, 10, 20]}
+              />
             </CardContent>
           </Card>
         )}
