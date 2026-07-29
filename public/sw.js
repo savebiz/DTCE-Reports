@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtce-reports-shell-v12';
+const CACHE_NAME = 'dtce-reports-shell-v13';
 
 // Core routes and static assets that constitute the app shell
 const APP_SHELL = [
@@ -16,6 +16,7 @@ const APP_SHELL = [
   '/icon-512-maskable.png',
   '/apple-touch-icon.png',
   '/dtce-logo.png',
+  '/dtce-logo-white-bg.png',
   '/manifest.json'
 ];
 
@@ -146,7 +147,7 @@ self.addEventListener('fetch', event => {
           .then(networkResponse => {
             if (networkResponse && networkResponse.status === 200) {
               const cacheCopy = networkResponse.clone();
-              caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse));
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, cacheCopy));
             }
             return networkResponse;
           })
@@ -157,16 +158,51 @@ self.addEventListener('fetch', event => {
   }
 });
 
-// --- WEB PUSH EVENT LISTENERS ---
+// ════════════════════════════════════════════════════════════════════════════
+// WEB PUSH EVENT LISTENERS
+// ════════════════════════════════════════════════════════════════════════════
 
-// Push Event — Handle Web Push Notifications
-// NOTIFICATION GROUPING: Uses a stable 'dtce-notifications' group tag so Android/iOS
-// collapses multiple DTCE alerts into one grouped card (like WhatsApp / Telegram / Outlook).
-// Each individual notification's unique ID is preserved in data.notificationId for deep-linking.
+/**
+ * Push Event — Handle Web Push Notifications
+ * ════════════════════════════════════════════════════════════════════════════
+ *
+ * THREE-LAYER NOTIFICATION ARCHITECTURE (matching WhatsApp / Telegram / Outlook):
+ *
+ *  LAYER 1 — OS Heads-Up / Lock Screen Banner
+ *  ───────────────────────────────────────────
+ *  • The floating drop-down banner that appears at the TOP of the home screen
+ *    and lock screen when a push notification arrives — exactly like WhatsApp.
+ *  • Works whether the PWA is OPEN, CLOSED, or the LOCK SCREEN IS ACTIVE.
+ *  • This is a 100% native Android/iOS OS-level feature, automatically triggered
+ *    when a push notification with sufficient priority arrives.
+ *  • Requirements for Android to show Heads-Up:
+ *      ✅  Unique `tag` per notification (shared tag = silent replace, no banner)
+ *      ✅  vibrate set (signals high-priority to OS)
+ *      ✅  silent: false (must have sound/vibration)
+ *      ✅  urgency: 'high' in the VAPID push request headers (set in webpush.ts)
+ *  • Requirements for iOS lock screen (iOS 16.4+ with PWA installed):
+ *      ✅  Same requirements as above — iOS honours push permission for installed PWAs
+ *
+ *  LAYER 2 — Notification Shade Grouping (collapsible group header)
+ *  ────────────────────────────────────────────────────────────────
+ *  • When multiple DTCE notifications accumulate in the shade, they are visually
+ *    grouped under one "DTCE Reports" header — like WhatsApp/Telegram/Outlook.
+ *  • Controlled by the `group` field (INDEPENDENT of `tag`).
+ *  • A `groupSummary: true` notification provides the "N new updates" header card.
+ *  • The group summary uses a STABLE shared tag (silently replaces itself).
+ *
+ *  LAYER 3 — In-App Foreground Banner (InAppNotificationToast component)
+ *  ──────────────────────────────────────────────────────────────────────
+ *  • A React component that slides in from the top when the user has the app
+ *    open in the foreground on mobile.
+ *  • Driven by Supabase Realtime INSERT subscription on the notifications table.
+ *  • Mobile-only (md:hidden). Does NOT replace Layers 1 or 2.
+ */
 self.addEventListener('push', event => {
   console.log('[SW] Push notification received');
 
-  const DTCE_GROUP_TAG = 'dtce-notifications'; // Stable group key — all DTCE alerts share this
+  // Group key: used for VISUAL GROUPING in the shade only — not for `tag`
+  const DTCE_GROUP_KEY = 'dtce-notifications';
 
   const data = {
     title: 'DTCE Reports',
@@ -182,7 +218,7 @@ self.addEventListener('push', event => {
   if (event.data) {
     try {
       const parsed = event.data.json();
-      // Merge parsed data — support both flat and nested payload shapes
+      // Support both flat and nested payload shapes from the server
       data.title = parsed.title || data.title;
       data.body = parsed.body || data.body;
       data.icon = parsed.icon || data.icon;
@@ -203,75 +239,89 @@ self.addEventListener('push', event => {
 
   event.waitUntil(
     (async () => {
-      // 1. Get currently stacked DTCE notifications in the OS shade
+      // Count existing DTCE alerts in the shade (for badge number + summary text)
       let existingNotifs = [];
       try {
-        existingNotifs = await self.registration.getNotifications({ tag: DTCE_GROUP_TAG });
-      } catch (_) {
-        try {
-          existingNotifs = await self.registration.getNotifications();
-          existingNotifs = existingNotifs.filter(n => n.tag === DTCE_GROUP_TAG || (n.data && n.data.group === DTCE_GROUP_TAG));
-        } catch (_) {}
-      }
+        const all = await self.registration.getNotifications();
+        // Only count individual alerts, not the summary card itself
+        existingNotifs = all.filter(n =>
+          n.data && n.data.group === DTCE_GROUP_KEY && !n.data.isSummary
+        );
+      } catch (_) {}
 
-      const stackedCount = existingNotifs.length + 1; // +1 for incoming notification
+      const stackedCount = existingNotifs.length + 1; // +1 for incoming alert
       const badgeCount = Math.max(unreadCount, stackedCount);
 
-      // 2. Set PWA app icon badge (numeric unread count)
+      // Update PWA home screen icon badge number
       if ('setAppBadge' in self.navigator) {
         try { await self.navigator.setAppBadge(badgeCount); } catch (_) {}
       }
 
-      // 3. Build per-notification options
-      // Each notification uses the SHARED group tag — this is the key that causes Android
-      // to group them visually, identical to how WhatsApp/Telegram stack their messages.
-      const notifOptions = {
-        body: data.body,
-        icon: '/icon-192.png',          // Always DTCE icon on the left of every notification
-        badge: '/notification-badge.png', // Small monochrome badge in status bar
-        tag: DTCE_GROUP_TAG,             // SHARED stable tag = OS groups all under one header
-        group: DTCE_GROUP_TAG,           // Android notification channel group
-        renotify: true,                  // Alert user even if tag already exists
-        vibrate: [200, 100, 200],        // Shorter pattern to avoid notification fatigue
-        silent: false,
-        requireInteraction: false,
-        timestamp: Date.now(),
-        data: {
-          url: data.data?.url || '/dashboard',
-          notificationId,                // Preserved for deep-link click routing
-          group: DTCE_GROUP_TAG,
-          unreadCount: badgeCount,
-        },
-        actions: [
-          { action: 'open', title: '📋 Open DTCE App' },
-          { action: 'dismiss', title: 'Dismiss' }
-        ]
-      };
+      // ── LAYER 1: Individual notification with UNIQUE tag ──────────────────
+      //
+      // ⚠️  CRITICAL RULE: The `tag` must be UNIQUE per notification.
+      //
+      //  SHARED tag   → Android silently replaces the existing notification
+      //                  → NO floating banner on home screen / lock screen ❌
+      //
+      //  UNIQUE tag   → Android treats this as a brand-new notification
+      //                  → OS fires the Heads-Up drop-down banner on home screen ✅
+      //                  → Alert appears on lock screen ✅
+      //                  → Works whether app is open, closed, or screen is locked ✅
+      //
+      // The `group` field (separate from `tag`) handles visual grouping in the shade.
+      // ─────────────────────────────────────────────────────────────────────────
+      const uniquePerAlertTag = notificationId
+        ? `dtce-alert-${notificationId}`
+        : `dtce-alert-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
 
-      // 4. Show the individual notification (OS handles the grouping automatically)
       try {
-        await self.registration.showNotification(data.title, notifOptions);
+        await self.registration.showNotification(data.title, {
+          body: data.body,
+          icon: '/icon-192.png',              // DTCE logo on left side of every alert card
+          badge: '/notification-badge.png',   // Monochrome DTCE icon in the status bar
+          tag: uniquePerAlertTag,             // ✅ UNIQUE per alert → fires OS Heads-Up banner
+          group: DTCE_GROUP_KEY,              // ✅ Groups alerts under one DTCE header in shade
+          renotify: true,                     // Always trigger alert sound/vibration
+          vibrate: [300, 100, 300, 100, 300], // Strong pattern → Android Heads-Up priority signal
+          silent: false,                      // Must be false → enables OS Heads-Up display
+          requireInteraction: false,          // Auto-dismiss after OS timeout (like WhatsApp)
+          timestamp: Date.now(),
+          data: {
+            url: data.data?.url || '/dashboard',
+            notificationId,                   // Preserved for deep-link click routing
+            group: DTCE_GROUP_KEY,
+            unreadCount: badgeCount,
+            isSummary: false,
+          },
+          actions: [
+            { action: 'open', title: '📋 Open DTCE App' },
+            { action: 'dismiss', title: 'Dismiss' }
+          ]
+        });
       } catch (err) {
         console.error('[SW] showNotification failed:', err);
       }
 
-      // 5. If 2+ notifications are now stacked, update/show a summary notification
-      // This creates the collapsed "N new alerts" summary line under the group header
-      // (consistent with how Outlook shows "6 new emails" in its grouped card)
+      // ── LAYER 2: Group summary notification (shade grouping header) ────────
+      //
+      // Uses a STABLE shared tag so it silently updates (no re-alert, no Heads-Up)
+      // while showing the "N new updates" summary line under the DTCE group header.
+      // `groupSummary: true` marks this as the group header card to the OS.
+      // ─────────────────────────────────────────────────────────────────────────
       if (stackedCount >= 2) {
         try {
-          const summaryOptions = {
-            body: `${stackedCount} new updates from DTCE Reports`,
+          await self.registration.showNotification('DTCE Reports', {
+            body: `${stackedCount} new updates — tap to view all`,
             icon: '/icon-192.png',
             badge: '/notification-badge.png',
-            tag: DTCE_GROUP_TAG + '-summary',
-            group: DTCE_GROUP_TAG,
-            groupSummary: true,         // Marks this as the group summary notification
-            silent: true,               // Don't re-alert for summary update
+            tag: DTCE_GROUP_KEY + '-summary',  // Stable tag → silently replaces itself
+            group: DTCE_GROUP_KEY,
+            groupSummary: true,                // OS marks this as the shade group header
+            silent: true,                      // Never re-alert for summary update
             renotify: false,
-            data: { url: '/dashboard', group: DTCE_GROUP_TAG, isSummary: true },
-          };
-          await self.registration.showNotification('DTCE Reports', summaryOptions);
+            data: { url: '/dashboard', group: DTCE_GROUP_KEY, isSummary: true },
+          });
         } catch (_) {}
       }
     })()
@@ -282,14 +332,14 @@ self.addEventListener('push', event => {
 self.addEventListener('notificationclick', event => {
   event.notification.close();
 
-  // Handle Dismiss action — just close, no navigation
+  // Dismiss action — just close, no navigation
   if (event.action === 'dismiss') return;
 
-  // Group summary click → go to dashboard (all notifications view)
+  // Group summary click → open dashboard (shows all notifications)
   const isSummary = event.notification.data?.isSummary;
   let targetUrl = isSummary ? '/dashboard' : (event.notification.data?.url || '/dashboard');
 
-  // Automatically replace legacy domain with live production domain if present
+  // Replace legacy domain with live production domain if present
   if (targetUrl.includes('dtce-reports.vercel.app')) {
     targetUrl = targetUrl.replace('dtce-reports.vercel.app', 'dtcereports.vercel.app');
   }
@@ -304,7 +354,7 @@ self.addEventListener('notificationclick', event => {
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
         if (client.url.includes(targetUrl) && 'focus' in client) {
-          // Notify open tab to mark notification as read
+          // Tell the open tab to mark this notification as read
           if (notificationId) {
             client.postMessage({ type: 'SW_NOTIFICATION_CLICKED', notificationId });
           }
@@ -321,12 +371,14 @@ self.addEventListener('notificationclick', event => {
 // Message Event — Handle client-to-SW communication
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'TEST_PUSH') {
+    // Test notification uses a unique tag so it also fires a Heads-Up banner
     self.registration.showNotification('DTCE Reports — Test', {
       body: 'Push notifications are working correctly on this device!',
       icon: '/icon-192.png',
       badge: '/notification-badge.png',
-      tag: 'dtce-test-push',
-      vibrate: [100, 50, 100],
+      tag: 'dtce-test-push-' + Date.now(),
+      vibrate: [300, 100, 300],
+      silent: false,
     }).catch(err => {
       console.error('[SW] Test notification failed:', err);
     });
