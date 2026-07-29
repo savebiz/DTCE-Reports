@@ -70,13 +70,18 @@ export async function POST(request: Request) {
       targetUser.must_change_password = true
 
       // Record in mock audit logs
-      const auditLog = {
+      const auditLog: any = {
         id: `audit-${Date.now()}`,
+        reviewer_id: actorId,
         actor_id: actorId,
         target_user_id: targetUserId,
         action: 'RESET_PASSWORD',
         details: `Reset password for ${targetUser.full_name || targetUser.username} (${targetUser.email})`,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        timestamp: new Date().toISOString(),
+        previous_value: 'N/A',
+        new_value: 'RESET_PASSWORD',
+        report_id: 'SYSTEM_ADMIN'
       }
       store.auditLogs = [auditLog, ...(store.auditLogs || [])]
 
