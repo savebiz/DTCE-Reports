@@ -362,7 +362,8 @@ function SecretariatDashboardContent() {
     )
 
     const submittedCount = matchedReports.filter(r => ['submitted', 'reviewed', 'approved'].includes(r.status)).length
-    const expectedSubmissionsCount = departments.length * (isAll ? 1 : activeDayIds.length)
+    const numDaysSelected = activeDayIds.length > 0 ? activeDayIds.length : 1
+    const expectedSubmissionsCount = departments.length * numDaysSelected
     const missingCount = Math.max(0, expectedSubmissionsCount - submittedCount)
     const needingReview = matchedReports.filter(r => r.status === 'submitted').length
 
