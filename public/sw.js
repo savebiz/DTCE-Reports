@@ -303,27 +303,6 @@ self.addEventListener('push', event => {
         console.error('[SW] showNotification failed:', err);
       }
 
-      // ── LAYER 2: Group summary notification (shade grouping header) ────────
-      //
-      // Uses a STABLE shared tag so it silently updates (no re-alert, no Heads-Up)
-      // while showing the "N new updates" summary line under the DTCE group header.
-      // `groupSummary: true` marks this as the group header card to the OS.
-      // ─────────────────────────────────────────────────────────────────────────
-      if (stackedCount >= 2) {
-        try {
-          await self.registration.showNotification('DTCE Reports', {
-            body: `${stackedCount} new updates — tap to view all`,
-            icon: '/icon-192.png',
-            badge: '/notification-badge.png',
-            tag: DTCE_GROUP_KEY + '-summary',  // Stable tag → silently replaces itself
-            group: DTCE_GROUP_KEY,
-            groupSummary: true,                // OS marks this as the shade group header
-            silent: true,                      // Never re-alert for summary update
-            renotify: false,
-            data: { url: '/dashboard', group: DTCE_GROUP_KEY, isSummary: true },
-          });
-        } catch (_) {}
-      }
     })()
   );
 });
