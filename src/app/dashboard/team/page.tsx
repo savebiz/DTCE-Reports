@@ -1074,10 +1074,10 @@ export default function SecretariatTeamManagement() {
                 <h3 className="text-sm font-bold uppercase tracking-wider">Confirm Password Reset</h3>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Reset password for <strong className="text-white font-semibold">{resetModalTarget.full_name || resetModalTarget.username}</strong> ({resetModalTarget.email})?
+                Reset password for <strong className="text-white font-semibold">{resetModalTarget.full_name || resetModalTarget.username}</strong> ({resetModalTarget.username || 'user'})?
                 <br />
-                <span className="text-slate-400 block mt-1.5">
-                  They will need the new temporary password to sign in — their current password stops working immediately.
+                <span className="text-slate-400 block mt-1.5 leading-normal">
+                  A temporary password will be generated for this account. Upon signing in with the temporary password, the user will be automatically routed to create their new password.
                 </span>
               </p>
               <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
