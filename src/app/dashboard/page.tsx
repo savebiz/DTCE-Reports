@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useEffect, useState, useMemo, useCallback, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient, mockDepartments, mockEventDays, Profile, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
 import { PushPermissionBanner } from '@/components/push-permission-banner'
@@ -70,7 +70,7 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; 
   delivered:           { label: 'Delivered', bg: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' },
 }
 
-export default function SecretariatDashboard() {
+function SecretariatDashboardContent() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [departments, setDepartments] = useState<Department[]>([])
@@ -93,8 +93,17 @@ export default function SecretariatDashboard() {
   const [delegateId, setDelegateId] = useState<string>('none')
   const [actionLoading, setActionLoading] = useState(false)
 
+  const searchParams = useSearchParams()
+  const tabParam = searchParams?.get('tab')
+
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedKPIDay, setSelectedKPIDay] = useState<string>('day-1')
+
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam)
+    }
+  }, [tabParam])
   
   // Challenge Resolutions state
   const [resolutionsMap, setResolutionsMap] = useState<Record<string, any>>({})
@@ -572,9 +581,6 @@ export default function SecretariatDashboard() {
           {[
             { key: 'overview', label: 'Overview & Matrix' },
             { key: 'store-requisitions', label: `Store Requisitions (${kpis.pendingReqs})` },
-            // Extension Point: If nc_assistant accounts require broader inventory oversight access in the future, remove !isCoordinatorAssistant guard here.
-            ...(!isCoordinatorAssistant ? [{ key: 'inventory-oversight', label: 'Inventory Oversight' }] : []),
-            { key: 'rankings', label: 'Dept Performance Rankings' },
             { key: 'challenges', label: `Reported Challenges (${aggregatedChallenges.length})` },
           ].map(t => (
             <button
@@ -769,14 +775,25 @@ export default function SecretariatDashboard() {
                         )}
 
                         <div className="flex gap-2 justify-end pt-1">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => router.push(`/dashboard/store-requisitions?id=${req.id}`)} 
-                            className="text-xs h-8 cursor-pointer border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:text-white transition-colors font-semibold"
-                          >
-                            Review &rarr;
-                          </Button>
+                          {req.status === 'pending_coordinator' ? (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => router.push(`/dashboard/store-requisitions?id=${req.id}`)} 
+                              className="text-xs h-8 cursor-pointer border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:text-white transition-colors font-semibold"
+                            >
+                              Review &amp; Approve &rarr;
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => router.push(`/dashboard/store-requisitions?id=${req.id}`)} 
+                              className="text-xs h-8 cursor-pointer border-slate-700 text-slate-300 hover:bg-slate-800/60 hover:text-white transition-colors font-semibold"
+                            >
+                              View Details &rarr;
+                            </Button>
+                          )}
                         </div>
                       </div>
                     )
@@ -1324,5 +1341,17 @@ export default function SecretariatDashboard() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function SecretariatDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
+        <p className="text-sm font-mono animate-pulse text-muted-foreground">Loading Executive Operations Desk...</p>
+      </div>
+    }>
+      <SecretariatDashboardContent />
+    </Suspense>
   )
 }

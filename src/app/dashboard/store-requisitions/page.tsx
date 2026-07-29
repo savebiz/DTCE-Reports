@@ -594,148 +594,185 @@ function AdminRequisitionsContent() {
                 </button>
               </CardHeader>
               <CardContent className="space-y-4 p-5 overflow-y-auto max-h-[calc(90vh-120px)]">
-                {/* Editable Line Items Section */}
-                <div className="space-y-2.5 pb-4 border-b border-slate-800">
-                  <Label className="text-xs font-bold text-amber-400 uppercase tracking-wider block">
-                    Edit Approved Quantities
-                  </Label>
-                  <p className="text-[11px] text-slate-400">
-                    Adjust quantities or remove line items before approving. Original requested amounts are preserved.
-                  </p>
-
-                  <div className="space-y-2">
-                    {editableItems.map((item, idx) => {
-                      const catItem = catalogItems.find(c =>
-                        (item.inventory_item_id && c.id === item.inventory_item_id) ||
-                        c.name.toLowerCase() === item.name.toLowerCase()
-                      )
-                      const isExceeding = catItem && item.approved_quantity > catItem.current_stock
-
-                      return (
-                        <div key={idx} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 text-xs">
-                          <div className="flex justify-between items-center">
-                            <span className="font-bold text-white">{item.name}</span>
-                            <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
-                              Requested: {item.requested_quantity} {item.unit || ''}
-                            </span>
+                {/* Conditional Render: Interactive Review for Pending vs Read-Only Audit for Processed */}
+                {selectedReq.status !== 'pending_coordinator' ? (
+                  <div className="space-y-4 pt-2">
+                    <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Requisition Items Breakdown</span>
+                        <span className="text-[10px] font-mono text-slate-400">Processed Audit Log</span>
+                      </div>
+                      <div className="space-y-2">
+                        {selectedReq.items_json.map((it: any, idx: number) => (
+                          <div key={idx} className="flex justify-between items-center p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs">
+                            <span className="font-semibold text-white">{it.name}</span>
+                            <div className="font-mono text-xs">
+                              <span className="text-slate-400 mr-2">Requested: {it.requested_quantity ?? it.quantity}</span>
+                              <span className="font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                Granted: {it.approved_quantity ?? it.quantity}
+                              </span>
+                            </div>
                           </div>
+                        ))}
+                      </div>
+                    </div>
 
-                          {/* Live Stock Context Banner */}
-                          {catItem ? (
-                            <div className={`flex items-center justify-between p-2 rounded-lg text-[11px] font-mono border ${
-                              catItem.current_stock <= catItem.low_stock_threshold
-                                ? 'bg-red-500/10 border-red-500/30 text-red-400'
-                                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                            }`}>
-                              <div className="flex items-center gap-1.5 font-bold">
-                                <span>Currently in stock:</span>
-                                <span>{catItem.current_stock} {catItem.unit || 'pcs'}</span>
-                                {catItem.current_stock <= catItem.low_stock_threshold && (
-                                  <span className="text-[9px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.2 rounded border border-red-500/20">
-                                    ⚠️ Low Stock
-                                  </span>
-                                )}
+                    {selectedReq.reviewer_comments && (
+                      <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs space-y-1">
+                        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block">Reviewer Remarks:</span>
+                        <p className="text-slate-300 leading-relaxed">{selectedReq.reviewer_comments}</p>
+                      </div>
+                    )}
+
+                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+                      <span>Status: <strong className="text-emerald-400 uppercase">{selectedReq.status.replace('_', ' ')}</strong></span>
+                      <span className="text-slate-400 font-semibold">Read-Only Completed Audit Record</span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Interactive Items adjustment list */}
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-slate-300 uppercase tracking-widest block">
+                        Edit Approved Quantities
+                      </Label>
+                      <p className="text-[11px] text-slate-400">
+                        Adjust quantities or remove line items before approving. Original requested amounts are preserved.
+                      </p>
+
+                      <div className="space-y-2">
+                        {editableItems.map((item, idx) => {
+                          const catItem = catalogItems.find(c =>
+                            (item.inventory_item_id && c.id === item.inventory_item_id) ||
+                            c.name.toLowerCase() === item.name.toLowerCase()
+                          )
+                          const isExceeding = catItem && item.approved_quantity > catItem.current_stock
+
+                          return (
+                            <div key={idx} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 text-xs">
+                              <div className="flex justify-between items-center">
+                                <span className="font-bold text-white">{item.name}</span>
+                                <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
+                                  Requested: {item.requested_quantity} {item.unit || ''}
+                                </span>
                               </div>
-                              <span className="text-[10px] text-slate-400">
-                                Threshold: {catItem.low_stock_threshold}
-                              </span>
+
+                              {/* Live Stock Context Banner */}
+                              {catItem ? (
+                                <div className={`flex items-center justify-between p-2 rounded-lg text-[11px] font-mono border ${
+                                  isExceeding ? 'bg-red-500/10 border-red-500/30 text-red-300' : 'bg-slate-950 border-slate-800 text-slate-300'
+                                }`}>
+                                  <div className="flex items-center gap-1.5 font-bold">
+                                    <span>Currently in stock:</span>
+                                    <span>{catItem.current_stock} {catItem.unit || 'pcs'}</span>
+                                    {catItem.current_stock <= catItem.low_stock_threshold && (
+                                      <span className="text-[9px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.2 rounded border border-red-500/20">
+                                        ⚠️ Low Stock
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] text-slate-400">
+                                    Threshold: {catItem.low_stock_threshold}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 p-1.5 rounded border border-amber-500/20">
+                                  ⚠️ Uncatalogued Item — Not tracked in stock inventory
+                                </div>
+                              )}
+
+                              {/* Approval Quantity Input & Validation Warning */}
+                              <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800">
+                                <div className="flex items-center gap-2">
+                                  <Label className="text-[10px] font-semibold text-slate-400 uppercase">Grant Qty:</Label>
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    value={item.approved_quantity}
+                                    onChange={(e) => {
+                                      const val = parseInt(e.target.value) || 0
+                                      setEditableItems(prev => prev.map((it, i) => i === idx ? { ...it, approved_quantity: val } : it))
+                                    }}
+                                    className="w-20 h-7 text-xs font-mono bg-slate-950 border-slate-700 text-white"
+                                  />
+                                </div>
+
+                                {isExceeding ? (
+                                  <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30 flex items-center gap-1">
+                                    <AlertTriangle className="w-3 h-3 text-red-400" /> Exceeds Stock ({catItem.current_stock})
+                                  </span>
+                                ) : item.approved_quantity !== item.requested_quantity ? (
+                                  <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                    Adjusted
+                                  </span>
+                                ) : null}
+
+                                <button
+                                  type="button"
+                                  onClick={() => setEditableItems(prev => prev.filter((_, i) => i !== idx))}
+                                  className="ml-auto text-red-400 hover:text-red-300 font-bold px-1.5 py-0.5 rounded text-xs hover:bg-red-500/10"
+                                  title="Remove item"
+                                >
+                                  ✕
+                                </button>
+                              </div>
                             </div>
-                          ) : (
-                            <div className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 p-1.5 rounded border border-amber-500/20">
-                              ⚠️ Uncatalogued Item — Not tracked in stock inventory
-                            </div>
-                          )}
+                          )
+                        })}
+                      </div>
+                    </div>
 
-                          {/* Approval Quantity Input & Validation Warning */}
-                          <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800">
-                            <div className="flex items-center gap-2">
-                              <Label className="text-[10px] font-semibold text-slate-400 uppercase">Grant Qty:</Label>
-                              <Input
-                                type="number"
-                                min={0}
-                                value={item.approved_quantity}
-                                onChange={(e) => {
-                                  const val = parseInt(e.target.value) || 0
-                                  setEditableItems(prev => prev.map((it, i) => i === idx ? { ...it, approved_quantity: val } : it))
-                                }}
-                                className="w-20 h-7 text-xs font-mono bg-slate-950 border-slate-700 text-white"
-                              />
-                            </div>
+                    {/* Delegate selector */}
+                    <div className="space-y-2 pb-4 border-b border-slate-800">
+                      <Label htmlFor="del-user" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Approval Task</Label>
+                      <div className="flex gap-2">
+                        <Select
+                          value={delegateId}
+                          onValueChange={(val) => setDelegateId(val || 'none')}
+                        >
+                          <SelectTrigger id="del-user" className="h-9 text-slate-100 bg-slate-900 border-slate-700 flex-1 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-900 border-slate-700 text-slate-100">
+                            <SelectItem value="none">Delegate (None)</SelectItem>
+                            {approvers
+                              .filter(a => a.id !== profile?.id)
+                              .map((a) => (
+                                <SelectItem key={a.id} value={a.id}>
+                                  {a.full_name || a.email} ({a.role === 'national_coordinator' ? 'Nat. Coord.' : a.role})
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        <Button onClick={handleDelegate} disabled={loading} size="sm" className="h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-xs">
+                          Assign
+                        </Button>
+                      </div>
+                    </div>
 
-                            {isExceeding ? (
-                              <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30 flex items-center gap-1">
-                                <AlertTriangle className="w-3 h-3 text-red-400" /> Exceeds Stock ({catItem.current_stock})
-                              </span>
-                            ) : item.approved_quantity !== item.requested_quantity ? (
-                              <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                                Adjusted
-                              </span>
-                            ) : null}
+                    {/* Standard review comments */}
+                    <div className="space-y-2">
+                      <Label htmlFor="review-comments" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Review Comments</Label>
+                      <Textarea
+                        id="review-comments"
+                        value={actionComments}
+                        onChange={(e) => setActionComments(e.target.value)}
+                        placeholder="Add approval comments or reasons for declining..."
+                        rows={3}
+                        className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500 text-xs"
+                      />
+                    </div>
 
-                            <button
-                              type="button"
-                              onClick={() => setEditableItems(prev => prev.filter((_, i) => i !== idx))}
-                              className="ml-auto text-red-400 hover:text-red-300 font-bold px-1.5 py-0.5 rounded text-xs hover:bg-red-500/10"
-                              title="Remove item"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Delegate selector */}
-                <div className="space-y-2 pb-4 border-b border-slate-800">
-                  <Label htmlFor="del-user" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Approval Task</Label>
-                  <div className="flex gap-2">
-                    <Select
-                      value={delegateId}
-                      onValueChange={(val) => setDelegateId(val || 'none')}
-                    >
-                      <SelectTrigger id="del-user" className="h-9 text-slate-100 bg-slate-900 border-slate-700 flex-1 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-slate-900 border-slate-700 text-slate-100">
-                        <SelectItem value="none">Delegate (None)</SelectItem>
-                        {approvers
-                          .filter(a => a.id !== profile?.id)
-                          .map((a) => (
-                            <SelectItem key={a.id} value={a.id}>
-                              {a.full_name || a.email} ({a.role === 'national_coordinator' ? 'Nat. Coord.' : a.role})
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={handleDelegate} disabled={loading} size="sm" className="h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-xs">
-                      Assign
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Standard review comments */}
-                <div className="space-y-2">
-                  <Label htmlFor="review-comments" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Review Comments</Label>
-                  <Textarea
-                    id="review-comments"
-                    value={actionComments}
-                    onChange={(e) => setActionComments(e.target.value)}
-                    placeholder="Add approval comments or reasons for declining..."
-                    rows={3}
-                    className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500 text-xs"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <Button onClick={() => handleAction('declined')} disabled={loading} variant="destructive" className="w-full text-xs font-bold py-2.5">
-                    Decline
-                  </Button>
-                  <Button onClick={() => handleAction('approved')} disabled={loading} className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 shadow-xs">
-                    Approve Order
-                  </Button>
-                </div>
+                    <div className="grid grid-cols-2 gap-2 pt-2">
+                      <Button onClick={() => handleAction('declined')} disabled={loading} variant="destructive" className="w-full text-xs font-bold py-2.5">
+                        Decline
+                      </Button>
+                      <Button onClick={() => handleAction('approved')} disabled={loading} className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 shadow-xs">
+                        Approve Order
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

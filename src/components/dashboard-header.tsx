@@ -3,19 +3,21 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getClient, isMock, mockDepartments } from '@/utils/supabase'
-import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit } from 'lucide-react'
+import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit, Layers, Award } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
 
 const NAV_ITEMS = [
-  { label: 'Overview',       href: '/dashboard',                   icon: LayoutGrid },
-  { label: 'Manual Entry',   href: '/dashboard/manual-entry',      icon: FileEdit   },
-  { label: 'Reports',        href: '/dashboard/reports',           icon: FileText   },
-  { label: 'YoY Analytics',  href: '/dashboard/yoy',               icon: BarChart2  },
-  { label: 'Requisitions',   href: '/dashboard/store-requisitions',icon: ShoppingCart },
-  { label: 'Team',           href: '/dashboard/team',              icon: Users      },
-  { label: 'Settings',       href: '/dashboard/settings',          icon: Settings   },
+  { label: 'Overview',            href: '/dashboard',                     icon: LayoutGrid },
+  { label: 'YoY Analytics',       href: '/dashboard/yoy',                 icon: BarChart2  },
+  { label: 'Requisitions',        href: '/dashboard/store-requisitions',  icon: ShoppingCart },
+  { label: 'Inventory Oversight', href: '/dashboard?tab=inventory-oversight', icon: Layers },
+  { label: 'Dept Rankings',       href: '/dashboard?tab=rankings',        icon: Award },
+  { label: 'Manual Entry',        href: '/dashboard/manual-entry',        icon: FileEdit   },
+  { label: 'Reports',             href: '/dashboard/reports',             icon: FileText   },
+  { label: 'Team',                href: '/dashboard/team',                icon: Users      },
+  { label: 'Settings',            href: '/dashboard/settings',            icon: Settings   },
 ]
 
 const DEPT_NAV_ITEMS = [
@@ -173,6 +175,17 @@ export function DashboardHeader() {
     .join('')
     .toUpperCase()
 
+  const isNavItemActive = (href: string) => {
+    if (href.includes('tab=')) {
+      const targetTab = href.split('tab=')[1]
+      return pathname === '/dashboard' && searchParams?.get('tab') === targetTab
+    }
+    if (href === '/dashboard') {
+      return pathname === '/dashboard' && !searchParams?.get('tab')
+    }
+    return pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
+  }
+
   return (
     <>
       {/* ── FIXED FLOATING GLASSMORPHISM TOP NAVIGATION BAR ── */}
@@ -308,7 +321,7 @@ export function DashboardHeader() {
             {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
               if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings' || label === 'Manual Entry')) return null;
               if (role === 'coordinator' && label === 'Manual Entry') return null;
-              const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
+              const active = isNavItemActive(href)
 
               return (
                 <button
@@ -410,7 +423,7 @@ export function DashboardHeader() {
                   NAV_ITEMS.map(({ label, href, icon: Icon }) => {
                     if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings' || label === 'Manual Entry')) return null;
                     if (role === 'coordinator' && label === 'Manual Entry') return null;
-                    const active = pathname === href || (href !== '/dashboard' && pathname?.startsWith(href))
+                    const active = isNavItemActive(href)
                     return (
                       <button
                         key={href}
