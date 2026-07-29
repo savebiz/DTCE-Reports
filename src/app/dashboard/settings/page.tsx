@@ -623,21 +623,15 @@ function SettingsContent() {
                           </span>
                         </div>
 
-                        {/* Email Channel Toggle */}
-                        <div className="flex items-center justify-between p-2.5 rounded-lg bg-background/40 border border-border/40">
+                        {/* Email Channel (Disabled - Future Feature) */}
+                        <div className="flex items-center justify-between p-2.5 rounded-lg bg-background/40 border border-border/40 opacity-70">
                           <div className="flex items-center gap-2">
-                            <Mail size={14} className="text-blue-400" />
-                            <span className="text-xs font-semibold text-foreground">Email Alert</span>
+                            <Mail size={14} className="text-slate-400" />
+                            <span className="text-xs font-semibold text-slate-400">Email Alert</span>
                           </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={cat.emailEnabled}
-                              onChange={(e) => handleTogglePreference(cat.categoryKey, 'email', e.target.checked)}
-                              className="sr-only peer"
-                            />
-                            <div className="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
-                          </label>
+                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-slate-800/80 text-slate-400 border border-slate-700/60 select-none">
+                            Future Feature
+                          </span>
                         </div>
 
                         {/* Push Channel Toggle */}
