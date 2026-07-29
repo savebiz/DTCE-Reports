@@ -31,8 +31,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const qty = Number(restockQuantity)
     const supabaseAdmin = getAdminClient()
+
+    // Enforce Read-Only at the API / Database Layer: National Coordinator and Assistant accounts CANNOT write to inventory
+    const { data: userProfile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    if (userProfile?.role === 'national_coordinator' || userProfile?.role === 'coordinator' || userProfile?.role === 'assistant') {
+      return NextResponse.json({ error: 'Forbidden: National Coordinator and Assistant accounts are restricted to Read-Only access on inventory.' }, { status: 403 })
+    }
+
+    const qty = Number(restockQuantity)
 
     // 1. Try atomic stored procedure process_inventory_restock
     const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc('process_inventory_restock', {

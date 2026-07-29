@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '
 import { CheckCircle2, RotateCcw, Check, AlertCircle, X } from 'lucide-react'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { KPIGridSkeleton, MatrixGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
+import { InventoryReportsView } from '@/components/inventory/inventory-reports-view'
 
 const SchemaFormRenderer = dynamic(() => import('@/components/schema-form-renderer').then(mod => mod.SchemaFormRenderer), { ssr: false })
 
@@ -571,6 +572,8 @@ export default function SecretariatDashboard() {
           {[
             { key: 'overview', label: 'Overview & Matrix' },
             { key: 'store-requisitions', label: `Store Requisitions (${kpis.pendingReqs})` },
+            // Extension Point: If nc_assistant accounts require broader inventory oversight access in the future, remove !isCoordinatorAssistant guard here.
+            ...(!isCoordinatorAssistant ? [{ key: 'inventory-oversight', label: 'Inventory Oversight' }] : []),
             { key: 'rankings', label: 'Dept Performance Rankings' },
             { key: 'challenges', label: `Reported Challenges (${aggregatedChallenges.length})` },
           ].map(t => (
@@ -819,6 +822,13 @@ export default function SecretariatDashboard() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* TAB 3: INVENTORY OVERSIGHT (Read-Only National Coordinator Oversight) */}
+        {activeTab === 'inventory-oversight' && !isCoordinatorAssistant && (
+          <div className="animate-fade-in-up">
+            <InventoryReportsView readOnly={true} />
+          </div>
         )}
 
         {/* TAB 4: REPORTED CHALLENGES */}

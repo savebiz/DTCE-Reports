@@ -33,6 +33,12 @@ export async function POST(request: Request) {
 
     const supabaseAdmin = getAdminClient()
 
+    // Enforce Read-Only at the API / Database Layer: National Coordinator and Assistant accounts CANNOT write to inventory
+    const { data: userProfile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    if (userProfile?.role === 'national_coordinator' || userProfile?.role === 'coordinator' || userProfile?.role === 'assistant') {
+      return NextResponse.json({ error: 'Forbidden: National Coordinator and Assistant accounts are restricted to Read-Only access on inventory.' }, { status: 403 })
+    }
+
     // 1. Fetch all active catalog items for exact code / name matching
     const { data: catalogItems } = await supabaseAdmin
       .from('inventory_items')
