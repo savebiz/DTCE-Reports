@@ -17,6 +17,42 @@ function escapeXml(unsafe: string): string {
     .replace(/'/g, '&apos;')
 }
 
+interface StockSummaryItem {
+  id: string
+  name: string
+  category: string
+  unit: string
+  current_stock: number
+  low_stock_threshold: number
+  is_low_stock: boolean
+  total_restocked?: number
+  total_fulfilled?: number
+}
+
+interface DeptConsumptionItem {
+  department_id: string
+  department_name: string
+  item_id: string
+  item_name: string
+  unit: string
+  total_fulfilled_qty: number
+  fulfillment_count: number
+}
+
+interface FulfillmentHistoryItem {
+  id: string
+  timestamp: string
+  transaction_type: string
+  quantity_change: number
+  resulting_stock_level: number
+  note?: string
+  item_id: string
+  item_name: string
+  unit: string
+  department_id?: string | null
+  department_name: string
+}
+
 /**
  * GET /api/inventory/export
  * High-performance server-side document export endpoint for CSV, Excel (.xlsx), and PDF.
@@ -53,7 +89,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Helper functions for fetching datasets
-    const getStockSummary = async () => {
+    const getStockSummary = async (): Promise<StockSummaryItem[]> => {
       if (isMock) {
         const { store: mockStore } = require('@/utils/supabase/mockClient')
         const items = mockStore.inventoryItems || []
@@ -85,7 +121,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const getDeptConsumption = async () => {
+    const getDeptConsumption = async (): Promise<DeptConsumptionItem[]> => {
       if (isMock) {
         const { store: mockStore } = require('@/utils/supabase/mockClient')
         const items = mockStore.inventoryItems || []
@@ -135,7 +171,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const getFulfillmentHistory = async () => {
+    const getFulfillmentHistory = async (): Promise<FulfillmentHistoryItem[]> => {
       if (isMock) {
         const { store: mockStore } = require('@/utils/supabase/mockClient')
         const items = mockStore.inventoryItems || []
@@ -218,19 +254,19 @@ export async function GET(request: NextRequest) {
 
         csvContent += `--- SECTION 1: STOCK LEVEL SUMMARY & DEFICIT FLAGS ---\n`
         csvContent += `Item Name,Category,Unit,Current Stock,Low Stock Threshold,Status,Total Restocked,Total Fulfilled\n`
-        stockData.forEach(d => {
+        stockData.forEach((d: StockSummaryItem) => {
           csvContent += `"${d.name}",${d.category},${d.unit},${d.current_stock},${d.low_stock_threshold},${d.is_low_stock ? 'LOW STOCK' : 'OPTIMAL'},${d.total_restocked || 0},${d.total_fulfilled || 0}\n`
         })
 
         csvContent += `\n--- SECTION 2: DEPARTMENT CONSUMPTION & DISTRIBUTION EQUITY REPORT ---\n`
         csvContent += `Department Name,Material Item,Unit,Total Fulfilled Qty,Fulfillment Order Count\n`
-        deptData.forEach(d => {
+        deptData.forEach((d: DeptConsumptionItem) => {
           csvContent += `"${d.department_name}","${d.item_name}",${d.unit},${d.total_fulfilled_qty},${d.fulfillment_count}\n`
         })
 
         csvContent += `\n--- SECTION 3: FULFILLMENT LEDGER AUDIT HISTORY ---\n`
         csvContent += `Timestamp,Department,Material Item,Transaction Type,Quantity Change,Resulting Stock,Audit Note\n`
-        historyData.forEach(d => {
+        historyData.forEach((d: FulfillmentHistoryItem) => {
           csvContent += `"${new Date(d.timestamp).toLocaleString()}","${d.department_name}","${d.item_name}",${d.transaction_type},${d.quantity_change},${d.resulting_stock_level},"${d.note || ''}"\n`
         })
       } else {
@@ -239,18 +275,18 @@ export async function GET(request: NextRequest) {
 
         if (reportType === 'stock_summary') {
           headers = ['Item Name', 'Category', 'Unit', 'Current Stock', 'Low Stock Threshold', 'Status', 'Total Restocked', 'Total Fulfilled']
-          rows = stockData.map(d => [
+          rows = stockData.map((d: StockSummaryItem) => [
             `"${d.name}"`, d.category, d.unit, String(d.current_stock), String(d.low_stock_threshold),
             d.is_low_stock ? 'LOW STOCK' : 'OPTIMAL', String(d.total_restocked || 0), String(d.total_fulfilled || 0)
           ])
         } else if (reportType === 'department_consumption') {
           headers = ['Department Name', 'Item Name', 'Unit', 'Total Fulfilled Quantity', 'Fulfillment Count']
-          rows = deptData.map(d => [
+          rows = deptData.map((d: DeptConsumptionItem) => [
             `"${d.department_name}"`, `"${d.item_name}"`, d.unit, String(d.total_fulfilled_qty), String(d.fulfillment_count)
           ])
         } else if (reportType === 'fulfillment_history') {
           headers = ['Timestamp', 'Department', 'Item Name', 'Transaction Type', 'Quantity Change', 'Resulting Stock Level', 'Audit Note']
-          rows = historyData.map(d => [
+          rows = historyData.map((d: FulfillmentHistoryItem) => [
             new Date(d.timestamp).toLocaleString(), `"${d.department_name}"`, `"${d.item_name}"`,
             d.transaction_type, String(d.quantity_change), String(d.resulting_stock_level), `"${d.note || ''}"`
           ])
@@ -269,7 +305,7 @@ export async function GET(request: NextRequest) {
 
     // --- FORMAT 2: EXCEL (.xlsx / SpreadsheetML) EXPORT WITH MULTI-TAB WORKSHEETS ---
     if (format === 'xlsx') {
-      const stockRowsXML = stockData.map(d => `
+      const stockRowsXML = stockData.map((d: StockSummaryItem) => `
         <Row>
           <Cell><Data ss:Type="String">${escapeXml(d.name)}</Data></Cell>
           <Cell><Data ss:Type="String">${escapeXml(d.category)}</Data></Cell>
@@ -282,7 +318,7 @@ export async function GET(request: NextRequest) {
         </Row>
       `).join('')
 
-      const deptRowsXML = deptData.map(d => `
+      const deptRowsXML = deptData.map((d: DeptConsumptionItem) => `
         <Row>
           <Cell><Data ss:Type="String">${escapeXml(d.department_name)}</Data></Cell>
           <Cell><Data ss:Type="String">${escapeXml(d.item_name)}</Data></Cell>
@@ -292,7 +328,7 @@ export async function GET(request: NextRequest) {
         </Row>
       `).join('')
 
-      const historyRowsXML = historyData.map(d => `
+      const historyRowsXML = historyData.map((d: FulfillmentHistoryItem) => `
         <Row>
           <Cell><Data ss:Type="String">${escapeXml(new Date(d.timestamp).toLocaleString())}</Data></Cell>
           <Cell><Data ss:Type="String">${escapeXml(d.department_name)}</Data></Cell>
@@ -386,7 +422,7 @@ export async function GET(request: NextRequest) {
 
     // --- FORMAT 3: COMPREHENSIVE BRANDED PDF / PRINTABLE HTML EXPORT ---
     if (format === 'pdf') {
-      const stockTableRows = stockData.map(d => `
+      const stockTableRows = stockData.map((d: StockSummaryItem) => `
         <tr class="${d.is_low_stock ? 'row-alert' : ''}">
           <td><strong>${escapeXml(d.name)}</strong></td>
           <td><span class="badge badge-purple">${escapeXml(d.category)}</span></td>
@@ -401,7 +437,7 @@ export async function GET(request: NextRequest) {
         </tr>
       `).join('')
 
-      const deptTableRows = deptData.map(d => `
+      const deptTableRows = deptData.map((d: DeptConsumptionItem) => `
         <tr>
           <td><strong>${escapeXml(d.department_name)}</strong></td>
           <td class="text-amber"><strong>${escapeXml(d.item_name)}</strong></td>
@@ -411,7 +447,7 @@ export async function GET(request: NextRequest) {
         </tr>
       `).join('')
 
-      const historyTableRows = historyData.map(d => `
+      const historyTableRows = historyData.map((d: FulfillmentHistoryItem) => `
         <tr>
           <td class="font-mono text-muted">${new Date(d.timestamp).toLocaleString()}</td>
           <td><strong>${escapeXml(d.department_name)}</strong></td>
