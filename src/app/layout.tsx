@@ -5,6 +5,7 @@ import { EventThemeProvider } from "@/components/event-theme-provider";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { FloatingNotificationPrompt } from "@/components/floating-notification-prompt";
 import { OfflineSyncIndicator } from "@/components/offline-sync-indicator";
+import { InAppNotificationToast } from "@/components/in-app-notification-toast";
 
 export const viewport: Viewport = {
   themeColor: "#0F2A4A",
@@ -29,14 +30,18 @@ export const metadata: Metadata = {
   keywords: ["DTCE", "Junior Church", "RCCG", "Convention", "Daily Report"],
   authors: [{ name: "DTCE Junior Church Global" }],
   icons: {
+    // Use the official DTCE logo as the primary favicon across all browsers
     icon: [
+      { url: "/dtce-logo-white-bg.png", type: "image/png", sizes: "any" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/dtce-logo.png", type: "image/png" },
     ],
     apple: [
+      // iOS home screen icon — white background version renders correctly at 180px
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
-    shortcut: "/icon-192.png",
+    // Browser tab shortcut icon — white-bg version is most legible at small sizes
+    shortcut: "/dtce-logo-white-bg.png",
   },
   manifest: "/manifest.json",
   openGraph: {
@@ -67,6 +72,8 @@ export default function RootLayout({
             <PwaInstallPrompt />
             <FloatingNotificationPrompt />
             <OfflineSyncIndicator />
+            {/* Mobile-only floating heads-up notification banner (like WhatsApp/Telegram foreground banner) */}
+            <InAppNotificationToast />
           </EventThemeProvider>
         </ThemeProvider>
         <script

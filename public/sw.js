@@ -160,18 +160,25 @@ self.addEventListener('fetch', event => {
 // --- WEB PUSH EVENT LISTENERS ---
 
 // Push Event — Handle Web Push Notifications
+// NOTIFICATION GROUPING: Uses a stable 'dtce-notifications' group tag so Android/iOS
+// collapses multiple DTCE alerts into one grouped card (like WhatsApp / Telegram / Outlook).
+// Each individual notification's unique ID is preserved in data.notificationId for deep-linking.
 self.addEventListener('push', event => {
   console.log('[SW] Push notification received');
+
+  const DTCE_GROUP_TAG = 'dtce-notifications'; // Stable group key — all DTCE alerts share this
 
   const data = {
     title: 'DTCE Reports',
     body: 'New notification received',
     icon: '/icon-192.png',
     badge: '/notification-badge.png',
-    data: { url: '/dashboard' }
+    data: { url: '/dashboard', notificationId: null }
   };
 
   let unreadCount = 1;
+  let notificationId = null;
+
   if (event.data) {
     try {
       const parsed = event.data.json();
@@ -181,65 +188,91 @@ self.addEventListener('push', event => {
       data.icon = parsed.icon || data.icon;
       data.badge = parsed.badge || data.badge;
       if (parsed.unreadCount) unreadCount = parsed.unreadCount;
+      if (parsed.notificationId) notificationId = parsed.notificationId;
       if (parsed.data) {
         data.data = { ...data.data, ...parsed.data };
         if (parsed.data.unreadCount) unreadCount = parsed.data.unreadCount;
-      }
-      if (parsed.tag) {
-        data.tag = parsed.tag;
+        if (parsed.data.notificationId) notificationId = parsed.data.notificationId;
+        if (parsed.data.url) data.data.url = parsed.data.url;
       }
     } catch (e) {
       console.warn('[SW] Failed to parse push data as JSON, using text fallback');
-      try {
-        data.body = event.data.text();
-      } catch (_) {
-        // fallback already set
-      }
+      try { data.body = event.data.text(); } catch (_) {}
     }
-  }
-
-  const options = {
-    body: data.body,
-    badge: '/notification-badge.png',
-    vibrate: [300, 100, 300, 100, 300], // High-priority vibration pattern forces Android Heads-Up drop-down banner
-    renotify: true,
-    timestamp: Date.now(),
-    tag: data.tag || ('dtce-push-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5)),
-    silent: false,
-    requireInteraction: false,
-    data: data.data || { url: '/dashboard' },
-    actions: [
-      { action: 'open', title: 'Open DTCE App' }
-    ]
-  };
-
-  // Only set right-side content thumbnail icon if it's a specific attachment photo (not standard logo)
-  if (data.icon && data.icon !== '/icon-192.png' && data.icon !== '/icon-192-maskable.png' && data.icon !== '/dtce-logo.png') {
-    options.icon = data.icon;
   }
 
   event.waitUntil(
     (async () => {
-      // Query active notifications currently stacked in the OS notification shade
-      let activeCount = 1;
+      // 1. Get currently stacked DTCE notifications in the OS shade
+      let existingNotifs = [];
       try {
-        const activeNotifs = await self.registration.getNotifications();
-        activeCount = (activeNotifs ? activeNotifs.length : 0) + 1;
-      } catch (_) {}
-
-      // Use DB unreadCount or stacked notification count (whichever is higher)
-      const badgeCount = Math.max(unreadCount, activeCount);
-
-      if ('setAppBadge' in self.navigator) {
+        existingNotifs = await self.registration.getNotifications({ tag: DTCE_GROUP_TAG });
+      } catch (_) {
         try {
-          await self.navigator.setAppBadge(badgeCount);
+          existingNotifs = await self.registration.getNotifications();
+          existingNotifs = existingNotifs.filter(n => n.tag === DTCE_GROUP_TAG || (n.data && n.data.group === DTCE_GROUP_TAG));
         } catch (_) {}
       }
 
+      const stackedCount = existingNotifs.length + 1; // +1 for incoming notification
+      const badgeCount = Math.max(unreadCount, stackedCount);
+
+      // 2. Set PWA app icon badge (numeric unread count)
+      if ('setAppBadge' in self.navigator) {
+        try { await self.navigator.setAppBadge(badgeCount); } catch (_) {}
+      }
+
+      // 3. Build per-notification options
+      // Each notification uses the SHARED group tag — this is the key that causes Android
+      // to group them visually, identical to how WhatsApp/Telegram stack their messages.
+      const notifOptions = {
+        body: data.body,
+        icon: '/icon-192.png',          // Always DTCE icon on the left of every notification
+        badge: '/notification-badge.png', // Small monochrome badge in status bar
+        tag: DTCE_GROUP_TAG,             // SHARED stable tag = OS groups all under one header
+        group: DTCE_GROUP_TAG,           // Android notification channel group
+        renotify: true,                  // Alert user even if tag already exists
+        vibrate: [200, 100, 200],        // Shorter pattern to avoid notification fatigue
+        silent: false,
+        requireInteraction: false,
+        timestamp: Date.now(),
+        data: {
+          url: data.data?.url || '/dashboard',
+          notificationId,                // Preserved for deep-link click routing
+          group: DTCE_GROUP_TAG,
+          unreadCount: badgeCount,
+        },
+        actions: [
+          { action: 'open', title: '📋 Open DTCE App' },
+          { action: 'dismiss', title: 'Dismiss' }
+        ]
+      };
+
+      // 4. Show the individual notification (OS handles the grouping automatically)
       try {
-        await self.registration.showNotification(data.title, options);
+        await self.registration.showNotification(data.title, notifOptions);
       } catch (err) {
         console.error('[SW] showNotification failed:', err);
+      }
+
+      // 5. If 2+ notifications are now stacked, update/show a summary notification
+      // This creates the collapsed "N new alerts" summary line under the group header
+      // (consistent with how Outlook shows "6 new emails" in its grouped card)
+      if (stackedCount >= 2) {
+        try {
+          const summaryOptions = {
+            body: `${stackedCount} new updates from DTCE Reports`,
+            icon: '/icon-192.png',
+            badge: '/notification-badge.png',
+            tag: DTCE_GROUP_TAG + '-summary',
+            group: DTCE_GROUP_TAG,
+            groupSummary: true,         // Marks this as the group summary notification
+            silent: true,               // Don't re-alert for summary update
+            renotify: false,
+            data: { url: '/dashboard', group: DTCE_GROUP_TAG, isSummary: true },
+          };
+          await self.registration.showNotification('DTCE Reports', summaryOptions);
+        } catch (_) {}
       }
     })()
   );
@@ -248,12 +281,20 @@ self.addEventListener('push', event => {
 // Notification Click Event — Open or Focus Window Tab
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  let targetUrl = event.notification.data?.url || '/dashboard';
+
+  // Handle Dismiss action — just close, no navigation
+  if (event.action === 'dismiss') return;
+
+  // Group summary click → go to dashboard (all notifications view)
+  const isSummary = event.notification.data?.isSummary;
+  let targetUrl = isSummary ? '/dashboard' : (event.notification.data?.url || '/dashboard');
 
   // Automatically replace legacy domain with live production domain if present
   if (targetUrl.includes('dtce-reports.vercel.app')) {
     targetUrl = targetUrl.replace('dtce-reports.vercel.app', 'dtcereports.vercel.app');
   }
+
+  const notificationId = event.notification.data?.notificationId || null;
 
   if ('clearAppBadge' in self.navigator) {
     self.navigator.clearAppBadge().catch(() => {});
@@ -263,6 +304,10 @@ self.addEventListener('notificationclick', event => {
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
         if (client.url.includes(targetUrl) && 'focus' in client) {
+          // Notify open tab to mark notification as read
+          if (notificationId) {
+            client.postMessage({ type: 'SW_NOTIFICATION_CLICKED', notificationId });
+          }
           return client.focus();
         }
       }

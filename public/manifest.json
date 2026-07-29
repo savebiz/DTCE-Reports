@@ -18,6 +18,12 @@
   "handle_links": "preferred",
   "icons": [
     {
+      "src": "/dtce-logo-white-bg.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",

@@ -65,7 +65,7 @@ export function generateVapidKeys(): VapidKeys {
  */
 export async function sendWebPushNotification(
   subscription: PushSubscriptionObj,
-  payload: { title: string; body: string; icon?: string; url?: string; tag?: string; unreadCount?: number }
+  payload: { title: string; body: string; icon?: string; url?: string; tag?: string; unreadCount?: number; notificationId?: string }
 ): Promise<{ success: boolean; status?: number; error?: string }> {
   try {
     const wp = getWebPushModule()
@@ -85,12 +85,15 @@ export async function sendWebPushNotification(
     const payloadString = JSON.stringify({
       title:  payload.title,
       body:   payload.body,
-      icon:   payload.icon || '/icon-192.png',
+      icon:   '/icon-192.png', // Always use official DTCE icon
       badge:  '/notification-badge.png',
       unreadCount: payload.unreadCount || 1,
+      notificationId: payload.notificationId || null, // For deep-link routing in SW click handler
+      group: 'dtce-notifications', // Android notification channel group key
       data: {
         url: payload.url || '/dashboard',
-        tag: payload.tag || 'dtce-notification',
+        notificationId: payload.notificationId || null,
+        group: 'dtce-notifications',
         unreadCount: payload.unreadCount || 1,
       },
     })

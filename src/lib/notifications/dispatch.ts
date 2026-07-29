@@ -268,7 +268,8 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
           body,
           url: pushUrl,
           unreadCount: recipientUnreadCount,
-          tag: uniqueTag
+          tag: uniqueTag,
+          notificationId: resResult.notificationId || insertedNotifId, // Forward ID for deep-link routing
         })
 
         if (pushRes.success) {
