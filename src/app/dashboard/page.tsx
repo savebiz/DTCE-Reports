@@ -1008,94 +1008,96 @@ function SecretariatDashboardContent() {
                 aggregatedChallenges
                   .slice((challengesPage - 1) * challengesPageSize, challengesPage * challengesPageSize)
                   .map((item) => {
-                  const isResolved = item.status === 'resolved'
+                    const isResolved = item.status === 'resolved'
 
-                                <div
-                      key={item.id}
-                      className={`p-4 rounded-xl border transition-all duration-200 space-y-3 ${
-                        isResolved
-                          ? 'bg-slate-100/90 dark:bg-slate-900/40 border-emerald-300 dark:border-emerald-500/20 shadow-xs'
-                          : 'bg-card border-border hover:border-slate-300 dark:hover:border-slate-700'
-                      }`}
-                    >
-                      {/* Header Row */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 dark:text-slate-100">{item.deptName} Department</span>
-                          <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-500/20">
-                            Day {item.dayNumber}
-                          </span>
+                    return (
+                      <div
+                        key={item.id}
+                        className={`p-4 rounded-xl border transition-all duration-200 space-y-3 ${
+                          isResolved
+                            ? 'bg-slate-100/90 dark:bg-slate-900/40 border-emerald-300 dark:border-emerald-500/20 shadow-xs'
+                            : 'bg-card border-border hover:border-slate-300 dark:hover:border-slate-700'
+                        }`}
+                      >
+                        {/* Header Row */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-900 dark:text-slate-100">{item.deptName} Department</span>
+                            <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-500/20">
+                              Day {item.dayNumber}
+                            </span>
+                          </div>
+                          {isResolved ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-500/30">
+                              <CheckCircle2 size={12} />
+                              <span>Treated / Resolved</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 dark:text-rose-400 bg-rose-100 dark:bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-500/30">
+                              <AlertCircle size={12} />
+                              <span>Open Bottlenecks</span>
+                            </span>
+                          )}
                         </div>
-                        {isResolved ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-500/30">
-                            <CheckCircle2 size={12} />
-                            <span>Treated / Resolved</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 dark:text-rose-400 bg-rose-100 dark:bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-500/30">
-                            <AlertCircle size={12} />
-                            <span>Open Bottlenecks</span>
-                          </span>
-                        )}
-                      </div>
 
-                      {/* Content Row */}
-                      <div className="text-xs space-y-2">
-                        <div>
-                          <strong className="text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[10px] block font-bold mb-0.5">Challenge:</strong>
-                          <p className={isResolved ? 'text-slate-700 dark:text-slate-300 font-medium' : 'text-rose-600 dark:text-rose-400 font-semibold'}>
-                            {item.challenges}
-                          </p>
-                        </div>
-                        {item.solutions && (
+                        {/* Content Row */}
+                        <div className="text-xs space-y-2">
                           <div>
-                            <strong className="text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[10px] block font-bold mt-1 mb-0.5">Proposed Solution:</strong>
-                            <p className="text-emerald-700 dark:text-emerald-400 font-semibold">
-                              {item.solutions}
+                            <strong className="text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[10px] block font-bold mb-0.5">Challenge:</strong>
+                            <p className={isResolved ? 'text-slate-700 dark:text-slate-300 font-medium' : 'text-rose-600 dark:text-rose-400 font-semibold'}>
+                              {item.challenges}
                             </p>
                           </div>
-                        )}
-                      </div>
-
-                      {/* Resolution Audit Note */}
-                      {item.resolutionNote && (
-                        <div className="p-3 rounded-lg bg-emerald-100/70 dark:bg-emerald-950/30 border border-emerald-300/80 dark:border-emerald-500/30 text-xs space-y-1">
-                          <div className="flex items-center justify-between text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase">
-                            <span>Log Action Note:</span>
-                            <span>{item.resolvedAt ? new Date(item.resolvedAt).toLocaleDateString() : ''}</span>
-                          </div>
-                          <p className="text-emerald-900 dark:text-emerald-200 font-medium">{item.resolutionNote}</p>
+                          {item.solutions && (
+                            <div>
+                              <strong className="text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[10px] block font-bold mt-1 mb-0.5">Proposed Solution:</strong>
+                              <p className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                                {item.solutions}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                      )}
 
-                      {/* Footer Actions */}
-                      <div className="flex justify-end pt-1">
-                        {isResolved ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleReopenChallenge(item.id, item.deptName)}
-                            className="h-8 px-3 text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors shadow-2xs"
-                          >
-                            <RotateCcw size={12} className="mr-1.5" />
-                            <span>Reopen Challenge</span>
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setResolvingItem(item)
-                              setResolutionNoteInput('')
-                            }}
-                            className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-xs"
-                          >
-                            <Check size={13} className="mr-1.5" />
-                            <span>Mark as Treated</span>
-                          </Button>
+                        {/* Resolution Audit Note */}
+                        {item.resolutionNote && (
+                          <div className="p-3 rounded-lg bg-emerald-100/70 dark:bg-emerald-950/30 border border-emerald-300/80 dark:border-emerald-500/30 text-xs space-y-1">
+                            <div className="flex items-center justify-between text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase">
+                              <span>Log Action Note:</span>
+                              <span>{item.resolvedAt ? new Date(item.resolvedAt).toLocaleDateString() : ''}</span>
+                            </div>
+                            <p className="text-emerald-900 dark:text-emerald-200 font-medium">{item.resolutionNote}</p>
+                          </div>
                         )}
+
+                        {/* Footer Actions */}
+                        <div className="flex justify-end pt-1">
+                          {isResolved ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleReopenChallenge(item.id, item.deptName)}
+                              className="h-8 px-3 text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors shadow-2xs"
+                            >
+                              <RotateCcw size={12} className="mr-1.5" />
+                              <span>Reopen Challenge</span>
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setResolvingItem(item)
+                                setResolutionNoteInput('')
+                              }}
+                              className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-xs"
+                            >
+                              <Check size={13} className="mr-1.5" />
+                              <span>Mark as Treated</span>
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>         </div>
-                  )
+                    )
+                  })
                 })
               )}
 
