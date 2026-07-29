@@ -1098,7 +1098,6 @@ function SecretariatDashboardContent() {
                       </div>
                     )
                   })
-                })
               )}
 
               <DataTablePagination
