@@ -41,6 +41,17 @@ interface StoreRequestTicket {
   requester?: { full_name: string; email: string }
 }
 
+const parseOfferingAmount = (val: any): number => {
+  if (val === null || val === undefined) return 0
+  if (typeof val === 'number') return isNaN(val) ? 0 : val
+  if (typeof val === 'string') {
+    const cleaned = val.replace(/[^0-9.]/g, '')
+    const num = parseFloat(cleaned)
+    return isNaN(num) ? 0 : num
+  }
+  return 0
+}
+
 const isSameEventDay = (dayIdA?: string, dayIdB?: string, daysList: any[] = []) => {
   if (!dayIdA || !dayIdB) return false
   if (dayIdA === dayIdB) return true
@@ -97,7 +108,7 @@ function SecretariatDashboardContent() {
   const tabParam = searchParams?.get('tab')
 
   const [activeTab, setActiveTab] = useState('overview')
-  const [selectedKPIDay, setSelectedKPIDay] = useState<string>('day-1')
+  const [selectedFocusDays, setSelectedFocusDays] = useState<string[]>(['all'])
 
   useEffect(() => {
     if (tabParam) {
@@ -155,7 +166,7 @@ function SecretariatDashboardContent() {
     const activeDays = days || mockEventDays
     setEventDays(activeDays)
     if (activeDays.length > 0) {
-        setSelectedKPIDay(prev => (prev === 'day-1' ? activeDays[0].id : prev))
+        setSelectedFocusDays(prev => (prev.length === 1 && prev[0] === 'day-1' ? [activeDays[0].id] : prev))
     }
 
     const { data: reps } = await supabase.from('daily_reports').select('*')
@@ -317,40 +328,72 @@ function SecretariatDashboardContent() {
   }
 
   const kpis = useMemo(() => {
-    const dayReports = reports.filter(r => isSameEventDay(r.event_day_id, selectedKPIDay, eventDays))
-    const submittedCount = dayReports.filter(r => ['submitted', 'reviewed', 'approved'].includes(r.status)).length
-    const missingCount = Math.max(0, departments.length - submittedCount)
-    const needingReview = dayReports.filter(r => r.status === 'submitted').length
-    
+    const isAll = selectedFocusDays.includes('all')
+
+    let activeDayIds: string[] = []
+    if (isAll) {
+      activeDayIds = eventDays.length > 0 ? eventDays.map(d => d.id) : ['day-1', 'day-2', 'day-3', 'day-4', 'day-5', 'day-6']
+    } else {
+      selectedFocusDays.forEach(id => {
+        if (id === 'days-1-3') {
+          activeDayIds.push('day-1', 'day-2', 'day-3')
+        } else if (id === 'days-4-6') {
+          activeDayIds.push('day-4', 'day-5', 'day-6')
+        } else {
+          activeDayIds.push(id)
+        }
+      })
+      activeDayIds = Array.from(new Set(activeDayIds))
+    }
+
+    const matchedReports = reports.filter(r => 
+      isAll || activeDayIds.some(dayId => isSameEventDay(r.event_day_id, dayId, eventDays))
+    )
+
+    const submittedCount = matchedReports.filter(r => ['submitted', 'reviewed', 'approved'].includes(r.status)).length
+    const expectedSubmissionsCount = departments.length * (isAll ? 1 : activeDayIds.length)
+    const missingCount = Math.max(0, expectedSubmissionsCount - submittedCount)
+    const needingReview = matchedReports.filter(r => r.status === 'submitted').length
+
     const pendingReqs = visibleStoreRequests.filter(r => r.status === 'pending_coordinator').length
     const approvedReqs = visibleStoreRequests.filter(r => r.status === 'approved' || r.status === 'in_progress' || r.status === 'partially_fulfilled').length
     const deliveredReqs = visibleStoreRequests.filter(r => r.status === 'delivered').length
 
-    let totalOfferingsFocusDay = 0
-    let totalOfferingsAllDays = 0
-
-    reports.forEach(r => {
+    let offeringSum = 0
+    matchedReports.forEach(r => {
       const mData = r.metrics_data || {}
-      const val = Number(mData.offering ?? mData.total_offering ?? mData.offering_collected ?? mData.custom_schema?.offering ?? 0)
-      if (!isNaN(val) && val > 0) {
-        totalOfferingsAllDays += val
-        if (isSameEventDay(r.event_day_id, selectedKPIDay, eventDays)) {
-          totalOfferingsFocusDay += val
-        }
-      }
+      const rawVal = mData.offering ?? mData.offering_amount ?? mData.total_offering ?? mData.offering_collected ?? mData.custom_schema?.offering ?? mData.custom_schema?.total_offering ?? 0
+      offeringSum += parseOfferingAmount(rawVal)
     })
+
+    let selectedDaysLabel = 'All Convention Days'
+    if (!isAll) {
+      if (selectedFocusDays.length === 1) {
+        if (selectedFocusDays[0] === 'days-1-3') selectedDaysLabel = 'Days 1 – 3'
+        else if (selectedFocusDays[0] === 'days-4-6') selectedDaysLabel = 'Days 4 – 6'
+        else {
+          const dObj = eventDays.find(d => isSameEventDay(d.id, selectedFocusDays[0], eventDays))
+          selectedDaysLabel = dObj ? `Day ${dObj.day_number}` : selectedFocusDays[0].toUpperCase()
+        }
+      } else {
+        selectedDaysLabel = `${selectedFocusDays.length} Selected Days`
+      }
+    }
 
     return {
       reporting: submittedCount,
+      expectedSubmissions: expectedSubmissionsCount,
+      complianceRate: expectedSubmissionsCount > 0 ? Math.round((submittedCount / expectedSubmissionsCount) * 100) : 0,
       missing: missingCount,
       review: needingReview,
       pendingReqs,
       approvedReqs,
       deliveredReqs,
-      totalOfferingsFocusDay,
-      totalOfferingsAllDays
+      offeringSum,
+      selectedDaysLabel,
+      isAll
     }
-  }, [reports, departments, selectedKPIDay, eventDays, visibleStoreRequests])
+  }, [reports, departments, selectedFocusDays, eventDays, visibleStoreRequests])
 
   // Department Performance Rankings
   const deptRankings = useMemo(() => {
@@ -554,25 +597,81 @@ function SecretariatDashboardContent() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[12px] font-medium text-muted-foreground">Focus Day:</span>
-              <select
-                value={selectedKPIDay}
-                onChange={(e) => setSelectedKPIDay(e.target.value)}
-                className="h-8 rounded-lg px-3 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
-              >
-                {eventDays.map(d => (
-                  <option key={d.id} value={d.id} className="bg-card text-foreground">
-                    Day {d.day_number} — {new Date(d.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}
-                  </option>
-                ))}
-              </select>
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-semibold text-muted-foreground">Focus Day:</span>
+                <select
+                  value={selectedFocusDays.length === 1 ? selectedFocusDays[0] : selectedFocusDays.includes('all') ? 'all' : 'custom'}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (val === 'all') setSelectedFocusDays(['all'])
+                    else if (val === 'days-1-3') setSelectedFocusDays(['days-1-3'])
+                    else if (val === 'days-4-6') setSelectedFocusDays(['days-4-6'])
+                    else setSelectedFocusDays([val])
+                  }}
+                  className="h-8 rounded-lg px-3 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none focus:ring-1 focus:ring-purple-500"
+                >
+                  <option value="all" className="bg-card text-foreground">🌐 All Convention Days (Total)</option>
+                  <option value="days-1-3" className="bg-card text-foreground">📑 Days 1 – 3 (First Half)</option>
+                  <option value="days-4-6" className="bg-card text-foreground">📑 Days 4 – 6 (Second Half)</option>
+                  {eventDays.map(d => (
+                    <option key={d.id} value={d.id} className="bg-card text-foreground">
+                      📅 Day {d.day_number} — {new Date(d.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}
+                    </option>
+                  ))}
+                  {selectedFocusDays.length > 1 && !selectedFocusDays.includes('all') && !selectedFocusDays.includes('days-1-3') && !selectedFocusDays.includes('days-4-6') && (
+                    <option value="custom" className="bg-card text-foreground">⚡ Custom ({selectedFocusDays.length} Days Selected)</option>
+                  )}
+                </select>
+              </div>
+
+              <Button size="sm" variant="outline" onClick={() => router.push('/dashboard/store-requisitions')} className="text-xs h-8">
+                Store Requisitions Console ({kpis.pendingReqs} Pending)
+              </Button>
             </div>
 
-            <Button size="sm" variant="outline" onClick={() => router.push('/dashboard/store-requisitions')} className="text-xs h-8">
-              Store Requisitions Console ({kpis.pendingReqs} Pending)
-            </Button>
+            {/* Multi-Day Selection Toggle Badges */}
+            <div className="flex flex-wrap items-center gap-1 pt-0.5">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mr-1">Filter Days:</span>
+              <button
+                onClick={() => setSelectedFocusDays(['all'])}
+                className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer border ${
+                  selectedFocusDays.includes('all')
+                    ? 'bg-purple-600 text-white border-purple-500 shadow-xs'
+                    : 'bg-muted/40 text-muted-foreground border-border/40 hover:bg-muted'
+                }`}
+              >
+                All Days
+              </button>
+              {eventDays.map(d => {
+                const isSel = !selectedFocusDays.includes('all') && selectedFocusDays.some(id => isSameEventDay(id, d.id, eventDays))
+                return (
+                  <button
+                    key={d.id}
+                    onClick={() => {
+                      if (selectedFocusDays.includes('all')) {
+                        setSelectedFocusDays([d.id])
+                      } else {
+                        if (isSel) {
+                          const next = selectedFocusDays.filter(id => !isSameEventDay(id, d.id, eventDays))
+                          setSelectedFocusDays(next.length === 0 ? ['all'] : next)
+                        } else {
+                          setSelectedFocusDays([...selectedFocusDays.filter(id => id !== 'days-1-3' && id !== 'days-4-6'), d.id])
+                        }
+                      }
+                    }}
+                    className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer border ${
+                      isSel
+                        ? 'bg-purple-600 text-white border-purple-500 shadow-xs'
+                        : 'bg-muted/40 text-muted-foreground border-border/40 hover:bg-muted'
+                    }`}
+                  >
+                    Day {d.day_number}
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
 
@@ -597,57 +696,53 @@ function SecretariatDashboardContent() {
           ))}
         </div>
 
-        {/* KPI Cards Bar (Stripe Pattern Elevation & Typography) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 animate-fade-in-up">
-          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Reporting Today</span>
-            <span className="text-3xl font-extrabold font-mono text-foreground mt-2 mb-0.5 tracking-tight block">
-              {kpis.reporting} <span className="text-xs font-sans text-muted-foreground">/ {departments.length}</span>
-            </span>
-            <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{departments.length > 0 ? Math.round((kpis.reporting / departments.length) * 100) : 0}% compliance</span>
-          </div>
-
-          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Missing Reports</span>
-            <span className="text-3xl font-extrabold font-mono mt-2 mb-0.5 tracking-tight block" style={{ color: kpis.missing > 0 ? '#EF4444' : '#10B981' }}>{kpis.missing}</span>
-            <span className="text-[10px] text-muted-foreground font-medium">Pending submission</span>
-          </div>
-
-          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Awaiting Review</span>
-            <span className="text-3xl font-extrabold font-mono text-blue-600 dark:text-blue-400 mt-2 mb-0.5 tracking-tight block">{kpis.review}</span>
-            <span className="text-[10px] text-muted-foreground font-medium">Daily reports pending</span>
-          </div>
-
-          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">Pending Store Reqs</span>
-            <span className="text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 mt-2 mb-0.5 tracking-tight block">{kpis.pendingReqs}</span>
-            <span className="text-[10px] text-muted-foreground font-medium">Requires approval</span>
-          </div>
-
-          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Fulfilled Store Reqs</span>
-            <span className="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2 mb-0.5 tracking-tight block">{kpis.deliveredReqs}</span>
-            <span className="text-[10px] text-muted-foreground font-medium">Delivered by Stores</span>
-          </div>
-
-          <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-            <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Recorded Offering</span>
-            <span className="text-3xl font-extrabold font-mono text-purple-600 dark:text-purple-400 mt-2 mb-0.5 tracking-tight block">
-              ₦{(kpis.totalOfferingsFocusDay || kpis.totalOfferingsAllDays).toLocaleString()}
-            </span>
-            <span className="text-[10px] text-muted-foreground font-medium">
-              {kpis.totalOfferingsFocusDay > 0
-                ? 'Focus day aggregate'
-                : kpis.totalOfferingsAllDays > 0
-                  ? `Total all days (Focus day: ₦0)`
-                  : 'Focus day aggregate'}
-            </span>
-          </div>
-        </div>
-
-        {/* TAB 1: OVERVIEW & MATRIX */}
+        {/* TAB 1: OVERVIEW & MATRIX (KPI Cards are rendered ONLY here as requested) */}
         {activeTab === 'overview' && (
+          <div className="space-y-6 animate-fade-in-up">
+            {/* KPI Cards Bar (Stripe Pattern Elevation & Typography) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Reporting Submissions</span>
+                <span className="text-3xl font-extrabold font-mono text-foreground mt-2 mb-0.5 tracking-tight block">
+                  {kpis.reporting} <span className="text-xs font-sans text-muted-foreground">/ {kpis.expectedSubmissions}</span>
+                </span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{kpis.complianceRate}% compliance</span>
+              </div>
+
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Missing Reports</span>
+                <span className="text-3xl font-extrabold font-mono mt-2 mb-0.5 tracking-tight block" style={{ color: kpis.missing > 0 ? '#EF4444' : '#10B981' }}>{kpis.missing}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Pending submission</span>
+              </div>
+
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Awaiting Review</span>
+                <span className="text-3xl font-extrabold font-mono text-blue-600 dark:text-blue-400 mt-2 mb-0.5 tracking-tight block">{kpis.review}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Daily reports pending</span>
+              </div>
+
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">Pending Store Reqs</span>
+                <span className="text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 mt-2 mb-0.5 tracking-tight block">{kpis.pendingReqs}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Requires approval</span>
+              </div>
+
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Fulfilled Store Reqs</span>
+                <span className="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2 mb-0.5 tracking-tight block">{kpis.deliveredReqs}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">Delivered by Stores</span>
+              </div>
+
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
+                <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Recorded Offering</span>
+                <span className="text-3xl font-extrabold font-mono text-purple-600 dark:text-purple-400 mt-2 mb-0.5 tracking-tight block">
+                  ₦{kpis.offeringSum.toLocaleString()}
+                </span>
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  {kpis.selectedDaysLabel} aggregate
+                </span>
+              </div>
+            </div>
           <div className="glass-card overflow-hidden animate-fade-in-up-delay-2">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
               <div className="flex items-center gap-2">
@@ -701,7 +796,8 @@ function SecretariatDashboardContent() {
               </table>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* TAB 2: STORE REQUISITIONS CONSOLE */}
         {activeTab === 'store-requisitions' && (
