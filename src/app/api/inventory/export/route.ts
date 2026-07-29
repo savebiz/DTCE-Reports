@@ -3,6 +3,8 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { isMock } from '@/utils/supabase'
+import fs from 'fs'
+import path from 'path'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
@@ -422,6 +424,17 @@ export async function GET(request: NextRequest) {
 
     // --- FORMAT 3: COMPREHENSIVE BRANDED PDF / PRINTABLE HTML EXPORT ---
     if (format === 'pdf') {
+      let logoBase64 = ''
+      try {
+        const logoPath = path.join(process.cwd(), 'public', 'dtce-logo.png')
+        if (fs.existsSync(logoPath)) {
+          const logoBuffer = fs.readFileSync(logoPath)
+          logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`
+        }
+      } catch (logoErr) {
+        console.warn('Failed to load logo for PDF export:', logoErr)
+      }
+
       const stockTableRows = stockData.map((d: StockSummaryItem) => `
         <tr class="${d.is_low_stock ? 'row-alert' : ''}">
           <td><strong>${escapeXml(d.name)}</strong></td>
@@ -468,8 +481,7 @@ export async function GET(request: NextRequest) {
     @page { size: A4 portrait; margin: 15mm; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #0f172a; margin: 0; padding: 20px; font-size: 11px; line-height: 1.4; background: #ffffff; }
     .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
-    .header-logo { display: flex; align-items: center; gap: 12px; }
-    .brand-icon { width: 36px; height: 36px; background: #0f172a; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #f59e0b; font-weight: 900; font-size: 18px; }
+    .header-logo { display: flex; align-items: center; gap: 14px; }
     .header-titles h1 { margin: 0; font-size: 16px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a; text-transform: uppercase; }
     .header-titles p { margin: 2px 0 0; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
     .meta-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
@@ -513,10 +525,10 @@ export async function GET(request: NextRequest) {
 
   <div class="header">
     <div class="header-logo">
-      <div class="brand-icon">DT</div>
+      ${logoBase64 ? `<img src="${logoBase64}" alt="DTCE Official Logo" style="height: 48px; width: auto; max-width: 180px; object-fit: contain;" />` : `<div style="width: 42px; height: 42px; background: #0f172a; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #f59e0b; font-weight: 900; font-size: 16px;">DTCE</div>`}
       <div class="header-titles">
-        <h1>Directorate of Technical & Church Engineering</h1>
-        <p>National Coordinator Executive Desk — Inventory & Material Distribution Report</p>
+        <h1>Directorate of Teens &amp; Children Education</h1>
+        <p>National Coordinator Executive Desk — Inventory &amp; Material Distribution Report</p>
       </div>
     </div>
     <div style="text-align: right;">
