@@ -28,6 +28,7 @@ const DEPT_NAV_ITEMS = [
   { label: 'Fulfillment Console',  href: '/my-department/store-fulfillment',icon: ShoppingCart },
   { label: 'Event Narrative',      href: '/my-department/narrative',        icon: FileText   },
   { label: 'Manage Team',          href: '/my-department/team',             icon: Users      },
+  { label: 'Settings',             href: '/dashboard/settings',             icon: Settings   },
 ]
 
 const ROLE_LABELS: Record<string, string> = {
@@ -261,6 +262,16 @@ export function DashboardHeader() {
                 {name.split(' ')[0]}
               </span>
             </div>
+
+            {/* Settings button (Desktop) */}
+            <button
+              onClick={() => router.push('/dashboard/settings')}
+              title="Settings"
+              className="hidden lg:flex items-center justify-center rounded-lg border p-1.5 text-slate-400 transition-all duration-200 hover:text-white hover:bg-white/5 cursor-pointer"
+              style={{ borderColor: 'rgba(255,255,255,0.1)' }}
+            >
+              <Settings size={15} />
+            </button>
 
             {/* Sign out button (Desktop) */}
             <button
