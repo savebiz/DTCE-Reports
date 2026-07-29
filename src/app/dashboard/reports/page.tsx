@@ -47,9 +47,10 @@ export default function ReportsExportPage() {
       .single()
 
     if (prof) {
-      // Check authorization (Only Secretariat/super_admin/coordinator)
-      if (prof.role !== 'super_admin' && prof.role !== 'coordinator' && prof.role !== 'national_coordinator') {
-        router.push('/my-department')
+      // Check authorization (Exclusively Secretariat super_admin)
+      if (prof.role !== 'super_admin') {
+        showToast('Forbidden: Report generation/export is restricted exclusively to Secretariat Super Admins.', 'error')
+        router.push('/dashboard')
         return
       }
       setProfile(prof)

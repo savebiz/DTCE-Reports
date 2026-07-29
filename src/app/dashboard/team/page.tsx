@@ -88,8 +88,9 @@ export default function SecretariatTeamManagement() {
     }
 
     if (activeProfile) {
-      if (activeProfile.role !== 'super_admin' && activeProfile.role !== 'coordinator' && activeProfile.role !== 'national_coordinator') {
-        router.push('/my-department')
+      if (activeProfile.role !== 'super_admin') {
+        showToast('Forbidden: Team management is restricted to Secretariat Super Admins.', 'error')
+        router.push('/dashboard')
         return
       }
       setProfile(activeProfile)

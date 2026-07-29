@@ -974,7 +974,7 @@ function SecretariatDashboardContent() {
         )}
 
         {/* TAB 3: INVENTORY OVERSIGHT (Read-Only National Coordinator Oversight) */}
-        {activeTab === 'inventory-oversight' && !isCoordinatorAssistant && (
+        {activeTab === 'inventory-oversight' && profile?.role !== 'coordinator' && !isCoordinatorAssistant && (
           <div className="animate-fade-in-up">
             <InventoryReportsView readOnly={true} />
           </div>
@@ -1069,32 +1069,34 @@ function SecretariatDashboardContent() {
                           </div>
                         )}
 
-                        {/* Footer Actions */}
-                        <div className="flex justify-end pt-1">
-                          {isResolved ? (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleReopenChallenge(item.id, item.deptName)}
-                              className="h-8 px-3 text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors shadow-2xs"
-                            >
-                              <RotateCcw size={12} className="mr-1.5" />
-                              <span>Reopen Challenge</span>
-                            </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                setResolvingItem(item)
-                                setResolutionNoteInput('')
-                              }}
-                              className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-xs"
-                            >
-                              <Check size={13} className="mr-1.5" />
-                              <span>Mark as Treated</span>
-                            </Button>
-                          )}
-                        </div>
+                        {/* Footer Actions (Super Admin & National Coordinator ONLY) */}
+                        {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
+                          <div className="flex justify-end pt-1">
+                            {isResolved ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleReopenChallenge(item.id, item.deptName)}
+                                className="h-8 px-3 text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors shadow-2xs"
+                              >
+                                <RotateCcw size={12} className="mr-1.5" />
+                                <span>Reopen Challenge</span>
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  setResolvingItem(item)
+                                  setResolutionNoteInput('')
+                                }}
+                                className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-xs"
+                              >
+                                <Check size={13} className="mr-1.5" />
+                                <span>Mark as Treated</span>
+                              </Button>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )
                   })

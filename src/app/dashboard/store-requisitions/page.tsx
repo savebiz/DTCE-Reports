@@ -561,16 +561,24 @@ function AdminRequisitionsContent() {
 
                   {/* Action trigger button */}
                   {req.status === 'pending_coordinator' && (
-                    <div className="flex gap-2 justify-end pt-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => selectReqForReview(req)}
-                        className="text-xs h-8.5 px-4 cursor-pointer border-amber-500/40 text-amber-400 hover:bg-amber-500/10 font-bold shadow-xs"
-                      >
-                        Review &amp; Edit Quantities ➔
-                      </Button>
-                    </div>
+                    (profile?.role !== 'coordinator' || req.assigned_approver_id === profile.id) ? (
+                      <div className="flex gap-2 justify-end pt-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => selectReqForReview(req)}
+                          className="text-xs h-8.5 px-4 cursor-pointer border-amber-500/40 text-amber-400 hover:bg-amber-500/10 font-bold shadow-xs"
+                        >
+                          Review &amp; Edit Quantities ➔
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2 justify-end pt-1">
+                        <span className="text-[10px] font-semibold text-slate-400 bg-slate-800/40 px-2.5 py-1 rounded-full border border-slate-700/50">
+                          Read-Only (Unassigned)
+                        </span>
+                      </div>
+                    )
                   )}
                 </div>
               )
@@ -742,33 +750,35 @@ function AdminRequisitionsContent() {
                       </div>
                     </div>
 
-                    {/* Delegate selector */}
-                    <div className="space-y-2 pb-4 border-b border-slate-800">
-                      <Label htmlFor="del-user" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Approval Task</Label>
-                      <div className="flex gap-2">
-                        <Select
-                          value={delegateId}
-                          onValueChange={(val) => setDelegateId(val || 'none')}
-                        >
-                          <SelectTrigger id="del-user" className="h-9 text-slate-100 bg-slate-900 border-slate-700 flex-1 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-slate-900 border-slate-700 text-slate-100">
-                            <SelectItem value="none">Delegate (None)</SelectItem>
-                            {approvers
-                              .filter(a => a.id !== profile?.id)
-                              .map((a) => (
-                                <SelectItem key={a.id} value={a.id}>
-                                  {a.full_name || a.email} ({a.role === 'national_coordinator' ? 'Nat. Coord.' : a.role})
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                        <Button onClick={handleDelegate} disabled={loading} size="sm" className="h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-xs">
-                          Assign
-                        </Button>
+                    {/* Delegate selector (National Coordinator & Super Admin ONLY) */}
+                    {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
+                      <div className="space-y-2 pb-4 border-b border-slate-800">
+                        <Label htmlFor="del-user" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Approval Task</Label>
+                        <div className="flex gap-2">
+                          <Select
+                            value={delegateId}
+                            onValueChange={(val) => setDelegateId(val || 'none')}
+                          >
+                            <SelectTrigger id="del-user" className="h-9 text-slate-100 bg-slate-900 border-slate-700 flex-1 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-slate-900 border-slate-700 text-slate-100">
+                              <SelectItem value="none">Delegate (None)</SelectItem>
+                              {approvers
+                                .filter(a => a.id !== profile?.id)
+                                .map((a) => (
+                                  <SelectItem key={a.id} value={a.id}>
+                                    {a.full_name || a.email} ({a.role === 'national_coordinator' ? 'Nat. Coord.' : a.role})
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                          <Button onClick={handleDelegate} disabled={loading} size="sm" className="h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-xs">
+                            Reassign
+                          </Button>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Standard review comments */}
                     <div className="space-y-2">

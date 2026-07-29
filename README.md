@@ -43,3 +43,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 >
 > Instead, installation uses browser-native WebAPK (`beforeinstallprompt` + `.prompt()`), which engages Google Chrome's WebAPK minting service. Chrome dynamically packages and installs the WebAPK using Google's current target SDK (Android 14+ / API level 34+), guaranteeing zero security or target SDK warnings.
 
+## Role-Based Access Control (RBAC) Governing Principle
+
+> **GOVERNING PRINCIPLE**: National Coordinator's permission set must always be a strict superset of Coordinator's. Any new feature granted to National Coordinator must be deliberately evaluated for whether Coordinator also needs it — never assume inheritance.
+
+

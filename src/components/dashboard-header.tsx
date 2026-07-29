@@ -319,8 +319,12 @@ export function DashboardHeader() {
         >
           <div className="flex flex-col gap-1.5 p-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
             {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-              if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings' || label === 'Manual Entry')) return null;
-              if (role === 'coordinator' && label === 'Manual Entry') return null;
+              /**
+               * Governing Principle: National Coordinator's permission set must always be a strict superset of Coordinator's.
+               * Any new feature granted to National Coordinator must be deliberately evaluated for whether Coordinator also needs it — never assume inheritance.
+               */
+              if (role === 'coordinator' && ['Inventory Oversight', 'Team', 'Reports', 'Manual Entry', 'YoY Analytics'].includes(label)) return null;
+              if (role === 'national_coordinator' && ['Team', 'Reports', 'Manual Entry'].includes(label)) return null;
               const active = isNavItemActive(href)
 
               return (
@@ -421,8 +425,8 @@ export function DashboardHeader() {
                 {showNav ? (
                   /* Admin / Coordinator / Nat Coordinator Nav Links */
                   NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                    if (role === 'national_coordinator' && (label === 'Reports' || label === 'Team' || label === 'Settings' || label === 'Manual Entry')) return null;
-                    if (role === 'coordinator' && label === 'Manual Entry') return null;
+                    if (role === 'coordinator' && ['Inventory Oversight', 'Team', 'Reports', 'Manual Entry', 'YoY Analytics'].includes(label)) return null;
+                    if (role === 'national_coordinator' && ['Team', 'Reports', 'Manual Entry'].includes(label)) return null;
                     const active = isNavItemActive(href)
                     return (
                       <button

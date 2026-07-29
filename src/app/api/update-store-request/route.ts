@@ -48,7 +48,24 @@ export async function POST(request: NextRequest) {
       .eq('id', requestId)
       .single()
 
-    // Build update object
+    if (!existingReq) {
+      return NextResponse.json({ error: 'Store request not found.' }, { status: 404 })
+    }
+
+    // Fetch calling user's profile for RBAC check
+    const { data: userProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('role, department_id')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const userRole = userProfile?.role || user.user_metadata?.role || 'hod'
+
+    // RBAC Enforcement for Coordinator role:
+    // Coordinators can ONLY update store requests if the request has been explicitly assigned to them by National Coordinator
+    if (userRole === 'coordinator' && existingReq.assigned_approver_id !== user.id) {
+      return NextResponse.json({ error: 'Forbidden: Coordinators can only update store requisitions explicitly assigned to them.' }, { status: 403 })
+    }
     const updatePayload: Record<string, any> = {
       status
     }

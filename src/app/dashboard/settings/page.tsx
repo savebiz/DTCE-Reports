@@ -395,7 +395,7 @@ function SettingsContent() {
     }
   }
 
-  const isAdmin = profile?.role === 'super_admin' || profile?.role === 'coordinator' || profile?.role === 'national_coordinator'
+  const isAdmin = profile?.role === 'super_admin'
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
