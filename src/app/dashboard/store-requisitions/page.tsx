@@ -172,7 +172,7 @@ function AdminRequisitionsContent() {
     if (!isMock) {
       const [reqsRes, usersRes, invRes] = await Promise.all([
         supabase.from('store_requests').select('*').order('created_at', { ascending: false }),
-        supabase.from('profiles').select('*').in('role', ['super_admin', 'coordinator', 'national_coordinator', 'assistant']),
+        supabase.from('profiles').select('*').eq('role', 'coordinator'),
         supabase.from('inventory_items').select('*')
       ])
 
@@ -212,10 +212,11 @@ function AdminRequisitionsContent() {
           department: { name: 'Accommodation' }
         }
       ])
-      setApprovers([
-        { id: 'user-coord', email: 'coordinator@dtce.org', full_name: 'Coordinator Jane', role: 'coordinator' } as any,
-        { id: 'user-asst-med', email: 'assistant@dtce.org', full_name: 'Nurse Kelly', role: 'assistant' } as any
-      ])
+      setApprovers(
+        mockStore.profiles
+          ? mockStore.profiles.filter((p: any) => p.role === 'coordinator')
+          : [{ id: 'user-coord', email: 'coordinator@dtce.org', full_name: 'Coordinator Jane', role: 'coordinator' }]
+      )
     }
   }, [router])
 
@@ -750,31 +751,28 @@ function AdminRequisitionsContent() {
                       </div>
                     </div>
 
-                    {/* Delegate selector (National Coordinator & Super Admin ONLY) */}
+                    {/* Delegate selector (National Coordinator & Super Admin ONLY — filtered exclusively to Coordinators) */}
                     {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
                       <div className="space-y-2 pb-4 border-b border-slate-800">
                         <Label htmlFor="del-user" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Approval Task</Label>
                         <div className="flex gap-2">
-                          <Select
+                          <select
+                            id="del-user"
                             value={delegateId}
-                            onValueChange={(val) => setDelegateId(val || 'none')}
+                            onChange={(e) => setDelegateId(e.target.value)}
+                            className="h-9 rounded-xl px-3 text-xs font-medium text-slate-100 bg-slate-900 border border-slate-700 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer flex-1"
                           >
-                            <SelectTrigger id="del-user" className="h-9 text-slate-100 bg-slate-900 border-slate-700 flex-1 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-slate-900 border-slate-700 text-slate-100">
-                              <SelectItem value="none">Delegate (None)</SelectItem>
-                              {approvers
-                                .filter(a => a.id !== profile?.id)
-                                .map((a) => (
-                                  <SelectItem key={a.id} value={a.id}>
-                                    {a.full_name || a.email} ({a.role === 'national_coordinator' ? 'Nat. Coord.' : a.role})
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
+                            <option value="none" className="bg-slate-900 text-slate-100">none</option>
+                            {approvers
+                              .filter(a => (a.role === 'coordinator' || !a.role) && a.id !== profile?.id)
+                              .map((a) => (
+                                <option key={a.id} value={a.id} className="bg-slate-900 text-slate-100">
+                                  {a.full_name || a.username || a.email} (Coordinator)
+                                </option>
+                              ))}
+                          </select>
                           <Button onClick={handleDelegate} disabled={loading} size="sm" className="h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-xs">
-                            Reassign
+                            Assign
                           </Button>
                         </div>
                       </div>
