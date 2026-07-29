@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { EventThemeProvider } from "@/components/event-theme-provider";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { FloatingNotificationPrompt } from "@/components/floating-notification-prompt";
+import { OfflineSyncIndicator } from "@/components/offline-sync-indicator";
 
 export const viewport: Viewport = {
   themeColor: "#0F2A4A",
@@ -65,6 +66,7 @@ export default function RootLayout({
             {children}
             <PwaInstallPrompt />
             <FloatingNotificationPrompt />
+            <OfflineSyncIndicator />
           </EventThemeProvider>
         </ThemeProvider>
         <script

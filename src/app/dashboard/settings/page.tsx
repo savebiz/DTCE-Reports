@@ -57,6 +57,9 @@ function SettingsContent() {
   const [newTribe, setNewTribe] = useState('')
   const [newDiagnosis, setNewDiagnosis] = useState('')
 
+  // Haptic Feedback Customization State
+  const [vibrationMode, setVibrationMode] = useState<'standard' | 'urgent' | 'subtle' | 'silent'>('standard')
+
   // Notification Preferences State
   const [categories, setCategories] = useState<CategoryPref[]>([
     {
@@ -174,6 +177,11 @@ function SettingsContent() {
 
   useEffect(() => {
     loadData()
+
+    if (typeof window !== 'undefined') {
+      const savedVib = localStorage.getItem('dtce_vibration_mode') as any
+      if (savedVib) setVibrationMode(savedVib)
+    }
 
     // Web Push & Context Feature Detection
     if (typeof window !== 'undefined') {
@@ -529,6 +537,53 @@ function SettingsContent() {
                       On installed iOS PWAs (iOS 16.4+), sound alerts play according to your device sound profile. Custom vibration pulse patterns are restricted by Apple iOS Safari system policy.
                     </p>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Haptic & Vibration Profile Customization */}
+            <Card className="glass-card border-none">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Bell size={16} className="text-amber-400" />
+                  Sound &amp; Haptic Vibration Feedback Profile
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Customize device vibration intensity and alert pulse patterns for incoming operational notifications.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { key: 'standard', label: 'Standard Pulse', desc: 'Double pulse [300ms, 100ms, 300ms]', color: 'border-blue-500/40 bg-blue-500/10' },
+                    { key: 'urgent', label: 'Urgent Triple Buzz', desc: 'High priority triple burst [400ms×3]', color: 'border-amber-500/40 bg-amber-500/10' },
+                    { key: 'subtle', label: 'Subtle Tap', desc: 'Single gentle pulse [150ms]', color: 'border-purple-500/40 bg-purple-500/10' },
+                    { key: 'silent', label: 'Visual Only (Silent)', desc: 'No device vibration', color: 'border-slate-600 bg-slate-800/40' },
+                  ].map(v => (
+                    <div
+                      key={v.key}
+                      onClick={() => {
+                        setVibrationMode(v.key as any)
+                        if (typeof window !== 'undefined') {
+                          localStorage.setItem('dtce_vibration_mode', v.key)
+                        }
+                        showToast(`Saved Haptic Profile: ${v.label}`, 'success')
+                        if (typeof navigator !== 'undefined' && 'vibrate' in navigator && v.key !== 'silent') {
+                          const pattern = v.key === 'urgent' ? [400, 100, 400, 100, 400] : v.key === 'subtle' ? [150] : [300, 100, 300]
+                          try { navigator.vibrate(pattern) } catch (_) {}
+                        }
+                      }}
+                      className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                        vibrationMode === v.key ? `${v.color} ring-2 ring-amber-500/40` : 'border-border/50 bg-card/40 hover:bg-card/70'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-bold text-foreground">{v.label}</span>
+                        {vibrationMode === v.key && <Check size={14} className="text-amber-400" />}
+                      </div>
+                      <p className="text-[10px] text-muted-foreground">{v.desc}</p>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>

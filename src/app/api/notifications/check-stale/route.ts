@@ -8,46 +8,66 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const thresholdHours = Number(searchParams.get('hours') || '12')
+    const performCleanup = searchParams.get('cleanup') === 'true'
     const cutoffTime = new Date(Date.now() - thresholdHours * 60 * 60 * 1000).toISOString()
 
     let pendingReqs: any[] = []
     let profiles: any[] = []
     let departments: any[] = []
+    let cleanedSubscriptionsCount = 0
 
-    if (isMock) {
+    if (!isMock) {
+      const serviceKey =
+        process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE ||
+        process.env.SUPABASE_SERVICE_ROLE_KEY ||
+        process.env.SUPABASE_SERVICE_ROLE ||
+        process.env.SUPABASE_SERVICE_KEY ||
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      if (serviceKey && supabaseUrl) {
+        const supabase = createSupabaseAdminClient(supabaseUrl, serviceKey)
+
+        // 1. Perform automated cleanup of stale push subscriptions (>30 days old or duplicate endpoints)
+        if (performCleanup) {
+          const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+          const { data: staleSubs } = await supabase
+            .from('push_subscriptions')
+            .delete()
+            .lte('created_at', thirtyDaysAgo)
+            .select()
+
+          cleanedSubscriptionsCount = staleSubs ? staleSubs.length : 0
+        }
+
+        const { data: reqs } = await supabase
+          .from('store_requests')
+          .select('*')
+          .eq('status', 'pending_coordinator')
+          .lte('created_at', cutoffTime)
+
+        pendingReqs = reqs || []
+
+        const { data: profs } = await supabase.from('profiles').select('*')
+        profiles = profs || []
+
+        const { data: depts } = await supabase.from('departments').select('*')
+        departments = depts || []
+      }
+    } else {
       pendingReqs = (store as any).storeRequests?.filter((r: any) => 
         r.status === 'pending_coordinator' && r.created_at <= cutoffTime
       ) || []
       profiles = store.profiles
       departments = mockDepartments
-    } else {
-      const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      if (!serviceKey || !supabaseUrl) {
-        return NextResponse.json({ error: 'Supabase admin credentials not configured' }, { status: 500 })
-      }
-      const supabase = createSupabaseAdminClient(supabaseUrl, serviceKey)
-
-      const { data: reqs } = await supabase
-        .from('store_requests')
-        .select('*')
-        .eq('status', 'pending_coordinator')
-        .lte('created_at', cutoffTime)
-
-      pendingReqs = reqs || []
-
-      const { data: profs } = await supabase.from('profiles').select('*')
-      profiles = profs || []
-
-      const { data: depts } = await supabase.from('departments').select('*')
-      departments = depts || []
     }
 
     if (pendingReqs.length === 0) {
       return NextResponse.json({
         success: true,
         message: `No requisitions pending for >${thresholdHours} hours`,
-        stale_count: 0
+        stale_count: 0,
+        cleaned_subscriptions_count: cleanedSubscriptionsCount
       })
     }
 
@@ -58,7 +78,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No National Coordinator or Admin recipients found' }, { status: 404 })
     }
 
-    // Build ONE aggregated summary digest string
+    // Build aggregated summary digest string
     const summaryLines = pendingReqs.map((r, i) => {
       const dept = departments.find(d => d.id === r.department_id)
       const itemCount = r.items_json?.length || 0
@@ -90,6 +110,7 @@ export async function GET(request: NextRequest) {
       threshold_hours: thresholdHours,
       stale_count: pendingReqs.length,
       recipients_notified: recipients.length,
+      cleaned_subscriptions_count: cleanedSubscriptionsCount,
       dispatchResults
     })
   } catch (err: any) {
