@@ -51,7 +51,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    if (!isAdmin && path.startsWith('/dashboard')) {
+    if (!isAdmin && path.startsWith('/dashboard') && !path.startsWith('/dashboard/settings')) {
       const url = request.nextUrl.clone()
       url.pathname = '/my-department'
       return NextResponse.redirect(url)
