@@ -50,6 +50,9 @@ export default function SecretariatTeamManagement() {
   const [collisions, setCollisions] = useState<string[]>([])
 
   const [dbDepartments, setDbDepartments] = useState<Department[]>([])
+  const [hodAssignMap, setHodAssignMap] = useState<Record<string, string>>({})
+  const [resetModalTarget, setResetModalTarget] = useState<Profile | null>(null)
+  const [resettingPassword, setResettingPassword] = useState(false)
 
   // Pagination State for Bulk Department Grid
   const [bulkPage, setBulkPage] = useState(1)
@@ -99,6 +102,18 @@ export default function SecretariatTeamManagement() {
     const { data: realDepts } = await supabase.from('departments').select('*')
     const fetchedDepts = realDepts || []
     setDbDepartments(fetchedDepts)
+
+    // Fetch hod_assignments table to map users whose department_id is on hod_assignments
+    const { data: assignments } = await supabase.from('hod_assignments').select('*')
+    const assignMap: Record<string, string> = {}
+    if (assignments) {
+      assignments.forEach((h: any) => {
+        if (h.profile_id && h.department_id) {
+          assignMap[h.profile_id] = h.department_id
+        }
+      })
+    }
+    setHodAssignMap(assignMap)
 
     const { data: allUsers, error: usersErr } = await supabase.from('profiles').select('*')
     if (usersErr) {
@@ -476,6 +491,48 @@ export default function SecretariatTeamManagement() {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+  }
+
+  // Handle Super Admin Password Reset for any selected profile
+  const handleConfirmResetPassword = async () => {
+    if (!resetModalTarget) return
+    setResettingPassword(true)
+
+    try {
+      const res = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: resetModalTarget.id })
+      })
+
+      const data = await res.json()
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to reset password')
+      }
+
+      const isNat = ['super_admin', 'national_coordinator', 'nc_assistant'].includes(resetModalTarget.role)
+      const effectiveDeptId = resetModalTarget.department_id || hodAssignMap[resetModalTarget.id]
+      const resolvedDept = isNat 
+        ? '— (National Office)' 
+        : (dbDepartments.find(d => d.id === effectiveDeptId)?.name || mockDepartments.find(d => d.id === effectiveDeptId)?.name || 'Department')
+
+      const newSlip: CredentialSlip = {
+        fullName: resetModalTarget.full_name || resetModalTarget.username || 'User',
+        departmentName: resolvedDept,
+        username: resetModalTarget.username || resetModalTarget.email,
+        temporaryPassword: data.temporaryPassword,
+        role: resetModalTarget.role.toUpperCase()
+      }
+
+      setRevealedSlips(prev => [newSlip, ...prev])
+      showToast(`Password reset successfully for ${resetModalTarget.full_name || resetModalTarget.username}`, 'success')
+      setResetModalTarget(null)
+      loadData()
+    } catch (err: any) {
+      showToast(`Reset failed: ${err.message}`, 'error')
+    } finally {
+      setResettingPassword(false)
+    }
   }
 
   if (!profile) {
@@ -865,9 +922,16 @@ export default function SecretariatTeamManagement() {
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
                 {users.map(u => {
-                  const dbDept = dbDepartments.find(d => d.id === u.department_id)
-                  const mockDept = mockDepartments.find(d => d.id === u.department_id)
-                  const deptName = dbDept?.name || mockDept?.name || (u.department_id ? 'Department' : 'Administrative Office')
+                  const isNationalRole = ['super_admin', 'national_coordinator', 'nc_assistant'].includes(u.role)
+                  let deptName = '— (National Office)'
+
+                  if (!isNationalRole) {
+                    const effectiveDeptId = u.department_id || hodAssignMap[u.id]
+                    const dbDept = dbDepartments.find(d => d.id === effectiveDeptId)
+                    const mockDept = mockDepartments.find(d => d.id === effectiveDeptId)
+                    deptName = dbDept?.name || mockDept?.name || (effectiveDeptId ? 'Department' : 'Unassigned Department')
+                  }
+
                   return (
                     <tr key={u.id} className="hover:bg-slate-900/10">
                       <td className="p-3 font-semibold text-slate-200">{u.full_name || '—'}</td>
@@ -948,40 +1012,50 @@ export default function SecretariatTeamManagement() {
                         </div>
                       </td>
                       <td className="p-3 text-right">
-                        {u.id !== profile?.id && (
-                          <button
-                            onClick={async () => {
-                              try {
-                                const currentStatus = u.is_active !== false
-                                if (isMock) {
-                                  const { store: mockStore } = require('@/utils/supabase/mockClient')
-                                  const match = mockStore.profiles.find((p: any) => p.id === u.id)
-                                  if (match) match.is_active = !currentStatus
-                                } else {
-                                  const res = await fetch('/api/toggle-assistant-status', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ targetUserId: u.id, currentStatus })
-                                  })
-                                  const data = await res.json()
-                                  if (data.error) throw new Error(data.error)
+                        <div className="flex items-center justify-end gap-2">
+                          {profile?.role === 'super_admin' && (
+                            <button
+                              onClick={() => setResetModalTarget(u)}
+                              className="h-7 rounded-lg px-2.5 text-[11px] font-semibold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer flex items-center gap-1"
+                            >
+                              <span>🔑</span> Reset Password
+                            </button>
+                          )}
+                          {u.id !== profile?.id && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const currentStatus = u.is_active !== false
+                                  if (isMock) {
+                                    const { store: mockStore } = require('@/utils/supabase/mockClient')
+                                    const match = mockStore.profiles.find((p: any) => p.id === u.id)
+                                    if (match) match.is_active = !currentStatus
+                                  } else {
+                                    const res = await fetch('/api/toggle-assistant-status', {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({ targetUserId: u.id, currentStatus })
+                                    })
+                                    const data = await res.json()
+                                    if (data.error) throw new Error(data.error)
+                                  }
+                                  showToast(`Account ${currentStatus ? 'deactivated' : 'reactivated'} successfully.`, 'success')
+                                  loadData()
+                                } catch (err: any) {
+                                  showToast(`Status update failed: ${err.message}`, 'error')
                                 }
-                                showToast(`Account ${currentStatus ? 'deactivated' : 'reactivated'} successfully.`, 'success')
-                                loadData()
-                              } catch (err: any) {
-                                showToast(`Status update failed: ${err.message}`, 'error')
+                              }}
+                              className="h-7 rounded-lg px-2.5 text-[11px] font-semibold transition-all duration-150 cursor-pointer"
+                              style={
+                                u.is_active !== false 
+                                  ? { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#F87171' } 
+                                  : { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34D399' }
                               }
-                            }}
-                            className="h-7 rounded-lg px-2.5 text-[11px] font-semibold transition-all duration-150 cursor-pointer"
-                            style={
-                              u.is_active !== false 
-                                ? { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#F87171' } 
-                                : { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34D399' }
-                            }
-                          >
-                            {u.is_active !== false ? 'Deactivate' : 'Reactivate'}
-                          </button>
-                        )}
+                            >
+                              {u.is_active !== false ? 'Deactivate' : 'Reactivate'}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   )
@@ -990,6 +1064,41 @@ export default function SecretariatTeamManagement() {
             </table>
           </div>
         </div>
+
+        {/* Confirmation Modal for Reset Password */}
+        {resetModalTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center gap-3 text-amber-400">
+                <span className="text-xl">🔑</span>
+                <h3 className="text-sm font-bold uppercase tracking-wider">Confirm Password Reset</h3>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Reset password for <strong className="text-white font-semibold">{resetModalTarget.full_name || resetModalTarget.username}</strong> ({resetModalTarget.email})?
+                <br />
+                <span className="text-slate-400 block mt-1.5">
+                  They will need the new temporary password to sign in — their current password stops working immediately.
+                </span>
+              </p>
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button
+                  onClick={() => setResetModalTarget(null)}
+                  disabled={resettingPassword}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmResetPassword}
+                  disabled={resettingPassword}
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-black bg-amber-400 hover:bg-amber-300 transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  {resettingPassword ? 'Resetting Password...' : 'Confirm Reset'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Global CSS Styling for Printing slips on one page per slip */}
