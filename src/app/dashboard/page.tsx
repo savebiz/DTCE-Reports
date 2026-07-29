@@ -612,6 +612,7 @@ function SecretariatDashboardContent() {
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2">
+                <Calendar className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
                 <span className="text-[12px] font-semibold text-muted-foreground">Focus Day:</span>
                 <select
                   value={selectedFocusDays.length === 1 ? selectedFocusDays[0] : selectedFocusDays.includes('all') ? 'all' : 'custom'}
@@ -624,16 +625,16 @@ function SecretariatDashboardContent() {
                   }}
                   className="h-8 rounded-lg px-3 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none focus:ring-1 focus:ring-purple-500"
                 >
-                  <option value="all" className="bg-card text-foreground">🌐 All Convention Days (Total)</option>
-                  <option value="days-1-3" className="bg-card text-foreground">📑 Days 1 – 3 (First Half)</option>
-                  <option value="days-4-6" className="bg-card text-foreground">📑 Days 4 – 6 (Second Half)</option>
+                  <option value="all" className="bg-card text-foreground">All Convention Days (Total)</option>
+                  <option value="days-1-3" className="bg-card text-foreground">Days 1 – 3 (First Half)</option>
+                  <option value="days-4-6" className="bg-card text-foreground">Days 4 – 6 (Second Half)</option>
                   {eventDays.map(d => (
                     <option key={d.id} value={d.id} className="bg-card text-foreground">
-                      📅 Day {d.day_number} — {new Date(d.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}
+                      Day {d.day_number} — {new Date(d.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}
                     </option>
                   ))}
                   {selectedFocusDays.length > 1 && !selectedFocusDays.includes('all') && !selectedFocusDays.includes('days-1-3') && !selectedFocusDays.includes('days-4-6') && (
-                    <option value="custom" className="bg-card text-foreground">⚡ Custom ({selectedFocusDays.length} Days Selected)</option>
+                    <option value="custom" className="bg-card text-foreground">Custom ({selectedFocusDays.length} Days Selected)</option>
                   )}
                 </select>
               </div>
@@ -1009,30 +1010,29 @@ function SecretariatDashboardContent() {
                   .map((item) => {
                   const isResolved = item.status === 'resolved'
 
-                  return (
-                    <div
+                                <div
                       key={item.id}
                       className={`p-4 rounded-xl border transition-all duration-200 space-y-3 ${
                         isResolved
-                          ? 'bg-slate-900/30 border-emerald-500/20 opacity-80 hover:opacity-100'
-                          : 'bg-background/40 border-border hover:border-slate-700'
+                          ? 'bg-slate-100/90 dark:bg-slate-900/40 border-emerald-300 dark:border-emerald-500/20 shadow-xs'
+                          : 'bg-card border-border hover:border-slate-300 dark:hover:border-slate-700'
                       }`}
                     >
                       {/* Header Row */}
                       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-foreground">{item.deptName} Department</span>
-                          <span className="text-[10px] font-semibold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">
+                          <span className="font-bold text-slate-900 dark:text-slate-100">{item.deptName} Department</span>
+                          <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-200 dark:border-purple-500/20">
                             Day {item.dayNumber}
                           </span>
                         </div>
                         {isResolved ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-500/30">
                             <CheckCircle2 size={12} />
                             <span>Treated / Resolved</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/30">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 dark:text-rose-400 bg-rose-100 dark:bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-500/30">
                             <AlertCircle size={12} />
                             <span>Open Bottlenecks</span>
                           </span>
@@ -1041,24 +1041,30 @@ function SecretariatDashboardContent() {
 
                       {/* Content Row */}
                       <div className="text-xs space-y-2">
-                        <p className={isResolved ? 'text-slate-300' : 'text-red-400'}>
-                          <strong className="text-muted-foreground uppercase tracking-wider text-[10px] block">Challenge:</strong> {item.challenges}
-                        </p>
-                        {item.solutions && (
-                          <p className="text-emerald-400">
-                            <strong className="text-muted-foreground uppercase tracking-wider text-[10px] block mt-1">Proposed Solution:</strong> {item.solutions}
+                        <div>
+                          <strong className="text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[10px] block font-bold mb-0.5">Challenge:</strong>
+                          <p className={isResolved ? 'text-slate-700 dark:text-slate-300 font-medium' : 'text-rose-600 dark:text-rose-400 font-semibold'}>
+                            {item.challenges}
                           </p>
+                        </div>
+                        {item.solutions && (
+                          <div>
+                            <strong className="text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[10px] block font-bold mt-1 mb-0.5">Proposed Solution:</strong>
+                            <p className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                              {item.solutions}
+                            </p>
+                          </div>
                         )}
                       </div>
 
                       {/* Resolution Audit Note */}
                       {item.resolutionNote && (
-                        <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/30 text-xs space-y-1">
-                          <div className="flex items-center justify-between text-[10px] font-bold text-emerald-400 uppercase">
+                        <div className="p-3 rounded-lg bg-emerald-100/70 dark:bg-emerald-950/30 border border-emerald-300/80 dark:border-emerald-500/30 text-xs space-y-1">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase">
                             <span>Log Action Note:</span>
                             <span>{item.resolvedAt ? new Date(item.resolvedAt).toLocaleDateString() : ''}</span>
                           </div>
-                          <p className="text-emerald-200">{item.resolutionNote}</p>
+                          <p className="text-emerald-900 dark:text-emerald-200 font-medium">{item.resolutionNote}</p>
                         </div>
                       )}
 
@@ -1069,7 +1075,7 @@ function SecretariatDashboardContent() {
                             size="sm"
                             variant="outline"
                             onClick={() => handleReopenChallenge(item.id, item.deptName)}
-                            className="h-8 px-3 text-xs border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white"
+                            className="h-8 px-3 text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors shadow-2xs"
                           >
                             <RotateCcw size={12} className="mr-1.5" />
                             <span>Reopen Challenge</span>
@@ -1088,7 +1094,7 @@ function SecretariatDashboardContent() {
                           </Button>
                         )}
                       </div>
-                    </div>
+                    </div>         </div>
                   )
                 })
               )}

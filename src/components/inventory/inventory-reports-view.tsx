@@ -344,11 +344,11 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                 <SelectValue placeholder="Select Date Range..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">📅 All Time History</SelectItem>
-                <SelectItem value="today">⚡ Today Only</SelectItem>
-                <SelectItem value="week">📅 Past 7 Days</SelectItem>
-                <SelectItem value="convention">🏆 Convention Period</SelectItem>
-                <SelectItem value="custom">✏️ Custom Range</SelectItem>
+                <SelectItem value="all">All Time History</SelectItem>
+                <SelectItem value="today">Today Only</SelectItem>
+                <SelectItem value="week">Past 7 Days</SelectItem>
+                <SelectItem value="convention">Convention Period</SelectItem>
+                <SelectItem value="custom">Custom Range</SelectItem>
               </SelectContent>
             </Select>
           </div>
