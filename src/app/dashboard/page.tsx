@@ -17,6 +17,7 @@ import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { KPIGridSkeleton, MatrixGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
 import { InventoryReportsView } from '@/components/inventory/inventory-reports-view'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
+import { RegistrationInsightPanel } from '@/components/registration/registration-insight-panel'
 
 const SchemaFormRenderer = dynamic(() => import('@/components/schema-form-renderer').then(mod => mod.SchemaFormRenderer), { ssr: false })
 
@@ -820,6 +821,11 @@ function SecretariatDashboardContent() {
               />
             </div>
           </div>
+
+          {/* Registration Two-Channel & Pre-Event Fulfillment Analytics (Super Admin & National Coordinator ONLY) */}
+          {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
+            <RegistrationInsightPanel userRole={profile?.role} />
+          )}
         </div>
       )}
 

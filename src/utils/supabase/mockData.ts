@@ -171,16 +171,23 @@ export const mockDepartments: Department[] = [
   { id: 'dept-21', name: 'Registration', default_metrics_schema: {
     fields: [
       {
-        name: 'registration_data',
-        label: 'Registration Data (by Mode)',
+        name: 'online_manual_pickups',
+        label: 'SECTION A — Online Manual Pickup (Today)',
         type: 'repeat-group',
         schema: [
-          { name: 'mode', label: 'Mode', type: 'select', options: ['online', 'offline'] },
-          { name: 'teachers', "label": "Teachers Registered", "type": "number" },
-          { name: 'teens', "label": "Teens Registered", "type": "number" },
-          { name: 'pre_teens', "label": "Pre-Teens Registered", "type": "number" },
-          { name: 'children', "label": "Children Registered", "type": "number" },
-          { name: 'amount_collected', "label": "Amount Collected (₦)", "type": "number" }
+          { name: 'category', label: 'Category', type: 'select', options: ['Teachers', 'Teens', 'Pre-teens', 'Children'], required: true },
+          { name: 'count_picked_up_today', label: 'Manuals Picked Up Today', type: 'number', required: true }
+        ]
+      },
+      {
+        name: 'walkin_registrations',
+        label: 'SECTION B — Offline / Walk-in Registration (Today)',
+        type: 'repeat-group',
+        schema: [
+          { name: 'category', label: 'Category', type: 'select', options: ['Teachers', 'Teens', 'Pre-teens', 'Children'], required: true },
+          { name: 'new_registrations', label: 'New Registrations Today', type: 'number', required: true },
+          { name: 'manuals_distributed', label: 'Manuals Distributed Today', type: 'number', required: true },
+          { name: 'amount_collected', label: 'Amount Collected (₦)', type: 'number', required: true }
         ]
       }
     ]

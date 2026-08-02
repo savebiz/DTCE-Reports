@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button'
 import { SchemaFormRenderer } from '@/components/schema-form-renderer'
 import { NumberField } from '@/components/ui/number-field'
 import { CurrencyField } from '@/components/ui/currency-field'
-import { ClipboardList, Wifi, WifiOff, Clock } from 'lucide-react'
+import { ClipboardList, Wifi, WifiOff, Clock, Globe } from 'lucide-react'
 import { useOfflineDraft } from '@/hooks/use-offline-draft'
+import { PreEventRegistrationTotalsModal } from '@/components/registration/pre-event-totals-modal'
 
 // Departments without workforce attendance breakdown
 const DEPTS_WITHOUT_ATTENDANCE = ['dept-6', 'dept-9', 'dept-13', 'dept-19', 'dept-20', 'dept-25', 'dept-26', 'dept-29', 'dept-30', 'dept-39']
@@ -63,6 +64,7 @@ function DailyLogContent() {
   
   // Custom lookup inline inputs
   const [newDiagText, setNewDiagText] = useState('')
+  const [isPreTotalsOpen, setIsPreTotalsOpen] = useState(false)
   const [allDepartments, setAllDepartments] = useState<Department[]>([])
   const [dataLoaded, setDataLoaded] = useState(false)
 
@@ -956,13 +958,27 @@ function DailyLogContent() {
            department.default_metrics_schema.fields &&
            department.default_metrics_schema.fields.length > 0 && (
             <Card className="glass-card border-none">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                  Department Custom Metrics
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  Log metrics specific to {department.name} operations.
-                </CardDescription>
+              <CardHeader className="pb-3 flex flex-row items-start justify-between gap-2 flex-wrap">
+                <div>
+                  <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
+                    Department Custom Metrics
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Log metrics specific to {department.name} operations.
+                  </CardDescription>
+                </div>
+                {department.name.toLowerCase().includes('registration') && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsPreTotalsOpen(true)}
+                    className="text-[11px] h-7 px-2.5 border-teal-500/40 text-teal-400 hover:bg-teal-500/10 font-bold"
+                  >
+                    <Globe className="w-3 h-3 mr-1" />
+                    Online Pre-Totals
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
                 <SchemaFormRenderer
@@ -1076,6 +1092,12 @@ function DailyLogContent() {
           </Card>
         </div>
       </div>
+
+      <PreEventRegistrationTotalsModal
+        isOpen={isPreTotalsOpen}
+        onClose={() => setIsPreTotalsOpen(false)}
+        userRole={profile?.role}
+      />
     </main>
   )
 }
