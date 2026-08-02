@@ -167,6 +167,11 @@ export default function DepartmentNarrativePage() {
         // Calculate offering if stored inside metrics_data (e.g. registration offline mode amount_collected or services offering)
         if (r.metrics_data) {
           // Registration amount_collected
+          if (Array.isArray(r.metrics_data.walkin_registrations)) {
+            r.metrics_data.walkin_registrations.forEach((reg: any) => {
+              totalOff += Number(reg.amount_collected || 0)
+            })
+          }
           if (Array.isArray(r.metrics_data.registration_data)) {
             r.metrics_data.registration_data.forEach((reg: any) => {
               totalOff += Number(reg.amount_collected || 0)

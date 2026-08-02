@@ -161,7 +161,7 @@ function DailyLogContent() {
 
       if (activeDept) {
         const nameLower = activeDept.name.toLowerCase()
-        if (nameLower.includes('bible study') || nameLower.includes('holy land') || nameLower.includes('registration')) {
+        if (nameLower.includes('bible study') || nameLower.includes('holy land')) {
           // Fetch tribes from database
           let tribesList: string[] = []
           if (!isMock) {
@@ -184,6 +184,31 @@ function DailyLogContent() {
                   { name: 'teachers_female', label: 'Teachers (Female)', type: 'number' },
                   { name: 'teenagers_male', label: 'Teenagers (Male)', type: 'number' },
                   { name: 'teenagers_female', label: 'Teenagers (Female)', type: 'number' }
+                ]
+              }
+            ]
+          }
+        } else if (nameLower.includes('registration')) {
+          activeDept.default_metrics_schema = activeDept.default_metrics_schema || {
+            fields: [
+              {
+                name: 'online_manual_pickups',
+                label: 'SECTION A — Online Manual Pickup (Today)',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'category', label: 'Category', type: 'select', options: ['Teachers', 'Teens', 'Pre-teens', 'Children'], required: true },
+                  { name: 'count_picked_up_today', label: 'Manuals Picked Up Today', type: 'number', required: true }
+                ]
+              },
+              {
+                name: 'walkin_registrations',
+                label: 'SECTION B — Offline / Walk-in Registration (Today)',
+                type: 'repeat-group',
+                schema: [
+                  { name: 'category', label: 'Category', type: 'select', options: ['Teachers', 'Teens', 'Pre-teens', 'Children'], required: true },
+                  { name: 'new_registrations', label: 'New Registrations Today', type: 'number', required: true },
+                  { name: 'manuals_distributed', label: 'Manuals Distributed Today', type: 'number', required: true },
+                  { name: 'amount_collected', label: 'Amount Collected (₦)', type: 'number', required: true }
                 ]
               }
             ]
