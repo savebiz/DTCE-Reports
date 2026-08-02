@@ -67,7 +67,7 @@ export function PreEventRegistrationTotalsModal({
 
           if (!error && data && data.length > 0) {
             const map: Record<string, number> = { teachers: 0, teens: 0, pre_teens: 0, children: 0 }
-            data.forEach(item => {
+            data.forEach((item: any) => {
               map[item.category] = item.total_online_registered || 0
             })
             setTotals(map)

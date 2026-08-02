@@ -68,7 +68,7 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
             .eq('event_id', activeEvent.id)
 
           if (preData) {
-            preData.forEach(row => {
+            preData.forEach((row: any) => {
               if (row.category && row.total_online_registered !== undefined) {
                 preTotalsMap[row.category] = Number(row.total_online_registered) || 0
               }
@@ -76,11 +76,11 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
           }
 
           // Fetch Registration department ID
-          const { data: regDept } = await supabase
+          const { data: depts } = await supabase
             .from('departments')
-            .select('id')
-            .ilike('name', '%registration%')
-            .maybeSingle()
+            .select('id, name')
+
+          const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
 
           if (regDept) {
             const { data: repData } = await supabase
@@ -154,7 +154,7 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
       let grandPickedUp = 0
       let grandWalkIn = 0
 
-      dailyReports.forEach(report => {
+      dailyReports.forEach((report: any) => {
         const dayNum = report.event_days?.day_number || 1
         if (!trendMap[dayNum]) {
           trendMap[dayNum] = { dayNumber: dayNum, newRegistrations: 0, manualsDistributed: 0, revenue: 0, onlinePickups: 0 }
