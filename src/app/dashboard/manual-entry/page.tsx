@@ -71,17 +71,32 @@ function ManualEntryContent() {
       if (user) {
         const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single()
         if (prof) {
-          if (!['super_admin', 'national_coordinator', 'coordinator'].includes(prof.role)) {
-            showToast('Access restricted to Secretariat & Coordinators', 'error')
-            router.push('/dashboard')
-            return
+          let isSecretariatUser = false
+          if (prof.department_id) {
+            const { data: dept } = await supabase.from('departments').select('name').eq('id', prof.department_id).maybeSingle()
+            if (dept?.name?.toLowerCase().includes('secretariat')) {
+              isSecretariatUser = true
+            }
           }
-          if (prof.role === 'national_coordinator' || prof.role === 'coordinator') {
+          if (!isSecretariatUser) {
+            const { data: assignment } = await supabase
+              .from('hod_assignments')
+              .select('department_id, departments(name)')
+              .eq('profile_id', prof.id)
+              .maybeSingle()
+            const assignedDeptName = (assignment?.departments as any)?.name
+            if (assignedDeptName?.toLowerCase().includes('secretariat') || assignment?.department_id === 'dept-25') {
+              isSecretariatUser = true
+            }
+          }
+
+          if (prof.role === 'super_admin' || isSecretariatUser || prof.department_id === 'dept-25') {
+            setProfile(prof)
+          } else {
             showToast('Access restricted: Manual paper report entry is managed by Secretariat Desk.', 'error')
-            router.push('/dashboard')
+            router.push(prof.role === 'coordinator' || prof.role === 'national_coordinator' ? '/dashboard' : '/my-department')
             return
           }
-          setProfile(prof)
         }
       } else {
         setProfile({

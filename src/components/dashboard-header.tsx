@@ -23,6 +23,7 @@ const NAV_ITEMS = [
 const DEPT_NAV_ITEMS = [
   { label: 'Department Home',      href: '/my-department',                  icon: LayoutGrid },
   { label: 'Daily Logs Workspace',  href: '/my-department/daily-log',        icon: FileEdit   },
+  { label: 'Manual Paper Entry',   href: '/dashboard/manual-entry',         icon: FileCheck  },
   { label: 'Inventory Catalog',    href: '/my-department/inventory',        icon: Boxes      },
   { label: 'Store Requests',       href: '/my-department/store-request',    icon: ShoppingCart },
   { label: 'Fulfillment Console',  href: '/my-department/store-fulfillment',icon: ShoppingCart },
@@ -459,9 +460,11 @@ export function DashboardHeader() {
                   /* HOD & Assistant Department Quick Nav Links */
                   DEPT_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
                     const isStoresDept = activeDeptName.toLowerCase().includes('store')
+                    const isSecretariatDept = activeDeptName.toLowerCase().includes('secretariat')
                     // Hide fulfillment console and inventory catalog for non-stores departments
                     if (label === 'Fulfillment Console' && !isStoresDept) return null;
                     if (label === 'Inventory Catalog' && !isStoresDept) return null;
+                    if (label === 'Manual Paper Entry' && !isSecretariatDept) return null;
                     const active = pathname === href || (href !== '/my-department' && pathname?.startsWith(href))
                     return (
                       <button

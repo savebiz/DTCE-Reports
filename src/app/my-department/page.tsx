@@ -11,7 +11,7 @@ import { syncQueuedSubmissions, getSyncQueue } from '@/utils/offline'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { KPIGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
-import { Calendar, Layers, Package } from 'lucide-react'
+import { Calendar, Layers, Package, FileEdit } from 'lucide-react'
 
 export default function MyDepartmentDashboard() {
   const router = useRouter()
@@ -354,6 +354,9 @@ export default function MyDepartmentDashboard() {
                        profile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690' ||
                        department?.name?.toLowerCase().includes('store')
 
+  const isSecretariatDept = profile.department_id === 'dept-25' ||
+                            department?.name?.toLowerCase().includes('secretariat')
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
 
@@ -433,6 +436,15 @@ export default function MyDepartmentDashboard() {
                 <Calendar className="w-3.5 h-3.5" />
                 Daily Logs Workspace
               </button>
+              {isSecretariatDept && (
+                <button
+                  className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-bold transition-all border border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 cursor-pointer shadow-xs"
+                  onClick={() => router.push('/dashboard/manual-entry')}
+                >
+                  <FileEdit className="w-3.5 h-3.5" />
+                  Manual Paper Entry
+                </button>
+              )}
               {isStoresDept ? (
                 <>
                   <button
