@@ -23,7 +23,7 @@ const NAV_ITEMS = [
 const DEPT_NAV_ITEMS = [
   { label: 'Department Home',      href: '/my-department',                  icon: LayoutGrid },
   { label: 'Daily Logs Workspace',  href: '/my-department/daily-log',        icon: FileEdit   },
-  { label: 'Manual Paper Entry',   href: '/dashboard/manual-entry',         icon: FileCheck  },
+  { label: 'Manual Paper Entry',   href: '/dashboard/manual-entry',         icon: FileEdit   },
   { label: 'Inventory Catalog',    href: '/my-department/inventory',        icon: Boxes      },
   { label: 'Store Requests',       href: '/my-department/store-request',    icon: ShoppingCart },
   { label: 'Fulfillment Console',  href: '/my-department/store-fulfillment',icon: ShoppingCart },
