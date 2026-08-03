@@ -630,42 +630,42 @@ function ManualEntryContent() {
           </Card>
 
           {/* ── Submit & Auditprovenance Action Bar ─── */}
-          <div className="rounded-xl p-5 bg-card border border-border/60 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
+          <div className="rounded-xl p-4 sm:p-5 bg-card border border-border/60 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 overflow-hidden">
+            <div className="flex items-center gap-2.5 min-w-0">
               <ShieldCheck className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-              <div className="text-xs">
-                <span className="font-bold text-foreground block">
+              <div className="text-xs min-w-0">
+                <span className="font-bold text-foreground block truncate">
                   Submitting On Behalf Of: {selectedDept.name}
                 </span>
-                <span className="text-muted-foreground">
+                <span className="text-muted-foreground block truncate">
                   Filed by Secretariat Staff: {profile?.full_name || profile?.email}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full sm:w-auto">
               <Button
                 type="button"
                 variant="outline"
                 disabled={saving}
                 onClick={() => handleSubmit('draft')}
-                className="flex-1 sm:flex-none text-xs font-semibold h-10 px-4 border-border/60 hover:bg-accent/60 cursor-pointer"
+                className="w-full sm:w-auto text-xs font-semibold h-10 px-4 border-border/60 hover:bg-accent/60 cursor-pointer justify-center"
               >
-                <Save className="mr-1.5 h-4 w-4" />
-                Save Proxy Draft
+                <Save className="mr-1.5 h-4 w-4 shrink-0" />
+                <span>Save Proxy Draft</span>
               </Button>
               <Button
                 type="button"
                 disabled={saving}
                 onClick={() => handleSubmit('submitted')}
-                className="flex-1 sm:flex-none text-xs font-bold h-10 px-5 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer shadow-xs"
+                className="w-full sm:w-auto text-xs font-bold h-10 px-4 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer shadow-xs justify-center"
               >
                 {saving ? (
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 ) : (
                   <>
-                    <CheckCircle2 className="mr-1.5 h-4 w-4" />
-                    Submit Final Paper Report
+                    <CheckCircle2 className="mr-1.5 h-4 w-4 shrink-0" />
+                    <span>Submit Final Paper Report</span>
                   </>
                 )}
               </Button>
