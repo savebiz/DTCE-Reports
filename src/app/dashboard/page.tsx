@@ -757,77 +757,78 @@ function SecretariatDashboardContent() {
                 </span>
               </div>
             </div>
-          <div className="glass-card overflow-hidden animate-fade-in-up-delay-2">
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
-              <div className="flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-muted-foreground" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                <span className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide">Department Submission Matrix</span>
+
+            {/* Registration Two-Channel & Pre-Event Fulfillment Analytics (Super Admin & National Coordinator ONLY) */}
+            {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
+              <RegistrationInsightPanel userRole={profile?.role} />
+            )}
+
+            <div className="glass-card overflow-hidden animate-fade-in-up-delay-2">
+              <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+                <div className="flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-muted-foreground" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                  <span className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide">Department Submission Matrix</span>
+                </div>
+                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(16,185,129,0.4)' }} />Approved</span>
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(59,130,246,0.4)' }} />Reviewed</span>
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(245,158,11,0.4)' }} />Submitted</span>
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(239,68,68,0.3)' }} />Missing</span>
+                </div>
               </div>
-              <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(16,185,129,0.4)' }} />Approved</span>
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(59,130,246,0.4)' }} />Reviewed</span>
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(245,158,11,0.4)' }} />Submitted</span>
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(239,68,68,0.3)' }} />Missing</span>
-              </div>
-            </div>
-            <div className="overflow-x-auto scrollbar-hide">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    <th className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-56 border-r border-border">
-                      Department
-                    </th>
-                    {eventDays.map((day) => (
-                      <th key={day.id} className="py-2.5 px-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-r border-border" style={{ minWidth: '96px' }}>
-                        Day {day.day_number}
-                        <div className="text-[10px] font-normal text-muted-foreground normal-case tracking-normal">
-                          {new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })}
-                        </div>
+              <div className="overflow-x-auto scrollbar-hide">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/30">
+                      <th className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-56 border-r border-border">
+                        Department
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {departments.slice((matrixPage - 1) * matrixPageSize, matrixPage * matrixPageSize).map((dept) => (
-                    <tr key={dept.id} className="border-b border-border/50 hover:bg-muted/10 transition-colors">
-                      <td className="py-2 px-4 text-[13px] font-medium text-foreground border-r border-border">
-                        {dept.name}
-                      </td>
                       {eventDays.map((day) => (
-                        <td key={day.id} className="p-1.5 border-r border-border/50">
-                          <button
-                            onClick={() => handleCellClick(dept, day)}
-                            className="w-full rounded-md py-1 px-2 text-[11px] font-semibold font-tabular transition-all duration-150 cursor-pointer"
-                            style={{ ...getCellStatusStyle(dept.id, day.id), letterSpacing: '0.03em' }}
-                          >
-                            {getCellStatusLabel(dept.id, day.id)}
-                          </button>
-                        </td>
+                        <th key={day.id} className="py-2.5 px-3 text-center text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-r border-border" style={{ minWidth: '96px' }}>
+                          Day {day.day_number}
+                          <div className="text-[10px] font-normal text-muted-foreground normal-case tracking-normal">
+                            {new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })}
+                          </div>
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {departments.slice((matrixPage - 1) * matrixPageSize, matrixPage * matrixPageSize).map((dept) => (
+                      <tr key={dept.id} className="border-b border-border/50 hover:bg-muted/10 transition-colors">
+                        <td className="py-2 px-4 text-[13px] font-medium text-foreground border-r border-border">
+                          {dept.name}
+                        </td>
+                        {eventDays.map((day) => (
+                          <td key={day.id} className="p-1.5 border-r border-border/50">
+                            <button
+                              onClick={() => handleCellClick(dept, day)}
+                              className="w-full rounded-md py-1 px-2 text-[11px] font-semibold font-tabular transition-all duration-150 cursor-pointer"
+                              style={{ ...getCellStatusStyle(dept.id, day.id), letterSpacing: '0.03em' }}
+                            >
+                              {getCellStatusLabel(dept.id, day.id)}
+                            </button>
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-            <div className="p-4 border-t border-border/50">
-              <DataTablePagination
-                currentPage={matrixPage}
-                totalPages={Math.ceil(departments.length / matrixPageSize)}
-                totalItems={departments.length}
-                pageSize={matrixPageSize}
-                onPageChange={setMatrixPage}
-                onPageSizeChange={setMatrixPageSize}
-              />
+              <div className="p-4 border-t border-border/50">
+                <DataTablePagination
+                  currentPage={matrixPage}
+                  totalPages={Math.ceil(departments.length / matrixPageSize)}
+                  totalItems={departments.length}
+                  pageSize={matrixPageSize}
+                  onPageChange={setMatrixPage}
+                  onPageSizeChange={setMatrixPageSize}
+                />
+              </div>
             </div>
           </div>
-
-          {/* Registration Two-Channel & Pre-Event Fulfillment Analytics (Super Admin & National Coordinator ONLY) */}
-          {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
-            <RegistrationInsightPanel userRole={profile?.role} />
-          )}
-        </div>
-      )}
+        )}
 
         {/* TAB 2: STORE REQUISITIONS CONSOLE */}
         {activeTab === 'store-requisitions' && (
