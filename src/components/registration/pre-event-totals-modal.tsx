@@ -51,6 +51,7 @@ export function PreEventRegistrationTotalsModal({
     const supabase = getClient()
 
     try {
+      let loaded = false
       if (!isMock) {
         // Find active event ID if not passed
         let activeEventId = eventId
@@ -71,10 +72,22 @@ export function PreEventRegistrationTotalsModal({
               map[item.category] = item.total_online_registered || 0
             })
             setTotals(map)
+            loaded = true
           }
         }
-      } else {
-        const savedMock = localStorage.getItem('dtce_mock_pre_event_totals')
+
+        if (!loaded) {
+          const { data: depts } = await supabase.from('departments').select('id, name, default_metrics_schema')
+          const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
+          if (regDept?.default_metrics_schema?.pre_event_online_totals) {
+            setTotals(regDept.default_metrics_schema.pre_event_online_totals)
+            loaded = true
+          }
+        }
+      }
+
+      if (!loaded) {
+        const savedMock = localStorage.getItem('dtce_mock_pre_event_totals') || localStorage.getItem('dtce_pre_event_totals')
         if (savedMock) {
           setTotals(JSON.parse(savedMock))
         }
@@ -120,10 +133,23 @@ export function PreEventRegistrationTotalsModal({
           .from('registration_pre_event_totals')
           .upsert(rows, { onConflict: 'event_id,category' })
 
-        if (error) throw error
-      } else {
-        localStorage.setItem('dtce_mock_pre_event_totals', JSON.stringify(totals))
+        if (error) {
+          console.warn('registration_pre_event_totals table error, using fallback persistence:', error.message)
+          const { data: depts } = await supabase.from('departments').select('id, name, default_metrics_schema')
+          const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
+          if (regDept) {
+            const currentSchema = regDept.default_metrics_schema || {}
+            const updatedSchema = { ...currentSchema, pre_event_online_totals: totals }
+            await supabase
+              .from('departments')
+              .update({ default_metrics_schema: updatedSchema })
+              .eq('id', regDept.id)
+          }
+        }
       }
+
+      localStorage.setItem('dtce_mock_pre_event_totals', JSON.stringify(totals))
+      localStorage.setItem('dtce_pre_event_totals', JSON.stringify(totals))
 
       showToast('Pre-event online registration totals saved successfully!', 'success')
       if (onSaved) onSaved()

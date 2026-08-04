@@ -61,26 +61,40 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
         const { data: activeEvent } = await supabase.from('events').select('id').order('created_at', { ascending: false }).limit(1).maybeSingle()
 
         if (activeEvent) {
+          let hasPreData = false
           // Fetch pre-event online totals
           const { data: preData } = await supabase
             .from('registration_pre_event_totals')
             .select('category, total_online_registered')
             .eq('event_id', activeEvent.id)
 
-          if (preData) {
+          if (preData && preData.length > 0) {
             preData.forEach((row: any) => {
               if (row.category && row.total_online_registered !== undefined) {
                 preTotalsMap[row.category] = Number(row.total_online_registered) || 0
               }
             })
+            hasPreData = true
           }
 
-          // Fetch Registration department ID
+          // Fetch Registration department ID and fallback schema pre-totals if table cache pending
           const { data: depts } = await supabase
             .from('departments')
-            .select('id, name')
+            .select('id, name, default_metrics_schema')
 
           const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
+
+          if (!hasPreData && regDept?.default_metrics_schema?.pre_event_online_totals) {
+            preTotalsMap = { ...regDept.default_metrics_schema.pre_event_online_totals }
+            hasPreData = true
+          }
+
+          if (!hasPreData && typeof window !== 'undefined') {
+            const savedLocal = localStorage.getItem('dtce_pre_event_totals') || localStorage.getItem('dtce_mock_pre_event_totals')
+            if (savedLocal) {
+              preTotalsMap = JSON.parse(savedLocal)
+            }
+          }
 
           if (regDept) {
             const { data: repData } = await supabase
