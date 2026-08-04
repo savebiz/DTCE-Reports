@@ -77,23 +77,16 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
             hasPreData = true
           }
 
-          // Fetch Registration department ID and fallback schema pre-totals if table cache pending
+          // Fetch Registration department ID and authoritative schema pre-totals from DB
           const { data: depts } = await supabase
             .from('departments')
             .select('id, name, default_metrics_schema')
 
           const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
 
-          if (!hasPreData && regDept?.default_metrics_schema?.pre_event_online_totals) {
-            preTotalsMap = { ...regDept.default_metrics_schema.pre_event_online_totals }
+          if (regDept?.default_metrics_schema?.pre_event_online_totals) {
+            preTotalsMap = { ...preTotalsMap, ...regDept.default_metrics_schema.pre_event_online_totals }
             hasPreData = true
-          }
-
-          if (!hasPreData && typeof window !== 'undefined') {
-            const savedLocal = localStorage.getItem('dtce_pre_event_totals') || localStorage.getItem('dtce_mock_pre_event_totals')
-            if (savedLocal) {
-              preTotalsMap = JSON.parse(savedLocal)
-            }
           }
 
           if (regDept) {
@@ -295,6 +288,11 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
           { event: '*', schema: 'public', table: 'registration_pre_event_totals' } as any,
           () => { loadData() }
         )
+        .on(
+          'postgres_changes' as any,
+          { event: '*', schema: 'public', table: 'departments' } as any,
+          () => { loadData() }
+        )
         .subscribe()
 
       return () => {
@@ -303,7 +301,7 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
     }
   }, [])
 
-  const canEditPreTotals = userRole === 'super_admin' || userRole === 'national_coordinator' || userRole === 'hod'
+  const canEditPreTotals = userRole === 'super_admin'
 
   return (
     <Card className="glass-card border border-teal-500/30 bg-[#071524]/90 shadow-xl animate-fade-in-up my-6">

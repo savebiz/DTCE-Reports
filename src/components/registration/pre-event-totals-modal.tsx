@@ -105,7 +105,7 @@ export function PreEventRegistrationTotalsModal({
     }
   }, [isOpen, eventId])
 
-  if (!isOpen) return null
+  if (!isOpen || userRole !== 'super_admin') return null
 
   const handleSave = async () => {
     setSaving(true)
@@ -119,39 +119,45 @@ export function PreEventRegistrationTotalsModal({
         activeEventId = ev?.id
       }
 
-      if (!isMock && activeEventId) {
-        // Upsert pre-event totals for each category
-        const rows = CATEGORY_CONFIG.map(cat => ({
-          event_id: activeEventId,
-          category: cat.key,
-          total_online_registered: Number(totals[cat.key]) || 0,
-          entered_by: user?.id || null,
-          updated_at: new Date().toISOString()
-        }))
+      if (!isMock) {
+        // 1. ALWAYS update Registration department's default_metrics_schema on DB (Guaranteed cross-device persistence)
+        const { data: depts } = await supabase.from('departments').select('id, name, default_metrics_schema')
+        const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
+        if (regDept) {
+          const currentSchema = regDept.default_metrics_schema || {}
+          const updatedSchema = { ...currentSchema, pre_event_online_totals: totals }
+          const { error: deptErr } = await supabase
+            .from('departments')
+            .update({ default_metrics_schema: updatedSchema })
+            .eq('id', regDept.id)
+          if (deptErr) throw deptErr
+        }
 
-        const { error } = await supabase
-          .from('registration_pre_event_totals')
-          .upsert(rows, { onConflict: 'event_id,category' })
+        // 2. Upsert to registration_pre_event_totals table if active event ID exists
+        if (activeEventId) {
+          const rows = CATEGORY_CONFIG.map(cat => ({
+            event_id: activeEventId,
+            category: cat.key,
+            total_online_registered: Number(totals[cat.key]) || 0,
+            entered_by: user?.id || null,
+            updated_at: new Date().toISOString()
+          }))
 
-        if (error) {
-          console.warn('registration_pre_event_totals table error, using fallback persistence:', error.message)
-          const { data: depts } = await supabase.from('departments').select('id, name, default_metrics_schema')
-          const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
-          if (regDept) {
-            const currentSchema = regDept.default_metrics_schema || {}
-            const updatedSchema = { ...currentSchema, pre_event_online_totals: totals }
+          try {
             await supabase
-              .from('departments')
-              .update({ default_metrics_schema: updatedSchema })
-              .eq('id', regDept.id)
+              .from('registration_pre_event_totals')
+              .upsert(rows, { onConflict: 'event_id,category' })
+          } catch (e) {
+            // Ignore schema cache table errors gracefully as DB fallback in departments table is already saved above
           }
         }
       }
 
-      localStorage.setItem('dtce_mock_pre_event_totals', JSON.stringify(totals))
-      localStorage.setItem('dtce_pre_event_totals', JSON.stringify(totals))
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('dtce_pre_event_totals', JSON.stringify(totals))
+      }
 
-      showToast('Pre-event online registration totals saved successfully!', 'success')
+      showToast('Pre-event online registration totals saved to database successfully!', 'success')
       if (onSaved) onSaved()
       onClose()
     } catch (err: any) {
