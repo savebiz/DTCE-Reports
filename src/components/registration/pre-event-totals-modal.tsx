@@ -109,48 +109,18 @@ export function PreEventRegistrationTotalsModal({
 
   const handleSave = async () => {
     setSaving(true)
-    const supabase = getClient()
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      let activeEventId = eventId
-      if (!activeEventId && !isMock) {
-        const { data: ev } = await supabase.from('events').select('id').order('created_at', { ascending: false }).limit(1).maybeSingle()
-        activeEventId = ev?.id
-      }
+      const res = await fetch('/api/save-pre-event-totals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ totals, userRole })
+      })
 
-      if (!isMock) {
-        // 1. ALWAYS update Registration department's default_metrics_schema on DB (Guaranteed cross-device persistence)
-        const { data: depts } = await supabase.from('departments').select('id, name, default_metrics_schema')
-        const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
-        if (regDept) {
-          const currentSchema = regDept.default_metrics_schema || {}
-          const updatedSchema = { ...currentSchema, pre_event_online_totals: totals }
-          const { error: deptErr } = await supabase
-            .from('departments')
-            .update({ default_metrics_schema: updatedSchema })
-            .eq('id', regDept.id)
-          if (deptErr) throw deptErr
-        }
+      const data = await res.json()
 
-        // 2. Upsert to registration_pre_event_totals table if active event ID exists
-        if (activeEventId) {
-          const rows = CATEGORY_CONFIG.map(cat => ({
-            event_id: activeEventId,
-            category: cat.key,
-            total_online_registered: Number(totals[cat.key]) || 0,
-            entered_by: user?.id || null,
-            updated_at: new Date().toISOString()
-          }))
-
-          try {
-            await supabase
-              .from('registration_pre_event_totals')
-              .upsert(rows, { onConflict: 'event_id,category' })
-          } catch (e) {
-            // Ignore schema cache table errors gracefully as DB fallback in departments table is already saved above
-          }
-        }
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save pre-event totals')
       }
 
       if (typeof window !== 'undefined') {

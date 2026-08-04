@@ -57,47 +57,47 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
       let dailyReports: any[] = []
 
       if (!isMock) {
-        // Fetch active event
+        // 1. Fetch Registration department & authoritative pre-event online totals directly from departments table
+        const { data: depts } = await supabase
+          .from('departments')
+          .select('id, name, default_metrics_schema')
+
+        const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
+
+        if (regDept?.default_metrics_schema?.pre_event_online_totals) {
+          preTotalsMap = { ...preTotalsMap, ...regDept.default_metrics_schema.pre_event_online_totals }
+        }
+
+        // 2. Also query registration_pre_event_totals table for active event if available
         const { data: activeEvent } = await supabase.from('events').select('id').order('created_at', { ascending: false }).limit(1).maybeSingle()
 
         if (activeEvent) {
-          let hasPreData = false
-          // Fetch pre-event online totals
-          const { data: preData } = await supabase
-            .from('registration_pre_event_totals')
-            .select('category, total_online_registered')
-            .eq('event_id', activeEvent.id)
+          try {
+            const { data: preData } = await supabase
+              .from('registration_pre_event_totals')
+              .select('category, total_online_registered')
+              .eq('event_id', activeEvent.id)
 
-          if (preData && preData.length > 0) {
-            preData.forEach((row: any) => {
-              if (row.category && row.total_online_registered !== undefined) {
-                preTotalsMap[row.category] = Number(row.total_online_registered) || 0
-              }
-            })
-            hasPreData = true
+            if (preData && preData.length > 0) {
+              preData.forEach((row: any) => {
+                if (row.category && row.total_online_registered !== undefined) {
+                  preTotalsMap[row.category] = Number(row.total_online_registered) || 0
+                }
+              })
+            }
+          } catch (e) {
+            // Ignore schema cache table errors gracefully
           }
+        }
 
-          // Fetch Registration department ID and authoritative schema pre-totals from DB
-          const { data: depts } = await supabase
-            .from('departments')
-            .select('id, name, default_metrics_schema')
+        if (regDept) {
+          const { data: repData } = await supabase
+            .from('daily_reports')
+            .select('id, event_day_id, metrics_data, event_days(day_number)')
+            .eq('department_id', regDept.id)
+            .in('status', ['submitted', 'reviewed', 'approved'])
 
-          const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
-
-          if (regDept?.default_metrics_schema?.pre_event_online_totals) {
-            preTotalsMap = { ...preTotalsMap, ...regDept.default_metrics_schema.pre_event_online_totals }
-            hasPreData = true
-          }
-
-          if (regDept) {
-            const { data: repData } = await supabase
-              .from('daily_reports')
-              .select('id, event_day_id, metrics_data, event_days(day_number)')
-              .eq('department_id', regDept.id)
-              .in('status', ['submitted', 'reviewed', 'approved'])
-
-            if (repData) dailyReports = repData
-          }
+          if (repData) dailyReports = repData
         }
       } else {
         // Mock data fallback
