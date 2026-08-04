@@ -15,6 +15,7 @@ import {
   PageNumber,
   ImageRun
 } from 'docx'
+import { extractCustomMetricsSummary } from '@/utils/customMetricsSummarizer'
 
 // Colors
 const NAVY = '1B3A6B'
@@ -392,7 +393,53 @@ export async function generateDTCEConventionDocx({
           rows: metricRows
         })
 
-        mainChildren.push(deptTable, new Paragraph({ text: '', spacing: spacing(180, 180) }))
+        mainChildren.push(deptTable, new Paragraph({ text: '', spacing: spacing(120, 120) }))
+
+        // Department Custom Metrics Table (if custom schema metrics exist)
+        const customMetricsGroups = extractCustomMetricsSummary(deptReports)
+        if (customMetricsGroups.length > 0) {
+          mainChildren.push(new Paragraph({ spacing: spacing(120, 60), children: [new TextRun({ text: `${deptName} Custom Operational Metrics:`, bold: true, size: 16, color: GOLD })] }))
+
+          const customHeaders = [
+            new TableCell({ shading: { fill: SLATE_DARK }, children: [new Paragraph({ children: [new TextRun({ text: 'Category / Metric', color: 'FFFFFF', bold: true, size: 16 })] })] }),
+            new TableCell({ shading: { fill: SLATE_DARK }, children: [new Paragraph({ children: [new TextRun({ text: 'Metric Type', color: 'FFFFFF', bold: true, size: 16 })] })] }),
+            new TableCell({ shading: { fill: SLATE_DARK }, children: [new Paragraph({ children: [new TextRun({ text: 'Cumulative Total', color: 'FFFFFF', bold: true, size: 16 })] })] })
+          ]
+
+          const customRows = [
+            new TableRow({ children: customHeaders })
+          ]
+
+          let cIdx = 0
+          customMetricsGroups.forEach(group => {
+            group.items.forEach(item => {
+              cIdx++
+              customRows.push(
+                new TableRow({
+                  children: [
+                    new TableCell({ shading: { fill: cIdx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: `${group.groupTitle} — ${item.categoryOrName}` })] })] }),
+                    new TableCell({ shading: { fill: cIdx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: item.metricLabel })] })] }),
+                    new TableCell({ shading: { fill: cIdx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: item.value.toLocaleString(), bold: true })] })] })
+                  ]
+                })
+              )
+            })
+          })
+
+          const customTable = new Table({
+            width: { size: 9000, type: WidthType.DXA },
+            borders: {
+              top: { style: BorderStyle.SINGLE, size: 4, color: GRAY_BORDER },
+              bottom: { style: BorderStyle.SINGLE, size: 4, color: GRAY_BORDER },
+              left: { style: BorderStyle.SINGLE, size: 4, color: GRAY_BORDER },
+              right: { style: BorderStyle.SINGLE, size: 4, color: GRAY_BORDER },
+              insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: GRAY_BORDER }
+            },
+            rows: customRows
+          })
+
+          mainChildren.push(customTable, new Paragraph({ text: '', spacing: spacing(180, 180) }))
+        }
       }
     })
   }

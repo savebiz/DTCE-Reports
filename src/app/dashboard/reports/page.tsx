@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { generateDTCEConventionDocx } from '@/utils/docxGenerator'
+import { extractCustomMetricsSummary } from '@/utils/customMetricsSummarizer'
 import { store } from '@/utils/supabase/mockClient'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
@@ -349,27 +351,52 @@ export default function ReportsExportPage() {
                           <p className="text-[14px] text-muted-foreground font-light"><strong className="text-foreground">Highlights:</strong> {narr.highlights}</p>
                           
                           {deptReps.length > 0 && (
-                            <div className="border border-border rounded-xl overflow-hidden font-sans text-[11px] w-full max-w-md my-3.5 bg-background">
-                              <table className="w-full text-left border-collapse">
-                                <thead>
-                                  <tr className="font-bold border-b border-border text-muted-foreground bg-muted/30">
-                                    <th className="p-2 border-r border-border">Day</th>
-                                    <th className="p-2 border-r border-border text-center font-tabular">Morning</th>
-                                    <th className="p-2 border-r border-border text-center font-tabular">Evening</th>
-                                    <th className="p-2 text-center">Status</th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border text-muted-foreground">
-                                  {deptReps.map((r, rIdx) => (
-                                    <tr key={r.id}>
-                                      <td className="p-2 border-r border-border">Day {rIdx + 1}</td>
-                                      <td className="p-2 border-r border-border text-center font-mono font-semibold text-foreground">{r.attendance_morning}</td>
-                                      <td className="p-2 border-r border-border text-center font-mono font-semibold text-foreground">{r.attendance_evening}</td>
-                                      <td className="p-2 text-center uppercase tracking-wider text-[9px] font-bold text-emerald-500">{r.status}</td>
+                            <div className="space-y-3 my-3.5">
+                              <div className="border border-border rounded-xl overflow-hidden font-sans text-[11px] w-full max-w-md bg-background">
+                                <table className="w-full text-left border-collapse">
+                                  <thead>
+                                    <tr className="font-bold border-b border-border text-muted-foreground bg-muted/30">
+                                      <th className="p-2 border-r border-border">Day</th>
+                                      <th className="p-2 border-r border-border text-center font-tabular">Morning</th>
+                                      <th className="p-2 border-r border-border text-center font-tabular">Evening</th>
+                                      <th className="p-2 text-center">Status</th>
                                     </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                                  </thead>
+                                  <tbody className="divide-y divide-border text-muted-foreground">
+                                    {deptReps.map((r, rIdx) => (
+                                      <tr key={r.id}>
+                                        <td className="p-2 border-r border-border">Day {rIdx + 1}</td>
+                                        <td className="p-2 border-r border-border text-center font-mono font-semibold text-foreground">{r.attendance_morning}</td>
+                                        <td className="p-2 border-r border-border text-center font-mono font-semibold text-foreground">{r.attendance_evening}</td>
+                                        <td className="p-2 text-center uppercase tracking-wider text-[9px] font-bold text-emerald-500">{r.status}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+
+                              {extractCustomMetricsSummary(deptReps).length > 0 && (
+                                <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-500/5 font-sans text-[11px] w-full max-w-lg space-y-2">
+                                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider block">
+                                    Department Custom Operational Metrics
+                                  </span>
+                                  <div className="space-y-1.5">
+                                    {extractCustomMetricsSummary(deptReps).map(g => (
+                                      <div key={g.groupKey} className="space-y-0.5">
+                                        <span className="text-[10px] font-semibold text-foreground/80 block">{g.groupTitle}</span>
+                                        <div className="pl-2 border-l border-amber-500/30 space-y-0.5">
+                                          {g.items.map((item, idx) => (
+                                            <div key={idx} className="flex justify-between items-center text-[11px]">
+                                              <span className="text-muted-foreground">{item.categoryOrName} ({item.metricLabel}):</span>
+                                              <span className="font-mono font-bold text-foreground">{item.value.toLocaleString()}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import localforage from 'localforage'
+import { extractCustomMetricsSummary, formatCustomMetricsTextLines } from '@/utils/customMetricsSummarizer'
 
 interface Challenge {
   id: string
@@ -222,6 +223,11 @@ export default function DepartmentNarrativePage() {
           const highlightsList: string[] = []
           const chList: Challenge[] = []
           const recList: Recommendation[] = []
+
+          const customLines = formatCustomMetricsTextLines(filteredReps)
+          if (customLines.length > 0) {
+            overviewsList.push(`[DEPARTMENT CUSTOM METRICS CUMULATIVE SUMMARY]\n` + customLines.join('\n'))
+          }
 
           filteredReps.forEach((r: any, idx: number) => {
             const dn = r.metrics_data?.daily_narrative
@@ -438,6 +444,32 @@ export default function DepartmentNarrativePage() {
                   </p>
                 </div>
               </div>
+
+              {/* Department Custom Metrics Summary Card */}
+              {extractCustomMetricsSummary(reports).length > 0 && (
+                <div className="glass-card p-5 bg-card border-border space-y-3">
+                  <h4 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Department Custom Metrics Summary
+                  </h4>
+                  <div className="space-y-3">
+                    {extractCustomMetricsSummary(reports).map(group => (
+                      <div key={group.groupKey} className="rounded-xl p-3 bg-background/50 border border-border space-y-1.5">
+                        <span className="text-[10px] font-bold text-amber-500 uppercase block tracking-wider">
+                          {group.groupTitle}
+                        </span>
+                        <div className="space-y-1 text-xs">
+                          {group.items.map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center text-[11px]">
+                              <span className="text-muted-foreground font-medium">{item.categoryOrName} ({item.metricLabel}):</span>
+                              <span className="font-mono font-bold text-foreground">{item.value.toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Event stats card */}
               <div className="glass-card p-4 text-[12px] space-y-2 bg-card border-border">
