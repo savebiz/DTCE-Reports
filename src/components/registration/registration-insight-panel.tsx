@@ -174,10 +174,14 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
           trendMap[dayNum] = { dayNumber: dayNum, newRegistrations: 0, manualsDistributed: 0, revenue: 0, onlinePickups: 0 }
         }
 
-        const metrics = report.metrics_data || {}
+        const metricsRaw = report.metrics_data || {}
+        const custom = metricsRaw.custom_schema || {}
 
         // SECTION A: Online Manual Pickups
-        const onlinePickups = metrics.online_manual_pickups || []
+        const onlinePickups = (Array.isArray(custom.online_manual_pickups) && custom.online_manual_pickups.length > 0)
+          ? custom.online_manual_pickups
+          : (metricsRaw.online_manual_pickups || [])
+
         if (Array.isArray(onlinePickups)) {
           onlinePickups.forEach((item: any) => {
             const catKey = (item.category || '').toLowerCase().replace('-', '_').replace(' ', '_')
@@ -201,7 +205,9 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
         }
 
         // SECTION B: Offline / Walk-in Registration
-        const walkins = metrics.walkin_registrations || []
+        const walkins = (Array.isArray(custom.walkin_registrations) && custom.walkin_registrations.length > 0)
+          ? custom.walkin_registrations
+          : (metricsRaw.walkin_registrations || [])
         if (Array.isArray(walkins)) {
           walkins.forEach((item: any) => {
             const catKey = (item.category || '').toLowerCase().replace('-', '_').replace(' ', '_')
@@ -274,6 +280,27 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
 
   useEffect(() => {
     loadData()
+
+    if (!isMock) {
+      const supabase = getClient()
+      const channel = supabase
+        .channel('registration-insight-changes')
+        .on(
+          'postgres_changes' as any,
+          { event: '*', schema: 'public', table: 'daily_reports' } as any,
+          () => { loadData() }
+        )
+        .on(
+          'postgres_changes' as any,
+          { event: '*', schema: 'public', table: 'registration_pre_event_totals' } as any,
+          () => { loadData() }
+        )
+        .subscribe()
+
+      return () => {
+        supabase.removeChannel(channel as any)
+      }
+    }
   }, [])
 
   const canEditPreTotals = userRole === 'super_admin' || userRole === 'national_coordinator' || userRole === 'hod'

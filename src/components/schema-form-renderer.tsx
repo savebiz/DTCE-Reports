@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { NumberField } from '@/components/ui/number-field'
+import { CurrencyField } from '@/components/ui/currency-field'
 
 export interface FieldSchema {
   name: string
@@ -61,6 +62,14 @@ export function SchemaFormRenderer({ fields, value, onChange, readOnly = false }
 
       case 'number':
         const numVal = fieldValue === undefined || fieldValue === null ? 0 : Number(fieldValue)
+        const isCurrency = field.name.toLowerCase().includes('amount') ||
+                           field.name.toLowerCase().includes('collected') ||
+                           field.name.toLowerCase().includes('revenue') ||
+                           field.name.toLowerCase().includes('offering') ||
+                           field.name.toLowerCase().includes('price') ||
+                           field.label.includes('₦') ||
+                           field.label.toLowerCase().includes('amount')
+
         return (
           <div key={fieldId} className="space-y-2">
             <Label htmlFor={fieldId} className="text-sm font-medium">
@@ -68,8 +77,15 @@ export function SchemaFormRenderer({ fields, value, onChange, readOnly = false }
             </Label>
             {readOnly ? (
               <div className="rounded-md bg-slate-50 p-2.5 text-sm dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-mono">
-                {numVal}
+                {isCurrency ? `₦${numVal.toLocaleString()}` : numVal}
               </div>
+            ) : isCurrency ? (
+              <CurrencyField
+                id={fieldId}
+                value={numVal}
+                onChange={(val) => handleFieldChange(field.name, val)}
+                disabled={readOnly}
+              />
             ) : (
               <NumberField
                 id={fieldId}
