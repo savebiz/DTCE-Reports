@@ -204,27 +204,93 @@ export const mockDepartments: Department[] = [
   { id: 'dept-31', name: 'Toddlers' },
   { id: 'dept-32', name: 'Transportation' },
   { id: 'dept-33', name: 'Ushering', default_metrics_schema: {
+    schema_version: 2,
     fields: [
       {
-        name: 'services',
-        label: 'Services',
+        name: 'teachers_meeting',
         type: 'repeat-group',
+        label: "TEACHERS' MEETING",
         schema: [
-          { name: 'event_title', label: 'Service / Event Title', type: 'text' },
-          { name: 'preacher', label: 'Preacher', type: 'text' },
-          { name: 'male', label: 'Male Attendance', type: 'number' },
-          { name: 'female', label: 'Female Attendance', type: 'number' },
-          { name: 'offering', label: 'Offering Collected (₦)', type: 'number' },
+          { name: 'title', type: 'text', label: 'Title / Theme', required: false },
+          { name: 'preacher', type: 'text', label: 'Preacher / Minister', required: false },
+          { name: 'male', type: 'number', label: 'Male Attendance', required: false },
+          { name: 'female', type: 'number', label: 'Female Attendance', required: false },
           {
-            name: 'attendance_by_category',
-            label: 'Attendance by Category',
-            type: 'repeat-group',
-            schema: [
-              { name: 'category', label: 'Category', type: 'select', options: ['Toddlers', '5-9', '8-12', 'Teenagers', 'Teaching Teachers', 'Other Depts'] },
-              { name: 'male', label: 'Male', type: 'number' },
-              { name: 'female', label: 'Female', type: 'number' }
-            ]
-          }
+            name: 'total',
+            type: 'computed',
+            label: 'Total Attendance',
+            computeFormula: 'sum_fields',
+            sumOf: ['male', 'female']
+          },
+          { name: 'offering', type: 'number', label: 'Offering Collected (₦)', required: false }
+        ]
+      },
+      {
+        name: 'toddlers_section',
+        type: 'repeat-group',
+        label: 'TODDLERS SECTION',
+        schema: [
+          { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
+          { name: 'event', type: 'text', label: 'Event / Session', required: false },
+          { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
+          { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
+          { name: 'male', type: 'number', label: 'Male Attendance', required: false },
+          { name: 'female', type: 'number', label: 'Female Attendance', required: false },
+          { name: 'total', type: 'computed', label: 'Total Attendance', computeFormula: 'sum_fields', sumOf: ['male', 'female'] },
+          { name: 'teachers_male', type: 'number', label: 'Teachers (Male)', required: false },
+          { name: 'teachers_female', type: 'number', label: 'Teachers (Female)', required: false },
+          { name: 'offering', type: 'number', label: 'Offering Collected (₦)', required: false }
+        ]
+      },
+      {
+        name: 'junior_section',
+        type: 'repeat-group',
+        label: 'JUNIOR SECTION',
+        schema: [
+          { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
+          { name: 'event', type: 'text', label: 'Event / Session', required: false },
+          { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
+          { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
+          { name: 'male', type: 'number', label: 'Male Attendance', required: false },
+          { name: 'female', type: 'number', label: 'Female Attendance', required: false },
+          { name: 'total', type: 'computed', label: 'Total Attendance', computeFormula: 'sum_fields', sumOf: ['male', 'female'] },
+          { name: 'teachers_male', type: 'number', label: 'Teachers (Male)', required: false },
+          { name: 'teachers_female', type: 'number', label: 'Teachers (Female)', required: false },
+          { name: 'offering', type: 'number', label: 'Offering Collected (₦)', required: false }
+        ]
+      },
+      {
+        name: 'pre_teens_section',
+        type: 'repeat-group',
+        label: 'PRE-TEENS SECTION',
+        schema: [
+          { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
+          { name: 'event', type: 'text', label: 'Event / Session', required: false },
+          { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
+          { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
+          { name: 'male', type: 'number', label: 'Male Attendance', required: false },
+          { name: 'female', type: 'number', label: 'Female Attendance', required: false },
+          { name: 'total', type: 'computed', label: 'Total Attendance', computeFormula: 'sum_fields', sumOf: ['male', 'female'] },
+          { name: 'teachers_male', type: 'number', label: 'Teachers (Male)', required: false },
+          { name: 'teachers_female', type: 'number', label: 'Teachers (Female)', required: false },
+          { name: 'offering', type: 'number', label: 'Offering Collected (₦)', required: false }
+        ]
+      },
+      {
+        name: 'teenagers_section',
+        type: 'repeat-group',
+        label: 'TEENAGERS SECTION',
+        schema: [
+          { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
+          { name: 'event', type: 'text', label: 'Event / Session', required: false },
+          { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
+          { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
+          { name: 'male', type: 'number', label: 'Male Attendance', required: false },
+          { name: 'female', type: 'number', label: 'Female Attendance', required: false },
+          { name: 'total', type: 'computed', label: 'Total Attendance', computeFormula: 'sum_fields', sumOf: ['male', 'female'] },
+          { name: 'teachers_male', type: 'number', label: 'Teachers (Male)', required: false },
+          { name: 'teachers_female', type: 'number', label: 'Teachers (Female)', required: false },
+          { name: 'offering', type: 'number', label: 'Offering Collected (₦)', required: false }
         ]
       }
     ]
