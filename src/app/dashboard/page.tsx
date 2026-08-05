@@ -715,44 +715,44 @@ function SecretariatDashboardContent() {
           <div className="space-y-6 animate-fade-in-up">
             {/* KPI Cards Bar (Stripe Pattern Elevation & Typography) */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Reporting Submissions</span>
-                <span className="text-3xl font-extrabold font-mono text-foreground mt-2 mb-0.5 tracking-tight block">
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block truncate">Reporting Submissions</span>
+                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-foreground mt-2 mb-0.5 tracking-tight block truncate">
                   {kpis.reporting} <span className="text-xs font-sans text-muted-foreground">/ {kpis.expectedSubmissions}</span>
                 </span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">{kpis.complianceRate}% compliance</span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block truncate">{kpis.complianceRate}% compliance</span>
               </div>
 
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Missing Reports</span>
-                <span className="text-3xl font-extrabold font-mono mt-2 mb-0.5 tracking-tight block" style={{ color: kpis.missing > 0 ? '#EF4444' : '#10B981' }}>{kpis.missing}</span>
-                <span className="text-[10px] text-muted-foreground font-medium">Pending submission</span>
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block truncate">Missing Reports</span>
+                <span className="text-2xl sm:text-3xl font-extrabold font-mono mt-2 mb-0.5 tracking-tight block truncate" style={{ color: kpis.missing > 0 ? '#EF4444' : '#10B981' }}>{kpis.missing}</span>
+                <span className="text-[10px] text-muted-foreground font-medium block truncate">Pending submission</span>
               </div>
 
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">Awaiting Review</span>
-                <span className="text-3xl font-extrabold font-mono text-blue-600 dark:text-blue-400 mt-2 mb-0.5 tracking-tight block">{kpis.review}</span>
-                <span className="text-[10px] text-muted-foreground font-medium">Daily reports pending</span>
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block truncate">Awaiting Review</span>
+                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-blue-600 dark:text-blue-400 mt-2 mb-0.5 tracking-tight block truncate">{kpis.review}</span>
+                <span className="text-[10px] text-muted-foreground font-medium block truncate">Daily reports pending</span>
               </div>
 
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">Pending Store Reqs</span>
-                <span className="text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 mt-2 mb-0.5 tracking-tight block">{kpis.pendingReqs}</span>
-                <span className="text-[10px] text-muted-foreground font-medium">Requires approval</span>
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block truncate">Pending Store Reqs</span>
+                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 mt-2 mb-0.5 tracking-tight block truncate">{kpis.pendingReqs}</span>
+                <span className="text-[10px] text-muted-foreground font-medium block truncate">Requires approval</span>
               </div>
 
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Fulfilled Store Reqs</span>
-                <span className="text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2 mb-0.5 tracking-tight block">{kpis.deliveredReqs}</span>
-                <span className="text-[10px] text-muted-foreground font-medium">Delivered by Stores</span>
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block truncate">Fulfilled Store Reqs</span>
+                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2 mb-0.5 tracking-tight block truncate">{kpis.deliveredReqs}</span>
+                <span className="text-[10px] text-muted-foreground font-medium block truncate">Delivered by Stores</span>
               </div>
 
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)]">
-                <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block">Recorded Offering</span>
-                <span className="text-3xl font-extrabold font-mono text-purple-600 dark:text-purple-400 mt-2 mb-0.5 tracking-tight block">
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block truncate">Recorded Offering</span>
+                <span className="text-[1.15rem] sm:text-xl lg:text-2xl font-extrabold font-mono text-purple-600 dark:text-purple-400 mt-2 mb-0.5 tracking-tight block truncate">
                   ₦{kpis.offeringSum.toLocaleString()}
                 </span>
-                <span className="text-[10px] text-muted-foreground font-medium">
+                <span className="text-[10px] text-muted-foreground font-medium block truncate">
                   {kpis.selectedDaysLabel} aggregate
                 </span>
               </div>

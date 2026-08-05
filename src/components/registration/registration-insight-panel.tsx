@@ -5,7 +5,7 @@ import { getClient, isMock } from '@/utils/supabase'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PreEventRegistrationTotalsModal } from './pre-event-totals-modal'
-import { Globe, Users, TrendingUp, DollarSign, Edit3, Percent, CheckCircle2 } from 'lucide-react'
+import { Globe, Users, TrendingUp, Banknote, Edit3, Percent, CheckCircle2 } from 'lucide-react'
 
 interface CategoryStat {
   key: string
@@ -397,7 +397,10 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
           <div className="p-4 rounded-xl bg-teal-950/40 border border-teal-500/50 space-y-1 shadow-inner">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-teal-300 uppercase tracking-wider">Registration Fees Collected</span>
-              <DollarSign className="w-4 h-4 text-teal-400" />
+              <div className="flex items-center gap-1">
+                <Banknote className="w-4 h-4 text-teal-400" />
+                <span className="text-[11px] font-extrabold font-mono text-teal-300 border border-teal-500/50 rounded px-1 py-0.2 leading-none">₦</span>
+              </div>
             </div>
             <div className="text-2xl font-bold font-mono text-teal-300">
               ₦{totalRevenue.toLocaleString()}

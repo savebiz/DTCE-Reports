@@ -802,6 +802,17 @@ function DailyLogContent() {
     if (!newDiagText.trim()) return
     const name = newDiagText.trim().toUpperCase()
     
+    // Check if diagnosis is already present in current client options
+    if (department && department.default_metrics_schema) {
+      const diagField = department.default_metrics_schema.fields?.find((f: any) => f.name === 'diagnoses_cases')
+      const subDiag = diagField?.schema?.find((s: any) => s.name === 'diagnosis')
+      if (subDiag?.options?.some((opt: string) => opt.trim().toUpperCase() === name)) {
+        showToast(`"${name}" is already available in the diagnosis options list!`, 'info')
+        setNewDiagText('')
+        return
+      }
+    }
+
     if (isMock) {
       showToast(`Diagnosis "${name}" added locally!`, 'success')
       setNewDiagText('')
@@ -811,7 +822,7 @@ function DailyLogContent() {
         if (diagField && diagField.schema) {
           const subDiag = diagField.schema.find((s: any) => s.name === 'diagnosis')
           if (subDiag && subDiag.options) {
-            subDiag.options = [...subDiag.options, name].sort()
+            subDiag.options = Array.from(new Set([...subDiag.options, name])).sort()
           }
         }
         setDepartment({
@@ -824,13 +835,41 @@ function DailyLogContent() {
 
     const supabase = getClient()
     try {
+      // Pre-check DB for case-insensitive duplicate
+      const { data: existing } = await (supabase.from('diagnoses') as any)
+        .select('name')
+        .ilike('name', name)
+        .maybeSingle()
+
+      if (existing) {
+        showToast(`"${existing.name}" is already available in the diagnosis list!`, 'info')
+        setNewDiagText('')
+        await loadData()
+        return
+      }
+
       const { error } = await supabase.from('diagnoses').insert({ name })
-      if (error) throw error
+      if (error) {
+        if (error.code === '23505' || error.message?.includes('unique constraint') || error.message?.includes('duplicate key')) {
+          showToast(`"${name}" is already available in the diagnosis list!`, 'info')
+          setNewDiagText('')
+          await loadData()
+          return
+        }
+        throw error
+      }
+
       showToast(`Diagnosis "${name}" added to dropdown list!`, 'success')
       setNewDiagText('')
       await loadData()
     } catch (e: any) {
-      showToast(`Failed to add diagnosis: ${e.message}`, 'error')
+      if (e.code === '23505' || e.message?.includes('unique constraint') || e.message?.includes('duplicate key')) {
+        showToast(`"${name}" is already available in the diagnosis list!`, 'info')
+        setNewDiagText('')
+        await loadData()
+      } else {
+        showToast(`Unable to add diagnosis: ${e.message}`, 'error')
+      }
     }
   }
 
