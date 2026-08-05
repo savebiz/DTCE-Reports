@@ -826,8 +826,29 @@ function DailyLogContent() {
             </CardContent>
           </Card>
 
-          {/* Workforce breakdown section (Streamlined to Teachers/Helpers & Teenagers across ALL devices) */}
-          {hasWorkforce && (
+          {/* Workforce breakdown section vs Ushering 5-Section Repeat Groups */}
+          {department?.name?.toLowerCase().includes('ushering') && (metricsData.teachers_meeting || metricsData.toddlers_section || metricsData.junior_section || metricsData.pre_teens_section || metricsData.teenagers_section || !reportId) ? (
+            <Card className="glass-card border-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
+                  2. Ushering Operational Meetings &amp; Sections
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">
+                  Record attendance, leaders/preachers, and offerings across Teachers' Meeting and the 4 section tables (Toddlers, Junior, Pre-Teens, Teenagers).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {department.default_metrics_schema?.fields && (
+                  <SchemaFormRenderer
+                    fields={department.default_metrics_schema.fields}
+                    value={metricsData}
+                    onChange={setMetricsData}
+                    readOnly={isReadOnly}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          ) : hasWorkforce && (
             <Card className="glass-card border-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
@@ -1028,8 +1049,9 @@ function DailyLogContent() {
 
         {/* Right side: Schema metrics & save panel */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Custom Schema Form rendering (Conditional: rendered ONLY when custom fields exist) */}
-          {department.default_metrics_schema &&
+          {/* Custom Schema Form rendering (Conditional: rendered ONLY when custom fields exist and not Ushering main column) */}
+          {!department?.name?.toLowerCase().includes('ushering') &&
+           department.default_metrics_schema &&
            department.default_metrics_schema.fields &&
            department.default_metrics_schema.fields.length > 0 && (
             <Card className="glass-card border-none">

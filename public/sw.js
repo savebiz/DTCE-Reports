@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtce-reports-shell-v14';
+const CACHE_NAME = 'dtce-reports-shell-v15';
 
 // Core routes and static assets that constitute the app shell
 const APP_SHELL = [

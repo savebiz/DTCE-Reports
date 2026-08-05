@@ -451,8 +451,29 @@ function ManualEntryContent() {
             </CardContent>
           </Card>
 
-          {/* Section 2: Workforce Breakdown */}
-          {hasWorkforce && (
+          {/* Section 2: Workforce Breakdown vs Ushering 5-Section Repeat Groups */}
+          {selectedDept?.name?.toLowerCase().includes('ushering') && (metricsData.teachers_meeting || metricsData.toddlers_section || metricsData.junior_section || metricsData.pre_teens_section || metricsData.teenagers_section || !reportId) ? (
+            <Card className="glass-card border-border/50 shadow-xs">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground">
+                  2. Ushering Operational Meetings &amp; Sections
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">
+                  Transcribe Teachers' Meeting and the 4 section tables (Toddlers, Junior, Pre-Teens, Teenagers) from paper report.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {selectedDept.default_metrics_schema?.fields && (
+                  <SchemaFormRenderer
+                    fields={selectedDept.default_metrics_schema.fields}
+                    value={metricsData}
+                    onChange={setMetricsData}
+                    readOnly={false}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          ) : hasWorkforce && (
             <Card className="glass-card border-border/50 shadow-xs">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground">
@@ -600,8 +621,8 @@ function ManualEntryContent() {
             </CardContent>
           </Card>
 
-          {/* Section 4: Department Specific Fields */}
-          {selectedDept.default_metrics_schema?.fields && selectedDept.default_metrics_schema.fields.length > 0 && (
+          {/* Section 4: Department Specific Fields (non-Ushering only) */}
+          {!selectedDept?.name?.toLowerCase().includes('ushering') && selectedDept.default_metrics_schema?.fields && selectedDept.default_metrics_schema.fields.length > 0 && (
             <Card className="glass-card border-border/50 shadow-xs">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground">
