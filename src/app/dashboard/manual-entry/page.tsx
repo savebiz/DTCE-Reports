@@ -234,6 +234,12 @@ function ManualEntryContent() {
     setSaving(true)
     const supabase = getClient()
 
+    let finalOffering = offering
+    if (selectedDept.name.toLowerCase().includes('ushering') && (metricsData.teachers_meeting || metricsData.toddlers_section || metricsData.junior_section || metricsData.pre_teens_section || metricsData.teenagers_section || !reportId)) {
+      const sumArr = (arr: any[]) => Array.isArray(arr) ? arr.reduce((sum, r) => sum + (Number(r?.offering) || 0), 0) : 0
+      finalOffering = sumArr(metricsData.teachers_meeting) + sumArr(metricsData.toddlers_section) + sumArr(metricsData.junior_section) + sumArr(metricsData.pre_teens_section) + sumArr(metricsData.teenagers_section)
+    }
+
     const payload = {
       event_id: selectedDay.event_id || 'evt-1',
       event_day_id: selectedDay.id,
@@ -246,7 +252,8 @@ function ManualEntryContent() {
       metrics_data: {
         custom_schema: metricsData,
         workforce,
-        offering,
+        offering: finalOffering,
+        schema_version: selectedDept.name.toLowerCase().includes('ushering') ? 2 : undefined,
         daily_narrative: {
           overview: dailyOverview,
           achievements: dailyAchievements,
@@ -532,21 +539,64 @@ function ManualEntryContent() {
                 3. Collections &amp; Financials
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Record total financial offering collected on the paper report for this day.
+                {selectedDept?.name?.toLowerCase().includes('ushering') && (metricsData.teachers_meeting || metricsData.toddlers_section || metricsData.junior_section || metricsData.pre_teens_section || metricsData.teenagers_section || !reportId)
+                  ? 'Auto-computed from section offering collections'
+                  : 'Record total financial offering collected on the paper report for this day.'}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-1.5 max-w-sm">
-                <Label htmlFor="offering-input" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                  Total Offering Collected
-                </Label>
-                <CurrencyField
-                  id="offering-input"
-                  value={offering}
-                  onChange={setOffering}
-                  className="h-10 font-mono text-base"
-                />
-              </div>
+              {selectedDept?.name?.toLowerCase().includes('ushering') && (metricsData.teachers_meeting || metricsData.toddlers_section || metricsData.junior_section || metricsData.pre_teens_section || metricsData.teenagers_section || !reportId) ? (
+                (() => {
+                  const sumArr = (arr: any[]) => Array.isArray(arr) ? arr.reduce((sum, r) => sum + (Number(r?.offering) || 0), 0) : 0
+                  const tm = sumArr(metricsData.teachers_meeting)
+                  const tod = sumArr(metricsData.toddlers_section)
+                  const jun = sumArr(metricsData.junior_section)
+                  const pt = sumArr(metricsData.pre_teens_section)
+                  const tn = sumArr(metricsData.teenagers_section)
+                  const total = tm + tod + jun + pt + tn
+
+                  return (
+                    <div className="space-y-2.5 font-mono text-xs max-w-md">
+                      <div className="flex justify-between items-center py-1.5 border-b border-border/40">
+                        <span className="text-muted-foreground font-sans font-medium">Teachers' Meeting:</span>
+                        <span className="font-bold text-foreground">₦{tm.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1.5 border-b border-border/40">
+                        <span className="text-muted-foreground font-sans font-medium">Toddlers Section:</span>
+                        <span className="font-bold text-foreground">₦{tod.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1.5 border-b border-border/40">
+                        <span className="text-muted-foreground font-sans font-medium">Junior Section:</span>
+                        <span className="font-bold text-foreground">₦{jun.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1.5 border-b border-border/40">
+                        <span className="text-muted-foreground font-sans font-medium">Pre-Teens Section:</span>
+                        <span className="font-bold text-foreground">₦{pt.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-1.5 border-b border-border/40">
+                        <span className="text-muted-foreground font-sans font-medium">Teenagers Section:</span>
+                        <span className="font-bold text-foreground">₦{tn.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-2 text-sm border-t-2 border-emerald-500/50">
+                        <span className="font-bold text-emerald-500 font-sans uppercase tracking-wider">Grand Total Offering:</span>
+                        <span className="font-extrabold text-emerald-400 font-mono text-base">₦{total.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  )
+                })()
+              ) : (
+                <div className="space-y-1.5 max-w-sm">
+                  <Label htmlFor="offering-input" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                    Total Offering Collected
+                  </Label>
+                  <CurrencyField
+                    id="offering-input"
+                    value={offering}
+                    onChange={setOffering}
+                    className="h-10 font-mono text-base"
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -38,6 +38,11 @@ function formatGroupTitle(key: string): string {
     items_issued: 'Inventory & Items Issued',
     meals_served: 'Meals & Food Distribution',
     services: 'Service Collections & Attendance',
+    teachers_meeting: "Teachers' Meeting",
+    toddlers_section: "Toddlers Section",
+    junior_section: "Junior Section",
+    pre_teens_section: "Pre-Teens Section",
+    teenagers_section: "Teenagers Section",
   }
   if (titles[key]) return titles[key]
   return key
@@ -59,7 +64,7 @@ export function extractCustomMetricsSummary(reports: any[]): CustomMetricGroupSu
 
     Object.keys(custom).forEach(key => {
       // Exclude standard non-custom fields
-      if (['offering', 'workforce', 'daily_narrative', 'attendance_morning', 'attendance_evening'].includes(key)) return
+      if (['offering', 'workforce', 'daily_narrative', 'attendance_morning', 'attendance_evening', 'proxy_entry'].includes(key)) return
 
       const val = custom[key]
       if (Array.isArray(val) && val.length > 0) {
@@ -67,12 +72,12 @@ export function extractCustomMetricsSummary(reports: any[]): CustomMetricGroupSu
 
         val.forEach((item: any) => {
           if (typeof item !== 'object' || item === null) return
-          const catName = item.category || item.diagnosis || item.item_name || item.name || item.type || item.group || 'General'
+          const catName = item.category || item.diagnosis || item.item_name || item.name || item.type || item.group || item.event || item.title || 'General'
 
           if (!groupsMap[key][catName]) groupsMap[key][catName] = {}
 
           Object.keys(item).forEach(prop => {
-            if (['category', 'diagnosis', 'item_name', 'name', 'type', 'group'].includes(prop)) return
+            if (['category', 'diagnosis', 'item_name', 'name', 'type', 'group', 's_n', 'event', 'title', 'preacher', 'preacher_or_invited_guest', 'title_and_bible_text'].includes(prop)) return
             const numVal = Number(item[prop])
             if (!isNaN(numVal) && numVal > 0) {
               groupsMap[key][catName][prop] = (groupsMap[key][catName][prop] || 0) + numVal

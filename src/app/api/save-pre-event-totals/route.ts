@@ -1,6 +1,39 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+export async function GET() {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json({ error: 'Server credentials missing' }, { status: 500 })
+    }
+
+    const adminSupabase = createClient(supabaseUrl, serviceRoleKey)
+    const { data: depts } = await adminSupabase.from('departments').select('id, name, default_metrics_schema')
+    const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
+
+    const totals = regDept?.default_metrics_schema?.pre_event_online_totals || { teachers: 0, teens: 0, pre_teens: 0, children: 0 }
+
+    return NextResponse.json(
+      { success: true, totals },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
+    )
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Internal error' }, { status: 500 })
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json()

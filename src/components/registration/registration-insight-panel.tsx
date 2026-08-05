@@ -57,7 +57,20 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
       let dailyReports: any[] = []
 
       if (!isMock) {
-        // 1. Fetch Registration department & authoritative pre-event online totals directly from departments table
+        // 1. Unconditionally fetch fresh pre-event online totals from server API (bypassing any Desktop/Mobile PWA cache)
+        try {
+          const apiRes = await fetch(`/api/save-pre-event-totals?t=${Date.now()}`, { cache: 'no-store' })
+          if (apiRes.ok) {
+            const apiData = await apiRes.json()
+            if (apiData?.totals) {
+              preTotalsMap = { ...preTotalsMap, ...apiData.totals }
+            }
+          }
+        } catch (e) {
+          console.warn('API pre-totals fetch fallback:', e)
+        }
+
+        // 2. Also fetch Registration department directly from departments table
         const { data: depts } = await supabase
           .from('departments')
           .select('id, name, default_metrics_schema')
