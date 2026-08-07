@@ -192,7 +192,7 @@ export default function ReportsExportPage() {
 
               <div className="p-3.5 rounded-xl text-[12px] text-muted-foreground space-y-2.5 bg-muted/20 border border-border">
                 <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Branded Letterhead</p>
-                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> All {departments.length || 42} Departments</p>
+                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> All {departments.length || 43} Departments</p>
                 <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Specialized Tables (Ushering, Medical, Reg, Welfare, Stores)</p>
                 <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Income &amp; Expenditure Appendix</p>
               </div>
@@ -307,10 +307,10 @@ export default function ReportsExportPage() {
                 <div className="space-y-3">
                   <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">1. Executive Summary</h3>
                   <p className="text-[14px] text-muted-foreground font-light">
-                    This consolidated report presents the administrative, attendance, and operational metrics of the Junior Church Global Secretariat during the {event?.name || 'Annual Convention'}. It compiles metrics from all {departments.length || 42} departments tasked with delegate management, welfare, medical care, and logistics.
+                    This consolidated report presents the administrative, attendance, and operational metrics of the Junior Church Global Secretariat during the {event?.name || 'Annual Convention'}. It compiles metrics from all {departments.length || 43} departments tasked with delegate management, welfare, medical care, and logistics.
                   </p>
                   <p className="text-[12px] italic text-muted-foreground font-sans bg-muted/20 p-2 rounded border border-border/50">
-                    📊 Data freshness: {reports.length > 0 ? `${new Set(reports.map(r => r.department_id)).size} of ${departments.length || 42} departments have submitted daily data. ${eoeNarratives.length} of ${departments.length || 42} departments have finalized end-of-event narratives.` : 'No daily data submitted yet.'}
+                    📊 Data freshness: {reports.length > 0 ? `${new Set(reports.map(r => r.department_id)).size} of ${departments.length || 43} departments have submitted daily data. ${eoeNarratives.length} of ${departments.length || 43} departments have finalized end-of-event narratives.` : 'No daily data submitted yet.'}
                   </p>
                 </div>
 
@@ -353,7 +353,7 @@ export default function ReportsExportPage() {
 
                 {/* 3. Departmental Reports */}
                 <div className="space-y-6">
-                  <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">3. Departmental Reports (All {departments.length || 42} Departments)</h3>
+                  <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">3. Departmental Reports (All {departments.length || 43} Departments)</h3>
                   
                   {departments.slice().sort((a,b) => a.name.localeCompare(b.name)).map((dept) => {
                     const narr = eoeNarratives.find(n => n.department_id === dept.id)

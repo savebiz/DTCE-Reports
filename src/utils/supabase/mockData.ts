@@ -318,7 +318,8 @@ export const mockDepartments: Department[] = [
   { id: 'dept-39', name: 'Media' },
   { id: 'dept-40', name: 'DTCE Ambassadors' },
   { id: 'dept-41', name: 'National Competitions Committee' },
-  { id: 'dept-42', name: 'Games, Arts & Crafts' }
+  { id: 'dept-42', name: 'Games, Arts & Crafts' },
+  { id: 'dept-43', name: 'Secondary School Outreach' }
 ]
 
 // Dynamically assign schemas to all departments
