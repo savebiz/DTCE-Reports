@@ -374,7 +374,9 @@ export function extractDailyNarrativeChallenges(
   const recommendations: DailyNarrativeRecommendation[] = []
 
   const dayMap: Record<string, number> = {}
-  eventDays.forEach((ed: any) => { dayMap[ed.id] = ed.day_number })
+  if (Array.isArray(eventDays)) {
+    eventDays.forEach((ed: any) => { dayMap[ed.id] = ed.day_number })
+  }
 
   reports.forEach(r => {
     const mData = r.metrics_data || {}
@@ -400,4 +402,207 @@ export function extractDailyNarrativeChallenges(
   })
 
   return { challenges, recommendations }
+}
+
+// ── All Consolidated Challenges & Recommendations Extractor ─────────────
+export interface ConsolidatedChallengeItem {
+  id?: string
+  departmentName: string
+  departmentId: string
+  source: string // e.g. 'End-of-Event Narrative', 'Day 1 Log'
+  text: string
+}
+
+export interface ConsolidatedRecommendationItem {
+  departmentName: string
+  departmentId: string
+  source: string
+  text: string
+  linkedChallengeId?: string
+}
+
+export function extractAllConsolidatedChallenges(
+  reports: any[],
+  narratives: any[],
+  departments: any[],
+  eventDays: any[]
+): { challenges: ConsolidatedChallengeItem[]; recommendations: ConsolidatedRecommendationItem[] } {
+  const challenges: ConsolidatedChallengeItem[] = []
+  const recommendations: ConsolidatedRecommendationItem[] = []
+
+  const dayMap: Record<string, number> = {}
+  if (Array.isArray(eventDays)) {
+    eventDays.forEach((ed: any) => { dayMap[ed.id] = ed.day_number })
+  }
+
+  // 1. Process End-of-Event and Daily Narratives from `department_narratives` table
+  if (Array.isArray(narratives)) {
+    narratives.forEach(n => {
+      const dept = departments.find((d: any) => d.id === n.department_id)
+      const deptName = dept?.name || 'Department'
+      const deptId = n.department_id || ''
+
+      // Structured challenges_json (End-of-event)
+      if (Array.isArray(n.challenges_json)) {
+        n.challenges_json.forEach((ch: any) => {
+          if (ch && ch.text && ch.text.trim()) {
+            challenges.push({
+              id: ch.id || undefined,
+              departmentName: deptName,
+              departmentId: deptId,
+              source: n.is_end_of_event ? 'End-of-Event' : 'Daily Narrative',
+              text: ch.text.trim()
+            })
+          }
+        })
+      }
+
+      // Legacy string challenge field
+      if (n.challenges && typeof n.challenges === 'string' && n.challenges.trim()) {
+        const exists = challenges.some(c => c.departmentId === deptId && c.text === n.challenges.trim())
+        if (!exists) {
+          challenges.push({
+            departmentName: deptName,
+            departmentId: deptId,
+            source: n.is_end_of_event ? 'End-of-Event' : 'Daily Narrative',
+            text: n.challenges.trim()
+          })
+        }
+      }
+
+      // Structured recommendations_json (End-of-event)
+      if (Array.isArray(n.recommendations_json)) {
+        n.recommendations_json.forEach((rec: any) => {
+          if (rec && rec.text && rec.text.trim()) {
+            recommendations.push({
+              departmentName: deptName,
+              departmentId: deptId,
+              source: n.is_end_of_event ? 'End-of-Event' : 'Daily Narrative',
+              text: rec.text.trim(),
+              linkedChallengeId: rec.linked_challenge_id || undefined
+            })
+          }
+        })
+      }
+
+      // Legacy string solutions field
+      if (n.solutions && typeof n.solutions === 'string' && n.solutions.trim()) {
+        const exists = recommendations.some(r => r.departmentId === deptId && r.text === n.solutions.trim())
+        if (!exists) {
+          recommendations.push({
+            departmentName: deptName,
+            departmentId: deptId,
+            source: n.is_end_of_event ? 'End-of-Event' : 'Daily Narrative',
+            text: n.solutions.trim()
+          })
+        }
+      }
+    })
+  }
+
+  // 2. Process Daily Narratives embedded inside `daily_reports` metrics_data
+  if (Array.isArray(reports)) {
+    reports.forEach((r, idx) => {
+      const dept = departments.find((d: any) => d.id === r.department_id)
+      const deptName = dept?.name || 'Department'
+      const deptId = r.department_id || ''
+      const dayNum = dayMap[r.event_day_id] || (idx + 1)
+      const dayLabel = `Day ${dayNum}`
+
+      const mData = r.metrics_data || {}
+      const dNarrative = mData.daily_narrative || mData.custom_schema?.daily_narrative || {}
+
+      // Daily Challenge
+      const challText = dNarrative.challenges || mData.challenges || mData.custom_schema?.challenges || ''
+      if (typeof challText === 'string' && challText.trim()) {
+        const exists = challenges.some(c => c.departmentId === deptId && c.text === challText.trim())
+        if (!exists) {
+          challenges.push({
+            departmentName: deptName,
+            departmentId: deptId,
+            source: `${dayLabel} Log`,
+            text: challText.trim()
+          })
+        }
+      }
+
+      // Daily Recommendation / Solution
+      const solText = dNarrative.recommendations || dNarrative.solutions || mData.solutions || ''
+      if (typeof solText === 'string' && solText.trim()) {
+        const exists = recommendations.some(rec => rec.departmentId === deptId && rec.text === solText.trim())
+        if (!exists) {
+          recommendations.push({
+            departmentName: deptName,
+            departmentId: deptId,
+            source: `${dayLabel} Log`,
+            text: solText.trim()
+          })
+        }
+      }
+    })
+  }
+
+  return { challenges, recommendations }
+}
+
+// ── Department Qualitative Narrative Logs Extractor ──────────────────────
+export interface DailyQualitativeLog {
+  dayLabel: string
+  overview?: string
+  achievements?: string
+  challenges?: string
+  recommendations?: string
+  plansForTomorrow?: string
+  feedback?: string
+}
+
+export function extractDepartmentQualitativeLogs(
+  deptId: string,
+  reports: any[],
+  narratives: any[],
+  eventDays: any[]
+): DailyQualitativeLog[] {
+  const logs: DailyQualitativeLog[] = []
+  const dayMap: Record<string, number> = {}
+  if (Array.isArray(eventDays)) {
+    eventDays.forEach((ed: any) => { dayMap[ed.id] = ed.day_number })
+  }
+
+  const deptReports = reports.filter((r: any) => r.department_id === deptId)
+  const sortedReports = [...deptReports].sort((a: any, b: any) => {
+    const dayA = dayMap[a.event_day_id] || 0
+    const dayB = dayMap[b.event_day_id] || 0
+    return dayA - dayB
+  })
+
+  sortedReports.forEach((r, idx) => {
+    const dayNum = dayMap[r.event_day_id] || (idx + 1)
+    const dayLabel = `Day ${dayNum}`
+    const mData = r.metrics_data || {}
+    const dNarrative = mData.daily_narrative || mData.custom_schema?.daily_narrative || {}
+
+    // Check matching department narrative for this report if any
+    const deptNarrative = narratives.find((n: any) => n.daily_report_id === r.id)
+
+    const overview = dNarrative.overview || deptNarrative?.overview || ''
+    const achievements = dNarrative.achievements || deptNarrative?.key_achievements || ''
+    const challenges = dNarrative.challenges || deptNarrative?.challenges || ''
+    const recommendations = dNarrative.recommendations || dNarrative.solutions || deptNarrative?.solutions || ''
+    const plansForTomorrow = dNarrative.plans_for_tomorrow || deptNarrative?.plans_for_tomorrow || ''
+    const feedback = dNarrative.feedback || deptNarrative?.feedback || ''
+
+    if (overview || achievements || challenges || recommendations || plansForTomorrow || feedback) {
+      logs.push({
+        dayLabel,
+        overview: overview.trim() || undefined,
+        achievements: achievements.trim() || undefined,
+        challenges: challenges.trim() || undefined,
+        recommendations: recommendations.trim() || undefined,
+        plansForTomorrow: plansForTomorrow.trim() || undefined,
+        feedback: feedback.trim() || undefined,
+      })
+    }
+  })
+
+  return logs
 }

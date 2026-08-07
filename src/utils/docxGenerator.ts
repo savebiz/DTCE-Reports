@@ -20,7 +20,8 @@ import {
   extractUsheringV2Summary,
   extractRegistrationTwoChannelSummary,
   extractOfferingSummary,
-  extractDailyNarrativeChallenges
+  extractAllConsolidatedChallenges,
+  extractDepartmentQualitativeLogs
 } from '@/utils/customMetricsSummarizer'
 
 // Colors
@@ -322,7 +323,8 @@ export async function generateDTCEConventionDocx({
   mainChildren.push(createHeading1('1. Executive Summary'))
 
   const deptsWithData = new Set(reports.map(r => r.department_id))
-  const deptsWithNarratives = new Set(narratives.filter(n => n.is_end_of_event).map(n => n.department_id))
+  const endOfEventNarratives = narratives.filter(n => n.is_end_of_event === true)
+  const deptsWithNarratives = new Set(endOfEventNarratives.map(n => n.department_id))
 
   mainChildren.push(
     new Paragraph({
@@ -419,8 +421,6 @@ export async function generateDTCEConventionDocx({
   // ── SECTION 3: All Departmental Reports ──────────────────────────────
   mainChildren.push(createHeading1('3. Departmental Reports'))
 
-  const endOfEventNarratives = narratives.filter(n => n.is_end_of_event === true)
-
   sortedDepts.forEach((dept) => {
     const deptName = dept.name || 'Department'
     const deptId = dept.id
@@ -439,7 +439,7 @@ export async function generateDTCEConventionDocx({
       (deptNarrative ? '. End-of-event narrative: Finalized.' : '. End-of-event narrative: Pending.')
     ))
 
-    // ── Narrative Section ──
+    // ── End-of-Event Narrative Overview & Highlights ──
     if (deptNarrative) {
       if (deptNarrative.overview) {
         mainChildren.push(createNarrativeProse(deptNarrative.overview))
@@ -465,6 +465,78 @@ export async function generateDTCEConventionDocx({
         })
       )
       return // Skip to next department
+    }
+
+    // ── Daily Qualitative Narrative Logs ──
+    const dailyQualLogs = extractDepartmentQualitativeLogs(deptId, reports, narratives, eventDays || [])
+    if (dailyQualLogs.length > 0) {
+      mainChildren.push(createHeading3(`${deptName} — Daily Operational & Qualitative Logs`))
+      dailyQualLogs.forEach(qLog => {
+        mainChildren.push(
+          new Paragraph({
+            spacing: spacing(80, 40),
+            children: [
+              new TextRun({ text: `📌 ${qLog.dayLabel} Log:`, bold: true, color: NAVY, font: 'Outfit', size: 18 })
+            ]
+          })
+        )
+        if (qLog.overview) {
+          mainChildren.push(
+            new Paragraph({
+              spacing: spacing(40, 40),
+              children: [
+                new TextRun({ text: 'Overview: ', bold: true, color: SLATE_DARK, font: 'Outfit' }),
+                new TextRun({ text: qLog.overview, font: 'Outfit' })
+              ]
+            })
+          )
+        }
+        if (qLog.achievements) {
+          mainChildren.push(
+            new Paragraph({
+              spacing: spacing(40, 40),
+              children: [
+                new TextRun({ text: 'Activities & Achievements: ', bold: true, color: SLATE_DARK, font: 'Outfit' }),
+                new TextRun({ text: qLog.achievements, font: 'Outfit' })
+              ]
+            })
+          )
+        }
+        if (qLog.challenges) {
+          mainChildren.push(
+            new Paragraph({
+              spacing: spacing(40, 40),
+              children: [
+                new TextRun({ text: 'Challenges Encountered: ', bold: true, color: GOLD, font: 'Outfit' }),
+                new TextRun({ text: qLog.challenges, font: 'Outfit' })
+              ]
+            })
+          )
+        }
+        if (qLog.recommendations) {
+          mainChildren.push(
+            new Paragraph({
+              spacing: spacing(40, 40),
+              children: [
+                new TextRun({ text: 'Solutions & Recommendations: ', bold: true, color: TEAL, font: 'Outfit' }),
+                new TextRun({ text: qLog.recommendations, font: 'Outfit' })
+              ]
+            })
+          )
+        }
+        if (qLog.plansForTomorrow) {
+          mainChildren.push(
+            new Paragraph({
+              spacing: spacing(40, 40),
+              children: [
+                new TextRun({ text: 'Plans / Follow-up: ', bold: true, color: SLATE_DARK, font: 'Outfit' }),
+                new TextRun({ text: qLog.plansForTomorrow, font: 'Outfit' })
+              ]
+            })
+          )
+        }
+      })
+      mainChildren.push(new Paragraph({ text: '', spacing: spacing(60, 60) }))
     }
 
     if (deptReports.length === 0) return // No daily data to render
@@ -827,138 +899,77 @@ export async function generateDTCEConventionDocx({
   // ── SECTION 4: Consolidated Challenges & Observations ────────────────
   mainChildren.push(createHeading1('4. Consolidated Challenges & Observations'))
 
-  let challengeCount = 0
+  const consolidatedData = extractAllConsolidatedChallenges(reports, narratives, departments, eventDays || [])
 
-  // 4a. End-of-event narrative challenges
-  endOfEventNarratives.forEach((narrative) => {
-    const dept = departments.find(d => d.id === narrative.department_id)
-    const chs = narrative.challenges_json || []
-
-    if (chs.length > 0) {
-      mainChildren.push(new Paragraph({ spacing: spacing(120, 60), children: [new TextRun({ text: `${dept?.name || 'Department'} (End-of-Event)`, bold: true, color: SLATE_DARK, size: 18, font: 'Outfit' })] }))
-      chs.forEach((ch: any) => {
-        challengeCount++
-        mainChildren.push(
-          new Paragraph({
-            bullet: { level: 0 },
-            spacing: spacing(40, 40),
-            children: [
-              new TextRun({ text: `[${ch.id}] `, bold: true, color: GOLD, font: 'Outfit' }),
-              new TextRun({ text: ch.text, font: 'Outfit' })
-            ]
-          })
-        )
-      })
-    }
-  })
-
-  // 4b. Daily narrative challenges
-  const dailyNarrativeData = extractDailyNarrativeChallenges(reports, departments, eventDays || [])
-
-  if (dailyNarrativeData.challenges.length > 0) {
-    mainChildren.push(new Paragraph({ spacing: spacing(180, 60), children: [new TextRun({ text: 'Daily Report Challenges', bold: true, color: NAVY, size: 20, font: 'Outfit' })] }))
-
-    // Group by department
-    const challByDept: Record<string, typeof dailyNarrativeData.challenges> = {}
-    dailyNarrativeData.challenges.forEach(c => {
+  if (consolidatedData.challenges.length > 0) {
+    // Group challenges by Department
+    const challByDept: Record<string, typeof consolidatedData.challenges> = {}
+    consolidatedData.challenges.forEach(c => {
       if (!challByDept[c.departmentName]) challByDept[c.departmentName] = []
       challByDept[c.departmentName].push(c)
     })
 
     Object.entries(challByDept).sort(([a], [b]) => a.localeCompare(b)).forEach(([deptName, challs]) => {
-      mainChildren.push(new Paragraph({ spacing: spacing(80, 40), children: [new TextRun({ text: deptName, bold: true, color: SLATE_DARK, size: 18, font: 'Outfit' })] }))
+      mainChildren.push(new Paragraph({ spacing: spacing(120, 60), children: [new TextRun({ text: deptName, bold: true, color: SLATE_DARK, size: 18, font: 'Outfit' })] }))
       challs.forEach(c => {
-        challengeCount++
+        const badge = c.id ? `[${c.id}] ` : `[${c.source}] `
         mainChildren.push(
           new Paragraph({
             bullet: { level: 0 },
             spacing: spacing(40, 40),
             children: [
-              new TextRun({ text: `[${c.dayLabel}] `, bold: true, color: '64748B', font: 'Outfit', size: 16 }),
+              new TextRun({ text: badge, bold: true, color: GOLD, font: 'Outfit' }),
               new TextRun({ text: c.text, font: 'Outfit' })
             ]
           })
         )
       })
     })
-  }
-
-  if (challengeCount === 0) {
+  } else {
     mainChildren.push(
       new Paragraph({
         children: [
-          new TextRun({ text: 'No challenges logged by any department.', italics: true, color: '64748B', font: 'Outfit' })
+          new TextRun({ text: 'No operational challenges logged by any department.', italics: true, color: '64748B', font: 'Outfit' })
         ]
       })
     )
   }
 
   mainChildren.push(createFreshnessLine(
-    `Based on ${deptsWithNarratives.size} of ${sortedDepts.length} departments with finalized end-of-event narratives, plus daily log entries.`
+    `Consolidated from ${consolidatedData.challenges.length} challenge entries across end-of-event narratives and daily logs.`
   ))
 
   // ── SECTION 5: Strategic Recommendations ─────────────────────────────
   mainChildren.push(createHeading1('5. Strategic Recommendations & Corrective Actions'))
 
-  let recommendationCount = 0
-
-  // 5a. End-of-event narrative recommendations
-  endOfEventNarratives.forEach((narrative) => {
-    const dept = departments.find(d => d.id === narrative.department_id)
-    const recs = narrative.recommendations_json || []
-
-    if (recs.length > 0) {
-      mainChildren.push(new Paragraph({ spacing: spacing(120, 60), children: [new TextRun({ text: `${dept?.name || 'Department'} (End-of-Event)`, bold: true, color: SLATE_DARK, size: 18, font: 'Outfit' })] }))
-      recs.forEach((rec: any) => {
-        recommendationCount++
-        const linkedText = rec.linked_challenge_id ? ` (Linked to Challenge ${rec.linked_challenge_id})` : ''
-        mainChildren.push(
-          new Paragraph({
-            bullet: { level: 0 },
-            spacing: spacing(40, 40),
-            children: [
-              new TextRun({ text: rec.text, font: 'Outfit' }),
-              new TextRun({ text: linkedText, italics: true, color: '64748B', size: 16, font: 'Outfit' })
-            ]
-          })
-        )
-      })
-    }
-  })
-
-  // 5b. Daily narrative recommendations/solutions
-  if (dailyNarrativeData.recommendations.length > 0) {
-    mainChildren.push(new Paragraph({ spacing: spacing(180, 60), children: [new TextRun({ text: 'Daily Report Recommendations & Solutions', bold: true, color: NAVY, size: 20, font: 'Outfit' })] }))
-
-    const recsByDept: Record<string, typeof dailyNarrativeData.recommendations> = {}
-    dailyNarrativeData.recommendations.forEach(r => {
+  if (consolidatedData.recommendations.length > 0) {
+    const recsByDept: Record<string, typeof consolidatedData.recommendations> = {}
+    consolidatedData.recommendations.forEach(r => {
       if (!recsByDept[r.departmentName]) recsByDept[r.departmentName] = []
       recsByDept[r.departmentName].push(r)
     })
 
     Object.entries(recsByDept).sort(([a], [b]) => a.localeCompare(b)).forEach(([deptName, recs]) => {
-      mainChildren.push(new Paragraph({ spacing: spacing(80, 40), children: [new TextRun({ text: deptName, bold: true, color: SLATE_DARK, size: 18, font: 'Outfit' })] }))
+      mainChildren.push(new Paragraph({ spacing: spacing(120, 60), children: [new TextRun({ text: deptName, bold: true, color: SLATE_DARK, size: 18, font: 'Outfit' })] }))
       recs.forEach(r => {
-        recommendationCount++
+        const linkedText = r.linkedChallengeId ? ` (Linked to Challenge ${r.linkedChallengeId})` : ` [${r.source}]`
         mainChildren.push(
           new Paragraph({
             bullet: { level: 0 },
             spacing: spacing(40, 40),
             children: [
-              new TextRun({ text: `[${r.dayLabel}] `, bold: true, color: '64748B', font: 'Outfit', size: 16 }),
-              new TextRun({ text: r.text, font: 'Outfit' })
+              new TextRun({ text: r.text, font: 'Outfit' }),
+              new TextRun({ text: linkedText, italics: true, color: '64748B', size: 16, font: 'Outfit' })
             ]
           })
         )
       })
     })
-  }
-
-  if (recommendationCount === 0) {
+  } else {
     mainChildren.push(
       new Paragraph({
         children: [
-          new TextRun({ text: 'No recommendations logged by any department.', italics: true, color: '64748B', font: 'Outfit' })
+          new TextRun({ text: 'No strategic recommendations logged by any department.', italics: true, color: '64748B', font: 'Outfit' })
         ]
       })
     )

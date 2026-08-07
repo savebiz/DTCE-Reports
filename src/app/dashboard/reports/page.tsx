@@ -2,14 +2,14 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getClient, mockDepartments, mockEventDays, mockEvents, Profile, DailyReport, Department } from '@/utils/supabase'
+import { getClient, mockDepartments, mockEventDays, Profile, DailyReport, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
-import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { generateDTCEConventionDocx } from '@/utils/docxGenerator'
-import { extractCustomMetricsSummary } from '@/utils/customMetricsSummarizer'
+import {
+  extractCustomMetricsSummary,
+  extractAllConsolidatedChallenges,
+  extractDepartmentQualitativeLogs,
+  extractOfferingSummary
+} from '@/utils/customMetricsSummarizer'
 import { store } from '@/utils/supabase/mockClient'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
@@ -23,6 +23,7 @@ export default function ReportsExportPage() {
   const [departments, setDepartments] = useState<Department[]>([])
   const [reports, setReports] = useState<DailyReport[]>([])
   const [narratives, setNarratives] = useState<any[]>([])
+  const [eventDays, setEventDays] = useState<any[]>([])
   
   // Form controls
   const [exportLabel, setExportLabel] = useState('First Draft')
@@ -49,9 +50,9 @@ export default function ReportsExportPage() {
       .single()
 
     if (prof) {
-      // Check authorization (Exclusively Secretariat super_admin)
-      if (prof.role !== 'super_admin') {
-        showToast('Forbidden: Report generation/export is restricted exclusively to Secretariat Super Admins.', 'error')
+      // Check authorization (Exclusively Secretariat super_admin or coordinator)
+      if (prof.role !== 'super_admin' && prof.role !== 'coordinator' && prof.role !== 'national_coordinator') {
+        showToast('Forbidden: Report generation/export is restricted exclusively to Secretariat and Admins.', 'error')
         router.push('/dashboard')
         return
       }
@@ -68,6 +69,9 @@ export default function ReportsExportPage() {
 
       const { data: narrs } = await supabase.from('department_narratives').select('*')
       setNarratives(narrs || [])
+
+      const { data: eDays } = await supabase.from('event_days').select('*')
+      setEventDays(eDays || mockEventDays)
 
       const { data: logs } = await supabase.from('notification_logs').select('*')
       setNotifLogs(logs || [])
@@ -120,8 +124,10 @@ export default function ReportsExportPage() {
     }, 1500)
   }
 
-  // Filter end-of-event reports
+  // Derived datasets
   const eoeNarratives = narratives.filter(n => n.is_end_of_event === true)
+  const consolidated = extractAllConsolidatedChallenges(reports, narratives, departments, eventDays)
+  const offeringBreakdown = extractOfferingSummary(reports, departments)
 
   return (
     <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
@@ -179,8 +185,9 @@ export default function ReportsExportPage() {
 
               <div className="p-3.5 rounded-xl text-[12px] text-muted-foreground space-y-2.5 bg-muted/20 border border-border">
                 <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Branded Letterhead</p>
-                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Embedded Tables</p>
-                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Aggregated Summaries</p>
+                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> All 41 Departments</p>
+                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Daily Narrative &amp; Qualitative Logs</p>
+                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Income &amp; Expenditure Appendix</p>
               </div>
 
               <button
@@ -323,7 +330,7 @@ export default function ReportsExportPage() {
                           </tr>
                         ) : (
                           ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'].map((dayLabel, idx) => {
-                            const dayReports = reports.filter(r => r.event_day_id === `day-${idx+1}`)
+                            const dayReports = reports.filter(r => r.event_day_id === `day-${idx+1}` || r.event_day_id === mockEventDays[idx]?.id)
                             const mornTotal = dayReports.reduce((s, r) => s + (Number(r.attendance_morning) || 0), 0)
                             const eveTotal = dayReports.reduce((s, r) => s + (Number(r.attendance_evening) || 0), 0)
                             return (
@@ -347,27 +354,52 @@ export default function ReportsExportPage() {
                   {departments.slice().sort((a,b) => a.name.localeCompare(b.name)).map((dept) => {
                     const narr = eoeNarratives.find(n => n.department_id === dept.id)
                     const deptReps = reports.filter(r => r.department_id === dept.id)
+                    const qualLogs = extractDepartmentQualitativeLogs(dept.id, reports, narratives, eventDays)
+
                     return (
-                      <div key={dept.id} className="space-y-3 pl-4 border-l-2 border-amber-500/40">
+                      <div key={dept.id} className="space-y-3.5 pl-4 border-l-2 border-amber-500/40">
                         <div className="flex items-center justify-between">
                           <h4 className="text-[14px] font-bold text-amber-500 font-sans">{dept.name}</h4>
                           <span className="text-[10px] font-mono text-muted-foreground bg-muted/30 px-2 py-0.5 rounded">
                             {deptReps.length} day(s) submitted {narr ? '• Narrative: Finalized' : '• Narrative: Pending'}
                           </span>
                         </div>
+
+                        {/* End-of-Event Overview & Highlights */}
                         {narr ? (
-                          <>
-                            <p className="text-[14px] text-muted-foreground font-light"><strong className="text-foreground">Overview:</strong> {narr.overview}</p>
-                            <p className="text-[14px] text-muted-foreground font-light"><strong className="text-foreground">Highlights:</strong> {narr.highlights}</p>
-                          </>
+                          <div className="space-y-1.5 bg-muted/10 p-3 rounded-lg border border-border/40">
+                            <p className="text-[13px] text-muted-foreground font-light"><strong className="text-foreground font-semibold">End-of-Event Overview:</strong> {narr.overview}</p>
+                            {narr.highlights && (
+                              <p className="text-[13px] text-muted-foreground font-light"><strong className="text-foreground font-semibold">Key Highlights:</strong> {narr.highlights}</p>
+                            )}
+                          </div>
                         ) : deptReps.length > 0 ? (
-                          <p className="text-[12px] italic text-muted-foreground">Daily data recorded; awaiting end-of-event narrative summary.</p>
+                          <p className="text-[12px] italic text-muted-foreground">Daily logs recorded; end-of-event summary pending.</p>
                         ) : (
                           <p className="text-[12px] italic text-muted-foreground">No data submitted for this department.</p>
                         )}
+
+                        {/* Daily Qualitative Logs */}
+                        {qualLogs.length > 0 && (
+                          <div className="space-y-2.5 my-2">
+                            <h5 className="text-[12px] font-bold text-teal-400 font-sans uppercase tracking-wider">Daily Operational &amp; Qualitative Notes</h5>
+                            {qualLogs.map((qLog, qIdx) => (
+                              <div key={qIdx} className="p-3 rounded-lg bg-teal-950/20 border border-teal-500/30 text-[12px] space-y-1 font-sans">
+                                <div className="font-bold text-teal-300">📌 {qLog.dayLabel} Log</div>
+                                {qLog.overview && <p><strong className="text-foreground">Overview:</strong> {qLog.overview}</p>}
+                                {qLog.achievements && <p><strong className="text-foreground">Activities &amp; Achievements:</strong> {qLog.achievements}</p>}
+                                {qLog.challenges && <p><strong className="text-amber-400">Challenges:</strong> {qLog.challenges}</p>}
+                                {qLog.recommendations && <p><strong className="text-teal-400">Solutions / Recommendations:</strong> {qLog.recommendations}</p>}
+                                {qLog.plansForTomorrow && <p><strong className="text-foreground">Plans / Follow-up:</strong> {qLog.plansForTomorrow}</p>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         
+                        {/* Attendance Statistics Table */}
                         {deptReps.length > 0 && (
                           <div className="space-y-3 my-3">
+                            <h5 className="text-[12px] font-bold text-muted-foreground font-sans uppercase tracking-wider">Attendance Statistics</h5>
                             <div className="border border-border rounded-xl overflow-hidden font-sans text-[11px] w-full max-w-md bg-background">
                               <table className="w-full text-left border-collapse">
                                 <thead>
@@ -400,45 +432,84 @@ export default function ReportsExportPage() {
                 {/* 4. Challenges */}
                 <div className="space-y-3">
                   <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">4. Consolidated Challenges &amp; Observations</h3>
-                  <ul className="list-disc pl-5 space-y-2 text-[14px] text-muted-foreground font-light">
-                    {eoeNarratives.map(narr => (narr.challenges_json || []).map((ch: any) => (
-                      <li key={ch.id}>
-                        <span className="font-semibold text-amber-500 font-mono mr-1">[{ch.id}]</span>
-                        {ch.text}
-                      </li>
-                    )))}
-                    {eoeNarratives.every(n => (n.challenges_json || []).length === 0) && (
-                      <li className="italic text-muted-foreground list-none font-sans text-[13px]">No end-of-event narrative challenges logged.</li>
+                  <div className="space-y-2 text-[13px]">
+                    {consolidated.challenges.length > 0 ? (
+                      consolidated.challenges.map((ch, idx) => (
+                        <div key={idx} className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
+                          <span className="font-mono font-bold text-amber-500 text-[11px] bg-amber-500/20 px-1.5 py-0.5 rounded shrink-0">
+                            {ch.id ? `[${ch.id}]` : `[${ch.source}]`}
+                          </span>
+                          <div>
+                            <span className="font-bold text-foreground font-sans block text-[12px]">{ch.departmentName}</span>
+                            <span className="text-muted-foreground font-light">{ch.text}</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="italic text-muted-foreground font-sans text-[13px]">No operational challenges logged by any department.</p>
                     )}
-                  </ul>
+                  </div>
                 </div>
 
                 {/* 5. Recommendations */}
                 <div className="space-y-3">
                   <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">5. Strategic Recommendations &amp; Corrective Actions</h3>
-                  <ul className="list-disc pl-5 space-y-2 text-[14px] text-muted-foreground font-light">
-                    {eoeNarratives.map(narr => (narr.recommendations_json || []).map((rec: any, idx: number) => (
-                      <li key={idx}>
-                        {rec.text}
-                        {rec.linked_challenge_id && (
-                          <span className="text-[11px] text-muted-foreground italic font-sans ml-1">
-                            (Linked to Challenge {rec.linked_challenge_id})
+                  <div className="space-y-2 text-[13px]">
+                    {consolidated.recommendations.length > 0 ? (
+                      consolidated.recommendations.map((rec, idx) => (
+                        <div key={idx} className="p-2.5 rounded-lg bg-teal-500/10 border border-teal-500/30 flex items-start gap-2">
+                          <span className="font-mono font-bold text-teal-400 text-[11px] bg-teal-500/20 px-1.5 py-0.5 rounded shrink-0">
+                            [{rec.source}]
                           </span>
-                        )}
-                      </li>
-                    )))}
-                    {eoeNarratives.every(n => (n.recommendations_json || []).length === 0) && (
-                      <li className="italic text-muted-foreground list-none font-sans text-[13px]">No recommendations logged.</li>
+                          <div>
+                            <span className="font-bold text-foreground font-sans block text-[12px]">{rec.departmentName}</span>
+                            <span className="text-muted-foreground font-light">{rec.text}</span>
+                            {rec.linkedChallengeId && (
+                              <span className="text-[11px] text-amber-400 italic block mt-0.5 font-sans">
+                                (Linked to Challenge {rec.linkedChallengeId})
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="italic text-muted-foreground font-sans text-[13px]">No strategic recommendations logged by any department.</p>
                     )}
-                  </ul>
+                  </div>
                 </div>
 
                 {/* 6. Income & Expenditure Summary */}
                 <div className="space-y-3">
                   <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">6. Income &amp; Expenditure Summary</h3>
-                  <p className="text-[13px] text-muted-foreground font-light">
+                  <p className="text-[13px] text-muted-foreground font-light mb-2">
                     Financial breakdown of worship offerings and registration fees collected across reporting departments.
                   </p>
+                  {offeringBreakdown.length > 0 ? (
+                    <div className="border border-border rounded-xl overflow-hidden font-sans text-[12px] bg-background">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="font-bold border-b border-border text-foreground bg-muted/40">
+                            <th className="p-2.5 border-r border-border">Department</th>
+                            <th className="p-2.5 border-r border-border text-right">Worship Offering</th>
+                            <th className="p-2.5 border-r border-border text-right">Registration Fees</th>
+                            <th className="p-2.5 text-right font-bold">Total (₦)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border text-muted-foreground">
+                          {offeringBreakdown.map((row, idx) => (
+                            <tr key={idx} className={idx % 2 === 1 ? 'bg-muted/10' : ''}>
+                              <td className="p-2.5 border-r border-border font-semibold text-foreground">{row.departmentName}</td>
+                              <td className="p-2.5 border-r border-border text-right font-mono">{row.worshipOffering > 0 ? `₦${row.worshipOffering.toLocaleString()}` : '—'}</td>
+                              <td className="p-2.5 border-r border-border text-right font-mono">{row.registrationFees > 0 ? `₦${row.registrationFees.toLocaleString()}` : '—'}</td>
+                              <td className="p-2.5 text-right font-mono font-bold text-foreground">₦{row.totalFinancial.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-[12px] italic text-muted-foreground">No financial data recorded yet.</p>
+                  )}
                 </div>
 
                 {/* 7. Appreciation & Approvals */}
