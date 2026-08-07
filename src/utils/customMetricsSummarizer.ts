@@ -606,3 +606,200 @@ export function extractDepartmentQualitativeLogs(
 
   return logs
 }
+
+// ── Medical Summary ─────────────────────────────────────────────────────
+export interface MedicalDemographicsRow { category: string; gender: string; count: number }
+export interface MedicalDiagnosisRow { diagnosis: string; count: number }
+
+export function extractMedicalSummary(reports: any[]): { demographics: MedicalDemographicsRow[]; diagnoses: MedicalDiagnosisRow[] } {
+  const demoMap: Record<string, number> = {}
+  const diagMap: Record<string, number> = {}
+
+  reports.forEach(r => {
+    const mData = r.metrics_data || {}
+    const custom = mData.custom_schema || mData
+
+    const demos = Array.isArray(custom.patients_demographics) ? custom.patients_demographics : []
+    demos.forEach((item: any) => {
+      const cat = item.category || 'General'
+      const gender = item.gender || 'unspecified'
+      const key = `${cat} — ${gender}`
+      demoMap[key] = (demoMap[key] || 0) + (Number(item.count) || 0)
+    })
+
+    const diags = Array.isArray(custom.diagnoses_cases) ? custom.diagnoses_cases : []
+    diags.forEach((item: any) => {
+      const diag = item.diagnosis || 'Unspecified'
+      diagMap[diag] = (diagMap[diag] || 0) + (Number(item.count) || 0)
+    })
+  })
+
+  const demographics = Object.entries(demoMap).map(([key, count]) => {
+    const [category, gender] = key.split(' — ')
+    return { category, gender, count }
+  })
+
+  const diagnoses = Object.entries(diagMap)
+    .map(([diagnosis, count]) => ({ diagnosis, count }))
+    .sort((a, b) => b.count - a.count)
+
+  return { demographics, diagnoses }
+}
+
+// ── Welfare Summary ─────────────────────────────────────────────────────
+export interface WelfareMealRow { mealType: string; qtyServed: number; notes: string }
+
+export function extractWelfareSummary(reports: any[]): WelfareMealRow[] {
+  const mealMap: Record<string, { qty: number; times: string[] }> = {}
+
+  reports.forEach(r => {
+    const mData = r.metrics_data || {}
+    const custom = mData.custom_schema || mData
+    const logs = Array.isArray(custom.welfare_logs) ? custom.welfare_logs : Array.isArray(custom.meals_served) ? custom.meals_served : []
+
+    logs.forEach((item: any) => {
+      const meal = item.meal_type || item.meal || 'General Distribution'
+      const qty = Number(item.qty_served) || Number(item.quantity) || Number(item.count) || 0
+      const time = item.time_logged || item.time || ''
+
+      if (!mealMap[meal]) mealMap[meal] = { qty: 0, times: [] }
+      mealMap[meal].qty += qty
+      if (time && !mealMap[meal].times.includes(time)) mealMap[meal].times.push(time)
+    })
+  })
+
+  return Object.entries(mealMap).map(([mealType, data]) => ({
+    mealType,
+    qtyServed: data.qty,
+    notes: data.times.join(', ') || '—'
+  }))
+}
+
+// ── Stores Summary ──────────────────────────────────────────────────────
+export interface StoresDurableRow { itemName: string; department: string; qtyInStock: number; qtyIssued: number; qtyReturned: number }
+export interface StoresConsumableRow { itemName: string; department: string; qtyInStock: number; qtyIssued: number }
+
+export function extractStoresSummary(reports: any[]): { durables: StoresDurableRow[]; consumables: StoresConsumableRow[] } {
+  const durMap: Record<string, StoresDurableRow> = {}
+  const conMap: Record<string, StoresConsumableRow> = {}
+
+  reports.forEach(r => {
+    const mData = r.metrics_data || {}
+    const custom = mData.custom_schema || mData
+
+    const durables = Array.isArray(custom.durables) ? custom.durables : []
+    durables.forEach((item: any) => {
+      const name = item.item_name || item.name || 'Item'
+      const dept = item.department || 'All Departments'
+      const key = `${name}__${dept}`
+
+      if (!durMap[key]) {
+        durMap[key] = { itemName: name, department: dept, qtyInStock: 0, qtyIssued: 0, qtyReturned: 0 }
+      }
+      durMap[key].qtyInStock += Number(item.qty_instock) || 0
+      durMap[key].qtyIssued += Number(item.qty_issued) || 0
+      durMap[key].qtyReturned += Number(item.qty_returned) || 0
+    })
+
+    const consumables = Array.isArray(custom.consumables) ? custom.consumables : Array.isArray(custom.items_issued) ? custom.items_issued : []
+    consumables.forEach((item: any) => {
+      const name = item.item_name || item.name || 'Item'
+      const dept = item.department || 'All Departments'
+      const key = `${name}__${dept}`
+
+      if (!conMap[key]) {
+        conMap[key] = { itemName: name, department: dept, qtyInStock: 0, qtyIssued: 0 }
+      }
+      conMap[key].qtyInStock += Number(item.qty_instock) || 0
+      conMap[key].qtyIssued += Number(item.qty_issued) || Number(item.count) || 0
+    })
+  })
+
+  return {
+    durables: Object.values(durMap),
+    consumables: Object.values(conMap)
+  }
+}
+
+// ── SEPU Incident Index Summary ──────────────────────────────────────────
+export interface SepuIncidentRow { incidence: string; actionTaken: string; remarks: string }
+
+export function extractSepuSummary(reports: any[]): SepuIncidentRow[] {
+  const incidents: SepuIncidentRow[] = []
+
+  reports.forEach(r => {
+    const mData = r.metrics_data || {}
+    const custom = mData.custom_schema || mData
+    const logs = Array.isArray(custom.incidents_log) ? custom.incidents_log : Array.isArray(custom.incidents) ? custom.incidents : []
+
+    logs.forEach((item: any) => {
+      if (item && (item.incidence || item.description)) {
+        incidents.push({
+          incidence: item.incidence || item.description || '',
+          actionTaken: item.action_taken || item.action || '—',
+          remarks: item.remarks || item.follow_up || '—'
+        })
+      }
+    })
+  })
+
+  return incidents
+}
+
+// ── Bible Study / Holy Land Summary ──────────────────────────────────────
+export interface TribeAttendanceRow { tribe: string; teachersMale: number; teachersFemale: number; teenagersMale: number; teenagersFemale: number; total: number }
+
+export function extractBibleStudySummary(reports: any[]): TribeAttendanceRow[] {
+  const tribeMap: Record<string, TribeAttendanceRow> = {}
+
+  reports.forEach(r => {
+    const mData = r.metrics_data || {}
+    const custom = mData.custom_schema || mData
+    const logs = Array.isArray(custom.tribes_attendance) ? custom.tribes_attendance : []
+
+    logs.forEach((item: any) => {
+      const tribe = item.tribe || item.category || 'General'
+      const tm = Number(item.teachers_male) || 0
+      const tf = Number(item.teachers_female) || 0
+      const teenM = Number(item.teenagers_male) || 0
+      const teenF = Number(item.teenagers_female) || 0
+
+      if (!tribeMap[tribe]) {
+        tribeMap[tribe] = { tribe, teachersMale: 0, teachersFemale: 0, teenagersMale: 0, teenagersFemale: 0, total: 0 }
+      }
+      tribeMap[tribe].teachersMale += tm
+      tribeMap[tribe].teachersFemale += tf
+      tribeMap[tribe].teenagersMale += teenM
+      tribeMap[tribe].teenagersFemale += teenF
+      tribeMap[tribe].total += (tm + tf + teenM + teenF)
+    })
+  })
+
+  return Object.values(tribeMap)
+}
+
+// ── Teens Programs Summary ───────────────────────────────────────────────
+export interface TeensSessionRow { sessionName: string; details: string; attendance: number; offering: number }
+
+export function extractTeensProgramSummary(reports: any[]): TeensSessionRow[] {
+  const sessions: TeensSessionRow[] = []
+
+  reports.forEach(r => {
+    const mData = r.metrics_data || {}
+    const custom = mData.custom_schema || mData
+    const logs = Array.isArray(custom.session_logs) ? custom.session_logs : []
+
+    logs.forEach((item: any) => {
+      if (item && (item.session_name || item.details)) {
+        sessions.push({
+          sessionName: item.session_name || 'Session',
+          details: item.details || '—',
+          attendance: Number(item.atten) || Number(item.attendance) || 0,
+          offering: Number(item.offering_sum) || Number(item.offering) || 0
+        })
+      }
+    })
+  })
+
+  return sessions
+}

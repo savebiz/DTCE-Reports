@@ -835,6 +835,228 @@ export async function generateDTCEConventionDocx({
         })
       }
 
+    } else if (deptNameLower.includes('medical')) {
+      // ━━ Medical Department Specialized Tables ━━
+      const medSummary = extractMedicalSummary(deptReports)
+      if (medSummary.demographics.length > 0) {
+        mainChildren.push(createHeading3('Medical — Patient Demographics'))
+        const demoHdr = new TableRow({
+          children: [
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Category', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Gender', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Patient Count', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+          ]
+        })
+        const demoRows = [demoHdr]
+        medSummary.demographics.forEach((d, idx) => {
+          const fill = idx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT
+          demoRows.push(new TableRow({
+            children: [
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.category, font: 'Outfit', bold: true })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.gender, font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.count.toLocaleString(), font: 'Outfit', bold: true })] })] }),
+            ]
+          }))
+        })
+        mainChildren.push(new Table({ width: { size: 9000, type: WidthType.DXA }, borders: tableBorders, rows: demoRows }))
+        mainChildren.push(new Paragraph({ text: '', spacing: spacing(60, 60) }))
+      }
+
+      if (medSummary.diagnoses.length > 0) {
+        mainChildren.push(createHeading3('Medical — Diagnoses & Cases Treated'))
+        const diagHdr = new TableRow({
+          children: [
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Diagnosis / Symptom', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Cases Treated', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+          ]
+        })
+        const diagRows = [diagHdr]
+        medSummary.diagnoses.forEach((d, idx) => {
+          const fill = idx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT
+          diagRows.push(new TableRow({
+            children: [
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.diagnosis, font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.count.toLocaleString(), font: 'Outfit', bold: true })] })] }),
+            ]
+          }))
+        })
+        mainChildren.push(new Table({ width: { size: 9000, type: WidthType.DXA }, borders: tableBorders, rows: diagRows }))
+        mainChildren.push(new Paragraph({ text: '', spacing: spacing(80, 80) }))
+      }
+
+    } else if (deptNameLower.includes('welfare') || deptNameLower.includes('kitchen') || deptNameLower.includes('serving')) {
+      // ━━ Welfare / Kitchen Specialized Table ━━
+      const welfareRows = extractWelfareSummary(deptReports)
+      if (welfareRows.length > 0) {
+        mainChildren.push(createHeading3('Welfare (Kitchen / Serving) — Meal Allocations'))
+        const welfHdr = new TableRow({
+          children: [
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Meal Type', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Quantity Served', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Distribution Notes / Time', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+          ]
+        })
+        const welfRows = [welfHdr]
+        welfareRows.forEach((w, idx) => {
+          const fill = idx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT
+          welfRows.push(new TableRow({
+            children: [
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: w.mealType, font: 'Outfit', bold: true })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: w.qtyServed.toLocaleString(), font: 'Outfit', bold: true })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: w.notes, font: 'Outfit' })] })] }),
+            ]
+          }))
+        })
+        mainChildren.push(new Table({ width: { size: 9000, type: WidthType.DXA }, borders: tableBorders, rows: welfRows }))
+        mainChildren.push(new Paragraph({ text: '', spacing: spacing(80, 80) }))
+      }
+
+    } else if (deptNameLower.includes('store') || deptNameLower.includes('stores')) {
+      // ━━ Stores Inventory Specialized Tables ━━
+      const storesData = extractStoresSummary(deptReports)
+      if (storesData.durables.length > 0) {
+        mainChildren.push(createHeading3('Stores — Durables Inventory Tracking'))
+        const durHdr = new TableRow({
+          children: [
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Item Name', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Department', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'In-Stock', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Issued', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Returned', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+          ]
+        })
+        const durRows = [durHdr]
+        storesData.durables.forEach((d, idx) => {
+          const fill = idx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT
+          durRows.push(new TableRow({
+            children: [
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.itemName, font: 'Outfit', bold: true })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.department, font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.qtyInStock.toLocaleString(), font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.qtyIssued.toLocaleString(), font: 'Outfit', bold: true })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.qtyReturned.toLocaleString(), font: 'Outfit' })] })] }),
+            ]
+          }))
+        })
+        mainChildren.push(new Table({ width: { size: 9000, type: WidthType.DXA }, borders: tableBorders, rows: durRows }))
+        mainChildren.push(new Paragraph({ text: '', spacing: spacing(60, 60) }))
+      }
+
+      if (storesData.consumables.length > 0) {
+        mainChildren.push(createHeading3('Stores — Consumables Inventory Tracking'))
+        const conHdr = new TableRow({
+          children: [
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Item Name', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Department', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'In-Stock', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Issued', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+          ]
+        })
+        const conRows = [conHdr]
+        storesData.consumables.forEach((c, idx) => {
+          const fill = idx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT
+          conRows.push(new TableRow({
+            children: [
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: c.itemName, font: 'Outfit', bold: true })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: c.department, font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: c.qtyInStock.toLocaleString(), font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: c.qtyIssued.toLocaleString(), font: 'Outfit', bold: true })] })] }),
+            ]
+          }))
+        })
+        mainChildren.push(new Table({ width: { size: 9000, type: WidthType.DXA }, borders: tableBorders, rows: conRows }))
+        mainChildren.push(new Paragraph({ text: '', spacing: spacing(80, 80) }))
+      }
+
+    } else if (deptNameLower.includes('safety') || deptNameLower.includes('sepu')) {
+      // ━━ SEPU Safety & Security Incident Index Table ━━
+      const sepuRows = extractSepuSummary(deptReports)
+      if (sepuRows.length > 0) {
+        mainChildren.push(createHeading3('SEPU — Daily Incident Index'))
+        const sepuHdr = new TableRow({
+          children: [
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Incident Description', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Action Taken', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Remarks / Follow-up', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+          ]
+        })
+        const sRows = [sepuHdr]
+        sepuRows.forEach((s, idx) => {
+          const fill = idx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT
+          sRows.push(new TableRow({
+            children: [
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: s.incidence, font: 'Outfit', bold: true })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: s.actionTaken, font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: s.remarks, font: 'Outfit' })] })] }),
+            ]
+          }))
+        })
+        mainChildren.push(new Table({ width: { size: 9000, type: WidthType.DXA }, borders: tableBorders, rows: sRows }))
+        mainChildren.push(new Paragraph({ text: '', spacing: spacing(80, 80) }))
+      }
+
+    } else if (deptNameLower.includes('bible study') || deptNameLower.includes('holy land')) {
+      // ━━ Bible Study Tribal Breakdown Table ━━
+      const tribeRows = extractBibleStudySummary(deptReports)
+      if (tribeRows.length > 0) {
+        mainChildren.push(createHeading3('Bible Study — Tribal & Mode Attendance Breakdown'))
+        const trHdr = new TableRow({
+          children: [
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Tribe / Category', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Teachers (M)', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Teachers (F)', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Teenagers (M)', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Teenagers (F)', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Total', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+          ]
+        })
+        const tRows = [trHdr]
+        tribeRows.forEach((tr, idx) => {
+          const fill = idx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT
+          tRows.push(new TableRow({
+            children: [
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: tr.tribe, font: 'Outfit', bold: true })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: tr.teachersMale.toLocaleString(), font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: tr.teachersFemale.toLocaleString(), font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: tr.teenagersMale.toLocaleString(), font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: tr.teenagersFemale.toLocaleString(), font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: tr.total.toLocaleString(), font: 'Outfit', bold: true })] })] }),
+            ]
+          }))
+        })
+        mainChildren.push(new Table({ width: { size: 9000, type: WidthType.DXA }, borders: tableBorders, rows: tRows }))
+        mainChildren.push(new Paragraph({ text: '', spacing: spacing(80, 80) }))
+      }
+
+    } else if (deptNameLower.includes('programme') || deptNameLower.includes('program') || deptNameLower.includes('teens')) {
+      // ━━ Teens Programs Session Table ━━
+      const teenSessions = extractTeensProgramSummary(deptReports)
+      if (teenSessions.length > 0) {
+        mainChildren.push(createHeading3('Programs (Teens) — Service & Session Statistics'))
+        const teenHdr = new TableRow({
+          children: [
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Session Name', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Program Details', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Attendance', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Offering (₦)', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
+          ]
+        })
+        const teenRows = [teenHdr]
+        teenSessions.forEach((t, idx) => {
+          const fill = idx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT
+          teenRows.push(new TableRow({
+            children: [
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: t.sessionName, font: 'Outfit', bold: true })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: t.details, font: 'Outfit' })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: t.attendance.toLocaleString(), font: 'Outfit', bold: true })] })] }),
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: formatCurrency(t.offering), font: 'Outfit' })] })] }),
+            ]
+          }))
+        })
+        mainChildren.push(new Table({ width: { size: 9000, type: WidthType.DXA }, borders: tableBorders, rows: teenRows }))
+        mainChildren.push(new Paragraph({ text: '', spacing: spacing(80, 80) }))
+      }
+
     } else {
       // ━━ Generic Department Custom Metrics ━━
       const customMetricsGroups = extractCustomMetricsSummary(deptReports)

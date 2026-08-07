@@ -8,9 +8,16 @@ import {
   extractCustomMetricsSummary,
   extractAllConsolidatedChallenges,
   extractDepartmentQualitativeLogs,
-  extractOfferingSummary
+  extractOfferingSummary,
+  extractRegistrationTwoChannelSummary,
+  extractUsheringV2Summary,
+  extractMedicalSummary,
+  extractWelfareSummary,
+  extractStoresSummary,
+  extractSepuSummary,
+  extractBibleStudySummary,
+  extractTeensProgramSummary
 } from '@/utils/customMetricsSummarizer'
-import { store } from '@/utils/supabase/mockClient'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
 
@@ -24,6 +31,7 @@ export default function ReportsExportPage() {
   const [reports, setReports] = useState<DailyReport[]>([])
   const [narratives, setNarratives] = useState<any[]>([])
   const [eventDays, setEventDays] = useState<any[]>([])
+  const [preEventTotals, setPreEventTotals] = useState<any[]>([])
   
   // Form controls
   const [exportLabel, setExportLabel] = useState('First Draft')
@@ -73,6 +81,9 @@ export default function ReportsExportPage() {
       const { data: eDays } = await supabase.from('event_days').select('*')
       setEventDays(eDays || mockEventDays)
 
+      const { data: preTotals } = await supabase.from('registration_pre_event_totals').select('*')
+      setPreEventTotals(preTotals || [])
+
       const { data: logs } = await supabase.from('notification_logs').select('*')
       setNotifLogs(logs || [])
     }
@@ -87,7 +98,6 @@ export default function ReportsExportPage() {
       const data = await res.json()
       if (data.success) {
         showToast(`Successfully triggered daily digest reminders! Sent ${data.notifications_sent} emails in ${data.delivery_mode} mode.`, 'success')
-        // Refresh logs list
         const supabase = getClient()
         const { data: logs } = await supabase.from('notification_logs').select('*')
         setNotifLogs(logs || [])
@@ -110,7 +120,6 @@ export default function ReportsExportPage() {
     setExporting(true)
     const downloadUrl = `/api/export-docx?label=${encodeURIComponent(exportLabel)}`
     
-    // Create temporary link and click it to trigger binary download stream
     const link = document.createElement('a')
     link.href = downloadUrl
     link.setAttribute('download', `${event?.name || 'DTCE_Convention'}_Report.docx`)
@@ -131,7 +140,7 @@ export default function ReportsExportPage() {
 
   return (
     <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>
-      {/* Heading Block (Integrated Canvas Header) */}
+      {/* Heading Block */}
       <div className="border-b border-border/40 bg-background/50 backdrop-blur-xs">
         <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-center md:justify-between py-6 px-4 md:px-6 gap-4">
           <div>
@@ -161,10 +170,8 @@ export default function ReportsExportPage() {
 
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 grid grid-cols-1 lg:grid-cols-4 gap-6 animate-fade-in-up">
         
-        {/* Left Side: Export Settings & Notifications (1 col) */}
+        {/* Left Side: Export Settings (1 col) */}
         <div className="lg:col-span-1 space-y-6">
-          
-          {/* Card 1: Export Settings */}
           <div className="glass-card p-5">
             <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">Export Settings</h2>
             <p className="text-[12px] text-muted-foreground mb-4">Configure file labeling and download options.</p>
@@ -186,7 +193,7 @@ export default function ReportsExportPage() {
               <div className="p-3.5 rounded-xl text-[12px] text-muted-foreground space-y-2.5 bg-muted/20 border border-border">
                 <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Branded Letterhead</p>
                 <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> All 41 Departments</p>
-                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Daily Narrative &amp; Qualitative Logs</p>
+                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Specialized Tables (Ushering, Medical, Reg, Welfare, Stores)</p>
                 <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Income &amp; Expenditure Appendix</p>
               </div>
 
@@ -203,7 +210,6 @@ export default function ReportsExportPage() {
             </div>
           </div>
 
-          {/* Card 2: Daily Reminders */}
           <div className="glass-card p-5">
             <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1 flex items-center gap-1.5 font-sans">
               <Bell className="w-3.5 h-3.5 text-amber-400" /> Daily Reminders
@@ -248,7 +254,6 @@ export default function ReportsExportPage() {
             </div>
           </div>
 
-          {/* Card 3: Simulated Email Logs */}
           <div className="glass-card p-5 max-h-[350px] flex flex-col">
             <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-3">Simulated Email Logs</h2>
             <div className="overflow-y-auto pr-1 space-y-3 flex-1 scrollbar-hide text-[11px]">
@@ -269,7 +274,6 @@ export default function ReportsExportPage() {
               )}
             </div>
           </div>
-
         </div>
 
         {/* Right Side: Document Preview Screen (3 cols) */}
@@ -355,6 +359,27 @@ export default function ReportsExportPage() {
                     const narr = eoeNarratives.find(n => n.department_id === dept.id)
                     const deptReps = reports.filter(r => r.department_id === dept.id)
                     const qualLogs = extractDepartmentQualitativeLogs(dept.id, reports, narratives, eventDays)
+                    const deptNameLower = dept.name.toLowerCase()
+
+                    // Extract specialized structures
+                    const isRegistration = deptNameLower.includes('registration')
+                    const isUshering = deptNameLower.includes('ushering')
+                    const isMedical = deptNameLower.includes('medical')
+                    const isWelfare = deptNameLower.includes('welfare') || deptNameLower.includes('kitchen') || deptNameLower.includes('serving')
+                    const isStores = deptNameLower.includes('store') || deptNameLower.includes('stores')
+                    const isSepu = deptNameLower.includes('safety') || deptNameLower.includes('sepu')
+                    const isBibleStudy = deptNameLower.includes('bible study') || deptNameLower.includes('holy land')
+                    const isTeensProgram = deptNameLower.includes('programme') || deptNameLower.includes('program') || deptNameLower.includes('teens')
+
+                    const regSummary = isRegistration ? extractRegistrationTwoChannelSummary(deptReps) : null
+                    const usheringSummary = isUshering ? extractUsheringV2Summary(deptReps.filter(r => r.metrics_data?.schema_version === 2 || r.metrics_data?.custom_schema?.schema_version === 2)) : []
+                    const medSummary = isMedical ? extractMedicalSummary(deptReps) : null
+                    const welfareSummary = isWelfare ? extractWelfareSummary(deptReps) : []
+                    const storesSummary = isStores ? extractStoresSummary(deptReps) : null
+                    const sepuSummary = isSepu ? extractSepuSummary(deptReps) : []
+                    const bibleStudySummary = isBibleStudy ? extractBibleStudySummary(deptReps) : []
+                    const teensSummary = isTeensProgram ? extractTeensProgramSummary(deptReps) : []
+                    const customGroups = extractCustomMetricsSummary(deptReps)
 
                     return (
                       <div key={dept.id} className="space-y-3.5 pl-4 border-l-2 border-amber-500/40">
@@ -395,8 +420,8 @@ export default function ReportsExportPage() {
                             ))}
                           </div>
                         )}
-                        
-                        {/* Attendance Statistics Table */}
+
+                        {/* General Attendance Statistics Table */}
                         {deptReps.length > 0 && (
                           <div className="space-y-3 my-3">
                             <h5 className="text-[12px] font-bold text-muted-foreground font-sans uppercase tracking-wider">Attendance Statistics</h5>
@@ -419,6 +444,349 @@ export default function ReportsExportPage() {
                                       <td className="p-2 text-center uppercase tracking-wider text-[9px] font-bold text-emerald-500">{r.status}</td>
                                     </tr>
                                   ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ━━ SPECIALIZED SECTIONS TABLES ━━ */}
+
+                        {/* 1. Registration Two-Channel Section */}
+                        {isRegistration && regSummary && (
+                          <div className="space-y-3 my-4 font-sans text-[12px]">
+                            <h5 className="text-[12px] font-bold text-teal-400 uppercase tracking-wider">Registration — Two-Channel Analysis</h5>
+                            
+                            {/* Section A */}
+                            <div className="border border-teal-500/30 rounded-xl overflow-hidden bg-background">
+                              <div className="bg-teal-950/40 px-3 py-1.5 border-b border-teal-500/30 font-bold text-teal-300 text-[11px]">
+                                SECTION A — Online Manual Pickups
+                              </div>
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                    <th className="p-2 border-r border-border">Category</th>
+                                    <th className="p-2 border-r border-border text-center">Manuals Picked Up</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                  {regSummary.sectionA.map((item, idx) => (
+                                    <tr key={idx}>
+                                      <td className="p-2 border-r border-border font-semibold text-foreground">{item.category}</td>
+                                      <td className="p-2 text-center font-mono font-bold text-foreground">{item.pickedUp.toLocaleString()}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Section B */}
+                            <div className="border border-teal-500/30 rounded-xl overflow-hidden bg-background">
+                              <div className="bg-teal-950/40 px-3 py-1.5 border-b border-teal-500/30 font-bold text-teal-300 text-[11px]">
+                                SECTION B — Offline / Walk-in Registrations
+                              </div>
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                    <th className="p-2 border-r border-border">Category</th>
+                                    <th className="p-2 border-r border-border text-center">New Regs</th>
+                                    <th className="p-2 border-r border-border text-center">Manuals</th>
+                                    <th className="p-2 text-right">Fees (₦)</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                  {regSummary.sectionB.map((item, idx) => (
+                                    <tr key={idx}>
+                                      <td className="p-2 border-r border-border font-semibold text-foreground">{item.category}</td>
+                                      <td className="p-2 border-r border-border text-center font-mono">{item.newRegistrations.toLocaleString()}</td>
+                                      <td className="p-2 border-r border-border text-center font-mono">{item.manualsDistributed.toLocaleString()}</td>
+                                      <td className="p-2 text-right font-mono font-bold text-foreground">₦{item.amountCollected.toLocaleString()}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 2. Ushering 5-Section Summary */}
+                        {isUshering && usheringSummary.length > 0 && (
+                          <div className="space-y-3 my-4 font-sans text-[12px]">
+                            <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Ushering — Five-Section Attendance &amp; Offering Breakdown</h5>
+                            {usheringSummary.map((sec, idx) => (
+                              <div key={idx} className="border border-amber-500/30 rounded-xl overflow-hidden bg-background space-y-1">
+                                <div className="bg-amber-950/40 px-3 py-1.5 border-b border-amber-500/30 font-bold text-amber-300 text-[11px] flex justify-between">
+                                  <span>{sec.sectionTitle}</span>
+                                  <span>Offering: ₦{sec.totals.offering.toLocaleString()}</span>
+                                </div>
+                                <table className="w-full text-left border-collapse">
+                                  <thead>
+                                    <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                      <th className="p-2 border-r border-border">Session/Event</th>
+                                      <th className="p-2 border-r border-border text-center">Male</th>
+                                      <th className="p-2 border-r border-border text-center">Female</th>
+                                      <th className="p-2 border-r border-border text-center font-bold">Total</th>
+                                      <th className="p-2 text-right">Offering (₦)</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                    {sec.rows.map((row, rIdx) => (
+                                      <tr key={rIdx}>
+                                        <td className="p-2 border-r border-border font-semibold text-foreground">{row.event || '—'}</td>
+                                        <td className="p-2 border-r border-border text-center font-mono">{row.male.toLocaleString()}</td>
+                                        <td className="p-2 border-r border-border text-center font-mono">{row.female.toLocaleString()}</td>
+                                        <td className="p-2 border-r border-border text-center font-mono font-bold text-foreground">{row.total.toLocaleString()}</td>
+                                        <td className="p-2 text-right font-mono">₦{row.offering.toLocaleString()}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* 3. Medical Department Summary */}
+                        {isMedical && medSummary && (medSummary.demographics.length > 0 || medSummary.diagnoses.length > 0) && (
+                          <div className="space-y-3 my-4 font-sans text-[12px]">
+                            <h5 className="text-[12px] font-bold text-emerald-400 uppercase tracking-wider">Medical — Consultations &amp; Clinical Case Index</h5>
+                            {medSummary.demographics.length > 0 && (
+                              <div className="border border-emerald-500/30 rounded-xl overflow-hidden bg-background">
+                                <div className="bg-emerald-950/40 px-3 py-1.5 border-b border-emerald-500/30 font-bold text-emerald-300 text-[11px]">
+                                  Patient Demographics
+                                </div>
+                                <table className="w-full text-left border-collapse">
+                                  <thead>
+                                    <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                      <th className="p-2 border-r border-border">Category</th>
+                                      <th className="p-2 border-r border-border text-center">Gender</th>
+                                      <th className="p-2 text-right font-bold">Count</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                    {medSummary.demographics.map((d, idx) => (
+                                      <tr key={idx}>
+                                        <td className="p-2 border-r border-border font-semibold text-foreground">{d.category}</td>
+                                        <td className="p-2 border-r border-border text-center font-mono capitalize">{d.gender}</td>
+                                        <td className="p-2 text-right font-mono font-bold text-foreground">{d.count.toLocaleString()}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                            {medSummary.diagnoses.length > 0 && (
+                              <div className="border border-emerald-500/30 rounded-xl overflow-hidden bg-background">
+                                <div className="bg-emerald-950/40 px-3 py-1.5 border-b border-emerald-500/30 font-bold text-emerald-300 text-[11px]">
+                                  Diagnoses &amp; Cases Treated
+                                </div>
+                                <table className="w-full text-left border-collapse">
+                                  <thead>
+                                    <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                      <th className="p-2 border-r border-border">Diagnosis / Symptom</th>
+                                      <th className="p-2 text-right font-bold">Cases Treated</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                    {medSummary.diagnoses.map((d, idx) => (
+                                      <tr key={idx}>
+                                        <td className="p-2 border-r border-border font-semibold text-foreground">{d.diagnosis}</td>
+                                        <td className="p-2 text-right font-mono font-bold text-foreground">{d.count.toLocaleString()}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* 4. Welfare (Serving) Department Summary */}
+                        {isWelfare && welfareSummary.length > 0 && (
+                          <div className="space-y-3 my-4 font-sans text-[12px]">
+                            <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Welfare (Kitchen / Serving) — Meal Allocations</h5>
+                            <div className="border border-amber-500/30 rounded-xl overflow-hidden bg-background">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                    <th className="p-2 border-r border-border">Meal Type</th>
+                                    <th className="p-2 border-r border-border text-center font-bold">Quantity Served</th>
+                                    <th className="p-2 text-left">Distribution Notes</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                  {welfareSummary.map((w, idx) => (
+                                    <tr key={idx}>
+                                      <td className="p-2 border-r border-border font-semibold text-foreground">{w.mealType}</td>
+                                      <td className="p-2 border-r border-border text-center font-mono font-bold text-foreground">{w.qtyServed.toLocaleString()}</td>
+                                      <td className="p-2 text-left text-muted-foreground">{w.notes}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 5. Stores Department Summary */}
+                        {isStores && storesSummary && (storesSummary.durables.length > 0 || storesSummary.consumables.length > 0) && (
+                          <div className="space-y-3 my-4 font-sans text-[12px]">
+                            <h5 className="text-[12px] font-bold text-blue-400 uppercase tracking-wider">Stores — Inventory Tracking &amp; Requisitions</h5>
+                            {storesSummary.durables.length > 0 && (
+                              <div className="border border-blue-500/30 rounded-xl overflow-hidden bg-background">
+                                <div className="bg-blue-950/40 px-3 py-1.5 border-b border-blue-500/30 font-bold text-blue-300 text-[11px]">Durables Log</div>
+                                <table className="w-full text-left border-collapse">
+                                  <thead>
+                                    <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                      <th className="p-2 border-r border-border">Item Name</th>
+                                      <th className="p-2 border-r border-border text-center">In-Stock</th>
+                                      <th className="p-2 border-r border-border text-center font-bold">Issued</th>
+                                      <th className="p-2 text-center">Returned</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                    {storesSummary.durables.map((d, idx) => (
+                                      <tr key={idx}>
+                                        <td className="p-2 border-r border-border font-semibold text-foreground">{d.itemName}</td>
+                                        <td className="p-2 border-r border-border text-center font-mono">{d.qtyInStock.toLocaleString()}</td>
+                                        <td className="p-2 border-r border-border text-center font-mono font-bold text-foreground">{d.qtyIssued.toLocaleString()}</td>
+                                        <td className="p-2 text-center font-mono">{d.qtyReturned.toLocaleString()}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                            {storesSummary.consumables.length > 0 && (
+                              <div className="border border-blue-500/30 rounded-xl overflow-hidden bg-background">
+                                <div className="bg-blue-950/40 px-3 py-1.5 border-b border-blue-500/30 font-bold text-blue-300 text-[11px]">Consumables Log</div>
+                                <table className="w-full text-left border-collapse">
+                                  <thead>
+                                    <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                      <th className="p-2 border-r border-border">Item Name</th>
+                                      <th className="p-2 border-r border-border text-center">In-Stock</th>
+                                      <th className="p-2 text-center font-bold">Issued</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                    {storesSummary.consumables.map((c, idx) => (
+                                      <tr key={idx}>
+                                        <td className="p-2 border-r border-border font-semibold text-foreground">{c.itemName}</td>
+                                        <td className="p-2 border-r border-border text-center font-mono">{c.qtyInStock.toLocaleString()}</td>
+                                        <td className="p-2 text-center font-mono font-bold text-foreground">{c.qtyIssued.toLocaleString()}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* 6. SEPU Safety Department Summary */}
+                        {isSepu && sepuSummary.length > 0 && (
+                          <div className="space-y-3 my-4 font-sans text-[12px]">
+                            <h5 className="text-[12px] font-bold text-red-400 uppercase tracking-wider">SEPU — Daily Incident Index</h5>
+                            <div className="border border-red-500/30 rounded-xl overflow-hidden bg-background">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                    <th className="p-2 border-r border-border">Incident Description</th>
+                                    <th className="p-2 border-r border-border">Action Taken</th>
+                                    <th className="p-2">Remarks</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                  {sepuSummary.map((s, idx) => (
+                                    <tr key={idx}>
+                                      <td className="p-2 border-r border-border font-semibold text-foreground">{s.incidence}</td>
+                                      <td className="p-2 border-r border-border">{s.actionTaken}</td>
+                                      <td className="p-2 text-muted-foreground">{s.remarks}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 7. Bible Study / Holy Land Summary */}
+                        {isBibleStudy && bibleStudySummary.length > 0 && (
+                          <div className="space-y-3 my-4 font-sans text-[12px]">
+                            <h5 className="text-[12px] font-bold text-purple-400 uppercase tracking-wider">Bible Study — Tribal Attendance Breakdown</h5>
+                            <div className="border border-purple-500/30 rounded-xl overflow-hidden bg-background">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                    <th className="p-2 border-r border-border">Tribe / Category</th>
+                                    <th className="p-2 border-r border-border text-center">Teachers M/F</th>
+                                    <th className="p-2 border-r border-border text-center">Teens M/F</th>
+                                    <th className="p-2 text-right font-bold">Total</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                  {bibleStudySummary.map((tr, idx) => (
+                                    <tr key={idx}>
+                                      <td className="p-2 border-r border-border font-semibold text-foreground">{tr.tribe}</td>
+                                      <td className="p-2 border-r border-border text-center font-mono">{tr.teachersMale} / {tr.teachersFemale}</td>
+                                      <td className="p-2 border-r border-border text-center font-mono">{tr.teenagersMale} / {tr.teenagersFemale}</td>
+                                      <td className="p-2 text-right font-mono font-bold text-foreground">{tr.total.toLocaleString()}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 8. Teens Programs Summary */}
+                        {isTeensProgram && teensSummary.length > 0 && (
+                          <div className="space-y-3 my-4 font-sans text-[12px]">
+                            <h5 className="text-[12px] font-bold text-indigo-400 uppercase tracking-wider">Programs (Teens) — Service Statistics</h5>
+                            <div className="border border-indigo-500/30 rounded-xl overflow-hidden bg-background">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                    <th className="p-2 border-r border-border">Session Name</th>
+                                    <th className="p-2 border-r border-border text-center">Attendance</th>
+                                    <th className="p-2 text-right font-bold">Offering (₦)</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                  {teensSummary.map((t, idx) => (
+                                    <tr key={idx}>
+                                      <td className="p-2 border-r border-border font-semibold text-foreground">{t.sessionName} ({t.details})</td>
+                                      <td className="p-2 border-r border-border text-center font-mono font-bold">{t.attendance.toLocaleString()}</td>
+                                      <td className="p-2 text-right font-mono font-bold text-foreground">₦{t.offering.toLocaleString()}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Generic Custom Metrics Summary Table for other departments */}
+                        {!isRegistration && !isUshering && !isMedical && !isWelfare && !isStores && !isSepu && !isBibleStudy && !isTeensProgram && customGroups.length > 0 && (
+                          <div className="space-y-3 my-4 font-sans text-[12px]">
+                            <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Operational Metrics Summary</h5>
+                            <div className="border border-amber-500/30 rounded-xl overflow-hidden bg-background">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                    <th className="p-2 border-r border-border">Category / Metric</th>
+                                    <th className="p-2 border-r border-border">Metric Type</th>
+                                    <th className="p-2 text-right font-bold">Cumulative Total</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
+                                  {customGroups.map(group => group.items.map((item, idx) => (
+                                    <tr key={`${group.groupKey}-${idx}`}>
+                                      <td className="p-2 border-r border-border font-semibold text-foreground">{group.groupTitle} — {item.categoryOrName}</td>
+                                      <td className="p-2 border-r border-border text-muted-foreground">{item.metricLabel}</td>
+                                      <td className="p-2 text-right font-mono font-bold text-foreground">{item.value.toLocaleString()}</td>
+                                    </tr>
+                                  )))}
                                 </tbody>
                               </table>
                             </div>
