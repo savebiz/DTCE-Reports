@@ -9,6 +9,7 @@ import {
   mockDepartmentNarratives,
   mockInventoryItems,
   mockInventoryTransactions,
+  mockPlatformFeedback,
   Profile,
   DailyReport,
   DepartmentNarrative,
@@ -128,7 +129,7 @@ class MockSupabaseStore {
   }
 
   get platformFeedback(): any[] {
-    return getStorageItem('dtce_mock_platform_feedback', [])
+    return getStorageItem('dtce_mock_platform_feedback', mockPlatformFeedback)
   }
   set platformFeedback(val: any[]) {
     setStorageItem('dtce_mock_platform_feedback', val)

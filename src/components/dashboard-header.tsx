@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { label: 'Manual Entry',        href: '/dashboard/manual-entry',        icon: FileEdit   },
   { label: 'Reports',             href: '/dashboard/reports',             icon: FileText   },
   { label: 'Team',                href: '/dashboard/team',                icon: Users      },
+  { label: 'Convention Feedback', href: '/dashboard/feedback',            icon: MessageSquare },
   { label: 'Settings',            href: '/dashboard/settings',            icon: Settings   },
 ]
 
@@ -415,6 +416,7 @@ export function DashboardHeader() {
                * Governing Principle: National Coordinator's permission set must always be a strict superset of Coordinator's.
                * Any new feature granted to National Coordinator must be deliberately evaluated for whether Coordinator also needs it — never assume inheritance.
                */
+              if (label === 'Convention Feedback' && role !== 'super_admin') return null;
               if (role === 'coordinator' && ['Inventory Oversight', 'Team', 'Reports', 'Manual Entry', 'YoY Analytics'].includes(label)) return null;
               if (role === 'national_coordinator' && ['Team', 'Reports', 'Manual Entry'].includes(label)) return null;
               const active = isNavItemActive(href)
@@ -517,6 +519,7 @@ export function DashboardHeader() {
                 {showNav ? (
                   /* Admin / Coordinator / Nat Coordinator Nav Links */
                   NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+                    if (label === 'Convention Feedback' && role !== 'super_admin') return null;
                     if (role === 'coordinator' && ['Inventory Oversight', 'Team', 'Reports', 'Manual Entry', 'YoY Analytics'].includes(label)) return null;
                     if (role === 'national_coordinator' && ['Team', 'Reports', 'Manual Entry'].includes(label)) return null;
                     const active = isNavItemActive(href)

@@ -520,7 +520,71 @@ export const mockDepartmentNarratives: DepartmentNarrative[] = [
       { "id": "reg-c1", "text": "Cramped layout of the main lobby registration tables" }
     ],
     recommendations_json: [
-      { "text": "Move tag printing machines to a separate backroom; keep front desk only for collection", "linked_challenge_id": "reg-c1" }
+      { "text": "Move tag printing machines to a separate backroom; keep front desk only for collection", "linked_challenge_id": "reg-c1" },
+      { "text": "Re-architect desk flow with dedicated single-file entry queues", "linked_challenge_id": "reg-c1" }
     ]
+  }
+]
+
+export const mockPlatformFeedback = [
+  {
+    id: 'pf-1',
+    profile_id: 'user-hod-med',
+    submitted_at: '2026-08-06T18:30:00Z',
+    overall_satisfaction: 5,
+    daily_report_ease: 5,
+    requisition_ease: 4,
+    vs_paper_process: 'much_easier',
+    encountered_bugs: false,
+    bugs_description: null,
+    mobile_experience_rating: 5,
+    nps_score: 10,
+    top_improvement: 'It would be great to have auto-save drafts on low bandwidth mobile connections.',
+    additional_comments: 'The platform is a massive upgrade over paper reporting! The DOCX report exports saved our Secretariat hours of work.'
+  },
+  {
+    id: 'pf-2',
+    profile_id: 'user-hod-reg',
+    submitted_at: '2026-08-06T19:15:00Z',
+    overall_satisfaction: 4,
+    daily_report_ease: 4,
+    requisition_ease: 5,
+    vs_paper_process: 'much_easier',
+    encountered_bugs: true,
+    bugs_description: 'Slight delay when searching for delegate profiles on older Android webviews.',
+    mobile_experience_rating: 4,
+    nps_score: 9,
+    top_improvement: 'Add bulk export options for daily attendance logs.',
+    additional_comments: 'Requisition requests were fulfilled faster than previous years. Excellent work team!'
+  },
+  {
+    id: 'pf-3',
+    profile_id: 'user-hod-ush',
+    submitted_at: '2026-08-06T20:00:00Z',
+    overall_satisfaction: 5,
+    daily_report_ease: 5,
+    requisition_ease: 4,
+    vs_paper_process: 'easier',
+    encountered_bugs: false,
+    bugs_description: null,
+    mobile_experience_rating: 4,
+    nps_score: 9,
+    top_improvement: 'Direct push notifications whenever a requisition status changes to approved.',
+    additional_comments: 'Ushering team found the mobile layout very intuitive.'
+  },
+  {
+    id: 'pf-4',
+    profile_id: 'user-hod-wel',
+    submitted_at: '2026-08-06T20:45:00Z',
+    overall_satisfaction: 4,
+    daily_report_ease: 4,
+    requisition_ease: 5,
+    vs_paper_process: 'much_easier',
+    encountered_bugs: false,
+    bugs_description: null,
+    mobile_experience_rating: 5,
+    nps_score: 10,
+    top_improvement: 'Allow multi-select department filters on oversight screens.',
+    additional_comments: 'The Welfare serving breakdown tables in the report generator are superb.'
   }
 ]
