@@ -61,6 +61,7 @@ export function DashboardHeader() {
   const [signing, setSigning] = useState(false)
   const [activeDeptName, setActiveDeptName] = useState('Secretariat')
   const [hasNoDepartment, setHasNoDepartment] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
 
   const checkFeedbackTrigger = (userProfile: any) => {
