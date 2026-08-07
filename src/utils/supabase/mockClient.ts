@@ -126,6 +126,13 @@ class MockSupabaseStore {
   set inventoryTransactions(val: InventoryTransaction[]) {
     setStorageItem('dtce_mock_inventory_transactions', val)
   }
+
+  get platformFeedback(): any[] {
+    return getStorageItem('dtce_mock_platform_feedback', [])
+  }
+  set platformFeedback(val: any[]) {
+    setStorageItem('dtce_mock_platform_feedback', val)
+  }
 }
 
 export const store = new MockSupabaseStore()
@@ -197,6 +204,8 @@ class MockQueryBuilder {
       data = [...store.inventoryItems]
     } else if (this.table === 'inventory_transactions') {
       data = [...store.inventoryTransactions]
+    } else if (this.table === 'platform_feedback') {
+      data = [...store.platformFeedback]
     }
 
     // Apply filters
@@ -313,6 +322,15 @@ class MockInsertBuilder {
       const trans = store.inventoryTransactions
       trans.push(insertedRow)
       store.inventoryTransactions = trans
+    } else if (this.table === 'platform_feedback') {
+      insertedRow = {
+        id: 'pf-' + Math.random().toString(36).substr(2, 9),
+        submitted_at: new Date().toISOString(),
+        ...this.data
+      }
+      const feedbacks = store.platformFeedback
+      feedbacks.push(insertedRow)
+      store.platformFeedback = feedbacks
     }
 
     return { data: insertedRow ? [insertedRow] : [], error: null }

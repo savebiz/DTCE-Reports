@@ -7,6 +7,7 @@ import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, 
 import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
+import { EndofConventionFeedbackModal } from '@/components/EndofConventionFeedbackModal'
 
 const NAV_ITEMS = [
   { label: 'Overview',            href: '/dashboard',                     icon: LayoutGrid },
@@ -60,7 +61,22 @@ export function DashboardHeader() {
   const [signing, setSigning] = useState(false)
   const [activeDeptName, setActiveDeptName] = useState('Secretariat')
   const [hasNoDepartment, setHasNoDepartment] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+
+  const checkFeedbackTrigger = (userProfile: any) => {
+    if (!userProfile?.id) return
+    // Permanent gate check: non-null feedback_submitted_at means NEVER show again
+    if (userProfile.feedback_submitted_at) {
+      setShowFeedbackModal(false)
+      return
+    }
+    // Session dismissal check: if dismissed in current session, do not show
+    if (typeof window !== 'undefined' && sessionStorage.getItem('dtce_feedback_dismissed_session') === 'true') {
+      setShowFeedbackModal(false)
+      return
+    }
+    setShowFeedbackModal(true)
+  }
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -85,6 +101,9 @@ export function DashboardHeader() {
             department_id: meta.department_id || 'dept-10'
           }
         }
+
+        // Check End-of-Convention Feedback modal trigger for current session/profile
+        checkFeedbackTrigger(activeProfile)
 
         // Auto-bind browser push subscription to active user profile ID
         if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && activeProfile?.id) {
@@ -155,8 +174,44 @@ export function DashboardHeader() {
     fetchUser()
   }, [deptIdParam, profile?.department_id])
 
+  // PWA app-resume / visibilitychange listener
+  useEffect(() => {
+    if (!profile) return
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkFeedbackTrigger(profile)
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [profile])
+
+  const handleCloseFeedbackSession = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('dtce_feedback_dismissed_session', 'true')
+    }
+    setShowFeedbackModal(false)
+  }
+
+  const handleSubmitFeedbackSuccess = () => {
+    const nowIso = new Date().toISOString()
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('dtce_feedback_dismissed_session', 'true')
+    }
+    setProfile((prev: any) => ({
+      ...prev,
+      feedback_submitted_at: nowIso
+    }))
+    setShowFeedbackModal(false)
+  }
+
   const handleSignOut = async () => {
     setSigning(true)
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('dtce_feedback_dismissed_session')
+    }
     const supabase = getClient()
     await supabase.auth.signOut()
     // Clear mock cookie
@@ -500,6 +555,14 @@ export function DashboardHeader() {
           </aside>
         </>
       )}
+
+      {/* End-of-Convention Feedback Modal */}
+      <EndofConventionFeedbackModal
+        isOpen={showFeedbackModal}
+        profileId={profile?.id || user?.id}
+        onCloseSession={handleCloseFeedbackSession}
+        onSubmitSuccess={handleSubmitFeedbackSuccess}
+      />
     </>
   )
 }

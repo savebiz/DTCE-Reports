@@ -32,6 +32,7 @@ export interface Profile {
   must_change_password?: boolean
   created_by?: string
   is_active?: boolean
+  feedback_submitted_at?: string | null
 }
 
 export interface DailyReport {
