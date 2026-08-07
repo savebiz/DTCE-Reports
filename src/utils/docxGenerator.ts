@@ -21,7 +21,13 @@ import {
   extractRegistrationTwoChannelSummary,
   extractOfferingSummary,
   extractAllConsolidatedChallenges,
-  extractDepartmentQualitativeLogs
+  extractDepartmentQualitativeLogs,
+  extractMedicalSummary,
+  extractWelfareSummary,
+  extractStoresSummary,
+  extractSepuSummary,
+  extractBibleStudySummary,
+  extractTeensProgramSummary
 } from '@/utils/customMetricsSummarizer'
 
 // Colors
