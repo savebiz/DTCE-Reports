@@ -89,16 +89,23 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Update profiles table department_id if column exists
-    await supabaseAdmin
-      .from('profiles')
-      .update({ department_id: newDepartmentId || null })
-      .eq('id', targetUserId)
-      .catch(() => {})
+    try {
+      await supabaseAdmin
+        .from('profiles')
+        .update({ department_id: newDepartmentId || null })
+        .eq('id', targetUserId)
+    } catch {
+      // Ignore if department_id column does not exist on profiles table
+    }
 
     // 6. Update user_metadata in Auth
-    await supabaseAdmin.auth.admin.updateUserById(targetUserId, {
-      user_metadata: { department_id: newDepartmentId || null }
-    }).catch(() => {})
+    try {
+      await supabaseAdmin.auth.admin.updateUserById(targetUserId, {
+        user_metadata: { department_id: newDepartmentId || null }
+      })
+    } catch {
+      // Ignore auth metadata update errors
+    }
 
     return NextResponse.json({ success: true, department_id: newDepartmentId })
   } catch (err: any) {
