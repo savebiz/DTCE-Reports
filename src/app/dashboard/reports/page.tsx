@@ -296,7 +296,10 @@ export default function ReportsExportPage() {
                 <div className="space-y-3">
                   <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">1. Executive Summary</h3>
                   <p className="text-[14px] text-muted-foreground font-light">
-                    This consolidated report presents the administrative, attendance, and operational metrics of the Junior Church Global Secretariat during the {event?.name || 'Annual Convention'}. It compiles metrics from all 40 departments tasked with delegate management, welfare, medical care, and logistics.
+                    This consolidated report presents the administrative, attendance, and operational metrics of the Junior Church Global Secretariat during the {event?.name || 'Annual Convention'}. It compiles metrics from all {departments.length || 41} departments tasked with delegate management, welfare, medical care, and logistics.
+                  </p>
+                  <p className="text-[12px] italic text-muted-foreground font-sans bg-muted/20 p-2 rounded border border-border/50">
+                    📊 Data freshness: {reports.length > 0 ? `${new Set(reports.map(r => r.department_id)).size} of ${departments.length || 41} departments have submitted daily data. ${eoeNarratives.length} of ${departments.length || 41} departments have finalized end-of-event narratives.` : 'No daily data submitted yet.'}
                   </p>
                 </div>
 
@@ -309,100 +312,89 @@ export default function ReportsExportPage() {
                       <thead>
                         <tr className="text-foreground font-bold bg-muted/40 border-b border-border">
                           <th className="p-3 border-r border-border">Convention Day</th>
-                          <th className="p-3 border-r border-border text-center font-tabular">Avg Morning Attendance</th>
-                          <th className="p-3 text-center font-tabular">Avg Evening Attendance</th>
+                          <th className="p-3 border-r border-border text-center font-tabular">Total Morning Attendance</th>
+                          <th className="p-3 text-center font-tabular">Total Evening Attendance</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border text-muted-foreground">
-                        <tr>
-                          <td className="p-3 border-r border-border font-semibold text-foreground">Day 1</td>
-                          <td className="p-3 border-r border-border text-center font-mono font-bold text-foreground">85</td>
-                          <td className="p-3 text-center font-mono font-bold text-foreground">120</td>
-                        </tr>
-                        <tr className="bg-muted/10">
-                          <td className="p-3 border-r border-border font-semibold text-foreground">Day 2</td>
-                          <td className="p-3 border-r border-border text-center font-mono font-bold text-foreground">110</td>
-                          <td className="p-3 text-center font-mono font-bold text-foreground">155</td>
-                        </tr>
-                        <tr>
-                          <td className="p-3 border-r border-border font-semibold text-foreground">Day 3</td>
-                          <td className="p-3 border-r border-border text-center font-mono font-bold text-foreground">130</td>
-                          <td className="p-3 text-center font-mono font-bold text-foreground">180</td>
-                        </tr>
+                        {reports.length === 0 ? (
+                          <tr>
+                            <td colSpan={3} className="p-3 text-center italic">No daily report data submitted yet.</td>
+                          </tr>
+                        ) : (
+                          ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'].map((dayLabel, idx) => {
+                            const dayReports = reports.filter(r => r.event_day_id === `day-${idx+1}`)
+                            const mornTotal = dayReports.reduce((s, r) => s + (Number(r.attendance_morning) || 0), 0)
+                            const eveTotal = dayReports.reduce((s, r) => s + (Number(r.attendance_evening) || 0), 0)
+                            return (
+                              <tr key={dayLabel} className={idx % 2 === 1 ? 'bg-muted/10' : ''}>
+                                <td className="p-3 border-r border-border font-semibold text-foreground">{dayLabel}</td>
+                                <td className="p-3 border-r border-border text-center font-mono font-bold text-foreground">{mornTotal.toLocaleString()}</td>
+                                <td className="p-3 text-center font-mono font-bold text-foreground">{eveTotal.toLocaleString()}</td>
+                              </tr>
+                            )
+                          })
+                        )}
                       </tbody>
                     </table>
                   </div>
                 </div>
 
-                {/* 3. Department narrative summaries */}
+                {/* 3. Departmental Reports */}
                 <div className="space-y-6">
-                  <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">3. Selected Departmental Reports</h3>
+                  <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">3. Departmental Reports (All {departments.length || 41} Departments)</h3>
                   
-                  {eoeNarratives.length === 0 ? (
-                    <p className="text-[13px] italic text-muted-foreground font-sans">No departmental reports approved or drafted yet.</p>
-                  ) : (
-                    eoeNarratives.map((narr) => {
-                      const dept = departments.find(d => d.id === narr.department_id)
-                      const deptReps = reports.filter(r => r.department_id === narr.department_id)
-                      return (
-                        <div key={narr.id} className="space-y-3.5 pl-4 border-l-2 border-amber-500/40">
-                          <h4 className="text-[14px] font-bold text-amber-500 font-sans">{dept?.name}</h4>
-                          <p className="text-[14px] text-muted-foreground font-light"><strong className="text-foreground">Overview:</strong> {narr.overview}</p>
-                          <p className="text-[14px] text-muted-foreground font-light"><strong className="text-foreground">Highlights:</strong> {narr.highlights}</p>
-                          
-                          {deptReps.length > 0 && (
-                            <div className="space-y-3 my-3.5">
-                              <div className="border border-border rounded-xl overflow-hidden font-sans text-[11px] w-full max-w-md bg-background">
-                                <table className="w-full text-left border-collapse">
-                                  <thead>
-                                    <tr className="font-bold border-b border-border text-muted-foreground bg-muted/30">
-                                      <th className="p-2 border-r border-border">Day</th>
-                                      <th className="p-2 border-r border-border text-center font-tabular">Morning</th>
-                                      <th className="p-2 border-r border-border text-center font-tabular">Evening</th>
-                                      <th className="p-2 text-center">Status</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-border text-muted-foreground">
-                                    {deptReps.map((r, rIdx) => (
-                                      <tr key={r.id}>
-                                        <td className="p-2 border-r border-border">Day {rIdx + 1}</td>
-                                        <td className="p-2 border-r border-border text-center font-mono font-semibold text-foreground">{r.attendance_morning}</td>
-                                        <td className="p-2 border-r border-border text-center font-mono font-semibold text-foreground">{r.attendance_evening}</td>
-                                        <td className="p-2 text-center uppercase tracking-wider text-[9px] font-bold text-emerald-500">{r.status}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-
-                              {extractCustomMetricsSummary(deptReps).length > 0 && (
-                                <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-500/5 font-sans text-[11px] w-full max-w-lg space-y-2">
-                                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider block">
-                                    Department Custom Operational Metrics
-                                  </span>
-                                  <div className="space-y-1.5">
-                                    {extractCustomMetricsSummary(deptReps).map(g => (
-                                      <div key={g.groupKey} className="space-y-0.5">
-                                        <span className="text-[10px] font-semibold text-foreground/80 block">{g.groupTitle}</span>
-                                        <div className="pl-2 border-l border-amber-500/30 space-y-0.5">
-                                          {g.items.map((item, idx) => (
-                                            <div key={idx} className="flex justify-between items-center text-[11px]">
-                                              <span className="text-muted-foreground">{item.categoryOrName} ({item.metricLabel}):</span>
-                                              <span className="font-mono font-bold text-foreground">{item.value.toLocaleString()}</span>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                  {departments.slice().sort((a,b) => a.name.localeCompare(b.name)).map((dept) => {
+                    const narr = eoeNarratives.find(n => n.department_id === dept.id)
+                    const deptReps = reports.filter(r => r.department_id === dept.id)
+                    return (
+                      <div key={dept.id} className="space-y-3 pl-4 border-l-2 border-amber-500/40">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-[14px] font-bold text-amber-500 font-sans">{dept.name}</h4>
+                          <span className="text-[10px] font-mono text-muted-foreground bg-muted/30 px-2 py-0.5 rounded">
+                            {deptReps.length} day(s) submitted {narr ? '• Narrative: Finalized' : '• Narrative: Pending'}
+                          </span>
                         </div>
-                      )
-                    })
-                  )}
+                        {narr ? (
+                          <>
+                            <p className="text-[14px] text-muted-foreground font-light"><strong className="text-foreground">Overview:</strong> {narr.overview}</p>
+                            <p className="text-[14px] text-muted-foreground font-light"><strong className="text-foreground">Highlights:</strong> {narr.highlights}</p>
+                          </>
+                        ) : deptReps.length > 0 ? (
+                          <p className="text-[12px] italic text-muted-foreground">Daily data recorded; awaiting end-of-event narrative summary.</p>
+                        ) : (
+                          <p className="text-[12px] italic text-muted-foreground">No data submitted for this department.</p>
+                        )}
+                        
+                        {deptReps.length > 0 && (
+                          <div className="space-y-3 my-3">
+                            <div className="border border-border rounded-xl overflow-hidden font-sans text-[11px] w-full max-w-md bg-background">
+                              <table className="w-full text-left border-collapse">
+                                <thead>
+                                  <tr className="font-bold border-b border-border text-muted-foreground bg-muted/30">
+                                    <th className="p-2 border-r border-border">Day</th>
+                                    <th className="p-2 border-r border-border text-center font-tabular">Morning</th>
+                                    <th className="p-2 border-r border-border text-center font-tabular">Evening</th>
+                                    <th className="p-2 text-center">Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border text-muted-foreground">
+                                  {deptReps.map((r, rIdx) => (
+                                    <tr key={r.id}>
+                                      <td className="p-2 border-r border-border">Day {rIdx + 1}</td>
+                                      <td className="p-2 border-r border-border text-center font-mono font-semibold text-foreground">{r.attendance_morning}</td>
+                                      <td className="p-2 border-r border-border text-center font-mono font-semibold text-foreground">{r.attendance_evening}</td>
+                                      <td className="p-2 text-center uppercase tracking-wider text-[9px] font-bold text-emerald-500">{r.status}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
 
                 {/* 4. Challenges */}
@@ -416,14 +408,14 @@ export default function ReportsExportPage() {
                       </li>
                     )))}
                     {eoeNarratives.every(n => (n.challenges_json || []).length === 0) && (
-                      <li className="italic text-muted-foreground list-none font-sans text-[13px]">No challenges logged.</li>
+                      <li className="italic text-muted-foreground list-none font-sans text-[13px]">No end-of-event narrative challenges logged.</li>
                     )}
                   </ul>
                 </div>
 
                 {/* 5. Recommendations */}
                 <div className="space-y-3">
-                  <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">5. Strategic Recommendations</h3>
+                  <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">5. Strategic Recommendations &amp; Corrective Actions</h3>
                   <ul className="list-disc pl-5 space-y-2 text-[14px] text-muted-foreground font-light">
                     {eoeNarratives.map(narr => (narr.recommendations_json || []).map((rec: any, idx: number) => (
                       <li key={idx}>
@@ -439,6 +431,26 @@ export default function ReportsExportPage() {
                       <li className="italic text-muted-foreground list-none font-sans text-[13px]">No recommendations logged.</li>
                     )}
                   </ul>
+                </div>
+
+                {/* 6. Income & Expenditure Summary */}
+                <div className="space-y-3">
+                  <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">6. Income &amp; Expenditure Summary</h3>
+                  <p className="text-[13px] text-muted-foreground font-light">
+                    Financial breakdown of worship offerings and registration fees collected across reporting departments.
+                  </p>
+                </div>
+
+                {/* 7. Appreciation & Approvals */}
+                <div className="space-y-4 pt-4 border-t border-border font-sans">
+                  <h3 className="text-[15px] font-bold text-foreground pb-1.5">7. Appreciation &amp; Secretariat Approvals</h3>
+                  <p className="text-[13px] text-muted-foreground font-light">
+                    We express our profound gratitude to the National Coordinators, HODs, and Secretariat volunteers whose tireless execution kept convention reporting running seamlessly under offline settings.
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 pt-4 text-[12px] font-semibold text-foreground">
+                    <div>Secretariat General Approval: ___________________</div>
+                    <div>National Competitions Rep: ___________________</div>
+                  </div>
                 </div>
 
               </div>

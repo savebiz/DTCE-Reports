@@ -64,7 +64,7 @@ export function extractCustomMetricsSummary(reports: any[]): CustomMetricGroupSu
 
     Object.keys(custom).forEach(key => {
       // Exclude standard non-custom fields
-      if (['offering', 'workforce', 'daily_narrative', 'attendance_morning', 'attendance_evening', 'proxy_entry'].includes(key)) return
+      if (['offering', 'workforce', 'daily_narrative', 'attendance_morning', 'attendance_evening', 'proxy_entry', 'schema_version', 'reviewer_feedback', 'custom_schema'].includes(key)) return
 
       const val = custom[key]
       if (Array.isArray(val) && val.length > 0) {
@@ -131,4 +131,273 @@ export function formatCustomMetricsTextLines(reports: any[]): string[] {
   })
 
   return lines
+}
+
+// ── Ushering V2 Structured Summary ──────────────────────────────────────
+export interface UsheringV2SectionRow {
+  event: string
+  preacher: string
+  male: number
+  female: number
+  total: number
+  teachersMale: number
+  teachersFemale: number
+  offering: number
+}
+
+export interface UsheringV2SectionSummary {
+  sectionKey: string
+  sectionTitle: string
+  rows: UsheringV2SectionRow[]
+  totals: { male: number; female: number; total: number; teachersMale: number; teachersFemale: number; offering: number }
+}
+
+const USHERING_SECTIONS = ['teachers_meeting', 'toddlers_section', 'junior_section', 'pre_teens_section', 'teenagers_section']
+const USHERING_SECTION_TITLES: Record<string, string> = {
+  teachers_meeting: "Teachers' Meeting",
+  toddlers_section: 'Toddlers Section',
+  junior_section: 'Junior Section',
+  pre_teens_section: 'Pre-Teens Section',
+  teenagers_section: 'Teenagers Section',
+}
+
+export function extractUsheringV2Summary(reports: any[]): UsheringV2SectionSummary[] {
+  if (!Array.isArray(reports) || reports.length === 0) return []
+
+  const sections: UsheringV2SectionSummary[] = []
+
+  USHERING_SECTIONS.forEach(sectionKey => {
+    const allRows: UsheringV2SectionRow[] = []
+    const totals = { male: 0, female: 0, total: 0, teachersMale: 0, teachersFemale: 0, offering: 0 }
+
+    reports.forEach(r => {
+      const mData = r.metrics_data || {}
+      const schemaVersion = mData.schema_version || mData.custom_schema?.schema_version
+      if (schemaVersion !== 2) return // Only process v2 rows
+
+      const custom = mData.custom_schema || mData
+      const sectionData = custom[sectionKey]
+      if (!Array.isArray(sectionData)) return
+
+      sectionData.forEach((item: any) => {
+        const m = Number(item.male) || 0
+        const f = Number(item.female) || 0
+        const t = m + f
+        const tm = Number(item.teachers_male) || 0
+        const tf = Number(item.teachers_female) || 0
+        const off = Number(item.offering) || 0
+
+        allRows.push({
+          event: item.event || item.title || '',
+          preacher: item.preacher || item.preacher_or_invited_guest || '',
+          male: m,
+          female: f,
+          total: t,
+          teachersMale: tm,
+          teachersFemale: tf,
+          offering: off,
+        })
+
+        totals.male += m
+        totals.female += f
+        totals.total += t
+        totals.teachersMale += tm
+        totals.teachersFemale += tf
+        totals.offering += off
+      })
+    })
+
+    if (allRows.length > 0) {
+      sections.push({
+        sectionKey,
+        sectionTitle: USHERING_SECTION_TITLES[sectionKey] || formatGroupTitle(sectionKey),
+        rows: allRows,
+        totals,
+      })
+    }
+  })
+
+  return sections
+}
+
+// ── Registration Two-Channel Summary ────────────────────────────────────
+export interface RegistrationCategorySummary {
+  category: string
+  pickedUp: number
+  newRegistrations: number
+  manualsDistributed: number
+  amountCollected: number
+}
+
+export interface RegistrationTwoChannelSummary {
+  sectionA: RegistrationCategorySummary[] // Online Manual Pickups
+  sectionB: RegistrationCategorySummary[] // Walk-in Registrations
+  totals: {
+    pickedUp: number
+    newRegistrations: number
+    manualsDistributed: number
+    amountCollected: number
+  }
+}
+
+export function extractRegistrationTwoChannelSummary(reports: any[]): RegistrationTwoChannelSummary {
+  const catMapA: Record<string, number> = {}
+  const catMapB: Record<string, { newRegs: number; manuals: number; amount: number }> = {}
+  const totals = { pickedUp: 0, newRegistrations: 0, manualsDistributed: 0, amountCollected: 0 }
+
+  reports.forEach(r => {
+    const mData = r.metrics_data || {}
+    const custom = mData.custom_schema || mData
+
+    // Section A
+    const pickups = Array.isArray(custom.online_manual_pickups) ? custom.online_manual_pickups
+      : Array.isArray(mData.online_manual_pickups) ? mData.online_manual_pickups : []
+    pickups.forEach((item: any) => {
+      const cat = item.category || 'Other'
+      const count = Number(item.count_picked_up_today) || 0
+      catMapA[cat] = (catMapA[cat] || 0) + count
+      totals.pickedUp += count
+    })
+
+    // Section B
+    const walkins = Array.isArray(custom.walkin_registrations) ? custom.walkin_registrations
+      : Array.isArray(mData.walkin_registrations) ? mData.walkin_registrations : []
+    walkins.forEach((item: any) => {
+      const cat = item.category || 'Other'
+      const newRegs = Number(item.new_registrations) || 0
+      const manuals = Number(item.manuals_distributed) || 0
+      const amount = Number(item.amount_collected) || 0
+      if (!catMapB[cat]) catMapB[cat] = { newRegs: 0, manuals: 0, amount: 0 }
+      catMapB[cat].newRegs += newRegs
+      catMapB[cat].manuals += manuals
+      catMapB[cat].amount += amount
+      totals.newRegistrations += newRegs
+      totals.manualsDistributed += manuals
+      totals.amountCollected += amount
+    })
+  })
+
+  const sectionA = Object.entries(catMapA).map(([category, pickedUp]) => ({
+    category, pickedUp, newRegistrations: 0, manualsDistributed: 0, amountCollected: 0
+  }))
+
+  const sectionB = Object.entries(catMapB).map(([category, data]) => ({
+    category, pickedUp: 0, newRegistrations: data.newRegs, manualsDistributed: data.manuals, amountCollected: data.amount
+  }))
+
+  return { sectionA, sectionB, totals }
+}
+
+// ── Offering Summary ────────────────────────────────────────────────────
+export interface DeptOfferingSummary {
+  departmentId: string
+  departmentName: string
+  worshipOffering: number
+  registrationFees: number
+  totalFinancial: number
+}
+
+export function extractOfferingSummary(
+  reports: any[],
+  departments: any[]
+): DeptOfferingSummary[] {
+  const deptMap: Record<string, { worship: number; regFees: number }> = {}
+
+  reports.forEach(r => {
+    const deptId = r.department_id
+    if (!deptMap[deptId]) deptMap[deptId] = { worship: 0, regFees: 0 }
+
+    const mData = r.metrics_data || {}
+    const custom = mData.custom_schema || mData
+
+    // Top-level offering (worship)
+    const rawOffering = mData.offering ?? mData.offering_amount ?? mData.total_offering ?? mData.offering_collected ?? custom?.offering ?? custom?.total_offering ?? 0
+    const offeringVal = Number(String(rawOffering).replace(/[^\d.]/g, '')) || 0
+    deptMap[deptId].worship += offeringVal
+
+    // Ushering section-level offerings
+    const usheringSections = ['teachers_meeting', 'toddlers_section', 'junior_section', 'pre_teens_section', 'teenagers_section']
+    usheringSections.forEach(sec => {
+      const secData = custom?.[sec]
+      if (Array.isArray(secData)) {
+        secData.forEach((item: any) => {
+          const sectionOffering = Number(item.offering) || 0
+          deptMap[deptId].worship += sectionOffering
+        })
+      }
+    })
+
+    // Registration fees (amount_collected from walk-in registrations)
+    const walkins = Array.isArray(custom?.walkin_registrations) ? custom.walkin_registrations
+      : Array.isArray(mData.walkin_registrations) ? mData.walkin_registrations : []
+    walkins.forEach((item: any) => {
+      deptMap[deptId].regFees += Number(item.amount_collected) || 0
+    })
+  })
+
+  const result: DeptOfferingSummary[] = []
+  departments.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || '')).forEach((dept: any) => {
+    const data = deptMap[dept.id]
+    if (data && (data.worship > 0 || data.regFees > 0)) {
+      result.push({
+        departmentId: dept.id,
+        departmentName: dept.name,
+        worshipOffering: data.worship,
+        registrationFees: data.regFees,
+        totalFinancial: data.worship + data.regFees,
+      })
+    }
+  })
+
+  return result
+}
+
+// ── Daily Narrative Challenges/Recommendations Extractor ────────────────
+export interface DailyNarrativeChallenge {
+  departmentName: string
+  dayLabel: string
+  text: string
+}
+
+export interface DailyNarrativeRecommendation {
+  departmentName: string
+  dayLabel: string
+  text: string
+}
+
+export function extractDailyNarrativeChallenges(
+  reports: any[],
+  departments: any[],
+  eventDays: any[]
+): { challenges: DailyNarrativeChallenge[]; recommendations: DailyNarrativeRecommendation[] } {
+  const challenges: DailyNarrativeChallenge[] = []
+  const recommendations: DailyNarrativeRecommendation[] = []
+
+  const dayMap: Record<string, number> = {}
+  eventDays.forEach((ed: any) => { dayMap[ed.id] = ed.day_number })
+
+  reports.forEach(r => {
+    const mData = r.metrics_data || {}
+    const narrative = mData.daily_narrative || mData.custom_schema?.daily_narrative
+    if (!narrative || typeof narrative !== 'object') return
+
+    const dept = departments.find((d: any) => d.id === r.department_id)
+    const deptName = dept?.name || 'Unknown Department'
+    const dayNum = dayMap[r.event_day_id] || 0
+    const dayLabel = dayNum > 0 ? `Day ${dayNum}` : 'Unknown Day'
+
+    // Challenges
+    const challText = narrative.challenges || ''
+    if (challText.trim()) {
+      challenges.push({ departmentName: deptName, dayLabel, text: challText.trim() })
+    }
+
+    // Solutions/Recommendations
+    const solText = narrative.solutions || narrative.recommendations || ''
+    if (solText.trim()) {
+      recommendations.push({ departmentName: deptName, dayLabel, text: solText.trim() })
+    }
+  })
+
+  return { challenges, recommendations }
 }

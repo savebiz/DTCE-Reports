@@ -17,6 +17,8 @@ export async function GET(request: Request) {
     let deptsList: any[] = []
     let repsList: any[] = []
     let narrsList: any[] = []
+    let eventDaysList: any[] = []
+    let preEventTotalsList: any[] = []
 
     if (isMock) {
       // Mock mode data load
@@ -32,6 +34,8 @@ export async function GET(request: Request) {
       deptsList = mockDepartments
       repsList = store.dailyReports
       narrsList = store.narratives
+      eventDaysList = (store as any).eventDays || []
+      preEventTotalsList = (store as any).registrationPreEventTotals || []
     } else {
       // Live Supabase Mode
       const supabase = await createClient()
@@ -60,6 +64,17 @@ export async function GET(request: Request) {
 
       const { data: narrs } = await supabase.from('department_narratives').select('*')
       narrsList = narrs || []
+      
+      const { data: eventDays } = await supabase.from('event_days').select('*')
+      eventDaysList = eventDays || []
+      
+      try {
+        const { data: preEventTotals } = await supabase.from('registration_pre_event_totals').select('*')
+        preEventTotalsList = preEventTotals || []
+      } catch (e) {
+        // Graceful fallback if table doesn't exist
+        preEventTotalsList = []
+      }
     }
 
     // Double-check authorization in mock mode too
@@ -84,6 +99,8 @@ export async function GET(request: Request) {
       departments: deptsList,
       reports: repsList,
       narratives: narrsList,
+      eventDays: eventDaysList,
+      preEventTotals: preEventTotalsList,
       logoBuffer
     })
 
