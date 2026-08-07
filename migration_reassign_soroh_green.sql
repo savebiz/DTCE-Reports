@@ -8,17 +8,16 @@ WHERE NOT EXISTS (
   SELECT 1 FROM public.departments WHERE LOWER(name) = LOWER('Secondary School Outreach')
 );
 
--- 2. Deactivate previous hod_assignments for Soroh Green
-UPDATE public.hod_assignments
-SET is_active = false
+-- 2. Remove old department assignments for Soroh Green
+DELETE FROM public.hod_assignments
 WHERE profile_id = 'ee99b681-7006-4c14-86ed-cea9a917f333';
 
--- 3. Create active HOD assignment for Secondary School Outreach
-INSERT INTO public.hod_assignments (profile_id, department_id, is_active)
+-- 3. Create HOD assignment for Secondary School Outreach
+INSERT INTO public.hod_assignments (profile_id, department_id, role_in_event)
 SELECT 
   'ee99b681-7006-4c14-86ed-cea9a917f333',
   id,
-  true
+  'hod'
 FROM public.departments 
 WHERE LOWER(name) = LOWER('Secondary School Outreach')
 LIMIT 1;
