@@ -924,21 +924,66 @@ export default function SecretariatTeamManagement() {
               <tbody className="divide-y divide-slate-800 text-slate-300">
                 {users.map(u => {
                   const isNationalRole = ['super_admin', 'national_coordinator', 'nc_assistant'].includes(u.role)
-                  let deptName = '— (National Office)'
+                  const effectiveDeptId = u.department_id || hodAssignMap[u.id]
+                  const dbDept = dbDepartments.find(d => d.id === effectiveDeptId)
+                  const mockDept = mockDepartments.find(d => d.id === effectiveDeptId)
+                  const deptName = isNationalRole
+                    ? '— (National Office)'
+                    : (dbDept?.name || mockDept?.name || (effectiveDeptId ? 'Department' : 'Unassigned Department'))
 
-                  if (!isNationalRole) {
-                    const effectiveDeptId = u.department_id || hodAssignMap[u.id]
-                    const dbDept = dbDepartments.find(d => d.id === effectiveDeptId)
-                    const mockDept = mockDepartments.find(d => d.id === effectiveDeptId)
-                    deptName = dbDept?.name || mockDept?.name || (effectiveDeptId ? 'Department' : 'Unassigned Department')
-                  }
+                  const deptsForSelect = (dbDepartments.length > 0 ? dbDepartments : mockDepartments).slice().sort((a,b) => a.name.localeCompare(b.name))
+                  const canEditDept = profile?.role === 'super_admin' || profile?.role === 'coordinator' || profile?.role === 'national_coordinator'
 
                   return (
                     <tr key={u.id} className="hover:bg-slate-900/10">
                       <td className="p-3 font-semibold text-slate-200">{u.full_name || '—'}</td>
                       <td className="p-3 font-mono text-slate-400">{u.username || '—'}</td>
                       <td className="p-3 text-slate-500">{u.email}</td>
-                      <td className="p-3 font-medium text-slate-400">{deptName}</td>
+                      <td className="p-3 font-medium">
+                        {canEditDept ? (
+                          <select
+                            value={effectiveDeptId || ''}
+                            onChange={async (e) => {
+                              const newDeptId = e.target.value
+                              try {
+                                if (isMock) {
+                                  const { store: mockStore } = require('@/utils/supabase/mockClient')
+                                  const match = mockStore.profiles.find((p: any) => p.id === u.id)
+                                  if (match) match.department_id = newDeptId || undefined
+                                } else {
+                                  const res = await fetch('/api/update-department', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ targetUserId: u.id, newDepartmentId: newDeptId })
+                                  })
+                                  const data = await res.json()
+                                  if (data.error) throw new Error(data.error)
+                                }
+                                const targetDept = deptsForSelect.find(d => d.id === newDeptId)
+                                showToast(`Department updated to "${targetDept?.name || 'National Office'}" for ${u.full_name}`, 'success')
+                                loadData()
+                              } catch (err: any) {
+                                showToast(`Failed to update department: ${err.message}`, 'error')
+                              }
+                            }}
+                            className="text-[11px] font-medium px-2 py-1 rounded-lg cursor-pointer outline-none max-w-[210px] truncate"
+                            style={{
+                              background: 'rgba(255,255,255,0.04)',
+                              color: effectiveDeptId ? '#93C5FD' : '#94A3B8',
+                              border: '1px solid rgba(255,255,255,0.1)'
+                            }}
+                          >
+                            <option value="" style={{ background: '#111827', color: '#94A3B8' }}>— (National Office)</option>
+                            {deptsForSelect.map((d) => (
+                              <option key={d.id} value={d.id} style={{ background: '#111827', color: '#F1F5F9' }}>
+                                {d.name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-slate-400">{deptName}</span>
+                        )}
+                      </td>
                       <td className="p-3">
                         {profile?.role === 'super_admin' && u.id !== profile?.id ? (
                           <select
