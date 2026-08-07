@@ -184,15 +184,19 @@ export function EndofConventionFeedbackModal({
                   key={num}
                   type="button"
                   onClick={() => setDailyReportEase(num)}
-                  className={`py-2 rounded-lg border text-xs font-semibold transition-all ${
+                  className={`py-2 rounded-lg border text-center text-xs font-bold transition-all ${
                     dailyReportEase === num
                       ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm'
                       : 'bg-background hover:bg-muted/30 border-border text-muted-foreground'
                   }`}
                 >
-                  {num} {num === 1 ? '(Very Hard)' : num === 5 ? '(Very Easy)' : ''}
+                  {num}
                 </button>
               ))}
+            </div>
+            <div className="flex justify-between text-[10px] text-muted-foreground pt-1">
+              <span>1 = Very Hard</span>
+              <span>5 = Very Easy</span>
             </div>
           </div>
 
@@ -207,15 +211,19 @@ export function EndofConventionFeedbackModal({
                   key={num}
                   type="button"
                   onClick={() => setRequisitionEase(num)}
-                  className={`py-2 rounded-lg border text-xs font-semibold transition-all ${
+                  className={`py-2 rounded-lg border text-center text-xs font-bold transition-all ${
                     requisitionEase === num
                       ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm'
                       : 'bg-background hover:bg-muted/30 border-border text-muted-foreground'
                   }`}
                 >
-                  {num} {num === 1 ? '(Very Hard)' : num === 5 ? '(Very Easy)' : ''}
+                  {num}
                 </button>
               ))}
+            </div>
+            <div className="flex justify-between text-[10px] text-muted-foreground pt-1">
+              <span>1 = Very Hard</span>
+              <span>5 = Very Easy</span>
             </div>
           </div>
 
