@@ -90,7 +90,7 @@ export default function FeedbackAnalyticsPage() {
       const { data: dbProfiles } = await supabase.from('profiles').select('*')
       const profMap: Record<string, any> = {}
       if (dbProfiles) {
-        dbProfiles.forEach(p => { profMap[p.id] = p })
+        dbProfiles.forEach((p: any) => { profMap[p.id] = p })
       }
       setProfilesMap(profMap)
 
