@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getClient, isMock, mockDepartments } from '@/utils/supabase'
-import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit, Layers, Award } from 'lucide-react'
+import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit, Layers, Award, MessageSquare } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
@@ -71,10 +71,13 @@ export function DashboardHeader() {
       setShowFeedbackModal(false)
       return
     }
-    // Session dismissal check: if dismissed in current session, do not show
-    if (typeof window !== 'undefined' && sessionStorage.getItem('dtce_feedback_dismissed_session') === 'true') {
-      setShowFeedbackModal(false)
-      return
+    // 4-hour Snooze check (handles users who don't log out on mobile or desktop)
+    if (typeof window !== 'undefined') {
+      const snoozedUntil = sessionStorage.getItem('dtce_feedback_snoozed_until')
+      if (snoozedUntil && Date.now() < Number(snoozedUntil)) {
+        setShowFeedbackModal(false)
+        return
+      }
     }
     setShowFeedbackModal(true)
   }
@@ -175,23 +178,26 @@ export function DashboardHeader() {
     fetchUser()
   }, [deptIdParam, profile?.department_id])
 
-  // PWA app-resume / visibilitychange listener
+  // PWA app-resume / visibilitychange & window focus listener for mobile & desktop
   useEffect(() => {
-    if (!profile) return
-    const handleVisibilityChange = () => {
+    if (!profile || profile.feedback_submitted_at) return
+    const handleResumeCheck = () => {
       if (document.visibilityState === 'visible') {
         checkFeedbackTrigger(profile)
       }
     }
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    document.addEventListener('visibilitychange', handleResumeCheck)
+    window.addEventListener('focus', handleResumeCheck)
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      document.removeEventListener('visibilitychange', handleResumeCheck)
+      window.removeEventListener('focus', handleResumeCheck)
     }
   }, [profile])
 
   const handleCloseFeedbackSession = () => {
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('dtce_feedback_dismissed_session', 'true')
+      // Snooze for 4 hours instead of infinite session lock
+      sessionStorage.setItem('dtce_feedback_snoozed_until', (Date.now() + 4 * 60 * 60 * 1000).toString())
     }
     setShowFeedbackModal(false)
   }
@@ -199,7 +205,7 @@ export function DashboardHeader() {
   const handleSubmitFeedbackSuccess = () => {
     const nowIso = new Date().toISOString()
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('dtce_feedback_dismissed_session', 'true')
+      sessionStorage.removeItem('dtce_feedback_snoozed_until')
     }
     setProfile((prev: any) => ({
       ...prev,
@@ -211,7 +217,7 @@ export function DashboardHeader() {
   const handleSignOut = async () => {
     setSigning(true)
     if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('dtce_feedback_dismissed_session')
+      sessionStorage.removeItem('dtce_feedback_snoozed_until')
     }
     const supabase = getClient()
     await supabase.auth.signOut()
@@ -301,6 +307,24 @@ export function DashboardHeader() {
 
             {/* 2. Notification Bell SECOND */}
             <NotificationBell userId={user?.id || profile?.id || (isMock ? 'mock-admin' : undefined)} />
+
+            {/* Persistent Feedback Badge for mobile & desktop when feedback is pending */}
+            {user && !profile?.feedback_submitted_at && (
+              <button
+                onClick={() => setShowFeedbackModal(true)}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] sm:text-[11px] font-bold transition-all cursor-pointer shrink-0 animate-pulse"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(245,158,11,0.25), rgba(217,119,6,0.35))',
+                  border: '1px solid rgba(245,158,11,0.5)',
+                  color: '#FBBF24',
+                  boxShadow: '0 0 10px rgba(245,158,11,0.2)'
+                }}
+                title="Give End-of-Convention Feedback"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+                <span>Feedback</span>
+              </button>
+            )}
 
             {/* Role badge (Desktop) */}
             <span className={`hidden lg:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize tracking-wide ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
