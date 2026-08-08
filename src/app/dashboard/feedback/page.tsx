@@ -1,10 +1,9 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
-import { DashboardHeader } from '@/components/dashboard-header'
 import { showToast } from '@/components/ui/toast'
 import {
   MessageSquare,
@@ -43,7 +42,7 @@ interface FeedbackEntry {
   }
 }
 
-export default function FeedbackAnalyticsPage() {
+function FeedbackAnalyticsContent() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -285,9 +284,7 @@ export default function FeedbackAnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <DashboardHeader />
-
-      <main className="mx-auto max-w-[1400px] px-3 sm:px-6 pt-20 pb-16 space-y-6">
+      <main className="mx-auto max-w-[1400px] px-3 sm:px-6 py-6 space-y-6">
         
         {/* Header Title Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/20 border border-border p-4 sm:p-6 rounded-2xl">
@@ -635,5 +632,22 @@ export default function FeedbackAnalyticsPage() {
 
       </main>
     </div>
+  )
+}
+
+export default function FeedbackAnalyticsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
+          <div className="flex flex-col items-center gap-3">
+            <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
+            <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading Convention Feedback Analytics...</p>
+          </div>
+        </div>
+      }
+    >
+      <FeedbackAnalyticsContent />
+    </Suspense>
   )
 }
