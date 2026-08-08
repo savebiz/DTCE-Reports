@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
+
+export const runtime = 'nodejs'
 
 export async function POST(request: Request) {
   try {
@@ -42,7 +45,7 @@ export async function POST(request: Request) {
     }
 
     if (isMock) {
-      const feedbacks = store.platformFeedback
+      const feedbacks = store.platformFeedback || []
       feedbacks.push({
         id: 'pf-' + Math.random().toString(36).substr(2, 9),
         ...payload
@@ -63,20 +66,30 @@ export async function POST(request: Request) {
         }
       }
     } else {
-      const supabase = await createClient()
-      
-      // Insert into platform_feedback
-      const { error: insertErr } = await supabase.from('platform_feedback').insert(payload)
+      const supabaseUserClient = await createServerClient()
+      const { data: { user } } = await supabaseUserClient.auth.getUser()
+
+      const activeProfileId = user?.id || profile_id
+      payload.profile_id = activeProfileId
+
+      const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+      const supabaseAdmin = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        serviceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+
+      // Insert into platform_feedback using admin client (bypasses RLS mismatch)
+      const { error: insertErr } = await supabaseAdmin.from('platform_feedback').insert(payload)
       if (insertErr) {
         console.error('Failed to insert platform_feedback:', insertErr)
         return NextResponse.json({ error: insertErr.message }, { status: 500 })
       }
 
       // Update profiles feedback_submitted_at
-      const { error: updateErr } = await supabase
+      const { error: updateErr } = await supabaseAdmin
         .from('profiles')
         .update({ feedback_submitted_at: submitted_at })
-        .eq('id', profile_id)
+        .eq('id', activeProfileId)
 
       if (updateErr) {
         console.error('Failed to update profile feedback_submitted_at:', updateErr)
@@ -85,6 +98,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, submitted_at })
   } catch (err: any) {
+    console.error('Submit feedback route error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }

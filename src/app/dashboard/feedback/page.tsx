@@ -56,69 +56,24 @@ function FeedbackAnalyticsContent() {
   const loadFeedbackData = async () => {
     try {
       setRefreshing(true)
-      const supabase = getClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const res = await fetch('/api/feedback/list')
+      const data = await res.json()
 
-      if (!user) {
-        showToast('Please log in to access feedback analytics.', 'error')
-        router.push('/login')
-        return
-      }
-
-      // Check caller role
-      const { data: currentProf } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle()
-
-      const userRole = currentProf?.role || user.user_metadata?.role
-
-      if (userRole !== 'super_admin') {
-        showToast('Access restricted: Feedback analytics is reserved for Secretariat Super Admins.', 'error')
-        router.push('/dashboard')
-        return
-      }
-
-      // Fetch departments
-      const { data: dbDepts } = await supabase.from('departments').select('*')
-      const depts = dbDepts && dbDepts.length > 0 ? dbDepts : mockDepartments
-      setDepartments(depts)
-
-      // Fetch all profiles for name/dept mapping
-      const { data: dbProfiles } = await supabase.from('profiles').select('*')
-      const profMap: Record<string, any> = {}
-      if (dbProfiles) {
-        dbProfiles.forEach((p: any) => { profMap[p.id] = p })
-      }
-      setProfilesMap(profMap)
-
-      // Fetch feedback entries
-      let entries: FeedbackEntry[] = []
-      if (isMock) {
-        entries = store.platformFeedback || []
-      } else {
-        const { data: dbFeedbacks, error: fbErr } = await supabase
-          .from('platform_feedback')
-          .select(`
-            *,
-            profiles (
-              full_name,
-              email,
-              role,
-              department_id
-            )
-          `)
-          .order('submitted_at', { ascending: false })
-
-        if (fbErr) {
-          console.error('Error fetching platform_feedback:', fbErr)
-        } else if (dbFeedbacks) {
-          entries = dbFeedbacks as FeedbackEntry[]
+      if (data.error) {
+        showToast(`Notice: ${data.error}`, 'error')
+        if (data.error.includes('Unauthorized') || data.error.includes('Forbidden')) {
+          router.push('/dashboard')
         }
+        return
       }
 
-      setFeedbacks(entries)
+      if (data.feedbacks) {
+        setFeedbacks(data.feedbacks)
+      }
+
+      const supabase = getClient()
+      const { data: dbDepts } = await supabase.from('departments').select('*')
+      setDepartments(dbDepts && dbDepts.length > 0 ? dbDepts : mockDepartments)
     } catch (err: any) {
       showToast(`Failed to load feedback data: ${err.message}`, 'error')
     } finally {
@@ -133,14 +88,14 @@ function FeedbackAnalyticsContent() {
 
   // Helper to map profile/dept details
   const getEntryProfileDetails = (entry: FeedbackEntry) => {
-    const p = entry.profile || profilesMap[entry.profile_id] || {}
+    const p = (entry as any).profile || profilesMap[entry.profile_id] || {}
     const deptId = p.department_id
     const dept = departments.find(d => d.id === deptId)
     return {
-      fullName: p.full_name || entry.profile_id || 'Unknown User',
+      fullName: p.full_name || p.username || entry.profile_id || 'Delegate User',
       email: p.email || '—',
       role: p.role || 'HOD',
-      deptName: dept?.name || (deptId ? 'Department' : 'Secretariat / National')
+      deptName: p.department_name || dept?.name || (deptId ? 'Department' : 'Secretariat / National')
     }
   }
 
