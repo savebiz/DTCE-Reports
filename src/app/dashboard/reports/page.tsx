@@ -372,8 +372,8 @@ export default function ReportsExportPage() {
                     const isTeensProgram = deptNameLower.includes('programme') || deptNameLower.includes('program') || deptNameLower.includes('teens')
 
                     const regSummary = isRegistration ? extractRegistrationTwoChannelSummary(deptReps) : null
-                    const usheringSummary = isUshering ? extractUsheringV2Summary(deptReps.filter(r => r.metrics_data?.schema_version === 2 || r.metrics_data?.custom_schema?.schema_version === 2)) : []
-                    const medSummary = isMedical ? extractMedicalSummary(deptReps) : null
+                    const usheringSummary = isUshering ? extractUsheringV2Summary(deptReps.filter(r => r.metrics_data?.schema_version === 2 || r.metrics_data?.custom_schema?.schema_version === 2), eventDays) : []
+                    const medSummary = isMedical ? extractMedicalSummary(deptReps, eventDays) : null
                     const welfareSummary = isWelfare ? extractWelfareSummary(deptReps) : []
                     const storesSummary = isStores ? extractStoresSummary(deptReps) : null
                     const sepuSummary = isSepu ? extractSepuSummary(deptReps) : []
@@ -512,17 +512,19 @@ export default function ReportsExportPage() {
                         {/* 2. Ushering 5-Section Summary */}
                         {isUshering && usheringSummary.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Ushering — Five-Section Attendance &amp; Offering Breakdown</h5>
+                            <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Ushering — Granular Five-Section Daily Attendance &amp; Offering Breakdown</h5>
                             {usheringSummary.map((sec, idx) => (
                               <div key={idx} className="border border-amber-500/30 rounded-xl overflow-hidden bg-background space-y-1">
                                 <div className="bg-amber-950/40 px-3 py-1.5 border-b border-amber-500/30 font-bold text-amber-300 text-[11px] flex justify-between">
                                   <span>{sec.sectionTitle}</span>
-                                  <span>Offering: ₦{sec.totals.offering.toLocaleString()}</span>
+                                  <span>Total Offering: ₦{sec.totals.offering.toLocaleString()}</span>
                                 </div>
                                 <table className="w-full text-left border-collapse">
                                   <thead>
                                     <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
-                                      <th className="p-2 border-r border-border">Session/Event</th>
+                                      <th className="p-2 border-r border-border">Day</th>
+                                      <th className="p-2 border-r border-border">Session / Event</th>
+                                      <th className="p-2 border-r border-border">Preacher / Guest</th>
                                       <th className="p-2 border-r border-border text-center">Male</th>
                                       <th className="p-2 border-r border-border text-center">Female</th>
                                       <th className="p-2 border-r border-border text-center font-bold">Total</th>
@@ -532,7 +534,9 @@ export default function ReportsExportPage() {
                                   <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
                                     {sec.rows.map((row, rIdx) => (
                                       <tr key={rIdx}>
+                                        <td className="p-2 border-r border-border font-bold text-amber-400">{row.dayLabel}</td>
                                         <td className="p-2 border-r border-border font-semibold text-foreground">{row.event || '—'}</td>
+                                        <td className="p-2 border-r border-border text-foreground/80">{row.preacher || '—'}</td>
                                         <td className="p-2 border-r border-border text-center font-mono">{row.male.toLocaleString()}</td>
                                         <td className="p-2 border-r border-border text-center font-mono">{row.female.toLocaleString()}</td>
                                         <td className="p-2 border-r border-border text-center font-mono font-bold text-foreground">{row.total.toLocaleString()}</td>
@@ -549,40 +553,49 @@ export default function ReportsExportPage() {
                         {/* 3. Medical Department Summary */}
                         {isMedical && medSummary && (medSummary.demographics.length > 0 || medSummary.diagnoses.length > 0) && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-emerald-400 uppercase tracking-wider">Medical — Consultations &amp; Clinical Case Index</h5>
+                            <h5 className="text-[12px] font-bold text-emerald-400 uppercase tracking-wider">Medical — Granular Daily Consultations &amp; Clinical Case Index</h5>
                             {medSummary.demographics.length > 0 && (
                               <div className="border border-emerald-500/30 rounded-xl overflow-hidden bg-background">
                                 <div className="bg-emerald-950/40 px-3 py-1.5 border-b border-emerald-500/30 font-bold text-emerald-300 text-[11px]">
-                                  Patient Demographics
+                                  Patient Demographics (Daily Figures)
                                 </div>
                                 <table className="w-full text-left border-collapse">
                                   <thead>
                                     <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                      <th className="p-2 border-r border-border">Day</th>
                                       <th className="p-2 border-r border-border">Category</th>
                                       <th className="p-2 border-r border-border text-center">Gender</th>
-                                      <th className="p-2 text-right font-bold">Count</th>
+                                      <th className="p-2 text-right font-bold">Patient Count</th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
                                     {medSummary.demographics.map((d, idx) => (
                                       <tr key={idx}>
+                                        <td className="p-2 border-r border-border font-bold text-emerald-400">{d.dayLabel || '—'}</td>
                                         <td className="p-2 border-r border-border font-semibold text-foreground">{d.category}</td>
                                         <td className="p-2 border-r border-border text-center font-mono capitalize">{d.gender}</td>
                                         <td className="p-2 text-right font-mono font-bold text-foreground">{d.count.toLocaleString()}</td>
                                       </tr>
                                     ))}
                                   </tbody>
+                                  <tfoot>
+                                    <tr className="bg-emerald-950/20 font-bold text-emerald-300 text-[11px]">
+                                      <td colSpan={3} className="p-2 border-r border-border uppercase">Total Patients Registered</td>
+                                      <td className="p-2 text-right font-mono font-bold">{medSummary.totals.patients.toLocaleString()}</td>
+                                    </tr>
+                                  </tfoot>
                                 </table>
                               </div>
                             )}
                             {medSummary.diagnoses.length > 0 && (
                               <div className="border border-emerald-500/30 rounded-xl overflow-hidden bg-background">
                                 <div className="bg-emerald-950/40 px-3 py-1.5 border-b border-emerald-500/30 font-bold text-emerald-300 text-[11px]">
-                                  Diagnoses &amp; Cases Treated
+                                  Diagnoses &amp; Cases Treated (Daily Figures)
                                 </div>
                                 <table className="w-full text-left border-collapse">
                                   <thead>
                                     <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
+                                      <th className="p-2 border-r border-border">Day</th>
                                       <th className="p-2 border-r border-border">Diagnosis / Symptom</th>
                                       <th className="p-2 text-right font-bold">Cases Treated</th>
                                     </tr>
@@ -590,11 +603,18 @@ export default function ReportsExportPage() {
                                   <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
                                     {medSummary.diagnoses.map((d, idx) => (
                                       <tr key={idx}>
+                                        <td className="p-2 border-r border-border font-bold text-emerald-400">{d.dayLabel || '—'}</td>
                                         <td className="p-2 border-r border-border font-semibold text-foreground">{d.diagnosis}</td>
                                         <td className="p-2 text-right font-mono font-bold text-foreground">{d.count.toLocaleString()}</td>
                                       </tr>
                                     ))}
                                   </tbody>
+                                  <tfoot>
+                                    <tr className="bg-emerald-950/20 font-bold text-emerald-300 text-[11px]">
+                                      <td colSpan={2} className="p-2 border-r border-border uppercase">Total Clinical Cases Treated</td>
+                                      <td className="p-2 text-right font-mono font-bold">{medSummary.totals.cases.toLocaleString()}</td>
+                                    </tr>
+                                  </tfoot>
                                 </table>
                               </div>
                             )}

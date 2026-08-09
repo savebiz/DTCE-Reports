@@ -135,6 +135,7 @@ export function formatCustomMetricsTextLines(reports: any[]): string[] {
 
 // ── Ushering V2 Structured Summary ──────────────────────────────────────
 export interface UsheringV2SectionRow {
+  dayLabel: string
   event: string
   preacher: string
   male: number
@@ -161,8 +162,13 @@ const USHERING_SECTION_TITLES: Record<string, string> = {
   teenagers_section: 'Teenagers Section',
 }
 
-export function extractUsheringV2Summary(reports: any[]): UsheringV2SectionSummary[] {
+export function extractUsheringV2Summary(reports: any[], eventDays?: any[]): UsheringV2SectionSummary[] {
   if (!Array.isArray(reports) || reports.length === 0) return []
+
+  const dayMap: Record<string, number> = {}
+  if (Array.isArray(eventDays)) {
+    eventDays.forEach((ed: any) => { dayMap[ed.id] = ed.day_number })
+  }
 
   const sections: UsheringV2SectionSummary[] = []
 
@@ -170,10 +176,13 @@ export function extractUsheringV2Summary(reports: any[]): UsheringV2SectionSumma
     const allRows: UsheringV2SectionRow[] = []
     const totals = { male: 0, female: 0, total: 0, teachersMale: 0, teachersFemale: 0, offering: 0 }
 
-    reports.forEach(r => {
+    reports.forEach((r, idx) => {
       const mData = r.metrics_data || {}
       const schemaVersion = mData.schema_version || mData.custom_schema?.schema_version
       if (schemaVersion !== 2) return // Only process v2 rows
+
+      const dayNum = dayMap[r.event_day_id] || (idx + 1)
+      const dayLabel = `Day ${dayNum}`
 
       const custom = mData.custom_schema || mData
       const sectionData = custom[sectionKey]
@@ -188,6 +197,7 @@ export function extractUsheringV2Summary(reports: any[]): UsheringV2SectionSumma
         const off = Number(item.offering) || 0
 
         allRows.push({
+          dayLabel,
           event: item.event || item.title || '',
           preacher: item.preacher || item.preacher_or_invited_guest || '',
           male: m,
@@ -608,42 +618,71 @@ export function extractDepartmentQualitativeLogs(
 }
 
 // ── Medical Summary ─────────────────────────────────────────────────────
-export interface MedicalDemographicsRow { category: string; gender: string; count: number }
-export interface MedicalDiagnosisRow { diagnosis: string; count: number }
+export interface MedicalDemographicsRow { dayLabel?: string; category: string; gender: string; count: number }
+export interface MedicalDiagnosisRow { dayLabel?: string; diagnosis: string; count: number }
 
-export function extractMedicalSummary(reports: any[]): { demographics: MedicalDemographicsRow[]; diagnoses: MedicalDiagnosisRow[] } {
-  const demoMap: Record<string, number> = {}
-  const diagMap: Record<string, number> = {}
+export function extractMedicalSummary(reports: any[], eventDays?: any[]): {
+  demographics: MedicalDemographicsRow[]
+  diagnoses: MedicalDiagnosisRow[]
+  totals: { patients: number; cases: number }
+} {
+  const dayMap: Record<string, number> = {}
+  if (Array.isArray(eventDays)) {
+    eventDays.forEach((ed: any) => { dayMap[ed.id] = ed.day_number })
+  }
 
-  reports.forEach(r => {
+  const sortedReports = [...reports].sort((a, b) => {
+    const dayA = dayMap[a.event_day_id] || 0
+    const dayB = dayMap[b.event_day_id] || 0
+    return dayA - dayB
+  })
+
+  const demographics: MedicalDemographicsRow[] = []
+  const diagnoses: MedicalDiagnosisRow[] = []
+  const totals = { patients: 0, cases: 0 }
+
+  sortedReports.forEach((r, idx) => {
+    const dayNum = dayMap[r.event_day_id] || (idx + 1)
+    const dayLabel = `Day ${dayNum}`
+
     const mData = r.metrics_data || {}
     const custom = mData.custom_schema || mData
 
-    const demos = Array.isArray(custom.patients_demographics) ? custom.patients_demographics : []
+    const demos = Array.isArray(custom.patients_demographics)
+      ? custom.patients_demographics
+      : Array.isArray(mData.patients_demographics)
+      ? mData.patients_demographics
+      : []
+
     demos.forEach((item: any) => {
       const cat = item.category || 'General'
       const gender = item.gender || 'unspecified'
-      const key = `${cat} — ${gender}`
-      demoMap[key] = (demoMap[key] || 0) + (Number(item.count) || 0)
+      const count = Number(item.count) || 0
+      if (count > 0) {
+        demographics.push({ dayLabel, category: cat, gender, count })
+        totals.patients += count
+      }
     })
 
-    const diags = Array.isArray(custom.diagnoses_cases) ? custom.diagnoses_cases : []
+    const diags = Array.isArray(custom.diagnoses_cases)
+      ? custom.diagnoses_cases
+      : Array.isArray(custom.diagnoses)
+      ? custom.diagnoses
+      : Array.isArray(mData.diagnoses)
+      ? mData.diagnoses
+      : []
+
     diags.forEach((item: any) => {
       const diag = item.diagnosis || 'Unspecified'
-      diagMap[diag] = (diagMap[diag] || 0) + (Number(item.count) || 0)
+      const count = Number(item.count) || 0
+      if (count > 0) {
+        diagnoses.push({ dayLabel, diagnosis: diag, count })
+        totals.cases += count
+      }
     })
   })
 
-  const demographics = Object.entries(demoMap).map(([key, count]) => {
-    const [category, gender] = key.split(' — ')
-    return { category, gender, count }
-  })
-
-  const diagnoses = Object.entries(diagMap)
-    .map(([diagnosis, count]) => ({ diagnosis, count }))
-    .sort((a, b) => b.count - a.count)
-
-  return { demographics, diagnoses }
+  return { demographics, diagnoses, totals }
 }
 
 // ── Welfare Summary ─────────────────────────────────────────────────────

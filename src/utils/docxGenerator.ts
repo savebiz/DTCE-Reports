@@ -750,7 +750,7 @@ export async function generateDTCEConventionDocx({
         mainChildren.push(createHeading3('Ushering — Five-Section Analysis'))
         mainChildren.push(createFreshnessLine(`${v2Reports.length} day(s) recorded under current schema (v2).`))
 
-        const usheringSections = extractUsheringV2Summary(v2Reports)
+        const usheringSections = extractUsheringV2Summary(v2Reports, eventDays)
         usheringSections.forEach(section => {
           mainChildren.push(new Paragraph({ spacing: spacing(100, 40), children: [new TextRun({ text: section.sectionTitle, bold: true, size: 18, font: 'Outfit', color: GOLD })] }))
 
@@ -760,6 +760,7 @@ export async function generateDTCEConventionDocx({
           let headerCells: TableCell[]
           if (isTeachersMeeting) {
             headerCells = [
+              new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Day', color: 'FFFFFF', bold: true, size: 14, font: 'Outfit' })] })] }),
               new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Title/Theme', color: 'FFFFFF', bold: true, size: 14, font: 'Outfit' })] })] }),
               new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Preacher', color: 'FFFFFF', bold: true, size: 14, font: 'Outfit' })] })] }),
               new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Male', color: 'FFFFFF', bold: true, size: 14, font: 'Outfit' })] })] }),
@@ -769,6 +770,7 @@ export async function generateDTCEConventionDocx({
             ]
           } else {
             headerCells = [
+              new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Day', color: 'FFFFFF', bold: true, size: 14, font: 'Outfit' })] })] }),
               new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Event/Session', color: 'FFFFFF', bold: true, size: 14, font: 'Outfit' })] })] }),
               new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Preacher/Guest', color: 'FFFFFF', bold: true, size: 14, font: 'Outfit' })] })] }),
               new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Male', color: 'FFFFFF', bold: true, size: 14, font: 'Outfit' })] })] }),
@@ -787,6 +789,7 @@ export async function generateDTCEConventionDocx({
             if (isTeachersMeeting) {
               sectionRows.push(new TableRow({
                 children: [
+                  new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: row.dayLabel || '—', font: 'Outfit', bold: true, size: 16 })] })] }),
                   new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: row.event || '—', font: 'Outfit', size: 16 })] })] }),
                   new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: row.preacher || '—', font: 'Outfit', size: 16 })] })] }),
                   new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: row.male.toLocaleString(), font: 'Outfit', size: 16 })] })] }),
@@ -798,6 +801,7 @@ export async function generateDTCEConventionDocx({
             } else {
               sectionRows.push(new TableRow({
                 children: [
+                  new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: row.dayLabel || '—', font: 'Outfit', bold: true, size: 16 })] })] }),
                   new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: row.event || '—', font: 'Outfit', size: 16 })] })] }),
                   new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: row.preacher || '—', font: 'Outfit', size: 16 })] })] }),
                   new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: row.male.toLocaleString(), font: 'Outfit', size: 16 })] })] }),
@@ -815,7 +819,7 @@ export async function generateDTCEConventionDocx({
           if (isTeachersMeeting) {
             sectionRows.push(new TableRow({
               children: [
-                new TableCell({ shading: { fill: SLATE_LIGHT }, columnSpan: 2, children: [new Paragraph({ children: [new TextRun({ text: 'SECTION TOTALS', font: 'Outfit', bold: true, color: NAVY })] })] }),
+                new TableCell({ shading: { fill: SLATE_LIGHT }, columnSpan: 3, children: [new Paragraph({ children: [new TextRun({ text: 'SECTION TOTALS', font: 'Outfit', bold: true, color: NAVY })] })] }),
                 new TableCell({ shading: { fill: SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: section.totals.male.toLocaleString(), font: 'Outfit', bold: true })] })] }),
                 new TableCell({ shading: { fill: SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: section.totals.female.toLocaleString(), font: 'Outfit', bold: true })] })] }),
                 new TableCell({ shading: { fill: SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: section.totals.total.toLocaleString(), font: 'Outfit', bold: true, color: NAVY })] })] }),
@@ -825,7 +829,7 @@ export async function generateDTCEConventionDocx({
           } else {
             sectionRows.push(new TableRow({
               children: [
-                new TableCell({ shading: { fill: SLATE_LIGHT }, columnSpan: 2, children: [new Paragraph({ children: [new TextRun({ text: 'SECTION TOTALS', font: 'Outfit', bold: true, color: NAVY })] })] }),
+                new TableCell({ shading: { fill: SLATE_LIGHT }, columnSpan: 3, children: [new Paragraph({ children: [new TextRun({ text: 'SECTION TOTALS', font: 'Outfit', bold: true, color: NAVY })] })] }),
                 new TableCell({ shading: { fill: SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: section.totals.male.toLocaleString(), font: 'Outfit', bold: true })] })] }),
                 new TableCell({ shading: { fill: SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: section.totals.female.toLocaleString(), font: 'Outfit', bold: true })] })] }),
                 new TableCell({ shading: { fill: SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: section.totals.total.toLocaleString(), font: 'Outfit', bold: true, color: NAVY })] })] }),
@@ -843,11 +847,12 @@ export async function generateDTCEConventionDocx({
 
     } else if (deptNameLower.includes('medical')) {
       // ━━ Medical Department Specialized Tables ━━
-      const medSummary = extractMedicalSummary(deptReports)
+      const medSummary = extractMedicalSummary(deptReports, eventDays)
       if (medSummary.demographics.length > 0) {
-        mainChildren.push(createHeading3('Medical — Patient Demographics'))
+        mainChildren.push(createHeading3('Medical — Patient Demographics (Granular Daily Log)'))
         const demoHdr = new TableRow({
           children: [
+            new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Day', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
             new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Category', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
             new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Gender', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
             new TableCell({ shading: { fill: TEAL }, children: [new Paragraph({ children: [new TextRun({ text: 'Patient Count', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
@@ -858,20 +863,28 @@ export async function generateDTCEConventionDocx({
           const fill = idx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT
           demoRows.push(new TableRow({
             children: [
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.dayLabel || '—', font: 'Outfit', bold: true })] })] }),
               new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.category, font: 'Outfit', bold: true })] })] }),
               new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.gender, font: 'Outfit' })] })] }),
               new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.count.toLocaleString(), font: 'Outfit', bold: true })] })] }),
             ]
           }))
         })
+        demoRows.push(new TableRow({
+          children: [
+            new TableCell({ shading: { fill: SLATE_LIGHT }, columnSpan: 3, children: [new Paragraph({ children: [new TextRun({ text: 'TOTAL PATIENTS REGISTERED', font: 'Outfit', bold: true, color: NAVY })] })] }),
+            new TableCell({ shading: { fill: SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: medSummary.totals.patients.toLocaleString(), font: 'Outfit', bold: true, color: NAVY })] })] }),
+          ]
+        }))
         mainChildren.push(new Table({ width: { size: 9000, type: WidthType.DXA }, borders: tableBorders, rows: demoRows }))
         mainChildren.push(new Paragraph({ text: '', spacing: spacing(60, 60) }))
       }
 
       if (medSummary.diagnoses.length > 0) {
-        mainChildren.push(createHeading3('Medical — Diagnoses & Cases Treated'))
+        mainChildren.push(createHeading3('Medical — Diagnoses & Cases Treated (Granular Daily Log)'))
         const diagHdr = new TableRow({
           children: [
+            new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Day', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
             new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Diagnosis / Symptom', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
             new TableCell({ shading: { fill: NAVY }, children: [new Paragraph({ children: [new TextRun({ text: 'Cases Treated', color: 'FFFFFF', bold: true, size: 16, font: 'Outfit' })] })] }),
           ]
@@ -881,11 +894,18 @@ export async function generateDTCEConventionDocx({
           const fill = idx % 2 === 0 ? 'FFFFFF' : SLATE_LIGHT
           diagRows.push(new TableRow({
             children: [
+              new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.dayLabel || '—', font: 'Outfit', bold: true })] })] }),
               new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.diagnosis, font: 'Outfit' })] })] }),
               new TableCell({ shading: { fill }, children: [new Paragraph({ children: [new TextRun({ text: d.count.toLocaleString(), font: 'Outfit', bold: true })] })] }),
             ]
           }))
         })
+        diagRows.push(new TableRow({
+          children: [
+            new TableCell({ shading: { fill: SLATE_LIGHT }, columnSpan: 2, children: [new Paragraph({ children: [new TextRun({ text: 'TOTAL CLINICAL CASES TREATED', font: 'Outfit', bold: true, color: NAVY })] })] }),
+            new TableCell({ shading: { fill: SLATE_LIGHT }, children: [new Paragraph({ children: [new TextRun({ text: medSummary.totals.cases.toLocaleString(), font: 'Outfit', bold: true, color: NAVY })] })] }),
+          ]
+        }))
         mainChildren.push(new Table({ width: { size: 9000, type: WidthType.DXA }, borders: tableBorders, rows: diagRows }))
         mainChildren.push(new Paragraph({ text: '', spacing: spacing(80, 80) }))
       }
