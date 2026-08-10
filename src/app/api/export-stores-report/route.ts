@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/utils/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { isMock, mockDepartments } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
 import { generateStoresMaterialsDocx } from '@/utils/storesDocxGenerator'
@@ -31,44 +30,41 @@ export async function GET(request: Request) {
       repsList = store.dailyReports
       eventDaysList = (store as any).eventDays || []
     } else {
-      const supabaseUserClient = await createServerClient()
-      const { data: { user } } = await supabaseUserClient.auth.getUser()
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         return new Response('Unauthorized: Log in to export report.', { status: 401 })
       }
 
-      const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
-      const supabaseAdmin = createSupabaseClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        serviceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
+      userRole = user.user_metadata?.role || 'assistant'
 
-      const { data: callerProfile } = await supabaseAdmin
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      userRole = callerProfile?.role || user.user_metadata?.role || 'assistant'
+      if (userRole !== 'super_admin' && userRole !== 'coordinator' && userRole !== 'national_coordinator') {
+        const { data: callerProfile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        if (callerProfile) userRole = callerProfile.role
+      }
 
       if (userRole !== 'super_admin' && userRole !== 'coordinator' && userRole !== 'national_coordinator') {
         return new Response('Forbidden: Only Secretariat Super Admins can export Stores Audit Reports.', { status: 403 })
       }
 
-      // Fetch dynamic datasets
-      const { data: events } = await supabaseAdmin.from('events').select('*')
+      // Fetch dynamic datasets safely using user server client
+      const { data: events } = await supabase.from('events').select('*')
       if (events && events.length > 0) event = events[0]
 
-      const { data: depts } = await supabaseAdmin.from('departments').select('*')
-      deptsList = depts || []
+      const { data: depts } = await supabase.from('departments').select('*')
+      deptsList = depts || mockDepartments
 
-      const { data: reqs } = await supabaseAdmin.from('store_requests').select('*')
+      const { data: reqs } = await supabase.from('store_requests').select('*')
       reqsList = reqs || []
 
-      const { data: reps } = await supabaseAdmin.from('daily_reports').select('*')
+      const { data: reps } = await supabase.from('daily_reports').select('*')
       repsList = reps || []
 
-      const { data: eventDays } = await supabaseAdmin.from('event_days').select('*')
+      const { data: eventDays } = await supabase.from('event_days').select('*')
       eventDaysList = eventDays || []
     }
 

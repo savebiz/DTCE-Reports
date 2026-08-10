@@ -151,8 +151,19 @@ export function compileStrategicStoresReport(
       approvedCount++
     }
 
-    // Process items_json
-    const items = Array.isArray(req.items_json) ? req.items_json : []
+    // Process items_json safely
+    let items: any[] = []
+    if (Array.isArray(req.items_json)) {
+      items = req.items_json
+    } else if (typeof req.items_json === 'string') {
+      try {
+        const parsed = JSON.parse(req.items_json)
+        if (Array.isArray(parsed)) items = parsed
+      } catch {
+        items = []
+      }
+    }
+
     const itemNamesList: string[] = []
 
     items.forEach((item: any) => {
