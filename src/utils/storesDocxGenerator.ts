@@ -71,10 +71,9 @@ export async function generateStoresMaterialsDocx({
   const tableBorders = {
     top: { style: BorderStyle.SINGLE, size: 4, color: GRAY_BORDER },
     bottom: { style: BorderStyle.SINGLE, size: 4, color: GRAY_BORDER },
-    left: { style: BorderStyle.NONE, size: 0, color: 'AUTO' },
-    right: { style: BorderStyle.NONE, size: 0, color: 'AUTO' },
-    insideHorizontal: { style: BorderStyle.SINGLE, size: 2, color: GRAY_BORDER },
-    insideVertical: { style: BorderStyle.NONE, size: 0, color: 'AUTO' },
+    left: { style: BorderStyle.SINGLE, size: 4, color: GRAY_BORDER },
+    right: { style: BorderStyle.SINGLE, size: 4, color: GRAY_BORDER },
+    insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: GRAY_BORDER }
   }
 
   const headerChildren: Paragraph[] = [
