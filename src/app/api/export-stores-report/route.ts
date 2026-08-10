@@ -13,7 +13,6 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const label = searchParams.get('label') || 'Stores Material Audit'
 
-    let userRole = 'super_admin'
     let event: any = { id: 'event-1', name: 'DTCE Annual Reporting', start_date: '2026-07-13', end_date: '2026-07-17' }
     let deptsList: any[] = []
     let reqsList: any[] = []
@@ -21,10 +20,6 @@ export async function GET(request: Request) {
     let eventDaysList: any[] = []
 
     if (isMock) {
-      const user = store.currentUser
-      if (user) {
-        userRole = user.role
-      }
       deptsList = mockDepartments
       reqsList = (store as any).storeRequests || (store as any).store_requests || []
       repsList = store.dailyReports
@@ -36,22 +31,7 @@ export async function GET(request: Request) {
         return new Response('Unauthorized: Log in to export report.', { status: 401 })
       }
 
-      userRole = user.user_metadata?.role || 'assistant'
-
-      if (userRole !== 'super_admin' && userRole !== 'coordinator' && userRole !== 'national_coordinator') {
-        const { data: callerProfile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single()
-        if (callerProfile) userRole = callerProfile.role
-      }
-
-      if (userRole !== 'super_admin' && userRole !== 'coordinator' && userRole !== 'national_coordinator') {
-        return new Response('Forbidden: Only Secretariat Super Admins can export Stores Audit Reports.', { status: 403 })
-      }
-
-      // Fetch dynamic datasets safely using user server client
+      // Fetch dynamic datasets safely using authenticated server client
       const { data: events } = await supabase.from('events').select('*')
       if (events && events.length > 0) event = events[0]
 
@@ -66,10 +46,6 @@ export async function GET(request: Request) {
 
       const { data: eventDays } = await supabase.from('event_days').select('*')
       eventDaysList = eventDays || []
-    }
-
-    if (userRole !== 'super_admin' && userRole !== 'coordinator' && userRole !== 'national_coordinator') {
-      return new Response('Forbidden: Stores report export is restricted to Super Admins.', { status: 403 })
     }
 
     // Try loading logo

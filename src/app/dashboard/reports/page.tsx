@@ -96,19 +96,32 @@ export default function ReportsExportPage() {
     }
   }
 
-  const handleExportStoresDocx = () => {
+  const handleExportStoresDocx = async () => {
     setExportingStores(true)
-    const downloadUrl = `/api/export-stores-report?label=${encodeURIComponent(exportLabel)}`
-    const link = document.createElement('a')
-    link.href = downloadUrl
-    link.setAttribute('download', `DTCE_Stores_Requisition_and_Materials_Flow_Report.docx`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    setTimeout(() => {
+    try {
+      showToast('Generating Strategic Stores Audit Report (DOCX)...', 'info')
+      const downloadUrl = `/api/export-stores-report?label=${encodeURIComponent(exportLabel)}`
+      const res = await fetch(downloadUrl)
+      if (!res.ok) {
+        const errText = await res.text()
+        showToast(`Export failed: ${errText || res.statusText}`, 'error')
+        return
+      }
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `DTCE_Stores_Requisition_and_Materials_Flow_Report.docx`)
+      document.body.appendChild(link)
+      link.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(link)
+      showToast('Your Stores Requisition & Materials Flow DOCX Report has downloaded!', 'success')
+    } catch (err: any) {
+      showToast(`Export failed: ${err.message}`, 'error')
+    } finally {
       setExportingStores(false)
-      showToast('Your Stores Requisition & Materials Flow DOCX Report is downloading!', 'success')
-    }, 1500)
+    }
   }
 
   const handleExportStoresCsv = () => {

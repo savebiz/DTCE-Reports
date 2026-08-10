@@ -446,15 +446,28 @@ function AdminRequisitionsContent() {
           <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
-              onClick={() => {
-                const downloadUrl = `/api/export-stores-report`
-                const link = document.createElement('a')
-                link.href = downloadUrl
-                link.setAttribute('download', `DTCE_Stores_Requisition_and_Materials_Flow_Report.docx`)
-                document.body.appendChild(link)
-                link.click()
-                document.body.removeChild(link)
-                showToast('Exporting Strategic Stores Audit Report (DOCX)...', 'success')
+              onClick={async () => {
+                try {
+                  showToast('Generating Strategic Stores Audit Report (DOCX)...', 'info')
+                  const res = await fetch('/api/export-stores-report')
+                  if (!res.ok) {
+                    const errText = await res.text()
+                    showToast(`Export failed: ${errText || res.statusText}`, 'error')
+                    return
+                  }
+                  const blob = await res.blob()
+                  const url = window.URL.createObjectURL(blob)
+                  const link = document.createElement('a')
+                  link.href = url
+                  link.setAttribute('download', `DTCE_Stores_Requisition_and_Materials_Flow_Report.docx`)
+                  document.body.appendChild(link)
+                  link.click()
+                  window.URL.revokeObjectURL(url)
+                  document.body.removeChild(link)
+                  showToast('Stores Audit Report downloaded successfully!', 'success')
+                } catch (err: any) {
+                  showToast(`Download failed: ${err.message}`, 'error')
+                }
               }}
               className="text-xs h-9 font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer flex items-center gap-1.5 shadow-xs"
             >
