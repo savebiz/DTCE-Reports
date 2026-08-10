@@ -210,12 +210,12 @@ export function compileStrategicStoresReport(
   }
 
   // 2. Department Demand Rows
-  const departmentDemand: DepartmentMaterialDemandRow[] = Object.entries(deptDemandMap).map(([deptName, data]) => {
+  const departmentDemand: DepartmentMaterialDemandRow[] = Object.entries(deptDemandMap).map(([departmentName, data]) => {
     const deptFulfillment = data.requests > 0
       ? Math.round(((data.delivered + (data.requests - data.pending - data.delivered)) / data.requests) * 100)
       : 0
     return {
-      departmentId: deptName,
+      departmentId: departmentName,
       departmentName,
       totalRequests: data.requests,
       totalUnitsRequested: data.requested,
