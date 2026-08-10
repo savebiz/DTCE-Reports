@@ -18,8 +18,9 @@ import {
   extractBibleStudySummary,
   extractTeensProgramSummary
 } from '@/utils/customMetricsSummarizer'
+import { compileStrategicStoresReport, StrategicStoresSummary } from '@/utils/storesReportSummarizer'
 import Link from 'next/link'
-import { Bell } from 'lucide-react'
+import { Bell, ShoppingBag, FileSpreadsheet, Layers, BarChart3, X, Download } from 'lucide-react'
 
 export default function ReportsExportPage() {
   const router = useRouter()
@@ -32,10 +33,13 @@ export default function ReportsExportPage() {
   const [narratives, setNarratives] = useState<any[]>([])
   const [eventDays, setEventDays] = useState<any[]>([])
   const [preEventTotals, setPreEventTotals] = useState<any[]>([])
+  const [storeRequests, setStoreRequests] = useState<any[]>([])
   
   // Form controls
   const [exportLabel, setExportLabel] = useState('First Draft')
   const [exporting, setExporting] = useState(false)
+  const [exportingStores, setExportingStores] = useState(false)
+  const [showStoresModal, setShowStoresModal] = useState(false)
 
   // Notifications controls
   const [digestDay, setDigestDay] = useState('1')
@@ -84,9 +88,62 @@ export default function ReportsExportPage() {
       const { data: preTotals } = await supabase.from('registration_pre_event_totals').select('*')
       setPreEventTotals(preTotals || [])
 
+      const { data: sReqs } = await supabase.from('store_requests').select('*')
+      setStoreRequests(sReqs || [])
+
       const { data: logs } = await supabase.from('notification_logs').select('*')
       setNotifLogs(logs || [])
     }
+  }
+
+  const handleExportStoresDocx = () => {
+    setExportingStores(true)
+    const downloadUrl = `/api/export-stores-report?label=${encodeURIComponent(exportLabel)}`
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    link.setAttribute('download', `DTCE_Stores_Requisition_and_Materials_Flow_Report.docx`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    setTimeout(() => {
+      setExportingStores(false)
+      showToast('Your Stores Requisition & Materials Flow DOCX Report is downloading!', 'success')
+    }, 1500)
+  }
+
+  const handleExportStoresCsv = () => {
+    const storesReport = compileStrategicStoresReport(storeRequests, reports, departments, eventDays)
+    const headers = ['Report Category', 'Entity / Item Name', 'Metric 1', 'Metric 2', 'Status / Fulfillment']
+    const rows: string[] = []
+
+    rows.push(`"KPI Summary","Total Requisitions Submitted","${storesReport.kpis.totalRequisitions}","Fulfillment Rate: ${storesReport.kpis.fulfillmentRate}%",""`)
+    rows.push(`"KPI Summary","Materials Requested vs Approved","Requested: ${storesReport.kpis.totalItemsRequested} units","Approved: ${storesReport.kpis.totalItemsApproved} units",""`)
+
+    storesReport.departmentDemand.forEach(d => {
+      rows.push(`"Department Demand","${d.departmentName.replace(/"/g, '""')}","Total Requests: ${d.totalRequests}","Units Requested: ${d.totalUnitsRequested}","Fulfillment: ${d.fulfillmentRate}%"`)
+    })
+
+    storesReport.itemVelocity.forEach(item => {
+      rows.push(`"Item Consumption","${item.itemName.replace(/"/g, '""')}","Category: ${item.category}","Requested: ${item.totalRequested} ${item.unit} | Approved: ${item.totalApproved} ${item.unit}","Approval Ratio: ${item.approvalRatio}%"`)
+    })
+
+    storesReport.durablesLog.forEach(d => {
+      rows.push(`"Stores Durables Log","${d.dayLabel} - ${d.itemName.replace(/"/g, '""')}","Dept: ${d.department}","Issued: ${d.qtyIssued} | Returned: ${d.qtyReturned}","Balance: ${d.balance}"`)
+    })
+
+    storesReport.consumablesLog.forEach(c => {
+      rows.push(`"Stores Consumables Log","${c.dayLabel} - ${c.itemName.replace(/"/g, '""')}","Dept: ${c.department}","Qty Issued: ${c.qtyIssued}",""`)
+    })
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `dtce_stores_requisition_and_materials_flow_export_${new Date().toISOString().slice(0, 10)}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    showToast('Stores materials flow CSV dataset exported successfully!', 'success')
   }
 
   const handleTriggerDigest = async () => {
@@ -205,8 +262,49 @@ export default function ReportsExportPage() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.9' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
               >
-                {exporting ? 'Generating...' : '📥 Export Branded DOCX'}
+                {exporting ? 'Generating...' : '📥 Export General DOCX'}
               </button>
+            </div>
+          </div>
+
+          {/* Dedicated Stores Requisition & Materials Flow Audit Card */}
+          <div className="glass-card p-5 border-amber-500/40 bg-amber-500/5">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-amber-500 flex items-center gap-1.5 font-sans">
+                <ShoppingBag className="w-4 h-4 text-amber-400" /> Stores Material Audit
+              </h2>
+              <span className="text-[10px] font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30 font-mono">
+                Standalone Report
+              </span>
+            </div>
+            <p className="text-[12px] text-muted-foreground mb-4">
+              Dedicated strategic report on store requisitions, material consumption velocity, and inventory flow.
+            </p>
+
+            <div className="space-y-2.5">
+              <button
+                onClick={handleExportStoresDocx}
+                disabled={exportingStores}
+                className="w-full rounded-xl py-2.5 text-[12px] font-bold text-black transition-all cursor-pointer bg-amber-500 hover:bg-amber-400 flex items-center justify-center gap-1.5 shadow-xs"
+              >
+                {exportingStores ? 'Generating Stores Report...' : '📥 Export Stores DOCX Report'}
+              </button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={handleExportStoresCsv}
+                  className="rounded-xl py-2 text-[11px] font-semibold text-foreground transition-all bg-card border border-border hover:bg-muted/40 flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-teal-400" /> Stores CSV
+                </button>
+
+                <button
+                  onClick={() => setShowStoresModal(true)}
+                  className="rounded-xl py-2 text-[11px] font-semibold text-amber-400 transition-all bg-amber-950/30 border border-amber-500/30 hover:bg-amber-950/50 flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <BarChart3 className="w-3.5 h-3.5 text-amber-400" /> View Preview
+                </button>
+              </div>
             </div>
           </div>
 
@@ -918,6 +1016,168 @@ export default function ReportsExportPage() {
         </div>
 
       </main>
+
+      {/* ━━ STORES REQUISITION & MATERIALS FLOW AUDIT MODAL ━━ */}
+      {showStoresModal && (() => {
+        const storesReport = compileStrategicStoresReport(storeRequests, reports, departments, eventDays)
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-fade-in">
+            <div className="bg-card border border-amber-500/40 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+              
+              {/* Modal Header */}
+              <div className="p-4 md:p-6 border-b border-border bg-amber-500/10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <ShoppingBag className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-foreground font-sans">
+                      Stores Requisition &amp; Materials Flow Strategic Audit
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      Standalone executive audit report • {event?.name || 'Convention'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowStoresModal(false)}
+                  className="h-8 w-8 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-4 md:p-6 overflow-y-auto space-y-6 flex-1 text-xs font-sans">
+                
+                {/* 1. Summary KPI Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-1">
+                    <div className="text-[10px] uppercase font-bold text-amber-400">Total Requisitions</div>
+                    <div className="text-xl font-extrabold text-foreground font-mono">{storesReport.kpis.totalRequisitions}</div>
+                    <div className="text-[10px] text-muted-foreground">{storesReport.kpis.totalDepartmentsRequesting} departments</div>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-1">
+                    <div className="text-[10px] uppercase font-bold text-emerald-400">Fulfillment Rate</div>
+                    <div className="text-xl font-extrabold text-emerald-400 font-mono">{storesReport.kpis.fulfillmentRate}%</div>
+                    <div className="text-[10px] text-muted-foreground">{storesReport.kpis.deliveredCount} delivered</div>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-1">
+                    <div className="text-[10px] uppercase font-bold text-blue-400">Items Requested</div>
+                    <div className="text-xl font-extrabold text-foreground font-mono">{storesReport.kpis.totalItemsRequested.toLocaleString()}</div>
+                    <div className="text-[10px] text-muted-foreground">total material units</div>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-teal-500/10 border border-teal-500/30 space-y-1">
+                    <div className="text-[10px] uppercase font-bold text-teal-400">Items Approved</div>
+                    <div className="text-xl font-extrabold text-teal-400 font-mono">{storesReport.kpis.totalItemsApproved.toLocaleString()}</div>
+                    <div className="text-[10px] text-muted-foreground">total material units</div>
+                  </div>
+                </div>
+
+                {/* 2. Department Demand Ranking */}
+                <div className="space-y-2">
+                  <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">1. Departmental Material Demand Ranking</h3>
+                  <div className="border border-border rounded-xl overflow-hidden bg-background">
+                    <table className="w-full text-left border-collapse text-[11px]">
+                      <thead>
+                        <tr className="border-b border-border bg-muted/40 font-bold text-muted-foreground">
+                          <th className="p-2 border-r border-border">Department Name</th>
+                          <th className="p-2 border-r border-border text-center">Requests</th>
+                          <th className="p-2 border-r border-border text-center font-bold">Units Requested</th>
+                          <th className="p-2 border-r border-border text-center text-emerald-400 font-bold">Units Approved</th>
+                          <th className="p-2 text-right">Fulfillment (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border text-muted-foreground">
+                        {storesReport.departmentDemand.map((d, idx) => (
+                          <tr key={idx} className={idx % 2 === 1 ? 'bg-muted/10' : ''}>
+                            <td className="p-2 border-r border-border font-bold text-foreground">{d.departmentName}</td>
+                            <td className="p-2 border-r border-border text-center font-mono">{d.totalRequests}</td>
+                            <td className="p-2 border-r border-border text-center font-mono font-bold text-foreground">{d.totalUnitsRequested.toLocaleString()}</td>
+                            <td className="p-2 border-r border-border text-center font-mono font-bold text-emerald-400">{d.totalUnitsApproved.toLocaleString()}</td>
+                            <td className="p-2 text-right font-mono font-bold">{d.fulfillmentRate}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 3. Item Velocity & Consumption Index */}
+                <div className="space-y-2">
+                  <h3 className="text-xs font-bold text-teal-400 uppercase tracking-wider">2. Material Velocity &amp; Item-Level Consumption Index</h3>
+                  <div className="border border-border rounded-xl overflow-hidden bg-background">
+                    <table className="w-full text-left border-collapse text-[11px]">
+                      <thead>
+                        <tr className="border-b border-border bg-muted/40 font-bold text-muted-foreground">
+                          <th className="p-2 border-r border-border">Item Name</th>
+                          <th className="p-2 border-r border-border">Category</th>
+                          <th className="p-2 border-r border-border text-center">Requested</th>
+                          <th className="p-2 border-r border-border text-center font-bold text-teal-400">Approved</th>
+                          <th className="p-2 text-right">Approval Ratio</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border text-muted-foreground">
+                        {storesReport.itemVelocity.map((item, idx) => (
+                          <tr key={idx} className={idx % 2 === 1 ? 'bg-muted/10' : ''}>
+                            <td className="p-2 border-r border-border font-bold text-foreground">{item.itemName}</td>
+                            <td className="p-2 border-r border-border">{item.category}</td>
+                            <td className="p-2 border-r border-border text-center font-mono">{item.totalRequested.toLocaleString()} {item.unit}</td>
+                            <td className="p-2 border-r border-border text-center font-mono font-bold text-teal-400">{item.totalApproved.toLocaleString()} {item.unit}</td>
+                            <td className={`p-2 text-right font-mono font-bold ${item.shortageFlag ? 'text-amber-400' : 'text-foreground'}`}>
+                              {item.approvalRatio}%
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* 4. Strategic Recommendations */}
+                <div className="space-y-2">
+                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">3. Strategic Recommendations &amp; Material Flow Audit</h3>
+                  <div className="space-y-2">
+                    {storesReport.recommendations.map((rec, idx) => (
+                      <div key={idx} className="p-3 rounded-xl bg-teal-950/20 border border-teal-500/30 text-muted-foreground leading-relaxed">
+                        <strong className="text-teal-400 font-semibold">{idx + 1}. </strong>{rec}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-border bg-card flex items-center justify-between">
+                <button
+                  onClick={() => setShowStoresModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground bg-muted/30 hover:bg-muted/50 cursor-pointer"
+                >
+                  Close Preview
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleExportStoresCsv}
+                    className="px-4 py-2 rounded-xl text-xs font-semibold text-foreground bg-card border border-border hover:bg-muted/40 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-teal-400" /> Export CSV
+                  </button>
+                  <button
+                    onClick={handleExportStoresDocx}
+                    disabled={exportingStores}
+                    className="px-4 py-2 rounded-xl text-xs font-bold text-black bg-amber-500 hover:bg-amber-400 flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Export Standalone DOCX
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

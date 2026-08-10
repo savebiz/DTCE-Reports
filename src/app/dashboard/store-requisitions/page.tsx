@@ -443,8 +443,24 @@ function AdminRequisitionsContent() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => loadData()} className="text-xs h-9">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => {
+                const downloadUrl = `/api/export-stores-report`
+                const link = document.createElement('a')
+                link.href = downloadUrl
+                link.setAttribute('download', `DTCE_Stores_Requisition_and_Materials_Flow_Report.docx`)
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+                showToast('Exporting Strategic Stores Audit Report (DOCX)...', 'success')
+              }}
+              className="text-xs h-9 font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer flex items-center gap-1.5 shadow-xs"
+            >
+              📥 Export Stores Strategic Audit Report
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => loadData()} className="text-xs h-9 cursor-pointer">
               🔄 Refresh Requests
             </Button>
           </div>
