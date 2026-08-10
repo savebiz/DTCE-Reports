@@ -113,7 +113,8 @@ export async function generateStoresMaterialsDocx({
         children: [
           new ImageRun({
             data: logoBuffer,
-            transformation: { width: 90, height: 90 }
+            transformation: { width: 90, height: 90 },
+            type: "png"
           })
         ]
       }))
