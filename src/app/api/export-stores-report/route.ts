@@ -79,16 +79,9 @@ export async function GET(request: Request) {
     // Try loading logo
     let logoBuffer: Buffer | undefined = undefined
     try {
-      const possibleLogoPaths = [
-        path.join(process.cwd(), 'public', 'images', 'logo.png'),
-        path.join(process.cwd(), 'public', 'dtce-logo.png'),
-        path.join(process.cwd(), 'public', 'logo.png')
-      ]
-      for (const p of possibleLogoPaths) {
-        if (fs.existsSync(p)) {
-          logoBuffer = fs.readFileSync(p)
-          break
-        }
+      const logoPath = path.join(process.cwd(), 'public/images/logo.png')
+      if (fs.existsSync(logoPath)) {
+        logoBuffer = fs.readFileSync(logoPath)
       }
     } catch {
       // Graceful fallback if image file is not on disk
@@ -107,7 +100,7 @@ export async function GET(request: Request) {
     const safeEventName = (event?.name || 'Convention').replace(/[^a-zA-Z0-9_-]/g, '_')
     const fileName = `DTCE_Stores_Requisition_and_Materials_Flow_Report_${safeEventName}.docx`
 
-    return new Response(docxBuffer, {
+    return new Response(new Uint8Array(docxBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
