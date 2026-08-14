@@ -8,6 +8,8 @@ import { generateSecretariatDocx } from '@/utils/secretariatDocxGenerator'
 import * as fs from 'fs'
 import * as path from 'path'
 
+export const runtime = 'nodejs'
+
 export async function GET() {
   try {
     let event: any = null
@@ -105,12 +107,13 @@ export async function GET() {
 
     const filename = `DTCE_Secretariat_Strategic_Board_Report_${new Date().toISOString().slice(0, 10)}.docx`
 
-    return new NextResponse(docxBuffer, {
+    return new Response(new Uint8Array(docxBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Length': String(docxBuffer.length),
+        'Cache-Control': 'no-store, max-age=0'
       },
     })
   } catch (err: any) {
