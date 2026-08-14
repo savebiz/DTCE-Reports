@@ -29,11 +29,11 @@ export async function GET() {
       departments = mockDepartments
       eventDays = mockEventDays
       reports = store.dailyReports || []
-      narratives = store.narratives || []
-      storeRequests = store.storeRequests || []
+      narratives = (store as any).narratives || []
+      storeRequests = (store as any).storeRequests || (store as any).store_requests || []
       profiles = store.profiles || []
       feedbacks = mockPlatformFeedback || []
-      notificationLogs = store.notificationLogs || []
+      notificationLogs = (store as any).notificationLogs || []
     } else {
       // Production Supabase
       const supabase = await createClient()
