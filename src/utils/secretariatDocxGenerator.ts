@@ -166,7 +166,7 @@ export async function generateSecretariatDocx(
   metrics: SecretariatMetrics,
   logoBuffer?: Buffer
 ): Promise<Buffer> {
-  const children: Paragraph[] = []
+  const children: (Paragraph | Table)[] = []
   const m = metrics
 
   // ══════════════════════════════════════════════════════════════════════
