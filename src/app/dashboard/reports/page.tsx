@@ -20,7 +20,7 @@ import {
 } from '@/utils/customMetricsSummarizer'
 import { compileStrategicStoresReport, StrategicStoresSummary } from '@/utils/storesReportSummarizer'
 import Link from 'next/link'
-import { Bell, ShoppingBag, FileSpreadsheet, Layers, BarChart3, X, Download } from 'lucide-react'
+import { Bell, ShoppingBag, FileSpreadsheet, Layers, BarChart3, X, Download, Award } from 'lucide-react'
 
 export default function ReportsExportPage() {
   const router = useRouter()
@@ -39,6 +39,7 @@ export default function ReportsExportPage() {
   const [exportLabel, setExportLabel] = useState('First Draft')
   const [exporting, setExporting] = useState(false)
   const [exportingStores, setExportingStores] = useState(false)
+  const [exportingSecretariat, setExportingSecretariat] = useState(false)
   const [showStoresModal, setShowStoresModal] = useState(false)
 
   // Notifications controls
@@ -121,6 +122,34 @@ export default function ReportsExportPage() {
       showToast(`Export failed: ${err.message}`, 'error')
     } finally {
       setExportingStores(false)
+    }
+  }
+
+  const handleExportSecretariatDocx = async () => {
+    setExportingSecretariat(true)
+    try {
+      showToast('Compiling Secretariat Strategic Board Report (DOCX)...', 'info')
+      const downloadUrl = `/api/export-secretariat-report`
+      const res = await fetch(downloadUrl)
+      if (!res.ok) {
+        const errText = await res.text()
+        showToast(`Export failed: ${errText || res.statusText}`, 'error')
+        return
+      }
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `DTCE_Secretariat_Strategic_Board_Report_${new Date().toISOString().slice(0, 10)}.docx`)
+      document.body.appendChild(link)
+      link.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(link)
+      showToast('Your Secretariat Strategic Board Report has been compiled and downloaded!', 'success')
+    } catch (err: any) {
+      showToast(`Export failed: ${err.message}`, 'error')
+    } finally {
+      setExportingSecretariat(false)
     }
   }
 
@@ -319,6 +348,29 @@ export default function ReportsExportPage() {
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* Secretariat Strategic Board Report Card */}
+          <div className="glass-card p-5 border-purple-500/40 bg-purple-500/5">
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-purple-400 flex items-center gap-1.5 font-sans">
+                <Award className="w-4 h-4 text-purple-400" /> Secretariat Board Report
+              </h2>
+              <span className="text-[10px] font-bold bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30 font-mono">
+                Board Presentation
+              </span>
+            </div>
+            <p className="text-[12px] text-muted-foreground mb-4">
+              Formal, publication-ready institutional strategic report for the Board of Trustees, including compliance, NPS, HOD feedback, and impact assessment.
+            </p>
+
+            <button
+              onClick={handleExportSecretariatDocx}
+              disabled={exportingSecretariat}
+              className="w-full rounded-xl py-2.5 text-[12px] font-bold text-white transition-all cursor-pointer bg-purple-600 hover:bg-purple-500 flex items-center justify-center gap-1.5 shadow-xs"
+            >
+              {exportingSecretariat ? 'Compiling Board Report...' : '🏛️ Export Board DOCX Report'}
+            </button>
           </div>
 
           <div className="glass-card p-5">
