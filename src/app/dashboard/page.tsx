@@ -19,6 +19,7 @@ import { InventoryReportsView } from '@/components/inventory/inventory-reports-v
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { RegistrationInsightPanel } from '@/components/registration/registration-insight-panel'
 import { getCurrentEventId, getEventDays } from '@/lib/events/current-event'
+import { isGeneralSecretary } from '@/lib/auth/titles'
 
 const SchemaFormRenderer = dynamic(() => import('@/components/schema-form-renderer').then(mod => mod.SchemaFormRenderer), { ssr: false })
 
@@ -606,7 +607,7 @@ function SecretariatDashboardContent() {
             <div className="flex items-center gap-2 mb-1">
               <span className="h-2 w-2 rounded-full bg-purple-400 animate-ping" />
               <span className="text-[11px] font-semibold tracking-widest text-purple-400 uppercase">
-                {profile?.role === 'national_coordinator' ? 'National Coordinator Executive Desk' : isCoordinatorAssistant ? 'Coordinator Assistant View' : 'Secretariat Command Centre'}
+                {profile?.role === 'national_coordinator' ? (isGeneralSecretary(profile) ? 'General Secretary Executive Desk' : 'National Coordinator Executive Desk') : isCoordinatorAssistant ? 'Coordinator Assistant View' : 'Secretariat Command Centre'}
               </span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">

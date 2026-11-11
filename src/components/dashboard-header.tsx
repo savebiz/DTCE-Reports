@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
 import { EndofConventionFeedbackModal } from '@/components/EndofConventionFeedbackModal'
 import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
+import { isGeneralSecretary } from '@/lib/auth/titles'
 
 const NAV_ITEMS = [
   { label: 'Overview',            href: '/dashboard',                     icon: LayoutGrid },
@@ -134,7 +135,7 @@ export function DashboardHeader() {
         let deptId = deptIdParam
         if (userRole === 'super_admin' || userRole === 'coordinator' || userRole === 'national_coordinator') {
           if (!deptIdParam) {
-            setActiveDeptName(userRole === 'national_coordinator' ? "National Coordinator's Office" : 'Secretariat')
+            setActiveDeptName(userRole === 'national_coordinator' ? (isGeneralSecretary(activeProfile) ? "General Secretary's Office" : "National Coordinator's Office") : 'Secretariat')
             return
           }
         } else {
@@ -169,7 +170,7 @@ export function DashboardHeader() {
           }
         } else {
           if (userRole === 'national_coordinator' || (userRole === 'assistant' && !deptId)) {
-            setActiveDeptName("National Coordinator's Office")
+            setActiveDeptName(userRole === 'national_coordinator' && isGeneralSecretary(activeProfile) ? "General Secretary's Office" : "National Coordinator's Office")
           } else {
             setActiveDeptName(userRole === 'super_admin' || userRole === 'coordinator' ? 'Secretariat' : 'Department')
           }
@@ -329,7 +330,7 @@ export function DashboardHeader() {
 
             {/* Role badge (Desktop) */}
             <span className={`hidden lg:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize tracking-wide ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
-              {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (ROLE_LABELS[role] || role)}
+              {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (role === 'national_coordinator' && isGeneralSecretary(profile) ? 'Gen. Secretary' : (ROLE_LABELS[role] || role))}
             </span>
 
             {/* User avatar (Desktop) */}
@@ -506,7 +507,7 @@ export function DashboardHeader() {
               {/* Role Badge in Drawer */}
               <div className="px-1">
                 <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
-                  {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (ROLE_LABELS[role] || role)}
+                  {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (role === 'national_coordinator' && isGeneralSecretary(profile) ? 'Gen. Secretary' : (ROLE_LABELS[role] || role))}
                 </span>
               </div>
 
