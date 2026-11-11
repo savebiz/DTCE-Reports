@@ -32,6 +32,7 @@ interface StoreRequestTicket {
   reviewer_comments?: string
   reviewed_at?: string
   created_at: string
+  request_type?: 'pre_event' | 'during_event'
   assigned_approver?: {
     full_name: string
     email: string
@@ -51,6 +52,8 @@ function StoreRequestContent() {
   const [items, setItems] = useState<RequestItem[]>([])
   const [itemName, setItemName] = useState('')
   const [itemQty, setItemQty] = useState(1)
+  const [requestType, setRequestType] = useState<'pre_event' | 'during_event'>('pre_event')
+  const [copying, setCopying] = useState(false)
 
   const loadData = useCallback(async () => {
     const supabase = getClient()
@@ -79,6 +82,8 @@ function StoreRequestContent() {
     const currentEvent = await getCurrentEvent(supabase)
     if (currentEvent) {
       setActiveEvent(currentEvent)
+      // Before the event, HODs send needs lists; once it is live, store requests
+      setRequestType(currentEvent.status === 'live' || currentEvent.status === 'closed' ? 'during_event' : 'pre_event')
     }
 
     // Fallback assignment lookup if department_id is missing
@@ -124,6 +129,7 @@ function StoreRequestContent() {
           reviewer_comments,
           reviewed_at,
           created_at,
+          request_type,
           assigned_approver_id
         `)
         .eq('requester_profile_id', activeProfile.id)
@@ -214,8 +220,43 @@ function StoreRequestContent() {
     setItemQty(1)
   }
 
+  // Start from the department's most recent list from an earlier event (e.g. Convention)
+  const handleCopyLastList = async () => {
+    if (!profile?.department_id || isMock) return
+    setCopying(true)
+    try {
+      const supabase = getClient()
+      const { data } = await supabase
+        .from('store_requests')
+        .select('items_json, event_id, status, created_at')
+        .eq('department_id', profile.department_id)
+        .order('created_at', { ascending: false })
+        .limit(50)
+      const previous = (data || []).find((r: any) => r.status !== 'declined' && r.event_id !== activeEvent?.id)
+      if (!previous || !Array.isArray(previous.items_json) || previous.items_json.length === 0) {
+        showToast('No earlier list found for your department.', 'error')
+        return
+      }
+      const copied: RequestItem[] = previous.items_json.map((it: any) => ({
+        inventory_item_id: it.inventory_item_id || null,
+        name: it.name,
+        category: it.category || 'consumable',
+        unit: it.unit || 'pcs',
+        quantity: Math.max(1, Number(it.requested_quantity ?? it.quantity) || 1),
+      }))
+      setItems(prev => [...prev, ...copied])
+      showToast(`Copied ${copied.length} items. Change the numbers if needed, then send.`, 'success')
+    } finally {
+      setCopying(false)
+    }
+  }
+
   const handleRemoveItem = (index: number) => {
     setItems(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const handleChangeQty = (index: number, qty: number) => {
+    setItems(prev => prev.map((it, i) => (i === index ? { ...it, quantity: Math.max(1, qty || 1) } : it)))
   }
 
   const handleSubmitRequest = async () => {
@@ -265,7 +306,7 @@ function StoreRequestContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           departmentId: profile.department_id,
-          eventId: activeEvent?.id || null,
+          requestType,
           items
         })
       })
@@ -275,7 +316,9 @@ function StoreRequestContent() {
         throw new Error(data.error || 'Failed to submit requisition')
       }
 
-      showToast('Requisition plan submitted to National Coordinator!', 'success')
+      showToast(requestType === 'pre_event'
+        ? 'Needs list sent! The Gen Sec or National Coordinator will approve it.'
+        : 'Request sent to the National Coordinator!', 'success')
       setItems([])
       loadData()
     } catch (err: any) {
@@ -290,9 +333,9 @@ function StoreRequestContent() {
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
           <div>
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">Stores Requisition Portal</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Submit material requests to the National Coordinator for approval and Stores fulfillment.
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Store Requests</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {activeEvent?.name ? `${activeEvent.name}: ` : ''}tell Stores what your department needs.
             </p>
           </div>
           <Button
@@ -305,16 +348,48 @@ function StoreRequestContent() {
           </Button>
         </div>
 
+        {/* Step 1: what kind of request */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="radiogroup" aria-label="Type of request">
+          {([
+            ['pre_event', 'Needs list (before the event)', 'Everything your department will need. Stores buys these at the market.'],
+            ['during_event', 'Request from the store (during the event)', 'Items you need now, from what Stores already has.'],
+          ] as const).map(([t, title, hint]) => (
+            <button
+              key={t}
+              role="radio"
+              aria-checked={requestType === t}
+              onClick={() => setRequestType(t)}
+              className={`text-left rounded-2xl border-2 p-4 transition-colors cursor-pointer ${requestType === t ? 'border-primary bg-primary/10' : 'border-border bg-background hover:bg-muted/50'}`}
+            >
+              <span className="flex items-center gap-2 text-base font-bold text-foreground">
+                <span aria-hidden className={`inline-block w-5 h-5 rounded-full border-2 ${requestType === t ? 'border-primary bg-primary' : 'border-muted-foreground'}`} />
+                {title}
+              </span>
+              <span className="block text-sm text-muted-foreground mt-1 pl-7">{hint}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Create Request Column */}
           <div className="lg:col-span-1 space-y-6">
             <Card className="glass-card border-none">
               <CardHeader>
-                <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                  Create Requisition List
+                <CardTitle className="text-lg font-bold text-foreground">
+                  {requestType === 'pre_event' ? 'Your needs list' : 'Your request'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {requestType === 'pre_event' && (
+                  <Button
+                    onClick={handleCopyLastList}
+                    disabled={copying}
+                    variant="outline"
+                    className="w-full h-12 text-sm font-semibold cursor-pointer"
+                  >
+                    {copying ? 'Copying…' : 'Copy my last list (e.g. from Convention)'}
+                  </Button>
+                )}
                 <div className="space-y-2">
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Select Item Source</Label>
                   <Select
@@ -397,8 +472,8 @@ function StoreRequestContent() {
                   />
                 </div>
 
-                <Button onClick={handleAddItem} className="w-full text-xs font-semibold cursor-pointer" variant="outline">
-                  + Add to Request List
+                <Button onClick={handleAddItem} className="w-full h-12 text-sm font-semibold cursor-pointer" variant="outline">
+                  + Add this item
                 </Button>
 
                 {/* Selected items array */}
@@ -411,8 +486,21 @@ function StoreRequestContent() {
                           <div className="flex justify-between items-center">
                             <span className="font-semibold">{it.name}</span>
                             <div className="flex items-center gap-2">
-                              <span className="font-mono bg-muted/60 px-2 py-0.5 rounded text-muted-foreground">x{it.quantity} {it.unit || 'pcs'}</span>
-                              <button onClick={() => handleRemoveItem(idx)} className="text-red-400 hover:text-red-300 font-bold text-sm cursor-pointer">
+                              <input
+                                type="number"
+                                min={1}
+                                inputMode="numeric"
+                                aria-label={`Quantity of ${it.name}`}
+                                value={it.quantity}
+                                onChange={(e) => handleChangeQty(idx, Number(e.target.value))}
+                                className="w-20 h-10 rounded-lg border border-border bg-background px-2 text-sm font-mono text-foreground"
+                              />
+                              <span className="text-muted-foreground">{it.unit || 'pcs'}</span>
+                              <button
+                                onClick={() => handleRemoveItem(idx)}
+                                aria-label={`Remove ${it.name}`}
+                                className="w-10 h-10 rounded-lg text-red-500 hover:bg-red-500/10 font-bold text-lg cursor-pointer"
+                              >
                                 ×
                               </button>
                             </div>
@@ -431,8 +519,8 @@ function StoreRequestContent() {
                         </div>
                       ))}
                     </div>
-                    <Button onClick={handleSubmitRequest} disabled={loading} className="w-full mt-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer">
-                      {loading ? 'Submitting...' : 'Submit Requisition Plan'}
+                    <Button onClick={handleSubmitRequest} disabled={loading} className="w-full mt-4 h-12 text-base font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer">
+                      {loading ? 'Sending…' : requestType === 'pre_event' ? `Send needs list (${items.length} items)` : `Send request (${items.length} items)`}
                     </Button>
                   </div>
                 )}
@@ -444,8 +532,8 @@ function StoreRequestContent() {
           <div className="lg:col-span-2 space-y-6">
             <Card className="glass-card border-none">
               <CardHeader>
-                <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                  Requisition History &amp; Status Logs
+                <CardTitle className="text-lg font-bold text-foreground">
+                  What you have sent
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -457,7 +545,10 @@ function StoreRequestContent() {
                       <div key={req.id} className="border border-border rounded-xl p-4 space-y-3 bg-background/25">
                         <div className="flex justify-between items-start gap-4">
                           <div>
-                            <span className="text-[10px] font-semibold text-muted-foreground block">Requested on {new Date(req.created_at).toLocaleDateString()}</span>
+                            <span className="text-sm font-bold text-foreground block">
+                              {req.request_type === 'pre_event' ? 'Needs list (before the event)' : 'Request from the store'}
+                            </span>
+                            <span className="text-xs font-semibold text-muted-foreground block">Sent on {new Date(req.created_at).toLocaleDateString()}</span>
                             <span className="text-[11px] font-mono text-muted-foreground block uppercase mt-0.5">ID: {req.id.substring(0, 8)}</span>
                           </div>
                           <span
@@ -472,7 +563,7 @@ function StoreRequestContent() {
                               { background: 'rgba(239,68,68,0.1)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.2)' }
                             }
                           >
-                            {req.status === 'pending_coordinator' ? 'Pending' :
+                            {req.status === 'pending_coordinator' ? 'Waiting for approval' :
                              req.status === 'partially_fulfilled' ? 'Partial' :
                              req.status === 'in_progress' ? 'In Progress' :
                              (req.status as string) === 'ready_for_collection' ? 'Ready for Collection' :

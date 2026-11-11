@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { notify, getDepartmentRecipientIds, getAdminRecipientIds } from '@/lib/notifications/dispatch'
 import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
-import { getCurrentEventId } from '@/lib/events/current-event'
+import { getCurrentEvent } from '@/lib/events/current-event'
 
 /**
  * POST /api/inventory/submit-request
@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
     if (!auth.ok) return auth.response
     const user = { id: auth.ctx.userId }
 
-    const { departmentId, items } = await request.json()
+    const { departmentId, items, requestType: rawType } = await request.json()
+    const requestType: 'pre_event' | 'during_event' = rawType === 'pre_event' ? 'pre_event' : 'during_event'
     if (!departmentId || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'departmentId and items array are required.' }, { status: 400 })
     }
@@ -25,9 +26,19 @@ export async function POST(request: NextRequest) {
     const supabaseAdmin = getAdminClient()
 
     // Requisitions always belong to the current event (decided here, not by the browser)
-    const eventId = await getCurrentEventId(supabaseAdmin)
+    const currentEvent = await getCurrentEvent(supabaseAdmin)
+    const eventId = currentEvent?.id
     if (!eventId) {
       return NextResponse.json({ error: 'No current event is open for requisitions.' }, { status: 400 })
+    }
+
+    // Pre-event needs lists can only be sent while the requisition window is open
+    if (requestType === 'pre_event') {
+      const closed = currentEvent?.status === 'closed' || currentEvent?.status === 'archived'
+      const pastDeadline = !!currentEvent?.requisition_closes_at && new Date(currentEvent.requisition_closes_at).getTime() < Date.now()
+      if (closed || pastDeadline) {
+        return NextResponse.json({ error: `The needs list for ${currentEvent?.name || 'this event'} is closed. Please contact the Secretariat.` }, { status: 400 })
+      }
     }
 
     // Non-admins may only request for a department they are assigned to
@@ -55,6 +66,7 @@ export async function POST(request: NextRequest) {
     // 2. Insert Store Request
     const payload = {
       event_id: eventId,
+      request_type: requestType,
       department_id: departmentId,
       requester_profile_id: user.id,
       items_json: items.map((it: any) => ({
@@ -84,7 +96,7 @@ export async function POST(request: NextRequest) {
       await notify({
         recipientId: adminId,
         type: 'requisition_submitted',
-        title: `New Requisition: ${deptName}`,
+        title: `${requestType === 'pre_event' ? 'New Needs List' : 'New Requisition'}: ${deptName}`,
         body: `${deptName} has submitted a store requisition for ${itemsSummary}. Pending your review and approval.`,
         relatedEntity: { type: 'requisition', id: requestId }
       })

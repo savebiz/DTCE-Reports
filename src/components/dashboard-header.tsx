@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getClient, isMock, mockDepartments } from '@/utils/supabase'
-import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit, Layers, Award, MessageSquare } from 'lucide-react'
+import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit, Layers, Award, MessageSquare, ClipboardList } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { label: 'Overview',            href: '/dashboard',                     icon: LayoutGrid },
   { label: 'YoY Analytics',       href: '/dashboard/yoy',                 icon: BarChart2  },
   { label: 'Requisitions',        href: '/dashboard/store-requisitions',  icon: ShoppingCart },
+  { label: 'Market List',         href: '/dashboard/market-list',         icon: ClipboardList },
   { label: 'Inventory Oversight', href: '/dashboard?tab=inventory-oversight', icon: Layers },
   { label: 'Dept Rankings',       href: '/dashboard?tab=rankings',        icon: Award },
   { label: 'Manual Entry',        href: '/dashboard/manual-entry',        icon: FileEdit   },
@@ -30,6 +31,7 @@ const DEPT_NAV_ITEMS = [
   { label: 'Inventory Catalog',    href: '/my-department/inventory',        icon: Boxes      },
   { label: 'Store Requests',       href: '/my-department/store-request',    icon: ShoppingCart },
   { label: 'Fulfillment Console',  href: '/my-department/store-fulfillment',icon: ShoppingCart },
+  { label: 'Market List',          href: '/my-department/market-list',      icon: ClipboardList },
   { label: 'Event Narrative',      href: '/my-department/narrative',        icon: FileText   },
   { label: 'Manage Team',          href: '/my-department/team',             icon: Users      },
   { label: 'Settings',             href: '/dashboard/settings',             icon: Settings   },
@@ -543,7 +545,7 @@ export function DashboardHeader() {
                     const isStoresDept = activeDeptName.toLowerCase().includes('store')
                     const isSecretariatDept = activeDeptName.toLowerCase().includes('secretariat')
                     // Hide fulfillment console and inventory catalog for non-stores departments
-                    if (label === 'Fulfillment Console' && !isStoresDept) return null;
+                    if ((label === 'Fulfillment Console' || label === 'Market List') && !isStoresDept) return null;
                     if (label === 'Inventory Catalog' && !isStoresDept) return null;
                     if (label === 'Manual Paper Entry' && !isSecretariatDept) return null;
                     const active = pathname === href || (href !== '/my-department' && pathname?.startsWith(href))
