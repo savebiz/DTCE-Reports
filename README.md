@@ -43,6 +43,19 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 >
 > Instead, installation uses browser-native WebAPK (`beforeinstallprompt` + `.prompt()`), which engages Google Chrome's WebAPK minting service. Chrome dynamically packages and installs the WebAPK using Google's current target SDK (Android 14+ / API level 34+), guaranteeing zero security or target SDK warnings.
 
+## Environment Variables
+
+| Name | Where it is used | Notes |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | browser + server | public |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | browser + server | public (Row Level Security applies) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **server only** | bypasses RLS. Never give it a `NEXT_PUBLIC_` name — Next.js inlines those into browser code. The old `NEXT_PUBLIC_SUPABASE_SERVICE_ROLE` is still read as a fallback until Vercel is updated. |
+| `CRON_SECRET` | server only, optional | lets a scheduled job call `/api/notifications/check-stale` with `Authorization: Bearer <secret>` |
+
+## Multi-event (Convention every August, Congress every December)
+
+One row in `events` is the **current event** (`is_current = true`). Every page and API route reads it through `src/lib/events/current-event.ts` — never `events[0]`. API routes check permissions through `src/lib/auth/api-guard.ts` using the caller's `profiles.role` (never `user_metadata`). Database changes live in `supabase/migrations/` (see `supabase/README.md`).
+
 ## Role-Based Access Control (RBAC) Governing Principle
 
 > **GOVERNING PRINCIPLE**: National Coordinator's permission set must always be a strict superset of Coordinator's. Any new feature granted to National Coordinator must be deliberately evaluated for whether Coordinator also needs it — never assume inheritance.

@@ -3,6 +3,8 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
+import { getCurrentEventId } from '@/lib/events/current-event'
 
 export const runtime = 'nodejs'
 
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Verify caller is super_admin, coordinator, or national_coordinator
-    const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceRoleKey = getServiceRoleKey()
     if (!serviceRoleKey) {
       return NextResponse.json({ error: 'Server configuration error: Service Role key is missing.' }, { status: 500 })
     }
@@ -68,16 +70,21 @@ export async function POST(request: NextRequest) {
 
     const targetRole = targetProfile?.role || 'hod'
 
-    // 4. Update hod_assignments table in database
-    await supabaseAdmin
+    // 4. Update this person's assignment for the CURRENT event only —
+    //    past events keep their history (who led which department in 2026).
+    const currentEventId = await getCurrentEventId(supabaseAdmin)
+    let deleteQuery = supabaseAdmin
       .from('hod_assignments')
       .delete()
       .eq('profile_id', targetUserId)
+    if (currentEventId) deleteQuery = deleteQuery.eq('event_id', currentEventId)
+    await deleteQuery
 
     if (newDepartmentId) {
       const { error: assignErr } = await supabaseAdmin
         .from('hod_assignments')
         .insert({
+          event_id: currentEventId,
           profile_id: targetUserId,
           department_id: newDepartmentId,
           role_in_event: targetRole

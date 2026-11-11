@@ -8,6 +8,7 @@ import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
 import { EndofConventionFeedbackModal } from '@/components/EndofConventionFeedbackModal'
+import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
 
 const NAV_ITEMS = [
   { label: 'Overview',            href: '/dashboard',                     icon: LayoutGrid },
@@ -137,11 +138,8 @@ export function DashboardHeader() {
         } else {
           if (!deptId || deptId.startsWith('dept-')) {
             if (!isMock && activeProfile?.id) {
-              const { data: assignment } = await supabase
-                .from('hod_assignments')
-                .select('department_id')
-                .eq('profile_id', activeProfile.id)
-                .maybeSingle()
+              const currentEventId = await getCurrentEventId(supabase)
+              const assignment = await getDepartmentAssignment(supabase, activeProfile.id, currentEventId)
               if (assignment?.department_id) {
                 deptId = assignment.department_id
               }

@@ -21,6 +21,7 @@ import {
 import { compileStrategicStoresReport, StrategicStoresSummary } from '@/utils/storesReportSummarizer'
 import Link from 'next/link'
 import { Bell, ShoppingBag, FileSpreadsheet, Layers, BarChart3, X, Download, Award } from 'lucide-react'
+import { getCurrentEvent, getEventDays } from '@/lib/events/current-event'
 
 export default function ReportsExportPage() {
   const router = useRouter()
@@ -71,25 +72,33 @@ export default function ReportsExportPage() {
       }
       setProfile(prof)
 
-      const { data: eventsList } = await supabase.from('events').select('*')
-      if (eventsList && eventsList.length > 0) setEvent(eventsList[0])
+      // Every dataset below is for the current event only.
+      const currentEvent = await getCurrentEvent(supabase)
+      const eventId = currentEvent?.id ?? null
+      if (currentEvent) setEvent(currentEvent)
 
       const { data: depts } = await supabase.from('departments').select('*')
       setDepartments(((depts || mockDepartments) as Department[]).sort((a,b) => a.name.localeCompare(b.name)))
 
-      const { data: reps } = await supabase.from('daily_reports').select('*')
+      let repsQuery = supabase.from('daily_reports').select('*')
+      if (eventId) repsQuery = repsQuery.eq('event_id', eventId)
+      const { data: reps } = await repsQuery
       setReports(reps || [])
 
       const { data: narrs } = await supabase.from('department_narratives').select('*')
-      setNarratives(narrs || [])
+      setNarratives((narrs || []).filter((n: any) => !eventId || !n.event_id || n.event_id === eventId))
 
-      const { data: eDays } = await supabase.from('event_days').select('*')
-      setEventDays(eDays || mockEventDays)
+      const eDays = eventId ? await getEventDays(supabase, eventId) : []
+      setEventDays(eDays.length > 0 || eventId ? eDays : mockEventDays)
 
-      const { data: preTotals } = await supabase.from('registration_pre_event_totals').select('*')
+      let preTotalsQuery = supabase.from('registration_pre_event_totals').select('*')
+      if (eventId) preTotalsQuery = preTotalsQuery.eq('event_id', eventId)
+      const { data: preTotals } = await preTotalsQuery
       setPreEventTotals(preTotals || [])
 
-      const { data: sReqs } = await supabase.from('store_requests').select('*')
+      let sReqsQuery = supabase.from('store_requests').select('*')
+      if (eventId) sReqsQuery = sReqsQuery.eq('event_id', eventId)
+      const { data: sReqs } = await sReqsQuery
       setStoreRequests(sReqs || [])
 
       const { data: logs } = await supabase.from('notification_logs').select('*')

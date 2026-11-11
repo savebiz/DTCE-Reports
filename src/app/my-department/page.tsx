@@ -12,6 +12,7 @@ import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { KPIGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
 import { Calendar, Layers, Package, FileEdit } from 'lucide-react'
+import { getCurrentEvent, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
 
 export default function MyDepartmentDashboard() {
   const router = useRouter()
@@ -20,7 +21,8 @@ export default function MyDepartmentDashboard() {
   const [eventDays, setEventDays] = useState<any[]>([])
   const [reports, setReports] = useState<any[]>([])
   const [allDepartments, setAllDepartments] = useState<Department[]>([])
-  
+  const [currentEventId, setCurrentEventId] = useState<string | null>(null)
+
   // Connection & Sync States
   const [isOnline, setIsOnline] = useState(true)
   const [syncing, setSyncing] = useState(false)
@@ -54,22 +56,24 @@ export default function MyDepartmentDashboard() {
     if (profile?.department_id && (profile.role === 'super_admin' || profile.role === 'coordinator')) {
       const reloadReports = async () => {
         const supabase = getClient()
-        const { data: reps } = await supabase
+        let repsQuery = supabase
           .from('daily_reports')
           .select('*')
           .eq('department_id', profile.department_id)
+        if (currentEventId) repsQuery = repsQuery.eq('event_id', currentEventId)
+        const { data: reps } = await repsQuery
         setReports(reps || [])
-        
-        const isStores = profile.department_id === 'dept-29' || 
-                         profile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690' ||
-                         department?.name?.toLowerCase().includes('stores')
+
+        const isStores = profile.department_id === 'dept-29' ||
+                         department?.name?.toLowerCase().includes('store')
         if (isStores) {
           if (!isMock) {
-            const { data: appReqs } = await supabase
+            let appReqsQuery = supabase
               .from('store_requests')
               .select('*')
               .in('status', ['approved', 'in_progress', 'partially_fulfilled'])
-              .order('created_at', { ascending: false })
+            if (currentEventId) appReqsQuery = appReqsQuery.eq('event_id', currentEventId)
+            const { data: appReqs } = await appReqsQuery.order('created_at', { ascending: false })
             
             if (appReqs) {
               const enhanced = await Promise.all(appReqs.map(async (r: any) => {
@@ -88,7 +92,7 @@ export default function MyDepartmentDashboard() {
       }
       reloadReports()
     }
-  }, [profile?.department_id, department?.name])
+  }, [profile?.department_id, department?.name, currentEventId])
 
   // 2. Load User Profile and Data
   const loadData = useCallback(async () => {
@@ -121,13 +125,13 @@ export default function MyDepartmentDashboard() {
       }
     }
 
+    const currentEvent = await getCurrentEvent(supabase)
+    const eventId = currentEvent?.id ?? null
+    setCurrentEventId(eventId)
+
     if (activeProfile) {
       if (!isMock) {
-        const { data: assignment } = await supabase
-          .from('hod_assignments')
-          .select('department_id')
-          .eq('profile_id', activeProfile.id)
-          .maybeSingle()
+        const assignment = await getDepartmentAssignment(supabase, activeProfile.id, eventId)
         if (assignment?.department_id) {
           activeProfile.department_id = assignment.department_id
         }
@@ -163,33 +167,30 @@ export default function MyDepartmentDashboard() {
       }
       setProfile(activeProfile)
 
-      // Fetch days
-      let days = []
-      const { data: daysDb } = await supabase
-        .from('event_days')
-        .select('*')
-        .order('day_number', { ascending: true })
-      days = daysDb || []
+      // Fetch days of the current event only
+      const days = await getEventDays(supabase, eventId)
       setEventDays(days)
 
-      // Fetch existing reports
-      const { data: reps } = await supabase
+      // Fetch existing reports for the current event
+      let repsQuery = supabase
         .from('daily_reports')
         .select('*')
         .eq('department_id', activeProfile.department_id)
+      if (eventId) repsQuery = repsQuery.eq('event_id', eventId)
+      const { data: reps } = await repsQuery
       setReports(reps || [])
 
       // Fetch store requisitions if Stores department
-      const isStores = activeProfile.department_id === 'dept-29' || 
-                       activeProfile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690' ||
+      const isStores = activeProfile.department_id === 'dept-29' ||
                        activeDept?.name?.toLowerCase().includes('store') ||
                        department?.name?.toLowerCase().includes('store')
       if (isStores) {
         if (!isMock) {
-          const { data: appReqs } = await supabase
+          let appReqsQuery = supabase
             .from('store_requests')
             .select('*')
-            .order('created_at', { ascending: false })
+          if (eventId) appReqsQuery = appReqsQuery.eq('event_id', eventId)
+          const { data: appReqs } = await appReqsQuery.order('created_at', { ascending: false })
           
           if (appReqs) {
             const enhanced = await fetchEnhancedStoreRequests(supabase, appReqs)

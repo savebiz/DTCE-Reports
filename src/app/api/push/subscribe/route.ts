@@ -3,6 +3,7 @@ import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,34 +14,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid push subscription payload' }, { status: 400 })
     }
 
-    let userId: string | null = body.profileId || body.userId || null
+    // A subscription always belongs to the signed-in user. Ignoring any
+    // profileId in the body stops someone registering their own device to
+    // receive another person's notifications.
+    let userId: string | null = null
 
-    if (!userId && isMock) {
+    if (isMock) {
       const u = store.currentUser
       userId = u?.id || 'mock-admin'
-    } else if (!userId) {
-      try {
-        const supabaseUserClient = await createServerClient()
-        const { data: { user } } = await supabaseUserClient.auth.getUser()
-        if (user) {
-          userId = user.id
-        }
-      } catch (_) {}
-    }
-
-    // Default to fallback user if unauthenticated in dev/demo mode
-    if (!userId) {
-      userId = 'anon-user'
+    } else {
+      const supabaseUserClient = await createServerClient()
+      const { data: { user } } = await supabaseUserClient.auth.getUser()
+      if (!user) {
+        return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
+      }
+      userId = user.id
     }
 
     if (!isMock) {
       try {
         const serviceKey =
-          process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE ||
-          process.env.SUPABASE_SERVICE_ROLE_KEY ||
-          process.env.SUPABASE_SERVICE_ROLE ||
-          process.env.SUPABASE_SERVICE_KEY ||
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+          getServiceRoleKey() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
         if (serviceKey && supabaseUrl) {
@@ -84,11 +78,18 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (!isMock) {
-      const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+      const supabaseUserClient = await createServerClient()
+      const { data: { user } } = await supabaseUserClient.auth.getUser()
+      if (!user) {
+        return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
+      }
+
+      const serviceKey = getServiceRoleKey()
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       if (serviceKey && supabaseUrl) {
         const adminSupabase = createSupabaseAdminClient(supabaseUrl, serviceKey)
-        await adminSupabase.from('push_subscriptions').delete().eq('endpoint', endpoint)
+        // Only remove your own device subscriptions
+        await adminSupabase.from('push_subscriptions').delete().eq('endpoint', endpoint).eq('profile_id', user.id)
       }
     }
 

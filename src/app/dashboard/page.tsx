@@ -18,6 +18,7 @@ import { KPIGridSkeleton, MatrixGridSkeleton, TableSkeleton } from '@/components
 import { InventoryReportsView } from '@/components/inventory/inventory-reports-view'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { RegistrationInsightPanel } from '@/components/registration/registration-insight-panel'
+import { getCurrentEventId, getEventDays } from '@/lib/events/current-event'
 
 const SchemaFormRenderer = dynamic(() => import('@/components/schema-form-renderer').then(mod => mod.SchemaFormRenderer), { ssr: false })
 
@@ -174,23 +175,29 @@ function SecretariatDashboardContent() {
     const deptList = ((depts || mockDepartments) as Department[]).sort((a, b) => a.name.localeCompare(b.name))
     setDepartments(deptList)
 
-    const { data: days } = await supabase.from('event_days').select('*').order('day_number')
-    const activeDays = days || mockEventDays
+    // Everything on this dashboard is for the current event only. Day cells
+    // match by day number, so mixing events would put Convention Day 1 into
+    // Congress Day 1.
+    const currentEventId = await getCurrentEventId(supabase)
+
+    const days = currentEventId ? await getEventDays(supabase, currentEventId) : []
+    const activeDays = days.length > 0 ? days : (currentEventId ? [] : mockEventDays)
     setEventDays(activeDays)
     if (activeDays.length > 0) {
         setSelectedFocusDays(prev => (prev.length === 1 && prev[0] === 'day-1' ? [activeDays[0].id] : prev))
     }
 
-    const { data: reps } = await supabase.from('daily_reports').select('*')
+    let repsQuery = supabase.from('daily_reports').select('*')
+    if (currentEventId) repsQuery = repsQuery.eq('event_id', currentEventId)
+    const { data: reps } = await repsQuery
     setReports(reps || [])
 
     const { data: narrs } = await supabase.from('department_narratives').select('*')
-    setNarratives(narrs || [])
+    setNarratives((narrs || []).filter((n: any) => !currentEventId || !n.event_id || n.event_id === currentEventId))
 
-    const { data: reqsData } = await supabase
-      .from('store_requests')
-      .select('*')
-      .order('created_at', { ascending: false })
+    let reqsQuery = supabase.from('store_requests').select('*')
+    if (currentEventId) reqsQuery = reqsQuery.eq('event_id', currentEventId)
+    const { data: reqsData } = await reqsQuery.order('created_at', { ascending: false })
 
     if (reqsData) {
       const enhanced: StoreRequestTicket[] = reqsData.map((r: any) => {

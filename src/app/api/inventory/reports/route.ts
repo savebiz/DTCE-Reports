@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { isMock } from '@/utils/supabase'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
@@ -20,6 +21,10 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
  */
 export async function GET(request: NextRequest) {
   try {
+    /* guard:GET */
+    const guard = await requireAuth({ roles: ADMIN_ROLES, allowStoresStaff: true })
+    if (!guard.ok) return guard.response
+
     const { searchParams } = new URL(request.url)
     const reportType = searchParams.get('reportType') || 'stock_summary'
     const startDate = searchParams.get('startDate') || null

@@ -1,26 +1,48 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getAdminClient } from '@/utils/supabase/admin'
+import { requireAuth } from '@/lib/auth/api-guard'
+import { getCurrentEventId } from '@/lib/events/current-event'
+import { preEventTotalsFromDepartmentSchema } from '@/lib/events/pre-event-totals'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
+const EMPTY_TOTALS = { teachers: 0, teens: 0, pre_teens: 0, children: 0 }
+const CATEGORIES = ['teachers', 'teens', 'pre_teens', 'children']
+
 export async function GET() {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
 
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server credentials missing' }, { status: 500 })
+    const adminSupabase = getAdminClient()
+    const eventId = await getCurrentEventId(adminSupabase)
+
+    let totals: Record<string, number> = { ...EMPTY_TOTALS }
+
+    // 1. Event-scoped table (source of truth)
+    let fromTable = false
+    if (eventId) {
+      const { data: rows } = await adminSupabase
+        .from('registration_pre_event_totals')
+        .select('category, total_online_registered')
+        .eq('event_id', eventId)
+      if (rows && rows.length > 0) {
+        rows.forEach((r: any) => { totals[r.category] = Number(r.total_online_registered) || 0 })
+        fromTable = true
+      }
     }
 
-    const adminSupabase = createClient(supabaseUrl, serviceRoleKey)
-    const { data: depts } = await adminSupabase.from('departments').select('id, name, default_metrics_schema')
-    const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
-
-    const totals = regDept?.default_metrics_schema?.pre_event_online_totals || { teachers: 0, teens: 0, pre_teens: 0, children: 0 }
+    // 2. Department mirror, only if it belongs to the current event
+    if (!fromTable) {
+      const { data: depts } = await adminSupabase.from('departments').select('id, name, default_metrics_schema')
+      const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
+      const mirrored = preEventTotalsFromDepartmentSchema(regDept?.default_metrics_schema, eventId)
+      if (mirrored) totals = { ...totals, ...mirrored }
+    }
 
     return NextResponse.json(
-      { success: true, totals },
+      { success: true, totals, eventId },
       {
         headers: {
           'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -36,22 +58,19 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    // Super Admin only (the editing button is Super Admin only in the UI too).
+    const auth = await requireAuth({ roles: ['super_admin'] })
+    if (!auth.ok) return auth.response
+
     const body = await req.json()
-    const { totals, userRole } = body
+    const { totals } = body
 
     if (!totals || typeof totals !== 'object') {
       return NextResponse.json({ error: 'Invalid totals payload' }, { status: 400 })
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      return NextResponse.json({ error: 'Server environment credentials missing' }, { status: 500 })
-    }
-
-    // Use admin service role client to bypass RLS restrictions on departments table
-    const adminSupabase = createClient(supabaseUrl, serviceRoleKey)
+    const adminSupabase = getAdminClient()
+    const eventId = await getCurrentEventId(adminSupabase)
 
     // 1. Fetch Registration department
     const { data: depts, error: fetchErr } = await adminSupabase
@@ -69,9 +88,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Registration department not found' }, { status: 404 })
     }
 
-    // 2. Update default_metrics_schema on Registration department
+    // 2. Mirror onto the Registration department, stamped with the event
     const currentSchema = regDept.default_metrics_schema || {}
-    const updatedSchema = { ...currentSchema, pre_event_online_totals: totals }
+    const updatedSchema = {
+      ...currentSchema,
+      pre_event_online_totals: totals,
+      pre_event_online_totals_event_id: eventId
+    }
 
     const { error: updateErr } = await adminSupabase
       .from('departments')
@@ -83,12 +106,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: updateErr.message }, { status: 500 })
     }
 
-    // 3. Optionally upsert into registration_pre_event_totals table if present
-    const { data: ev } = await adminSupabase.from('events').select('id').order('created_at', { ascending: false }).limit(1).maybeSingle()
-    if (ev?.id) {
-      const CATEGORIES = ['teachers', 'teens', 'pre_teens', 'children']
+    // 3. Event-scoped table
+    if (eventId) {
       const rows = CATEGORIES.map(cat => ({
-        event_id: ev.id,
+        event_id: eventId,
         category: cat,
         total_online_registered: Number(totals[cat]) || 0,
         updated_at: new Date().toISOString()
@@ -106,7 +127,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: 'Pre-event online totals saved to database successfully',
-      totals
+      totals,
+      eventId
     })
   } catch (err: any) {
     console.error('API /api/save-pre-event-totals error:', err)

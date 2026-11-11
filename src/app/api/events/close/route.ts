@@ -1,49 +1,46 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { notify, getDepartmentRecipientIds } from '@/lib/notifications/dispatch'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
+import { getCurrentEventId } from '@/lib/events/current-event'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
-
+/**
+ * POST /api/events/close
+ * - Admins: mark the event 'closed' and send durable-return reminders.
+ * - Stores staff: send durable-return reminders only (the event stays open).
+ * Body: { eventId?: string } — defaults to the current event.
+ */
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies()
-    const { eventId } = await request.json()
+    const auth = await requireAuth({ roles: ADMIN_ROLES, allowStoresStaff: true })
+    if (!auth.ok) return auth.response
+    const canCloseEvent = ADMIN_ROLES.includes(auth.ctx.role)
 
-    if (!eventId) {
-      return NextResponse.json({ error: 'eventId is required.' }, { status: 400 })
-    }
-
-    const supabaseUser = createServerClient(
-      supabaseUrl,
-      anonKey,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll() },
-          setAll() {}
-        }
-      }
-    )
-
-    const { data: { user } } = await supabaseUser.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
+    const body = await request.json().catch(() => ({}))
     const supabaseAdmin = getAdminClient()
 
-    // 1. Update event status to 'closed'
-    const { data: updatedEvent, error: eventErr } = await supabaseAdmin
-      .from('events')
-      .update({ status: 'closed', updated_at: new Date().toISOString() })
-      .eq('id', eventId)
-      .select()
-      .single()
+    // Old clients sent a placeholder id; anything that isn't a UUID means "current event".
+    const isUuid = typeof body?.eventId === 'string' && /^[0-9a-f-]{36}$/i.test(body.eventId)
+    const eventId = isUuid ? body.eventId : await getCurrentEventId(supabaseAdmin)
 
-    if (eventErr) {
-      return NextResponse.json({ error: eventErr.message }, { status: 500 })
+    if (!eventId) {
+      return NextResponse.json({ error: 'No current event found.' }, { status: 400 })
+    }
+
+    // 1. Update event status to 'closed' (admins only)
+    let updatedEvent: any = null
+    if (canCloseEvent) {
+      const { data, error: eventErr } = await supabaseAdmin
+        .from('events')
+        .update({ status: 'closed' })
+        .eq('id', eventId)
+        .select()
+        .single()
+
+      if (eventErr) {
+        return NextResponse.json({ error: eventErr.message }, { status: 500 })
+      }
+      updatedEvent = data
     }
 
     // 2. Fetch all store requests for this event with outstanding durable items
@@ -107,6 +104,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
+      eventClosed: canCloseEvent,
       event: updatedEvent,
       notifiedDepartmentsCount: notifiedDepts.length,
       notifiedDepartments: notifiedDepts

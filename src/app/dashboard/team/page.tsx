@@ -7,6 +7,7 @@ import { generateCompliantPassword } from '@/lib/password-policy'
 import { showToast } from '@/components/ui/toast'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import Link from 'next/link'
+import { getCurrentEventId, assignmentMapForEvent } from '@/lib/events/current-event'
 
 interface CredentialSlip {
   fullName: string
@@ -105,15 +106,9 @@ export default function SecretariatTeamManagement() {
     setDbDepartments(fetchedDepts)
 
     // Fetch hod_assignments table to map users whose department_id is on hod_assignments
+    // One row per person per event: prefer the current event's department.
     const { data: assignments } = await supabase.from('hod_assignments').select('*')
-    const assignMap: Record<string, string> = {}
-    if (assignments) {
-      assignments.forEach((h: any) => {
-        if (h.profile_id && h.department_id) {
-          assignMap[h.profile_id] = h.department_id
-        }
-      })
-    }
+    const assignMap = assignmentMapForEvent(assignments, await getCurrentEventId(supabase))
     setHodAssignMap(assignMap)
 
     const { data: allUsers, error: usersErr } = await supabase.from('profiles').select('*')

@@ -13,6 +13,7 @@ import { SchemaFormRenderer } from '@/components/schema-form-renderer'
 import { NumberField } from '@/components/ui/number-field'
 import { CurrencyField } from '@/components/ui/currency-field'
 import { FileEdit, ShieldCheck, CheckCircle2, Save, ArrowLeft, Building2, Calendar, UserCheck, AlertCircle } from 'lucide-react'
+import { getCurrentEventId, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
 
 // Departments without workforce attendance breakdown
 const DEPTS_WITHOUT_ATTENDANCE = ['dept-6', 'dept-9', 'dept-13', 'dept-19', 'dept-20', 'dept-25', 'dept-26', 'dept-29', 'dept-30', 'dept-39']
@@ -79,11 +80,12 @@ function ManualEntryContent() {
             }
           }
           if (!isSecretariatUser) {
-            const { data: assignment } = await supabase
-              .from('hod_assignments')
-              .select('department_id, departments(name)')
-              .eq('profile_id', prof.id)
-              .maybeSingle()
+            const assignment = await getDepartmentAssignment(
+              supabase,
+              prof.id,
+              await getCurrentEventId(supabase),
+              'department_id, event_id, role_in_event, created_at, departments(name)'
+            )
             const assignedDeptName = (assignment?.departments as any)?.name
             if (assignedDeptName?.toLowerCase().includes('secretariat') || assignment?.department_id === 'dept-25') {
               isSecretariatUser = true
@@ -122,8 +124,7 @@ function ManualEntryContent() {
       if (isMock) {
         daysList = mockEventDays
       } else {
-        const { data: days } = await supabase.from('event_days').select('*').order('day_number')
-        daysList = days || []
+        daysList = await getEventDays(supabase, await getCurrentEventId(supabase))
       }
       setEventDays(daysList)
 
@@ -241,7 +242,7 @@ function ManualEntryContent() {
     }
 
     const payload = {
-      event_id: selectedDay.event_id || 'evt-1',
+      event_id: selectedDay.event_id,
       event_day_id: selectedDay.id,
       department_id: selectedDept.id,
       submitted_by: profile.id,

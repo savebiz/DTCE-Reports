@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
 
 export const runtime = 'nodejs'
 
@@ -68,11 +69,15 @@ export async function POST(request: Request) {
     } else {
       const supabaseUserClient = await createServerClient()
       const { data: { user } } = await supabaseUserClient.auth.getUser()
+      if (!user) {
+        return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
+      }
 
-      const activeProfileId = user?.id || profile_id
+      // Feedback is always recorded against the signed-in user
+      const activeProfileId = user.id
       payload.profile_id = activeProfileId
 
-      const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+      const serviceRoleKey = getServiceRoleKey()
       const supabaseAdmin = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         serviceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

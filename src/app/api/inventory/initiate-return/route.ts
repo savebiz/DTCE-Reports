@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { notify, getDepartmentRecipientIds, getStoresRecipientIds, getAdminRecipientIds } from '@/lib/notifications/dispatch'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
@@ -42,6 +43,21 @@ export async function POST(request: Request) {
 
     if (reqErr || !reqRow) {
       return NextResponse.json({ error: 'Store request not found.' }, { status: 404 })
+    }
+
+    // Only the requesting department (or admins / Stores) can start a return
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    if (!ADMIN_ROLES.includes(auth.ctx.role) && !auth.ctx.isStoresStaff && reqRow.requester_profile_id !== user.id) {
+      const { data: memberships } = await supabaseAdmin
+        .from('hod_assignments')
+        .select('department_id')
+        .eq('profile_id', user.id)
+        .eq('department_id', reqRow.department_id)
+        .limit(1)
+      if (!memberships || memberships.length === 0) {
+        return NextResponse.json({ error: 'You can only return items issued to your own department.' }, { status: 403 })
+      }
     }
 
     const itemsList = reqRow.items_json || []

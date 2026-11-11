@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
+import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
 
 interface CredentialSlip {
   fullName: string
@@ -65,11 +66,8 @@ export default function HODTeamManagement() {
         return
       }
       if ((!activeProfile.department_id || activeProfile.department_id.startsWith('dept-')) && !isMock) {
-        const { data: assignment } = await supabase
-          .from('hod_assignments')
-          .select('department_id')
-          .eq('profile_id', activeProfile.id)
-          .maybeSingle()
+        const currentEventId = await getCurrentEventId(supabase)
+        const assignment = await getDepartmentAssignment(supabase, activeProfile.id, currentEventId)
         if (assignment?.department_id) {
           activeProfile.department_id = assignment.department_id
         }
@@ -103,7 +101,11 @@ export default function HODTeamManagement() {
           .select('profile_id, profiles!inner(*)')
           .eq('department_id', activeProfile.department_id)
           .eq('role_in_event', 'assistant')
-        assistantsList = assRows ? assRows.map((row: any) => row.profiles) : []
+        // One row per event per person — list each assistant once.
+        const seen = new Set<string>()
+        assistantsList = (assRows || [])
+          .map((row: any) => row.profiles)
+          .filter((p: any) => p && !seen.has(p.id) && seen.add(p.id))
       }
       
       setAssistants(assistantsList)

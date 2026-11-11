@@ -1,82 +1,32 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/utils/supabase/server'
+import { getAdminClient, hasServiceRoleKey } from '@/utils/supabase/admin'
 import { mockDepartments } from '@/utils/supabase'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
+import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
 import { generateCompliantPassword } from '@/lib/password-policy'
 
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Authenticate user session
-    const supabaseUserClient = await createServerClient()
-    const { data: { user } } = await supabaseUserClient.auth.getUser()
+    // 1-2. HODs and admins only — role from profiles, never user_metadata
+    const auth = await requireAuth({ roles: ['hod', 'super_admin', 'coordinator', 'national_coordinator'] })
+    if (!auth.ok) return auth.response
+    const user = { id: auth.ctx.userId }
+    const isAdminCaller = ADMIN_ROLES.includes(auth.ctx.role)
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
-    }
-
-    // 2. Comprehensive HOD / Secretariat authorization check
-    let isAuthorized = false
-    let userDeptId = ''
-
-    // Check A: Profile table
-    const { data: prof } = await supabaseUserClient
-      .from('profiles')
-      .select('role, department_id')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (prof) {
-      if (['hod', 'super_admin', 'coordinator', 'national_coordinator'].includes(prof.role)) {
-        isAuthorized = true
-      }
-      if (prof.department_id) {
-        userDeptId = prof.department_id
-      }
-    }
-
-    // Check B: User metadata in Auth session
-    const metaRole = user.user_metadata?.role
-    if (['hod', 'super_admin', 'coordinator', 'national_coordinator'].includes(metaRole)) {
-      isAuthorized = true
-    }
-    if (!userDeptId && user.user_metadata?.department_id) {
-      userDeptId = user.user_metadata.department_id
-    }
-
-    // Check C: hod_assignments table in Database
-    const { data: assignment } = await supabaseUserClient
-      .from('hod_assignments')
-      .select('department_id')
-      .eq('profile_id', user.id)
-      .maybeSingle()
-
-    if (assignment) {
-      isAuthorized = true
-      if (!userDeptId) {
-        userDeptId = assignment.department_id
-      }
-    }
-
-    if (!isAuthorized) {
-      return NextResponse.json({ error: 'Unauthorized: HOD or Secretariat permissions required.' }, { status: 403 })
-    }
-
-    // 3. Service role key check
-    const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!serviceRoleKey) {
+    if (!hasServiceRoleKey()) {
       return NextResponse.json(
         { error: 'Server configuration error: Service role key is missing.' },
         { status: 500 }
       )
     }
+    const supabaseAdmin = getAdminClient()
 
-    // 4. Initialize Admin Client
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      serviceRoleKey
-    )
+    // The caller's own department (for HODs) in the current event
+    const currentEventId = await getCurrentEventId(supabaseAdmin)
+    const callerAssignment = await getDepartmentAssignment(supabaseAdmin, user.id, currentEventId)
+    const userDeptId = callerAssignment?.department_id || ''
 
     // 5. Parse request body
     const body = await request.json()
@@ -90,7 +40,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Full name and username are required.' }, { status: 400 })
     }
 
-    let targetDeptId = departmentId !== undefined ? departmentId : userDeptId
+    // HODs may only add assistants to their own department
+    let targetDeptId = isAdminCaller && departmentId !== undefined ? departmentId : userDeptId
+    if (!isAdminCaller && !targetDeptId) {
+      return NextResponse.json({ error: 'You are not assigned to a department for the current event.' }, { status: 403 })
+    }
 
     // Resolve department UUID if string starts with "dept-"
     if (targetDeptId && targetDeptId.startsWith('dept-')) {
@@ -180,12 +134,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Profile creation failed: ${profileErr.message}` }, { status: 400 })
     }
 
-    // 9. Assign to HOD Assignments
-    let activeEventId = ''
-    const { data: eventsList } = await supabaseAdmin.from('events').select('id').limit(1)
-    if (eventsList && eventsList.length > 0) {
-      activeEventId = eventsList[0].id
-    }
+    // 9. Assign to the current event
+    const activeEventId = currentEventId || ''
 
     if (activeEventId && targetDeptId) {
       await supabaseAdmin.from('hod_assignments').insert({

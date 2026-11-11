@@ -1,61 +1,23 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/utils/supabase/server'
 import { generateCompliantPassword } from '@/lib/password-policy'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
+import { getCurrentEventId } from '@/lib/events/current-event'
 
 // Explicitly use nodejs runtime to ensure full library compatibility
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Initialize Server client using user's cookies to authenticate session
-    const supabaseUserClient = await createServerClient()
-    const { data: { user } } = await supabaseUserClient.auth.getUser()
+    // 1-2. Secretariat / Coordinator authorization — role from profiles only
+    // (user_metadata is editable by the user and must never grant access)
+    const auth = await requireAuth({ roles: ADMIN_ROLES })
+    if (!auth.ok) return auth.response
+    const user = { id: auth.ctx.userId }
+    const callerIsSuperAdmin = auth.ctx.role === 'super_admin'
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
-    }
-
-    // 2. Comprehensive Secretariat / Coordinator authorization check
-    let isAuthorized = false
-
-    // Check A: Profile table via User client
-    const { data: prof } = await supabaseUserClient
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    if (prof && ['super_admin', 'coordinator', 'national_coordinator'].includes(prof.role)) {
-      isAuthorized = true
-    }
-
-    // Check B: User metadata in Auth session
-    const metaRole = user.user_metadata?.role
-    if (['super_admin', 'coordinator', 'national_coordinator'].includes(metaRole)) {
-      isAuthorized = true
-    }
-
-    // Check C: Admin client bypass if service role key exists
-    const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!isAuthorized && serviceRoleKey) {
-      const supabaseAdminCheck = createSupabaseClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        serviceRoleKey
-      )
-      const { data: adminProf } = await supabaseAdminCheck
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle()
-      if (adminProf && ['super_admin', 'coordinator', 'national_coordinator'].includes(adminProf.role)) {
-        isAuthorized = true
-      }
-    }
-
-    if (!isAuthorized) {
-      return NextResponse.json({ error: 'Unauthorized: Secretariat access required.' }, { status: 403 })
-    }
+    const serviceRoleKey = getServiceRoleKey()
     if (!serviceRoleKey) {
       return NextResponse.json(
         { error: 'Server configuration error: Supabase Service Role key is missing.' },
@@ -79,28 +41,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing departments list in request body.' }, { status: 400 })
     }
 
-    // 6. Fetch or dynamically create active event
-    let eventId = ''
-    const { data: eventsList } = await supabaseAdmin.from('events').select('id').limit(1)
-    if (eventsList && eventsList.length > 0) {
-      eventId = eventsList[0].id
-    } else {
-      // Seed default event if none exists
-      const { data: seededEvent, error: seedEventErr } = await supabaseAdmin
-        .from('events')
-        .insert({
-          name: 'DTCE 2026 Annual Reporting',
-          start_date: '2026-07-13',
-          end_date: '2026-07-17',
-          theme_colors: { primary: '#1B3A6B', secondary: '#C49A00' }
-        })
-        .select('id')
-        .single()
+    // Only a Super Admin may create administrator accounts
+    const ALLOWED_NEW_ROLES = callerIsSuperAdmin
+      ? ['super_admin', 'coordinator', 'national_coordinator', 'hod', 'assistant']
+      : ['hod', 'assistant']
+    const disallowed = departments.find(d => !ALLOWED_NEW_ROLES.includes(d.role || 'hod'))
+    if (disallowed) {
+      return NextResponse.json({ error: `Only a Super Admin can create "${disallowed.role}" accounts.` }, { status: 403 })
+    }
 
-      if (seedEventErr || !seededEvent) {
-        throw new Error(`Failed to seed active event: ${seedEventErr?.message || 'unknown error'}`)
-      }
-      eventId = seededEvent.id
+    // 6. Accounts are assigned to the current event
+    const eventId = await getCurrentEventId(supabaseAdmin)
+    if (!eventId) {
+      return NextResponse.json({ error: 'No current event exists. Create the event first.' }, { status: 400 })
     }
 
     const slips: Array<{

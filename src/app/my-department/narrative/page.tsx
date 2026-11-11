@@ -12,6 +12,11 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import localforage from 'localforage'
 import { extractCustomMetricsSummary, formatCustomMetricsTextLines } from '@/utils/customMetricsSummarizer'
+import { getCurrentEvent, getDepartmentAssignment } from '@/lib/events/current-event'
+
+// Drafts are kept per event so a Convention draft never shows up during Congress.
+const narrativeDraftKey = (eventId: string | null | undefined, departmentId: string | null | undefined) =>
+  `dtce_narrative_draft_${eventId || 'no-event'}_${departmentId || 'no-dept'}`
 
 interface Challenge {
   id: string
@@ -120,13 +125,12 @@ export default function DepartmentNarrativePage() {
       }
     }
 
+    const currentEvent = await getCurrentEvent(supabase)
+    const eventId = currentEvent?.id ?? null
+
     if (activeProfile) {
       if (!activeProfile.department_id && !isMock) {
-        const { data: assignment } = await supabase
-          .from('hod_assignments')
-          .select('department_id')
-          .eq('profile_id', activeProfile.id)
-          .maybeSingle()
+        const assignment = await getDepartmentAssignment(supabase, activeProfile.id, eventId)
         if (assignment) {
           activeProfile.department_id = assignment.department_id
         }
@@ -145,15 +149,16 @@ export default function DepartmentNarrativePage() {
         if (dbDept) setDepartment(dbDept)
       }
 
-      // Fetch active event
-      const { data: eventsList } = await supabase.from('events').select('*')
-      if (eventsList && eventsList.length > 0) {
-        setActiveEvent(eventsList[0])
+      // Current event (shared helper — never events[0])
+      if (currentEvent) {
+        setActiveEvent(currentEvent)
       }
 
-      // Fetch reports
-      const { data: reps } = await supabase.from('daily_reports').select('*')
-      const filteredReps = reps ? reps.filter((r: any) => r.department_id === activeProfile.department_id) : []
+      // Fetch this department's reports for the current event
+      let repsQuery = supabase.from('daily_reports').select('*').eq('department_id', activeProfile.department_id)
+      if (eventId) repsQuery = repsQuery.eq('event_id', eventId)
+      const { data: reps } = await repsQuery
+      const filteredReps = reps || []
       setReports(filteredReps)
 
       // Calculate aggregated metrics
@@ -196,12 +201,15 @@ export default function DepartmentNarrativePage() {
         reportingDays: daysCount,
       })
 
-      // Fetch existing End-of-Event narrative
-      const { data: narrs } = await supabase
+      // Fetch existing End-of-Event narrative for this department and event
+      let narrsQuery = supabase
         .from('department_narratives')
         .select('*')
-      
-      const existingNarr = narrs ? narrs.find((n: any) => n.department_id === prof.department_id && n.is_end_of_event === true) : null
+        .eq('department_id', activeProfile.department_id)
+      if (eventId) narrsQuery = narrsQuery.eq('event_id', eventId)
+      const { data: narrs } = await narrsQuery
+
+      const existingNarr = narrs ? narrs.find((n: any) => n.is_end_of_event === true) : null
 
       if (existingNarr) {
         setNarrativeId(existingNarr.id)
@@ -212,7 +220,7 @@ export default function DepartmentNarrativePage() {
         setRecommendations(existingNarr.recommendations_json || [])
       } else {
         // Try to load offline draft if exists
-        const localDraft = await localforage.getItem<any>(`dtce_narrative_draft_${prof.department_id}`)
+        const localDraft = await localforage.getItem<any>(narrativeDraftKey(eventId, activeProfile.department_id))
         if (localDraft) {
           setOverview(localDraft.overview || '')
           setHighlights(localDraft.highlights || '')
@@ -255,14 +263,14 @@ export default function DepartmentNarrativePage() {
   // 3. Auto-save narrative draft locally
   useEffect(() => {
     if (profile && department && status === 'draft') {
-      localforage.setItem(`dtce_narrative_draft_${profile.department_id}`, {
+      localforage.setItem(narrativeDraftKey(activeEvent?.id, profile.department_id), {
         overview,
         highlights,
         challenges,
         recommendations
       })
     }
-  }, [overview, highlights, challenges, recommendations, profile, department])
+  }, [overview, highlights, challenges, recommendations, profile, department, activeEvent?.id])
 
   // 4. Challenges List Mutations
   const handleAddChallenge = () => {
@@ -346,7 +354,7 @@ export default function DepartmentNarrativePage() {
       setStatus(targetStatus)
       if (submit) {
         // Clear local storage draft
-        await localforage.removeItem(`dtce_narrative_draft_${profile.department_id}`)
+        await localforage.removeItem(narrativeDraftKey(activeEvent.id, profile.department_id))
         showToast('End-of-Event Narrative submitted successfully!', 'success')
       } else {
         showToast('Draft saved successfully!', 'success')

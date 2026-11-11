@@ -3,6 +3,8 @@ import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
 
 export interface ChallengeResolutionItem {
   id: string
@@ -17,11 +19,15 @@ export interface ChallengeResolutionItem {
 
 export async function GET(request: NextRequest) {
   try {
+    /* guard:GET */
+    const guard = await requireAuth()
+    if (!guard.ok) return guard.response
+
     if (isMock) {
       return NextResponse.json({ resolutions: (store as any).challengeResolutions || [] })
     }
 
-    const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceKey = getServiceRoleKey()
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabase = (serviceKey && supabaseUrl) ? createSupabaseAdminClient(supabaseUrl, serviceKey) : await createServerClient()
 
@@ -41,6 +47,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    /* guard:POST */
+    const guard = await requireAuth({ roles: ADMIN_ROLES })
+    if (!guard.ok) return guard.response
+
     const body = await request.json()
     const { challengeKey, status, resolutionNote } = body as {
       challengeKey: string
@@ -95,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
     userId = user.id
 
-    const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceKey = getServiceRoleKey()
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabase = (serviceKey && supabaseUrl) ? createSupabaseAdminClient(supabaseUrl, serviceKey) : await createServerClient()
 

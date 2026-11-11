@@ -3,9 +3,18 @@ import { notify } from '@/lib/notifications/dispatch'
 import { isMock, mockDepartments } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
+import { requireAuth, ADMIN_ROLES, isCronRequest } from '@/lib/auth/api-guard'
 
 export async function GET(request: NextRequest) {
   try {
+    // Sends digests and can delete push subscriptions: a scheduled job
+    // (Authorization: Bearer $CRON_SECRET) or an admin only.
+    if (!isCronRequest(request)) {
+      const guard = await requireAuth({ roles: ADMIN_ROLES })
+      if (!guard.ok) return guard.response
+    }
+
     const { searchParams } = new URL(request.url)
     const thresholdHours = Number(searchParams.get('hours') || '12')
     const performCleanup = searchParams.get('cleanup') === 'true'
@@ -18,11 +27,7 @@ export async function GET(request: NextRequest) {
 
     if (!isMock) {
       const serviceKey =
-        process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE ||
-        process.env.SUPABASE_SERVICE_ROLE_KEY ||
-        process.env.SUPABASE_SERVICE_ROLE ||
-        process.env.SUPABASE_SERVICE_KEY ||
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        getServiceRoleKey() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       if (serviceKey && supabaseUrl) {

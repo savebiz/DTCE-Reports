@@ -3,6 +3,8 @@ import { isMock, mockDepartments, Profile } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
 import { createClient } from '@/utils/supabase/server'
 import { notify } from '@/lib/notifications/dispatch'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
+import { getCurrentEventId, getEventDays } from '@/lib/events/current-event'
 
 export async function POST(request: Request) {
   try {
@@ -23,17 +25,25 @@ export async function POST(request: Request) {
       dailyReports = store.dailyReports
       profiles = store.profiles
     } else {
+      // Sends notifications to many people — admins only.
+      const auth = await requireAuth({ roles: ADMIN_ROLES })
+      if (!auth.ok) return auth.response
+
       const supabase = await createClient()
-      const { data: days } = await supabase.from('event_days').select('*')
-      activeEventDays = days || []
+      const eventId = await getCurrentEventId(supabase)
+      activeEventDays = await getEventDays(supabase, eventId)
       const { data: depts } = await supabase.from('departments').select('*')
       departments = depts || []
-      const { data: reps } = await supabase.from('daily_reports').select('*')
+      let repsQuery = supabase.from('daily_reports').select('*')
+      if (eventId) repsQuery = repsQuery.eq('event_id', eventId)
+      const { data: reps } = await repsQuery
       dailyReports = reps || []
       const { data: profs } = await supabase.from('profiles').select('*')
       profiles = profs || []
       const { data: assigns } = await supabase.from('hod_assignments').select('*')
-      hodAssignments = assigns || []
+      // Prefer this event's assignments; fall back to all if none exist yet
+      const eventAssigns = (assigns || []).filter((h: any) => h.event_id === eventId)
+      hodAssignments = eventAssigns.length > 0 ? eventAssigns : (assigns || [])
     }
 
     const currentDayObj = activeEventDays.find(d => d.day_number === dayNumber)
