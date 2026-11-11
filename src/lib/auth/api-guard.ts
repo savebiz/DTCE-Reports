@@ -15,6 +15,7 @@ import { createClient } from '@/utils/supabase/server'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { isMock } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
+import { getCurrentEventId } from '@/lib/events/current-event'
 
 export type PlatformRole = 'super_admin' | 'coordinator' | 'national_coordinator' | 'hod' | 'assistant'
 
@@ -43,14 +44,17 @@ export function forbidden(message = 'You do not have permission to do this.') {
   return NextResponse.json({ error: message }, { status: 403 })
 }
 
-/** True if the person is assigned to a Stores department (any event) or is the legacy stores.hod account. */
+/** True if the person is on the current event's Stores team, or is the legacy stores.hod account. */
 export async function checkStoresStaff(profileId: string, username?: string | null, role?: string | null): Promise<boolean> {
   if (role === 'hod' && username === 'stores.hod') return true
   const admin = getAdminClient()
-  const { data } = await admin
+  const eventId = await getCurrentEventId(admin)
+  let query = admin
     .from('hod_assignments')
     .select('department_id, departments!inner(name)')
     .eq('profile_id', profileId)
+  if (eventId) query = query.eq('event_id', eventId)
+  const { data } = await query
   return (data || []).some((row: any) => {
     const dept = Array.isArray(row.departments) ? row.departments[0] : row.departments
     return typeof dept?.name === 'string' && dept.name.toLowerCase().includes('store')

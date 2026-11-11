@@ -97,9 +97,11 @@ export async function getEventDays(supabase: QueryClient, eventId: string | null
 /**
  * A person's department for an event.
  *
- * People hold one assignment row per event. Prefer the row for `eventId`;
- * otherwise fall back to their most recent assignment so an HOD still lands
- * on their department before they have been assigned to the new event.
+ * People hold one assignment row per event. When `eventId` is given, only
+ * the row for that event is returned (null if they are not on its team), so
+ * former HODs lose their old department when a new event starts. Teams are
+ * carried over when an event is created (see supabase/seed/). Without an
+ * `eventId`, the most recent assignment is returned.
  * (Replaces `.eq('profile_id', id).maybeSingle()`, which errors as soon as a
  * person has rows for two events.)
  */
@@ -117,7 +119,10 @@ export async function getDepartmentAssignment(
 
   const rows = (data || []) as DepartmentAssignment[]
   if (rows.length === 0) return null
-  return (eventId && rows.find(r => r.event_id === eventId)) || rows[0]
+  // With a current event, only that event's team counts: a former HOD who was
+  // not carried over to the new event no longer gets their old department.
+  if (eventId) return rows.find(r => r.event_id === eventId) || null
+  return rows[0]
 }
 
 /**

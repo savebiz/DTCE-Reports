@@ -351,7 +351,23 @@ export default function MyDepartmentDashboard() {
     )
   }
 
-  const isStoresDept = profile.department_id === 'dept-29' || 
+  // HODs and assistants who are not on the current event's team (e.g. a former
+  // HOD after new officers were appointed) see a plain explanation instead of
+  // an empty department.
+  if (!isMock && !profile.department_id && (profile.role === 'hod' || profile.role === 'assistant')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--background)' }}>
+        <div className="max-w-md w-full rounded-2xl border border-border p-6 space-y-3 text-center">
+          <h1 className="text-xl font-bold text-foreground">You are not assigned to a department</h1>
+          <p className="text-base text-muted-foreground">
+            Your account is not on a department team for the current event. If you think this is a mistake, please contact the Secretariat.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const isStoresDept = profile.department_id === 'dept-29' ||
                        profile.department_id === '43fe996e-db9b-4e94-8311-99528b8bb690' ||
                        department?.name?.toLowerCase().includes('store')
 

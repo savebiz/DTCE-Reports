@@ -41,13 +41,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Non-admins may only request for a department they are assigned to
+    // Non-admins may only request for a department they are on the current event's team for
     if (!ADMIN_ROLES.includes(auth.ctx.role)) {
       const { data: memberships } = await supabaseAdmin
         .from('hod_assignments')
         .select('department_id')
         .eq('profile_id', user.id)
         .eq('department_id', departmentId)
+        .eq('event_id', eventId)
         .limit(1)
       if (!memberships || memberships.length === 0) {
         return NextResponse.json({ error: 'You can only submit requisitions for your own department.' }, { status: 403 })
