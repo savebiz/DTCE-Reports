@@ -61,17 +61,20 @@ export async function GET(request: NextRequest) {
     admin
       .from('hod_assignments')
       .select('department_id, role_in_event, profile:profiles(full_name)')
-      .eq('event_id', event.id)
-      .eq('role_in_event', 'hod'),
+      .eq('event_id', event.id),
   ])
 
   const deptName: Record<string, string> = {}
   for (const d of departments || []) deptName[d.id] = d.name
 
+  // Departments with a team for this event (merged or retired departments have none)
+  const deptsWithTeam = new Set<string>()
   const hodByDept: Record<string, string> = {}
-  for (const a of (assignments || []) as { department_id: string; profile: { full_name: string | null } | { full_name: string | null }[] | null }[]) {
+  for (const a of (assignments || []) as { department_id: string; role_in_event: string; profile: { full_name: string | null } | { full_name: string | null }[] | null }[]) {
+    if (!a.department_id) continue
+    deptsWithTeam.add(a.department_id)
     const p = Array.isArray(a.profile) ? a.profile[0] : a.profile
-    if (a.department_id && p?.full_name && !hodByDept[a.department_id]) hodByDept[a.department_id] = p.full_name
+    if (a.role_in_event === 'hod' && p?.full_name && !hodByDept[a.department_id]) hodByDept[a.department_id] = p.full_name
   }
 
   const entryByKey: Record<string, { batch: number | null; qty_bought: number; qty_received: number; note: string | null }> = {}
@@ -135,7 +138,11 @@ export async function GET(request: NextRequest) {
     })
     .sort((a, b) => a.name.localeCompare(b.name))
 
-  const deptRows = (departments || []).map((d: { id: string; name: string }) => ({
+  // Show departments that have a team this event (or already sent something).
+  // If no teams are set up yet for the event, show every department.
+  const visibleDepts = (departments || []).filter((d: { id: string }) =>
+    deptsWithTeam.size === 0 || deptsWithTeam.has(d.id) || !!deptSummary[d.id])
+  const deptRows = visibleDepts.map((d: { id: string; name: string }) => ({
     id: d.id,
     name: d.name,
     hod: hodByDept[d.id] || null,
