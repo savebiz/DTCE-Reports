@@ -2,6 +2,8 @@ import { isMock } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
 import { sendWebPushNotification, PushSubscriptionObj } from './webpush'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+import { getCurrentEventId } from '@/lib/events/current-event'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
 
 export interface NotifyParams {
   recipientId: string
@@ -72,11 +74,7 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
     } else {
       // Production Supabase Execution
       const serviceKey =
-        process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE ||
-        process.env.SUPABASE_SERVICE_ROLE_KEY ||
-        process.env.SUPABASE_SERVICE_ROLE ||
-        process.env.SUPABASE_SERVICE_KEY ||
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        getServiceRoleKey() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
@@ -237,11 +235,7 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
       if (!isMock) {
         try {
           const serviceKey =
-            process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE ||
-            process.env.SUPABASE_SERVICE_ROLE_KEY ||
-            process.env.SUPABASE_SERVICE_ROLE ||
-            process.env.SUPABASE_SERVICE_KEY ||
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+            getServiceRoleKey() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
           const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
           if (serviceKey && supabaseUrl) {
@@ -277,7 +271,7 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
         } else if (pushRes.status === 404 || pushRes.status === 410) {
           // Clean up expired endpoint if live Supabase is active
           if (!isMock) {
-            const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+            const serviceKey = getServiceRoleKey()
             const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
             if (serviceKey && supabaseUrl) {
               const adminSupabase = createSupabaseAdminClient(supabaseUrl, serviceKey)
@@ -315,14 +309,18 @@ export async function getDepartmentRecipientIds(supabaseAdmin: any, departmentId
     directProfiles.forEach((p: any) => recipientSet.add(p.id))
   }
 
-  // 2. HOD Assignments table matching department_id (covers multi-assignment HODs and Assistants)
+  // 2. HOD Assignments for this department. Prefer the current event's team,
+  //    so last year's HOD isn't notified about this year's department; fall
+  //    back to everyone ever assigned if the current event has no team yet.
   const { data: hodAssigns } = await supabaseAdmin
     .from('hod_assignments')
-    .select('profile_id')
+    .select('profile_id, event_id')
     .eq('department_id', departmentId)
 
-  if (hodAssigns) {
-    hodAssigns.forEach((h: any) => recipientSet.add(h.profile_id))
+  if (hodAssigns && hodAssigns.length > 0) {
+    const currentEventId = await getCurrentEventId(supabaseAdmin)
+    const currentTeam = hodAssigns.filter((h: any) => currentEventId && h.event_id === currentEventId)
+    ;(currentTeam.length > 0 ? currentTeam : hodAssigns).forEach((h: any) => recipientSet.add(h.profile_id))
   }
 
   return Array.from(recipientSet)
@@ -415,10 +413,7 @@ export async function checkAndDispatchLowStockAlert(params: {
 
   // Live Supabase Execution
   const serviceKey =
-    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_ROLE ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    getServiceRoleKey() || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   if (!supabaseUrl || !serviceKey) return

@@ -5,6 +5,8 @@ import { store } from '@/utils/supabase/mockClient'
 import { generateStoresMaterialsDocx } from '@/utils/storesDocxGenerator'
 import fs from 'fs'
 import path from 'path'
+import { requireAuth } from '@/lib/auth/api-guard'
+import { getCurrentEvent, getEventDays } from '@/lib/events/current-event'
 
 export const runtime = 'nodejs'
 
@@ -25,27 +27,31 @@ export async function GET(request: Request) {
       repsList = store.dailyReports
       eventDaysList = (store as any).eventDays || []
     } else {
+      // Any signed-in, active user may export (RLS still limits what they see)
+      const auth = await requireAuth()
+      if (!auth.ok) return auth.response
       const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        return new Response('Unauthorized: Log in to export report.', { status: 401 })
-      }
 
-      // Fetch dynamic datasets safely using authenticated server client
-      const { data: events } = await supabase.from('events').select('*')
-      if (events && events.length > 0) event = events[0]
+      // ?eventId=... for a past event, otherwise the current one
+      const requestedEventId = searchParams.get('eventId')
+      const target = requestedEventId
+        ? (await supabase.from('events').select('*').eq('id', requestedEventId).maybeSingle()).data
+        : await getCurrentEvent(supabase)
+      if (!target) {
+        return NextResponse.json({ error: 'Event not found.' }, { status: 404 })
+      }
+      event = target
 
       const { data: depts } = await supabase.from('departments').select('*')
       deptsList = depts || mockDepartments
 
-      const { data: reqs } = await supabase.from('store_requests').select('*')
+      const { data: reqs } = await supabase.from('store_requests').select('*').eq('event_id', event.id)
       reqsList = reqs || []
 
-      const { data: reps } = await supabase.from('daily_reports').select('*')
+      const { data: reps } = await supabase.from('daily_reports').select('*').eq('event_id', event.id)
       repsList = reps || []
 
-      const { data: eventDays } = await supabase.from('event_days').select('*')
-      eventDaysList = eventDays || []
+      eventDaysList = await getEventDays(supabase, event.id)
     }
 
     // Try loading logo

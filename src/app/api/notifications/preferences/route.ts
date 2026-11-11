@@ -3,6 +3,7 @@ import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ preferences: [] })
     }
 
-    const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceKey = getServiceRoleKey()
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabase = (serviceKey && supabaseUrl) ? createSupabaseAdminClient(supabaseUrl, serviceKey) : await createServerClient()
 
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true })
     }
 
-    const serviceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceKey = getServiceRoleKey()
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabase = (serviceKey && supabaseUrl) ? createSupabaseAdminClient(supabaseUrl, serviceKey) : await createServerClient()
 

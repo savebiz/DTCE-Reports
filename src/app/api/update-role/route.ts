@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
 
 export const runtime = 'nodejs'
 
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Verify calling user is a super_admin
-    const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceRoleKey = getServiceRoleKey()
     if (!serviceRoleKey) {
       return NextResponse.json({ error: 'Server configuration error: Service Role key is missing.' }, { status: 500 })
     }

@@ -12,6 +12,7 @@ import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { CheckCircle2, Package } from 'lucide-react'
+import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
 
 interface RequestItem {
   inventory_item_id?: string | null
@@ -84,12 +85,10 @@ function StoreFulfillmentContent() {
       }
     }
 
+    const currentEventId = await getCurrentEventId(supabase)
+
     if (!isMock) {
-      const { data: assignment } = await supabase
-        .from('hod_assignments')
-        .select('department_id')
-        .eq('profile_id', activeProfile.id)
-        .maybeSingle()
+      const assignment = await getDepartmentAssignment(supabase, activeProfile.id, currentEventId)
       if (assignment?.department_id) {
         activeProfile.department_id = assignment.department_id
       }
@@ -108,10 +107,11 @@ function StoreFulfillmentContent() {
 
     // Load Requisitions
     if (!isMock) {
-      const { data: reqsData } = await supabase
+      let reqsQuery = supabase
         .from('store_requests')
         .select('*')
-        .order('created_at', { ascending: false })
+      if (currentEventId) reqsQuery = reqsQuery.eq('event_id', currentEventId)
+      const { data: reqsData } = await reqsQuery.order('created_at', { ascending: false })
 
       if (reqsData) {
         const enhanced = await fetchEnhancedStoreRequests(supabase, reqsData)

@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { showToast } from '@/components/ui/toast'
 import { Globe, Save, CheckCircle2, AlertCircle } from 'lucide-react'
+import { getCurrentEventId } from '@/lib/events/current-event'
+import { preEventTotalsFromDepartmentSchema } from '@/lib/events/pre-event-totals'
 
 export interface PreEventCategoryTotal {
   category: 'teachers' | 'teens' | 'pre_teens' | 'children'
@@ -54,10 +56,9 @@ export function PreEventRegistrationTotalsModal({
       let loaded = false
       if (!isMock) {
         // Find active event ID if not passed
-        let activeEventId = eventId
+        let activeEventId: string | null | undefined = eventId
         if (!activeEventId) {
-          const { data: ev } = await supabase.from('events').select('id').order('created_at', { ascending: false }).limit(1).maybeSingle()
-          activeEventId = ev?.id
+          activeEventId = await getCurrentEventId(supabase)
         }
 
         if (activeEventId) {
@@ -79,8 +80,9 @@ export function PreEventRegistrationTotalsModal({
         if (!loaded) {
           const { data: depts } = await supabase.from('departments').select('id, name, default_metrics_schema')
           const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
-          if (regDept?.default_metrics_schema?.pre_event_online_totals) {
-            setTotals(regDept.default_metrics_schema.pre_event_online_totals)
+          const mirrored = preEventTotalsFromDepartmentSchema(regDept?.default_metrics_schema, activeEventId)
+          if (mirrored) {
+            setTotals(mirrored)
             loaded = true
           }
         }

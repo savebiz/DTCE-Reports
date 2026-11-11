@@ -1,11 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { notify, getDepartmentRecipientIds, getAdminRecipientIds } from '@/lib/notifications/dispatch'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
+import { getCurrentEventId } from '@/lib/events/current-event'
 
 /**
  * POST /api/inventory/submit-request
@@ -16,29 +13,35 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
  */
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabaseUser = createServerClient(
-      supabaseUrl,
-      anonKey,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll() },
-          setAll() {}
-        }
-      }
-    )
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const user = { id: auth.ctx.userId }
 
-    const { data: { user } } = await supabaseUser.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { departmentId, items, eventId } = await request.json()
+    const { departmentId, items } = await request.json()
     if (!departmentId || !items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'departmentId and items array are required.' }, { status: 400 })
     }
 
     const supabaseAdmin = getAdminClient()
+
+    // Requisitions always belong to the current event (decided here, not by the browser)
+    const eventId = await getCurrentEventId(supabaseAdmin)
+    if (!eventId) {
+      return NextResponse.json({ error: 'No current event is open for requisitions.' }, { status: 400 })
+    }
+
+    // Non-admins may only request for a department they are assigned to
+    if (!ADMIN_ROLES.includes(auth.ctx.role)) {
+      const { data: memberships } = await supabaseAdmin
+        .from('hod_assignments')
+        .select('department_id')
+        .eq('profile_id', user.id)
+        .eq('department_id', departmentId)
+        .limit(1)
+      if (!memberships || memberships.length === 0) {
+        return NextResponse.json({ error: 'You can only submit requisitions for your own department.' }, { status: 403 })
+      }
+    }
 
     // 1. Fetch Department Name
     const { data: dept } = await supabaseAdmin
@@ -51,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Insert Store Request
     const payload = {
-      event_id: eventId || null,
+      event_id: eventId,
       department_id: departmentId,
       requester_profile_id: user.id,
       items_json: items.map((it: any) => ({

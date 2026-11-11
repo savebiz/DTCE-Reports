@@ -15,6 +15,7 @@ import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { AlertTriangle, X } from 'lucide-react'
+import { getCurrentEventId } from '@/lib/events/current-event'
 
 interface RequestItem {
   inventory_item_id?: string | null
@@ -170,8 +171,11 @@ function AdminRequisitionsContent() {
     }
 
     if (!isMock) {
+      const currentEventId = await getCurrentEventId(supabase)
+      let reqsQuery = supabase.from('store_requests').select('*')
+      if (currentEventId) reqsQuery = reqsQuery.eq('event_id', currentEventId)
       const [reqsRes, usersRes, invRes] = await Promise.all([
-        supabase.from('store_requests').select('*').order('created_at', { ascending: false }),
+        reqsQuery.order('created_at', { ascending: false }),
         supabase.from('profiles').select('*').eq('role', 'coordinator'),
         supabase.from('inventory_items').select('*')
       ])

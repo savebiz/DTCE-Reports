@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { isMock } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
 import { generateCompliantPassword } from '@/lib/password-policy'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+import { requireAuth } from '@/lib/auth/api-guard'
 
 /**
  * POST /api/admin/reset-password
@@ -32,29 +28,17 @@ export async function POST(request: Request) {
         actorRole = user.role
       }
     } else {
-      const cookieStore = await cookies()
-      const supabaseUser = createServerClient(
-        supabaseUrl,
-        anonKey,
-        {
-          cookies: {
-            getAll() { return cookieStore.getAll() },
-            setAll() {}
-          }
-        }
-      )
-
-      const { data: { user } } = await supabaseUser.auth.getUser()
-      if (!user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      // Role from profiles only. user_metadata is editable by the user, so
+      // trusting it here would let anyone reset (and read) an admin's password.
+      const auth = await requireAuth({ roles: ['super_admin'] })
+      if (!auth.ok) {
+        return auth.response.status === 403
+          ? NextResponse.json({ error: 'Forbidden. Only Super Admin can reset user passwords.' }, { status: 403 })
+          : auth.response
       }
 
-      actorId = user.id
-      actorRole = user.user_metadata?.role || 'assistant'
-
-      if (actorRole !== 'super_admin') {
-        return NextResponse.json({ error: 'Forbidden. Only Super Admin can reset user passwords.' }, { status: 403 })
-      }
+      actorId = auth.ctx.userId
+      actorRole = auth.ctx.role
     }
 
     // Generate new compliant temporary password using standard password-policy module

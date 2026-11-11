@@ -5,6 +5,8 @@ import { store } from '@/utils/supabase/mockClient'
 import { generateDTCEConventionDocx } from '@/utils/docxGenerator'
 import fs from 'fs'
 import path from 'path'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
+import { getCurrentEvent, getEventDays } from '@/lib/events/current-event'
 
 export async function GET(request: Request) {
   try {
@@ -37,39 +39,37 @@ export async function GET(request: Request) {
       eventDaysList = (store as any).eventDays || []
       preEventTotalsList = (store as any).registrationPreEventTotals || []
     } else {
-      // Live Supabase Mode
+      // Live Supabase Mode — role comes from profiles, never user_metadata
+      const auth = await requireAuth({ roles: ADMIN_ROLES })
+      if (!auth.ok) return auth.response
       const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        return new Response('Unauthorized', { status: 401 })
+
+      userId = auth.ctx.userId
+      userRole = 'super_admin' // passed the admin check above
+
+      // Which event: ?eventId=... for a past event, otherwise the current one
+      const requestedEventId = searchParams.get('eventId')
+      const target = requestedEventId
+        ? (await supabase.from('events').select('*').eq('id', requestedEventId).maybeSingle()).data
+        : await getCurrentEvent(supabase)
+      if (!target) {
+        return NextResponse.json({ error: 'Event not found.' }, { status: 404 })
       }
-
-      userId = user.id
-      userRole = user.user_metadata?.role || 'assistant'
-
-      // Check authorization (Only Secretariat/super_admin/coordinator)
-      if (userRole !== 'super_admin' && userRole !== 'coordinator') {
-        return new Response('Forbidden - Admins or Secretariat only', { status: 403 })
-      }
-
-      // Fetch dynamic datasets
-      const { data: events } = await supabase.from('events').select('*')
-      if (events && events.length > 0) event = events[0]
+      event = target
 
       const { data: depts } = await supabase.from('departments').select('*')
       deptsList = depts || []
 
-      const { data: reps } = await supabase.from('daily_reports').select('*')
+      const { data: reps } = await supabase.from('daily_reports').select('*').eq('event_id', event.id)
       repsList = reps || []
 
       const { data: narrs } = await supabase.from('department_narratives').select('*')
-      narrsList = narrs || []
-      
-      const { data: eventDays } = await supabase.from('event_days').select('*')
-      eventDaysList = eventDays || []
-      
+      narrsList = (narrs || []).filter((n: any) => !n.event_id || n.event_id === event.id)
+
+      eventDaysList = await getEventDays(supabase, event.id)
+
       try {
-        const { data: preEventTotals } = await supabase.from('registration_pre_event_totals').select('*')
+        const { data: preEventTotals } = await supabase.from('registration_pre_event_totals').select('*').eq('event_id', event.id)
         preEventTotalsList = preEventTotals || []
       } catch (e) {
         // Graceful fallback if table doesn't exist

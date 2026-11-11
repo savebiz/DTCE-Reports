@@ -15,6 +15,7 @@ import { CurrencyField } from '@/components/ui/currency-field'
 import { ClipboardList, Wifi, WifiOff, Clock, Globe } from 'lucide-react'
 import { useOfflineDraft } from '@/hooks/use-offline-draft'
 import { PreEventRegistrationTotalsModal } from '@/components/registration/pre-event-totals-modal'
+import { getCurrentEventId, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
 
 // Departments without workforce attendance breakdown
 const DEPTS_WITHOUT_ATTENDANCE = ['dept-6', 'dept-9', 'dept-13', 'dept-19', 'dept-20', 'dept-25', 'dept-26', 'dept-29', 'dept-30', 'dept-39']
@@ -113,13 +114,11 @@ function DailyLogContent() {
       }
     }
 
+    const currentEventId = await getCurrentEventId(supabase)
+
     if (activeProfile) {
       if (!activeProfile.department_id && !isMock) {
-        const { data: assignment } = await supabase
-          .from('hod_assignments')
-          .select('department_id')
-          .eq('profile_id', activeProfile.id)
-          .maybeSingle()
+        const assignment = await getDepartmentAssignment(supabase, activeProfile.id, currentEventId)
         if (assignment) {
           activeProfile.department_id = assignment.department_id
         }
@@ -523,16 +522,12 @@ function DailyLogContent() {
         setDepartment(activeDept)
       }
 
-      // Fetch Event Days
-      let days = []
+      // Fetch days of the current event only
+      let days: any[] = []
       if (isMock) {
         days = [...mockEventDays]
       } else {
-        const { data: daysDb } = await supabase
-          .from('event_days')
-          .select('*')
-          .order('day_number', { ascending: true })
-        days = daysDb || []
+        days = await getEventDays(supabase, currentEventId)
       }
       setEventDays(days)
 

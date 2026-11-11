@@ -1,8 +1,13 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { notify, NotifyParams } from '@/lib/notifications/dispatch'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
 
 export async function POST(request: NextRequest) {
   try {
+    /* guard:POST */
+    const guard = await requireAuth({ roles: ADMIN_ROLES })
+    if (!guard.ok) return guard.response
+
     const body = await request.json()
     const params = body as NotifyParams
 

@@ -13,6 +13,7 @@ import { NumberField } from '@/components/ui/number-field'
 import { Label } from '@/components/ui/label'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { Truck, RefreshCw } from 'lucide-react'
+import { getCurrentEvent, getDepartmentAssignment } from '@/lib/events/current-event'
 
 interface RequestItem {
   inventory_item_id?: string | null
@@ -75,13 +76,14 @@ function StoreRequestContent() {
       }
     }
     
+    const currentEvent = await getCurrentEvent(supabase)
+    if (currentEvent) {
+      setActiveEvent(currentEvent)
+    }
+
     // Fallback assignment lookup if department_id is missing
     if (!activeProfile.department_id && !isMock) {
-      const { data: assignment } = await supabase
-        .from('hod_assignments')
-        .select('department_id')
-        .eq('profile_id', activeProfile.id)
-        .maybeSingle()
+      const assignment = await getDepartmentAssignment(supabase, activeProfile.id, currentEvent?.id)
       if (assignment) {
         activeProfile.department_id = assignment.department_id
       }
@@ -111,15 +113,9 @@ function StoreRequestContent() {
       setCatalogItems(mockInventoryItems)
     }
 
-    // Fetch active event
-    const { data: events } = await supabase.from('events').select('*')
-    if (events && events.length > 0) {
-      setActiveEvent(events[0])
-    }
-
-    // Fetch requests
+    // Fetch this person's requests for the current event
     if (!isMock) {
-      const { data: reqsData } = await supabase
+      let reqsQuery = supabase
         .from('store_requests')
         .select(`
           id,
@@ -131,7 +127,8 @@ function StoreRequestContent() {
           assigned_approver_id
         `)
         .eq('requester_profile_id', activeProfile.id)
-        .order('created_at', { ascending: false })
+      if (currentEvent?.id) reqsQuery = reqsQuery.eq('event_id', currentEvent.id)
+      const { data: reqsData } = await reqsQuery.order('created_at', { ascending: false })
 
       // Fetch dynamic delegated approver names
       if (reqsData) {

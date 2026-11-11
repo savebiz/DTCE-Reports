@@ -280,13 +280,19 @@ export default function DurableReturnsTrackerPage() {
       const res = await fetch('/api/events/close', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId: 'event-active-1' })
+        // No eventId: the server uses the current event
+        body: JSON.stringify({})
       })
 
       const data = await res.json()
       if (data.error) throw new Error(data.error)
 
-      showToast(`Event closed! Sent return reminders to ${data.notifiedDepartmentsCount} holding departments.`, 'success')
+      showToast(
+        data.eventClosed
+          ? `Event closed! Sent return reminders to ${data.notifiedDepartmentsCount} holding departments.`
+          : `Sent return reminders to ${data.notifiedDepartmentsCount} holding departments.`,
+        'success'
+      )
       setIsCloseEventOpen(false)
     } catch (err: any) {
       showToast(`Event close trigger failed: ${err.message}`, 'error')

@@ -6,6 +6,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { PreEventRegistrationTotalsModal } from './pre-event-totals-modal'
 import { Globe, Users, TrendingUp, Banknote, Edit3, Percent, CheckCircle2 } from 'lucide-react'
+import { getCurrentEventId } from '@/lib/events/current-event'
+import { preEventTotalsFromDepartmentSchema } from '@/lib/events/pre-event-totals'
 
 interface CategoryStat {
   key: string
@@ -77,13 +79,15 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
 
         const regDept = (depts || []).find((d: any) => d.name && d.name.toLowerCase().includes('registration'))
 
-        if (regDept?.default_metrics_schema?.pre_event_online_totals) {
-          preTotalsMap = { ...preTotalsMap, ...regDept.default_metrics_schema.pre_event_online_totals }
+        const currentEventId = await getCurrentEventId(supabase)
+        const activeEvent = currentEventId ? { id: currentEventId } : null
+
+        const mirrored = preEventTotalsFromDepartmentSchema(regDept?.default_metrics_schema, currentEventId)
+        if (mirrored) {
+          preTotalsMap = { ...preTotalsMap, ...mirrored }
         }
 
-        // 2. Also query registration_pre_event_totals table for active event if available
-        const { data: activeEvent } = await supabase.from('events').select('id').order('created_at', { ascending: false }).limit(1).maybeSingle()
-
+        // 2. Also query registration_pre_event_totals table for the current event
         if (activeEvent) {
           try {
             const { data: preData } = await supabase
@@ -104,11 +108,13 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
         }
 
         if (regDept) {
-          const { data: repData } = await supabase
+          let repQuery = supabase
             .from('daily_reports')
             .select('id, event_day_id, metrics_data, event_days(day_number)')
             .eq('department_id', regDept.id)
             .in('status', ['submitted', 'reviewed', 'approved'])
+          if (currentEventId) repQuery = repQuery.eq('event_id', currentEventId)
+          const { data: repData } = await repQuery
 
           if (repData) dailyReports = repData
         }

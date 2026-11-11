@@ -72,7 +72,8 @@ export async function updateSession(request: NextRequest) {
       return { supabaseResponse, user: null, role: null, mustChangePassword: false }
     }
 
-    role = profile?.role || user.user_metadata?.role || 'assistant'
+    // Never route on user_metadata.role — users can edit their own metadata.
+    role = profile?.role || 'assistant'
     mustChangePassword = !!profile?.must_change_password
   }
 

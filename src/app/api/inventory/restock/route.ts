@@ -2,12 +2,17 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
+import { requireInventoryManager } from '@/lib/auth/api-guard'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 
 export async function POST(request: Request) {
   try {
+    /* guard:POST */
+    const guard = await requireInventoryManager()
+    if (!guard.ok) return guard.response
+
     const cookieStore = await cookies()
     const { inventoryItemId, restockQuantity, note } = await request.json()
 

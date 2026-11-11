@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock, mockDepartments } from '@/utils/supabase'
 import { store } from '@/utils/supabase/mockClient'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
 
 export const runtime = 'nodejs'
 
@@ -40,7 +41,7 @@ export async function GET() {
     }
 
     // 2. Verify caller is super_admin, coordinator, or national_coordinator
-    const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceRoleKey = getServiceRoleKey()
     const supabaseAdmin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       serviceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -52,7 +53,7 @@ export async function GET() {
       .eq('id', user.id)
       .single()
 
-    const callerRole = callerProfile?.role || user.user_metadata?.role
+    const callerRole = callerProfile?.role
     if (callerRole !== 'super_admin' && callerRole !== 'coordinator' && callerRole !== 'national_coordinator') {
       return NextResponse.json({ error: 'Forbidden: Only Super Admins can access feedback analytics.' }, { status: 403 })
     }

@@ -1,70 +1,33 @@
 import { NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+import { requireAuth } from '@/lib/auth/api-guard'
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies()
     const { targetUserId, currentStatus } = await request.json()
 
     if (!targetUserId) {
       return NextResponse.json({ error: 'targetUserId parameter is required' }, { status: 400 })
     }
 
-    // 1. Authenticate Requesting User
-    const supabaseUserClient = createServerClient(
-      supabaseUrl,
-      anonKey,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll() {},
-        },
-      }
-    )
-
-    const { data: { user } } = await supabaseUserClient.auth.getUser()
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized: Session missing or expired' }, { status: 401 })
-    }
-
-    // Fetch requester profile
-    const { data: requesterProfile } = await supabaseUserClient
-      .from('profiles')
-      .select('id, role, department_id')
-      .eq('id', user.id)
-      .maybeSingle()
-
-    let activeRole = requesterProfile?.role || (user.user_metadata as any)?.role || 'hod'
-    let activeDeptId = requesterProfile?.department_id || (user.user_metadata as any)?.department_id
-
-    // Fallback lookup from hod_assignments if department_id is missing on profile
-    if (!activeDeptId && activeRole === 'hod') {
-      const { data: assignment } = await supabaseUserClient
-        .from('hod_assignments')
-        .select('department_id')
-        .eq('profile_id', user.id)
-        .maybeSingle()
-      if (assignment?.department_id) {
-        activeDeptId = assignment.department_id
-      }
-    }
-
-    const isAdmin = ['super_admin', 'coordinator', 'national_coordinator'].includes(activeRole)
-    const isHOD = activeRole === 'hod'
-
-    if (!isAdmin && !isHOD) {
-      return NextResponse.json({ error: 'Forbidden: Insufficient permissions to modify account status' }, { status: 403 })
-    }
+    // 1. Authenticate — role from profiles only (never user_metadata)
+    const auth = await requireAuth({ roles: ['super_admin', 'coordinator', 'national_coordinator', 'hod'] })
+    if (!auth.ok) return auth.response
+    const user = { id: auth.ctx.userId }
+    const isHOD = auth.ctx.role === 'hod'
 
     // 2. Admin Service Role Client for Elevated Updates
     const supabaseAdmin = getAdminClient()
+
+    // The HOD's department(s), across events
+    let hodDeptIds: string[] = []
+    if (isHOD) {
+      const { data: myAssigns } = await supabaseAdmin
+        .from('hod_assignments')
+        .select('department_id')
+        .eq('profile_id', user.id)
+      hodDeptIds = (myAssigns || []).map((a: any) => a.department_id)
+    }
 
     // Fetch target user profile
     const { data: targetProfile, error: fetchErr } = await supabaseAdmin
@@ -79,7 +42,14 @@ export async function POST(request: Request) {
 
     // Scope Check: If HOD, target profile must belong to HOD's department or created_by HOD
     if (isHOD) {
-      const sameDept = activeDeptId && targetProfile.department_id === activeDeptId
+      if (targetProfile.role !== 'assistant') {
+        return NextResponse.json({ error: 'Forbidden: HODs can only change assistant accounts.' }, { status: 403 })
+      }
+      const { data: targetAssigns } = await supabaseAdmin
+        .from('hod_assignments')
+        .select('department_id')
+        .eq('profile_id', targetUserId)
+      const sameDept = (targetAssigns || []).some((a: any) => hodDeptIds.includes(a.department_id))
       const isCreator = targetProfile.created_by === user.id
 
       if (!sameDept && !isCreator) {

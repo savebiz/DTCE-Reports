@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 import { notify, checkAndDispatchLowStockAlert, getDepartmentRecipientIds, getStoresRecipientIds } from '@/lib/notifications/dispatch'
+import { getServiceRoleKey } from '@/utils/supabase/admin'
+import { requireAuth } from '@/lib/auth/api-guard'
 
 export const runtime = 'nodejs'
 
@@ -32,7 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'requestId and status are required' }, { status: 400 })
     }
 
-    const serviceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+    const serviceRoleKey = getServiceRoleKey()
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 
     if (!serviceRoleKey || !supabaseUrl) {
@@ -52,19 +54,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Store request not found.' }, { status: 404 })
     }
 
-    // Fetch calling user's profile for RBAC check
-    const { data: userProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('role, department_id')
-      .eq('id', user.id)
-      .maybeSingle()
+    // RBAC — role from profiles only (never user_metadata)
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userRole = auth.ctx.role
+    const isAssignedApprover = existingReq.assigned_approver_id === user.id
 
-    const userRole = userProfile?.role || user.user_metadata?.role || 'hod'
+    const APPROVAL_STATUSES = ['pending_coordinator', 'approved', 'declined']
+    const FULFILMENT_STATUSES = ['in_progress', 'partially_fulfilled', 'ready_for_collection', 'delivered']
 
-    // RBAC Enforcement for Coordinator role:
-    // Coordinators can ONLY update store requests if the request has been explicitly assigned to them by National Coordinator
-    if (userRole === 'coordinator' && existingReq.assigned_approver_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden: Coordinators can only update store requisitions explicitly assigned to them.' }, { status: 403 })
+    if (APPROVAL_STATUSES.includes(status)) {
+      // Approve / decline: Super Admin, National Coordinator, or the delegated approver.
+      // Coordinators can ONLY act on requests explicitly assigned to them.
+      const canApprove = userRole === 'super_admin' || userRole === 'national_coordinator' || isAssignedApprover
+      if (!canApprove) {
+        return NextResponse.json({ error: 'Forbidden: only the National Coordinator, a Super Admin or the delegated approver can approve or decline requisitions.' }, { status: 403 })
+      }
+    } else if (FULFILMENT_STATUSES.includes(status)) {
+      // Fulfilment: Stores staff, Super Admin or National Coordinator
+      const canFulfil = userRole === 'super_admin' || userRole === 'national_coordinator' || auth.ctx.isStoresStaff
+      if (!canFulfil) {
+        return NextResponse.json({ error: 'Forbidden: only Stores can update fulfilment status.' }, { status: 403 })
+      }
+    } else {
+      return NextResponse.json({ error: `Unknown status "${status}".` }, { status: 400 })
     }
     const updatePayload: Record<string, any> = {
       status

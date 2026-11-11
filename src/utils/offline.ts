@@ -122,6 +122,8 @@ export async function syncQueuedSubmissions(supabaseClient: any): Promise<{ sync
         .from('department_narratives')
         .insert({
           daily_report_id: dailyReportId,
+          event_id: report.event_id,
+          department_id: report.department_id,
           key_achievements: report.narrative.key_achievements,
           challenges: report.narrative.challenges,
           solutions: report.narrative.solutions,
