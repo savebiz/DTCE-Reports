@@ -3,17 +3,19 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getClient, isMock, mockDepartments } from '@/utils/supabase'
-import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit, Layers, Award, MessageSquare } from 'lucide-react'
+import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit, Layers, Award, MessageSquare, ClipboardList } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
 import { EndofConventionFeedbackModal } from '@/components/EndofConventionFeedbackModal'
 import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
+import { isGeneralSecretary } from '@/lib/auth/titles'
 
 const NAV_ITEMS = [
   { label: 'Overview',            href: '/dashboard',                     icon: LayoutGrid },
   { label: 'YoY Analytics',       href: '/dashboard/yoy',                 icon: BarChart2  },
   { label: 'Requisitions',        href: '/dashboard/store-requisitions',  icon: ShoppingCart },
+  { label: 'Market List',         href: '/dashboard/market-list',         icon: ClipboardList },
   { label: 'Inventory Oversight', href: '/dashboard?tab=inventory-oversight', icon: Layers },
   { label: 'Dept Rankings',       href: '/dashboard?tab=rankings',        icon: Award },
   { label: 'Manual Entry',        href: '/dashboard/manual-entry',        icon: FileEdit   },
@@ -30,6 +32,7 @@ const DEPT_NAV_ITEMS = [
   { label: 'Inventory Catalog',    href: '/my-department/inventory',        icon: Boxes      },
   { label: 'Store Requests',       href: '/my-department/store-request',    icon: ShoppingCart },
   { label: 'Fulfillment Console',  href: '/my-department/store-fulfillment',icon: ShoppingCart },
+  { label: 'Market List',          href: '/my-department/market-list',      icon: ClipboardList },
   { label: 'Event Narrative',      href: '/my-department/narrative',        icon: FileText   },
   { label: 'Manage Team',          href: '/my-department/team',             icon: Users      },
   { label: 'Settings',             href: '/dashboard/settings',             icon: Settings   },
@@ -132,7 +135,7 @@ export function DashboardHeader() {
         let deptId = deptIdParam
         if (userRole === 'super_admin' || userRole === 'coordinator' || userRole === 'national_coordinator') {
           if (!deptIdParam) {
-            setActiveDeptName(userRole === 'national_coordinator' ? "National Coordinator's Office" : 'Secretariat')
+            setActiveDeptName(userRole === 'national_coordinator' ? (isGeneralSecretary(activeProfile) ? "General Secretary's Office" : "National Coordinator's Office") : 'Secretariat')
             return
           }
         } else {
@@ -167,7 +170,7 @@ export function DashboardHeader() {
           }
         } else {
           if (userRole === 'national_coordinator' || (userRole === 'assistant' && !deptId)) {
-            setActiveDeptName("National Coordinator's Office")
+            setActiveDeptName(userRole === 'national_coordinator' && isGeneralSecretary(activeProfile) ? "General Secretary's Office" : "National Coordinator's Office")
           } else {
             setActiveDeptName(userRole === 'super_admin' || userRole === 'coordinator' ? 'Secretariat' : 'Department')
           }
@@ -327,7 +330,7 @@ export function DashboardHeader() {
 
             {/* Role badge (Desktop) */}
             <span className={`hidden lg:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize tracking-wide ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
-              {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (ROLE_LABELS[role] || role)}
+              {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (role === 'national_coordinator' && isGeneralSecretary(profile) ? 'Gen. Secretary' : (ROLE_LABELS[role] || role))}
             </span>
 
             {/* User avatar (Desktop) */}
@@ -504,7 +507,7 @@ export function DashboardHeader() {
               {/* Role Badge in Drawer */}
               <div className="px-1">
                 <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
-                  {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (ROLE_LABELS[role] || role)}
+                  {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (role === 'national_coordinator' && isGeneralSecretary(profile) ? 'Gen. Secretary' : (ROLE_LABELS[role] || role))}
                 </span>
               </div>
 
@@ -543,7 +546,7 @@ export function DashboardHeader() {
                     const isStoresDept = activeDeptName.toLowerCase().includes('store')
                     const isSecretariatDept = activeDeptName.toLowerCase().includes('secretariat')
                     // Hide fulfillment console and inventory catalog for non-stores departments
-                    if (label === 'Fulfillment Console' && !isStoresDept) return null;
+                    if ((label === 'Fulfillment Console' || label === 'Market List') && !isStoresDept) return null;
                     if (label === 'Inventory Catalog' && !isStoresDept) return null;
                     if (label === 'Manual Paper Entry' && !isSecretariatDept) return null;
                     const active = pathname === href || (href !== '/my-department' && pathname?.startsWith(href))

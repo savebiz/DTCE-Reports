@@ -51,6 +51,11 @@ export default function SecretariatTeamManagement() {
   const [collisions, setCollisions] = useState<string[]>([])
 
   const [dbDepartments, setDbDepartments] = useState<Department[]>([])
+  // Department choices: the live departments (current names, real IDs) when
+  // connected; the built-in list only in local mock mode.
+  const deptOptions: { id: string; name: string }[] = !isMock && dbDepartments.length
+    ? [...dbDepartments].sort((a, b) => a.name.localeCompare(b.name))
+    : mockDepartments
   const [hodAssignMap, setHodAssignMap] = useState<Record<string, string>>({})
   const [resetModalTarget, setResetModalTarget] = useState<Profile | null>(null)
   const [resettingPassword, setResettingPassword] = useState(false)
@@ -104,6 +109,10 @@ export default function SecretariatTeamManagement() {
     const { data: realDepts } = await supabase.from('departments').select('*')
     const fetchedDepts = realDepts || []
     setDbDepartments(fetchedDepts)
+    if (!isMock && fetchedDepts.length) {
+      const first = [...fetchedDepts].sort((a: Department, b: Department) => a.name.localeCompare(b.name))[0]
+      setSingleDeptId(prev => (!prev || prev.startsWith('dept-') ? first.id : prev))
+    }
 
     // Fetch hod_assignments table to map users whose department_id is on hod_assignments
     // One row per person per event: prefer the current event's department.
@@ -156,8 +165,8 @@ export default function SecretariatTeamManagement() {
       setSingleDeptId('')
       setSingleUsernameInput(normalized)
     } else {
-      if (!singleDeptId) setSingleDeptId('dept-1')
-      const dept = mockDepartments.find(d => d.id === (singleDeptId || 'dept-1'))
+      if (!singleDeptId) setSingleDeptId(deptOptions[0]?.id || 'dept-1')
+      const dept = deptOptions.find(d => d.id === singleDeptId)
       const deptSlug = dept ? dept.name.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '') : 'dept'
       setSingleUsernameInput(`${normalized}.${deptSlug}`)
     }
@@ -696,7 +705,7 @@ export default function SecretariatTeamManagement() {
                         outline: 'none',
                       }}
                     >
-                      {mockDepartments.map(d => (
+                      {deptOptions.map(d => (
                         <option key={d.id} value={d.id} style={{ background: '#111827' }}>{d.name}</option>
                       ))}
                     </select>

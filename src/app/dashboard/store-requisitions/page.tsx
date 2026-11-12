@@ -45,6 +45,7 @@ interface StoreRequestTicket {
   reviewer_comments?: string
   reviewed_at?: string
   created_at: string
+  request_type?: 'pre_event' | 'during_event'
   requester_profile_id: string
   department_id: string
   assigned_approver_id?: string
@@ -558,7 +559,9 @@ function AdminRequisitionsContent() {
 
                   {/* Requisition Items */}
                   <div className="p-3 bg-background/50 border border-border rounded-lg space-y-2">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">Requisition Items:</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">
+                      {req.request_type === 'pre_event' ? 'Needs list (before the event):' : 'Requisition Items:'}
+                    </span>
                     <div className="space-y-1.5 text-xs">
                       {req.items_json.map((it: any, itIdx: number) => {
                         const reqQty = it.requested_quantity ?? it.quantity
