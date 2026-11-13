@@ -39,9 +39,9 @@ const CAPABILITIES = [
   },
   {
     icon: FileText,
-    title: 'Executive Board Compilation',
+    title: 'End-of-Event Summaries',
     description:
-      'Aggregate departmental narratives, year-over-year comparisons, and logistics audits into polished Word (.docx) executive packs.',
+      'Capture departmental highlights, key learnings, and actionable recommendations after each event.',
     accent: 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20',
   },
 ] as const
@@ -59,8 +59,8 @@ const LIFECYCLE_STEPS = [
   },
   {
     step: 'Post-Event',
-    title: 'Narratives & Board Pack',
-    detail: 'Verify durable equipment returns, finalize departmental summaries, and export the executive report.',
+    title: 'End-of-Event Wrap-Up',
+    detail: 'Verify durable equipment returns and finalize your department’s post-event summary.',
   },
 ] as const
 
@@ -141,8 +141,8 @@ export default function RootLandingPage() {
               </h1>
 
               <p className="max-w-xl text-sm sm:text-base text-muted-foreground leading-relaxed">
-                Coordinate daily departmental reporting, two-stage market &amp; central stores
-                requisitions, and executive DOCX board packs across 43+ operational teams.
+                Coordinate daily departmental reporting, supply requests, and end-of-event summaries
+                across 43+ operational teams.
               </p>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
@@ -217,10 +217,10 @@ export default function RootLandingPage() {
                   </div>
                   <div className="rounded-xl border border-border/70 bg-muted/40 p-3">
                     <span className="text-[11px] text-muted-foreground block">
-                      Board Export
+                      Sync Mode
                     </span>
                     <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                      DOCX
+                      Offline
                     </span>
                   </div>
                 </div>
