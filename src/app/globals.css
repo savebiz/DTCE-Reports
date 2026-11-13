@@ -147,13 +147,13 @@
   --secondary:             #F59E0B;
   --secondary-foreground:  #ffffff;
   --muted:                 #1E2D45;
-  --muted-foreground:      #64748B;
+  --muted-foreground:      #94A3B8;
   --accent:                #1E2D45;
   --accent-foreground:     #F1F5F9;
   --destructive:           #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border:                rgba(255, 255, 255, 0.08);
-  --input:                 rgba(255, 255, 255, 0.08);
+  --border:                rgba(255, 255, 255, 0.11);
+  --input:                 rgba(255, 255, 255, 0.14);
   --ring:                  #3B82F6;
   --chart-1:               #3B82F6;
   --chart-2:               #F59E0B;
@@ -470,7 +470,7 @@
     background-size: 20px 20px;
   }
   .dark .bg-dot-matrix {
-    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 

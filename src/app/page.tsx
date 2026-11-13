@@ -74,10 +74,18 @@ export default function RootLandingPage() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[520px]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[520px] dark:hidden"
         style={{
           background:
             'radial-gradient(ellipse 65% 50% at 20% -10%, rgba(15, 42, 74, 0.09), transparent 70%), radial-gradient(ellipse 50% 40% at 85% 5%, rgba(245, 158, 11, 0.09), transparent 65%)',
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 hidden h-[520px] dark:block"
+        style={{
+          background:
+            'radial-gradient(ellipse 65% 50% at 20% -10%, rgba(59, 130, 246, 0.11), transparent 70%), radial-gradient(ellipse 50% 40% at 85% 5%, rgba(245, 158, 11, 0.08), transparent 65%)',
         }}
       />
 

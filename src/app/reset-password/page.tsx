@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getClient, isMock, Profile } from '@/utils/supabase'
 import { validatePassword } from '@/lib/password-policy'
 import { showToast } from '@/components/ui/toast'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import Link from 'next/link'
 
 export default function ResetPasswordPage() {
@@ -148,39 +149,46 @@ export default function ResetPasswordPage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center font-sans" style={{ background: '#06090F' }}>
-        <p className="text-sm font-mono animate-pulse text-slate-500">Checking credentials...</p>
+      <div className="min-h-screen flex items-center justify-center font-sans bg-background text-foreground">
+        <p className="text-sm font-mono animate-pulse text-muted-foreground">Checking credentials...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 font-sans bg-mesh" style={{ background: '#06090F' }}>
-      <div className="w-full max-w-md space-y-6 animate-fade-in-up">
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-4 font-sans bg-background text-foreground overflow-x-hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 bg-dot-matrix [mask-image:radial-gradient(ellipse_75%_65%_at_50%_40%,#000_35%,transparent_100%)]"
+      />
+      <div className="fixed top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
+      <div className="relative z-10 w-full max-w-md space-y-6 animate-fade-in-up">
         
         {/* Header Block */}
         <div className="text-center space-y-2">
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
-            <span className="text-amber-400 text-lg">🔒</span>
+          <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/12 border border-amber-500/25">
+            <span className="text-amber-600 dark:text-amber-400 text-lg">🔒</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Secure Your Account</h1>
-          <p className="text-[13px] text-slate-500 max-w-xs mx-auto">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Secure Your Account</h1>
+          <p className="text-[13px] text-muted-foreground max-w-xs mx-auto">
             This is your first login with an admin-provisioned credential. You must set a personalized password to continue.
           </p>
         </div>
 
         {/* Card Wrapper */}
         <div className="glass-card p-6 space-y-5">
-          <div className="flex flex-col gap-0.5 border-b pb-4" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">First-Time Setup</span>
-            <span className="text-[13px] text-slate-300 font-medium">Logged in as: <span className="text-white font-bold">{profile.full_name}</span> ({profile.username})</span>
+          <div className="flex flex-col gap-0.5 border-b border-border pb-4">
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">First-Time Setup</span>
+            <span className="text-[13px] text-foreground/80 font-medium">Logged in as: <span className="text-foreground font-bold">{profile.full_name}</span> ({profile.username})</span>
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             
             {/* New Password input */}
             <div className="space-y-1.5">
-              <label htmlFor="new-password" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              <label htmlFor="new-password" className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                 New Password
               </label>
               <input
@@ -191,13 +199,13 @@ export default function ResetPasswordPage() {
                 onChange={(e) => handlePasswordChange(e.target.value)}
                 required
                 disabled={loading}
-                className="input-dark"
+                className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-ring transition-colors"
               />
               
               {/* Password strength checklist */}
               {hasTyped && (
-                <div className="rounded-xl p-3.5 space-y-2 mt-2 text-[12px]" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  <p className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase">Strength Requirements</p>
+                <div className="rounded-xl p-3.5 space-y-2 mt-2 text-[12px] bg-muted/50 border border-border">
+                  <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">Strength Requirements</p>
                   
                   <ul className="space-y-1.5 font-mono text-[11px]">
                     {[
@@ -209,10 +217,10 @@ export default function ResetPasswordPage() {
                       { label: 'Does not contain username', ok: !newPassword.toLowerCase().includes((profile.username || '').toLowerCase()) }
                     ].map((rule, idx) => (
                       <li key={idx} className="flex items-center gap-2">
-                        <span className="text-[12px] font-bold" style={{ color: rule.ok ? '#10B981' : '#EF4444' }}>
+                        <span className={`text-[12px] font-bold ${rule.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                           {rule.ok ? '✓' : '✗'}
                         </span>
-                        <span style={{ color: rule.ok ? '#94A3B8' : '#FCA5A5' }}>
+                        <span className={rule.ok ? 'text-muted-foreground' : 'text-red-700 dark:text-red-300'}>
                           {rule.label}
                         </span>
                       </li>
@@ -224,7 +232,7 @@ export default function ResetPasswordPage() {
 
             {/* Confirm Password input */}
             <div className="space-y-1.5">
-              <label htmlFor="confirm-password" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              <label htmlFor="confirm-password" className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Confirm Password
               </label>
               <input
@@ -235,16 +243,16 @@ export default function ResetPasswordPage() {
                 onChange={(e) => handleConfirmPasswordChange(e.target.value)}
                 required
                 disabled={loading}
-                className="input-dark"
+                className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-ring transition-colors"
               />
               {confirmError && (
-                <p className="text-[11px] text-red-400 font-medium mt-1">⚠️ {confirmError}</p>
+                <p className="text-[11px] text-red-600 dark:text-red-400 font-medium mt-1">⚠️ {confirmError}</p>
               )}
             </div>
 
             {/* Form-level errors */}
             {submitError && (
-              <div className="rounded-xl p-3 text-[12px]" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' }}>
+              <div className="rounded-xl p-3 text-[12px] bg-red-500/10 border border-red-500/25 text-red-700 dark:text-red-300">
                 ⚠️ {submitError}
               </div>
             )}
@@ -253,13 +261,7 @@ export default function ResetPasswordPage() {
             <button
               type="submit"
               disabled={loading || !validation.valid || !!confirmError}
-              className="w-full rounded-xl py-3 text-[13px] font-bold text-white transition-all duration-200 mt-2"
-              style={{
-                background: (loading || !validation.valid || !!confirmError) ? 'rgba(30,64,175,0.4)' : 'linear-gradient(135deg, #1E40AF, #3B82F6)',
-                border: '1px solid rgba(59,130,246,0.3)',
-                color: (loading || !validation.valid || !!confirmError) ? '#94A3B8' : 'white',
-                cursor: (loading || !validation.valid || !!confirmError) ? 'not-allowed' : 'pointer'
-              }}
+              className="w-full rounded-xl py-3 text-[13px] font-bold bg-[#0F2A4A] hover:bg-[#163861] text-white dark:bg-amber-500 dark:hover:bg-amber-400 dark:text-[#06090F] shadow-sm transition-all duration-200 mt-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Updating Password...' : '➔ Save Password & Continue'}
             </button>

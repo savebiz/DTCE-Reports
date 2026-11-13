@@ -8,7 +8,10 @@ import { OfflineSyncIndicator } from "@/components/offline-sync-indicator";
 import { InAppNotificationToast } from "@/components/in-app-notification-toast";
 
 export const viewport: Viewport = {
-  themeColor: "#0F2A4A",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FAF9F6" },
+    { media: "(prefers-color-scheme: dark)", color: "#06090F" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

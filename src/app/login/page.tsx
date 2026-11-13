@@ -296,6 +296,22 @@ export default function LoginPage() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-dot-matrix [mask-image:radial-gradient(ellipse_75%_65%_at_50%_40%,#000_35%,transparent_100%)]"
         />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[420px] dark:hidden"
+          style={{
+            background:
+              'radial-gradient(ellipse 60% 45% at 50% 0%, rgba(15, 42, 74, 0.06), transparent 70%), radial-gradient(ellipse 40% 35% at 85% 15%, rgba(245, 158, 11, 0.06), transparent 65%)',
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 hidden h-[420px] dark:block"
+          style={{
+            background:
+              'radial-gradient(ellipse 60% 45% at 50% 0%, rgba(59, 130, 246, 0.10), transparent 70%), radial-gradient(ellipse 40% 35% at 85% 15%, rgba(245, 158, 11, 0.07), transparent 65%)',
+          }}
+        />
         {/* Mobile & Tablet header bar */}
         <div className="relative z-10 flex lg:hidden items-center justify-between gap-2 px-4 sm:px-6 py-3.5 border-b border-border bg-background/90 backdrop-blur-md">
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
