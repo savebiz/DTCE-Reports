@@ -164,6 +164,33 @@ function DailyLogContent() {
 
       if (activeDept) {
         const nameLower = activeDept.name.toLowerCase()
+        if (nameLower.includes('ushering') && Array.isArray(activeDept.default_metrics_schema?.fields)) {
+          activeDept.default_metrics_schema = {
+            ...activeDept.default_metrics_schema,
+            fields: activeDept.default_metrics_schema.fields.map((f: any) =>
+              f.type === 'repeat-group' && f.name !== 'teachers_meeting' && !f.presets
+                ? {
+                    ...f,
+                    presets: [
+                      {
+                        label: 'Insert Standard Sessions',
+                        rows: ['Morning Plenary', 'Bible Study', 'Seminar', 'Evening Revival'].map((event) => ({
+                          event,
+                          preacher_or_invited_guest: '',
+                          title_and_bible_text: '',
+                          male: 0,
+                          female: 0,
+                          teachers_male: 0,
+                          teachers_female: 0,
+                          offering: 0,
+                        })),
+                      },
+                    ],
+                  }
+                : f
+            ),
+          }
+        }
         if (nameLower.includes('bible study') || nameLower.includes('holy land')) {
           // Fetch tribes from database
           let tribesList: string[] = []
@@ -181,6 +208,18 @@ function DailyLogContent() {
                 name: 'tribes_attendance',
                 label: 'Tribal & Mode Attendance Statistics',
                 type: 'repeat-group',
+                presets: [
+                  {
+                    label: 'Pre-fill 12 Tribes',
+                    rows: tribesList.map((tribe) => ({
+                      tribe,
+                      teachers_male: 0,
+                      teachers_female: 0,
+                      teenagers_male: 0,
+                      teenagers_female: 0,
+                    })),
+                  },
+                ],
                 schema: [
                   { name: 'tribe', label: 'Tribe / Category', type: 'select', options: tribesList },
                   { name: 'teachers_male', label: 'Teachers (Male)', type: 'number' },
@@ -198,6 +237,15 @@ function DailyLogContent() {
                 name: 'online_manual_pickups',
                 label: 'SECTION A — Online Manual Pickup (Today)',
                 type: 'repeat-group',
+                presets: [
+                  {
+                    label: 'Pre-fill 4 Categories',
+                    rows: ['Teachers', 'Teens', 'Pre-teens', 'Children'].map((category) => ({
+                      category,
+                      count_picked_up_today: 0,
+                    })),
+                  },
+                ],
                 schema: [
                   { name: 'category', label: 'Category', type: 'select', options: ['Teachers', 'Teens', 'Pre-teens', 'Children'], required: true },
                   { name: 'count_picked_up_today', label: 'Manuals Picked Up Today', type: 'number', required: true }
@@ -207,6 +255,17 @@ function DailyLogContent() {
                 name: 'walkin_registrations',
                 label: 'SECTION B — Offline / Walk-in Registration (Today)',
                 type: 'repeat-group',
+                presets: [
+                  {
+                    label: 'Pre-fill 4 Categories',
+                    rows: ['Teachers', 'Teens', 'Pre-teens', 'Children'].map((category) => ({
+                      category,
+                      new_registrations: 0,
+                      manuals_distributed: 0,
+                      amount_collected: 0,
+                    })),
+                  },
+                ],
                 schema: [
                   { name: 'category', label: 'Category', type: 'select', options: ['Teachers', 'Teens', 'Pre-teens', 'Children'], required: true },
                   { name: 'new_registrations', label: 'New Registrations Today', type: 'number', required: true },
@@ -238,6 +297,17 @@ function DailyLogContent() {
                 name: 'patients_demographics',
                 label: 'Patient Demographics',
                 type: 'repeat-group',
+                presets: [
+                  {
+                    label: 'Pre-fill Age & Gender',
+                    rows: [
+                      { category: 'children', gender: 'male', count: 0 },
+                      { category: 'children', gender: 'female', count: 0 },
+                      { category: 'adult', gender: 'male', count: 0 },
+                      { category: 'adult', gender: 'female', count: 0 },
+                    ],
+                  },
+                ],
                 schema: [
                   { name: 'category', label: 'Category', type: 'select', options: ['children', 'adult'] },
                   { name: 'gender', label: 'Gender', type: 'select', options: ['male', 'female'] },
@@ -1263,6 +1333,68 @@ function DailyLogContent() {
             </Card>
           )}
 
+          {/* Custom Schema Form rendering (Conditional: rendered ONLY when custom fields exist and not Ushering main column) */}
+          {!department?.name?.toLowerCase().includes('ushering') &&
+           department.default_metrics_schema &&
+           department.default_metrics_schema.fields &&
+           department.default_metrics_schema.fields.length > 0 && (
+            <Card className="glass-card border-none">
+              <CardHeader className="pb-3 flex flex-row items-start justify-between gap-2 flex-wrap">
+                <div>
+                  <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
+                    Department Custom Metrics
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Log metrics specific to {department.name} operations.
+                  </CardDescription>
+                </div>
+                {department.name.toLowerCase().includes('registration') && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsPreTotalsOpen(true)}
+                    className="text-[11px] h-9 sm:h-8 px-3 border-teal-500/40 text-teal-700 dark:text-teal-400 whitespace-nowrap hover:bg-teal-500/10 font-bold shrink-0"
+                  >
+                    <Globe className="w-3 h-3 mr-1" />
+                    Online Pre-Totals
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent>
+                <SchemaFormRenderer
+                  fields={department.default_metrics_schema.fields}
+                  value={metricsData}
+                  onChange={setMetricsData}
+                  readOnly={isReadOnly}
+                />
+
+                {/* Dynamic Add Diagnosis Input */}
+                {!isReadOnly && department.name.toLowerCase().includes('medical') && (
+                  <div className="mt-6 pt-6 border-t border-border/60 space-y-2">
+                    <Label htmlFor="add-diag-opt" className="text-xs font-bold text-foreground uppercase tracking-widest block">Add Custom Diagnosis Option</Label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Input
+                        id="add-diag-opt"
+                        placeholder="e.g. CHOLERA"
+                        value={newDiagText}
+                        onChange={(e) => setNewDiagText(e.target.value)}
+                        className="input-dark h-10 sm:h-9 text-xs flex-1 text-foreground"
+                      />
+                      <Button
+                        onClick={handleAddDiagnosisInline}
+                        size="sm"
+                        className="h-10 sm:h-9 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 shrink-0"
+                      >
+                        Add option
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Daily Qualitative Report & Feedback */}
           <Card className="glass-card border-none">
             <CardHeader className="pb-3">
@@ -1341,68 +1473,6 @@ function DailyLogContent() {
 
         {/* Right side: Schema metrics & save panel */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Custom Schema Form rendering (Conditional: rendered ONLY when custom fields exist and not Ushering main column) */}
-          {!department?.name?.toLowerCase().includes('ushering') &&
-           department.default_metrics_schema &&
-           department.default_metrics_schema.fields &&
-           department.default_metrics_schema.fields.length > 0 && (
-            <Card className="glass-card border-none">
-              <CardHeader className="pb-3 flex flex-row items-start justify-between gap-2 flex-wrap">
-                <div>
-                  <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                    Department Custom Metrics
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground">
-                    Log metrics specific to {department.name} operations.
-                  </CardDescription>
-                </div>
-                {department.name.toLowerCase().includes('registration') && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setIsPreTotalsOpen(true)}
-                    className="text-[11px] h-9 sm:h-8 px-3 border-teal-500/40 text-teal-700 dark:text-teal-400 whitespace-nowrap hover:bg-teal-500/10 font-bold shrink-0"
-                  >
-                    <Globe className="w-3 h-3 mr-1" />
-                    Online Pre-Totals
-                  </Button>
-                )}
-              </CardHeader>
-              <CardContent>
-                <SchemaFormRenderer
-                  fields={department.default_metrics_schema.fields}
-                  value={metricsData}
-                  onChange={setMetricsData}
-                  readOnly={isReadOnly}
-                />
-
-                {/* Dynamic Add Diagnosis Input */}
-                {!isReadOnly && department.name.toLowerCase().includes('medical') && (
-                  <div className="mt-6 pt-6 border-t border-border/60 space-y-2">
-                    <Label htmlFor="add-diag-opt" className="text-xs font-bold text-foreground uppercase tracking-widest block">Add Custom Diagnosis Option</Label>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Input
-                        id="add-diag-opt"
-                        placeholder="e.g. CHOLERA"
-                        value={newDiagText}
-                        onChange={(e) => setNewDiagText(e.target.value)}
-                        className="input-dark h-10 sm:h-9 text-xs flex-1 text-foreground"
-                      />
-                      <Button
-                        onClick={handleAddDiagnosisInline}
-                        size="sm"
-                        className="h-10 sm:h-9 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 shrink-0"
-                      >
-                        Add option
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
           {/* Submission panel */}
           <Card className="glass-card border-none">
             <CardContent className="pt-6 space-y-4">
@@ -1596,6 +1666,43 @@ function DailyLogContent() {
               </Button>
             </CardFooter>
           </Card>
+        </div>
+      )}
+
+      
+      {/* Sticky Mobile Bottom Summary & Action Bar */}
+      {!isReadOnly && (
+        <div className="lg:hidden sticky bottom-0 z-30 -mx-4 px-4 py-3 bg-background/95 backdrop-blur-md border-t border-border shadow-lg flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Day {activeDay?.day_number || 1} Summary
+            </div>
+            <div className="text-xs font-mono font-bold text-foreground truncate">
+              {(attendanceMorning + attendanceEvening).toLocaleString()} Att.
+              {hasOffering ? ` · ₦${offering.toLocaleString()}` : ''}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => handleSubmit(false)}
+              disabled={loading || hasPendingSync}
+              className="h-9 px-3 text-xs font-semibold"
+            >
+              {loading ? 'Saving...' : 'Draft'}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handlePreSubmitCheck}
+              disabled={loading || (!isSuperAdminActing && !evaluateDailyReportWindow(activeDay).isOpen)}
+              className="h-9 px-3.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
+            >
+              {!isOnline ? 'Queue' : 'Submit'}
+            </Button>
+          </div>
         </div>
       )}
 
