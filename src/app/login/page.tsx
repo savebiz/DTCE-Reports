@@ -6,23 +6,23 @@ import { useRouter } from 'next/navigation'
 import { getClient, isMock } from '@/utils/supabase'
 import { AuthInput } from '@/components/ui/auth-input'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { ArrowLeft, ClipboardCheck, FileText, PackageCheck } from 'lucide-react'
+import { ArrowLeft, ClipboardCheck, Package, WifiOff } from 'lucide-react'
 
 const WORKSPACE_PILLARS = [
   {
     icon: ClipboardCheck,
-    title: 'Daily Departmental Logs',
-    desc: 'Attendance, workforce, collections, and challenges synced online or offline.',
+    title: 'Daily Reports',
+    desc: 'Submit attendance, collections, and daily updates for your department.',
   },
   {
-    icon: PackageCheck,
-    title: 'Two-Stage Stores & Market Flow',
-    desc: 'Pre-event needs lists, central warehouse requisitions, and durable returns.',
+    icon: Package,
+    title: 'Supply Requests',
+    desc: 'Send pre-event needs lists and request items from the store.',
   },
   {
-    icon: FileText,
-    title: 'Executive Board Compilation',
-    desc: 'Automated Word (.docx) reporting packs and cross-event analytics.',
+    icon: WifiOff,
+    title: 'Works Offline',
+    desc: 'Save drafts on any device and sync automatically when online.',
   },
 ] as const
 
@@ -227,20 +227,20 @@ export default function LoginPage() {
                 DTCE Reporting
               </span>
               <span className="text-xs text-muted-foreground block">
-                Operations &amp; Logistics Workspace
+                Departmental Reporting Portal
               </span>
             </div>
           </Link>
 
           <div className="space-y-3 pt-2">
             <h1 className="text-3xl font-extrabold tracking-tight text-foreground leading-tight">
-              Sign in to your{' '}
+              Sign in to{' '}
               <span className="text-amber-600 dark:text-amber-400">
-                operations workspace.
+                your portal.
               </span>
             </h1>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
-              Access your assigned department portal, store requisitions, or executive oversight console.
+              Enter your assigned username and password to get started.
             </p>
             <Link
               href="/"
