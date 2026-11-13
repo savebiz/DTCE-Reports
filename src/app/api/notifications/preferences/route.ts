@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
+import { requireAuth } from '@/lib/auth/api-guard'
 import { store } from '@/utils/supabase/mockClient'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
 import { getServiceRoleKey } from '@/utils/supabase/admin'
@@ -13,12 +14,9 @@ export async function GET(request: NextRequest) {
       const u = store.currentUser
       userId = u?.id || 'mock-admin'
     } else {
-      const supabaseUserClient = await createServerClient()
-      const { data: { user } } = await supabaseUserClient.auth.getUser()
-      if (!user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
-      userId = user.id
+      const auth = await requireAuth()
+      if (!auth.ok) return auth.response
+      userId = auth.ctx.userId
     }
 
     if (isMock) {
@@ -63,12 +61,9 @@ export async function POST(request: NextRequest) {
       const u = store.currentUser
       userId = u?.id || 'mock-admin'
     } else {
-      const supabaseUserClient = await createServerClient()
-      const { data: { user } } = await supabaseUserClient.auth.getUser()
-      if (!user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
-      userId = user.id
+      const auth = await requireAuth()
+      if (!auth.ok) return auth.response
+      userId = auth.ctx.userId
     }
 
     if (isMock) {

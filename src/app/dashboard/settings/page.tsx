@@ -8,8 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Bell, Mail, Smartphone, ShieldCheck, Check, AlertCircle, Share, PlusSquare, Info } from 'lucide-react'
+import { Bell, Mail, Smartphone, ShieldCheck, Check, AlertCircle, Share, PlusSquare, Info, Calendar } from 'lucide-react'
 import { getVapidPublicKey } from '@/lib/notifications/vapid-public'
+import { EventWindowsPanel } from '@/components/admin/event-windows-panel'
+import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
+import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 
 interface LookupItem {
   id: string
@@ -47,7 +50,7 @@ function SettingsContent() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(false)
-  const [activeTab, setActiveTab] = useState<'notifications' | 'tribes' | 'diagnoses'>('notifications')
+  const [activeTab, setActiveTab] = useState<'notifications' | 'events' | 'tribes' | 'diagnoses'>('notifications')
 
   // Lookup data lists
   const [tribes, setTribes] = useState<LookupItem[]>([])
@@ -110,7 +113,12 @@ function SettingsContent() {
         .single()
 
       if (prof && prof.role !== 'super_admin' && prof.role !== 'coordinator' && prof.role !== 'national_coordinator') {
-        // HODs can view notification preferences
+        // HODs can view notification preferences only if assigned for the current event
+        if (!isMock) {
+          const eventId = await getCurrentEventId(supabase)
+          const assignment = await getDepartmentAssignment(supabase, prof.id, eventId)
+          prof.department_id = assignment?.department_id || null
+        }
         setActiveTab('notifications')
       }
       setProfile(prof)
@@ -397,6 +405,10 @@ function SettingsContent() {
 
   const isAdmin = profile?.role === 'super_admin'
 
+  if (!isMock && profile && !profile.department_id && (profile.role === 'hod' || profile.role === 'assistant')) {
+    return <UnassignedDepartmentGate />
+  }
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
@@ -422,6 +434,17 @@ function SettingsContent() {
           </button>
           {isAdmin && (
             <>
+              <button
+                onClick={() => setActiveTab('events')}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'events'
+                    ? 'border-amber-500 text-amber-500'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Calendar size={14} />
+                Events &amp; Windows
+              </button>
               <button
                 onClick={() => setActiveTab('tribes')}
                 className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
@@ -659,8 +682,13 @@ function SettingsContent() {
           </div>
         )}
 
+        {/* ── TAB: EVENTS & WINDOWS ── */}
+        {activeTab === 'events' && isAdmin && (
+          <EventWindowsPanel />
+        )}
+
         {/* ── TAB 2 & 3: LOOKUP TABLES (TRIBES & DIAGNOSES) ── */}
-        {activeTab !== 'notifications' && isAdmin && (
+        {(activeTab === 'tribes' || activeTab === 'diagnoses') && isAdmin && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main List Column */}
             <div className="lg:col-span-2 space-y-6">

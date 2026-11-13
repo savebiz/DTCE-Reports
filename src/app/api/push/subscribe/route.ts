@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
+import { requireAuth } from '@/lib/auth/api-guard'
 import { store } from '@/utils/supabase/mockClient'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
 import { getServiceRoleKey } from '@/utils/supabase/admin'
@@ -23,12 +23,9 @@ export async function POST(request: NextRequest) {
       const u = store.currentUser
       userId = u?.id || 'mock-admin'
     } else {
-      const supabaseUserClient = await createServerClient()
-      const { data: { user } } = await supabaseUserClient.auth.getUser()
-      if (!user) {
-        return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
-      }
-      userId = user.id
+      const auth = await requireAuth()
+      if (!auth.ok) return auth.response
+      userId = auth.ctx.userId
     }
 
     if (!isMock) {
@@ -78,18 +75,15 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (!isMock) {
-      const supabaseUserClient = await createServerClient()
-      const { data: { user } } = await supabaseUserClient.auth.getUser()
-      if (!user) {
-        return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
-      }
+      const auth = await requireAuth()
+      if (!auth.ok) return auth.response
 
       const serviceKey = getServiceRoleKey()
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       if (serviceKey && supabaseUrl) {
         const adminSupabase = createSupabaseAdminClient(supabaseUrl, serviceKey)
         // Only remove your own device subscriptions
-        await adminSupabase.from('push_subscriptions').delete().eq('endpoint', endpoint).eq('profile_id', user.id)
+        await adminSupabase.from('push_subscriptions').delete().eq('endpoint', endpoint).eq('profile_id', auth.ctx.userId)
       }
     }
 

@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
+import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
+import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { InventoryItem, InventoryTransaction } from '@/utils/supabase/mockData'
@@ -63,6 +65,13 @@ export default function StoresInventoryPage() {
   const [restockNote, setRestockNote] = useState('')
   const [submittingRestock, setSubmittingRestock] = useState(false)
 
+  // 2b. Cycle Count / Stock-Take Adjustment Modal state
+  const [isAdjustOpen, setIsAdjustOpen] = useState(false)
+  const [selectedAdjustItem, setSelectedAdjustItem] = useState<InventoryItem | null>(null)
+  const [adjustCount, setAdjustCount] = useState(0)
+  const [adjustReason, setAdjustReason] = useState('')
+  const [submittingAdjust, setSubmittingAdjust] = useState(false)
+
   // 3. Bulk Add Catalog Modal state
   const [isBulkCatalogOpen, setIsBulkCatalogOpen] = useState(false)
   const [catalogFile, setCatalogFile] = useState<File | null>(null)
@@ -106,7 +115,21 @@ export default function StoresInventoryPage() {
     // Department Access Guard: Inventory Catalog is restricted strictly to Stores department
     const meta = (user.user_metadata || {}) as any
     const userRole = prof?.role || meta.role || 'hod'
-    const deptId = prof?.department_id || meta.department_id || ''
+    let deptId = prof?.department_id || meta.department_id || ''
+
+    if (!isMock && (userRole === 'hod' || userRole === 'assistant')) {
+      const currentEventId = await getCurrentEventId(supabase)
+      const assignment = await getDepartmentAssignment(supabase, user.id, currentEventId)
+      deptId = assignment?.department_id ?? ''
+      if (prof) {
+        prof.department_id = assignment?.department_id ?? null
+        setProfile({ ...prof })
+      }
+      if (!deptId) {
+        if (showSpinner) setLoading(false)
+        return
+      }
+    }
 
     // Known Stores department IDs (mock + production UUIDs)
     const STORES_IDS = ['dept-29', '43fe996e-db9b-4e94-8311-99528b8bb690']
@@ -321,6 +344,37 @@ export default function StoresInventoryPage() {
       showToast(`Restock failed: ${err.message}`, 'error')
     } finally {
       setSubmittingRestock(false)
+    }
+  }
+
+  const handleAdjustStock = async () => {
+    if (!selectedAdjustItem) return
+    if (!adjustReason.trim()) {
+      showToast('Please enter a reason for the cycle-count adjustment.', 'error')
+      return
+    }
+    setSubmittingAdjust(true)
+    try {
+      const res = await fetch('/api/inventory/adjust', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemId: selectedAdjustItem.id,
+          physicalCount: adjustCount,
+          reason: adjustReason.trim(),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) throw new Error(data.error || 'Adjustment failed')
+      showToast(`Stock adjusted to ${data.newStock} (${data.delta >= 0 ? `+${data.delta}` : data.delta})`, 'success')
+      setIsAdjustOpen(false)
+      setSelectedAdjustItem(null)
+      setAdjustReason('')
+      loadInventory(false)
+    } catch (err: any) {
+      showToast(`Adjustment failed: ${err.message}`, 'error')
+    } finally {
+      setSubmittingAdjust(false)
     }
   }
 
@@ -545,7 +599,8 @@ export default function StoresInventoryPage() {
 
     if (!matchesSearch) return false
 
-    if (activeTab === 'low_stock') return i.current_stock <= i.low_stock_threshold
+    const availableStock = Math.max(0, (i.current_stock || 0) - (Number((i as any).reserved_stock) || 0))
+    if (activeTab === 'low_stock') return availableStock <= i.low_stock_threshold
     if (activeTab === 'consumable') return i.category === 'consumable'
     if (activeTab === 'durable') return i.category === 'durable'
     return true
@@ -553,9 +608,16 @@ export default function StoresInventoryPage() {
 
   // KPI Calculations
   const totalCatalogCount = items.length
-  const lowStockCount = items.filter(i => i.current_stock <= i.low_stock_threshold).length
+  const lowStockCount = items.filter(i => {
+    const avail = Math.max(0, (i.current_stock || 0) - (Number((i as any).reserved_stock) || 0))
+    return avail <= i.low_stock_threshold
+  }).length
   const consumableTotal = items.filter(i => i.category === 'consumable').reduce((sum, i) => sum + i.current_stock, 0)
   const durableTotal = items.filter(i => i.category === 'durable').reduce((sum, i) => sum + i.current_stock, 0)
+
+  if (!isMock && profile && !profile.department_id && (profile.role === 'hod' || profile.role === 'assistant')) {
+    return <UnassignedDepartmentGate />
+  }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
@@ -822,6 +884,9 @@ export default function StoresInventoryPage() {
                     <th className="p-3">Category</th>
                     <th className="p-3">Unit</th>
                     <th className="p-3 text-right">Current Stock</th>
+                    <th className="p-3 text-right">Reserved</th>
+                    <th className="p-3 text-right">Available</th>
+                    <th className="p-3 text-right">Quarantined</th>
                     <th className="p-3 text-right">Low Stock Threshold</th>
                     <th className="p-3 text-center">Status</th>
                     <th className="p-3 text-right">Action</th>
@@ -830,7 +895,7 @@ export default function StoresInventoryPage() {
                 <tbody className="divide-y divide-border/60 text-foreground">
                   {filteredItems.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="p-8 text-center text-muted-foreground italic">
+                      <td colSpan={11} className="p-8 text-center text-muted-foreground italic">
                         No inventory catalog items match your search criteria.
                       </td>
                     </tr>
@@ -838,7 +903,10 @@ export default function StoresInventoryPage() {
                     filteredItems
                       .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                       .map(item => {
-                      const isLowStock = item.current_stock <= item.low_stock_threshold
+                      const reserved = Number((item as any).reserved_stock) || 0
+                      const quarantined = Number((item as any).quarantine_stock) || 0
+                      const available = Math.max(0, (item.current_stock || 0) - reserved)
+                      const isLowStock = available <= item.low_stock_threshold
 
                       return (
                         <tr key={item.id} className="hover:bg-muted/20 transition-colors">
@@ -865,6 +933,15 @@ export default function StoresInventoryPage() {
                           <td className="p-3 text-right font-mono font-bold text-foreground text-sm">
                             {item.current_stock}
                           </td>
+                          <td className="p-3 text-right font-mono text-amber-400">
+                            {reserved}
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-emerald-400">
+                            {available}
+                          </td>
+                          <td className="p-3 text-right font-mono text-orange-400">
+                            {quarantined}
+                          </td>
                           <td className="p-3 text-right font-mono text-muted-foreground">
                             {item.low_stock_threshold}
                           </td>
@@ -880,17 +957,32 @@ export default function StoresInventoryPage() {
                             )}
                           </td>
                           <td className="p-3 text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedRestockItem(item)
-                                setIsRestockOpen(true)
-                              }}
-                              className="h-7 text-[11px] font-semibold cursor-pointer border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
-                            >
-                              + Restock
-                            </Button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedRestockItem(item)
+                                  setIsRestockOpen(true)
+                                }}
+                                className="h-7 text-[11px] font-semibold cursor-pointer border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                              >
+                                + Restock
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedAdjustItem(item)
+                                  setAdjustCount(item.current_stock || 0)
+                                  setAdjustReason('')
+                                  setIsAdjustOpen(true)
+                                }}
+                                className="h-7 text-[11px] font-semibold cursor-pointer border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                              >
+                                Adjust
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       )
@@ -1090,6 +1182,68 @@ export default function StoresInventoryPage() {
               </Button>
               <Button size="sm" onClick={handleRestock} disabled={submittingRestock || !selectedRestockItem} className="text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white">
                 {submittingRestock ? 'Processing Restock...' : 'Execute Restock'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* 7b. Cycle Count / Stock-Take Adjustment Modal */}
+        <Dialog open={isAdjustOpen} onOpenChange={setIsAdjustOpen}>
+          <DialogContent className="bg-card border-border text-foreground max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground">
+                Cycle Count / Stock-Take Adjustment
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Reconcile physical shelf count against system stock and log an audit adjustment.
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedAdjustItem && (
+              <div className="space-y-4 py-2">
+                <div className="p-3 rounded-xl bg-background/50 border border-border text-xs space-y-1 font-mono">
+                  <div className="font-sans font-bold text-foreground text-sm mb-1">{selectedAdjustItem.name}</div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">System Stock:</span>
+                    <span className="font-bold text-foreground">{selectedAdjustItem.current_stock} {selectedAdjustItem.unit}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Variance:</span>
+                    <span className={`font-bold ${adjustCount - selectedAdjustItem.current_stock >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {adjustCount - selectedAdjustItem.current_stock >= 0 ? '+' : ''}
+                      {adjustCount - selectedAdjustItem.current_stock} {selectedAdjustItem.unit}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Physical Count *</Label>
+                  <NumberField
+                    value={adjustCount}
+                    onChange={setAdjustCount}
+                    min={0}
+                    className="input-dark text-xs font-mono font-bold text-amber-400"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Audit Reason *</Label>
+                  <Input
+                    value={adjustReason}
+                    onChange={e => setAdjustReason(e.target.value)}
+                    placeholder="e.g. Physical shelf count before Congress Day 1"
+                    className="input-dark text-xs"
+                  />
+                </div>
+              </div>
+            )}
+
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="outline" size="sm" onClick={() => setIsAdjustOpen(false)} className="text-xs">
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleAdjustStock} disabled={submittingAdjust || !selectedAdjustItem} className="text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white">
+                {submittingAdjust ? 'Saving Adjustment...' : 'Confirm Cycle Count'}
               </Button>
             </DialogFooter>
           </DialogContent>

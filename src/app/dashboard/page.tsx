@@ -33,8 +33,9 @@ interface Comment {
 
 interface StoreRequestTicket {
   id: string
+  request_type?: 'pre_event' | 'during_event'
   items_json: Array<{ inventory_item_id?: string | null; name: string; quantity: number; requested_quantity?: number; approved_quantity?: number; category?: string; unit?: string }>
-  status: 'pending_coordinator' | 'approved' | 'declined' | 'in_progress' | 'partially_fulfilled' | 'delivered'
+  status: 'pending_coordinator' | 'approved' | 'declined' | 'in_progress' | 'partially_fulfilled' | 'ready_for_collection' | 'delivered'
   reviewer_comments?: string
   reviewed_at?: string
   created_at: string
@@ -298,22 +299,22 @@ function SecretariatDashboardContent() {
     }
   }
 
-  // Store Requisition Actions
+  // Store Requisition Actions (routed through server API to enforce RBAC, stock reservations & notifications)
   const handleReqAction = async (status: 'approved' | 'declined') => {
     if (!selectedReq) return
     setActionLoading(true)
-    const supabase = getClient()
     try {
-      const { error } = await supabase
-        .from('store_requests')
-        .update({
+      const res = await fetch('/api/update-store-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId: selectedReq.id,
           status,
-          reviewer_comments: actionComments,
-          reviewed_at: new Date().toISOString()
-        })
-        .eq('id', selectedReq.id)
-
-      if (error) throw error
+          reviewerComments: actionComments,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) throw new Error(data.error || 'Failed to update requisition')
       showToast(`Requisition ${status}!`, 'success')
       setSelectedReq(null)
       setActionComments('')
@@ -328,14 +329,17 @@ function SecretariatDashboardContent() {
   const handleDelegate = async () => {
     if (!selectedReq) return
     setActionLoading(true)
-    const supabase = getClient()
     try {
-      const { error } = await supabase
-        .from('store_requests')
-        .update({ assigned_approver_id: delegateId === 'none' ? null : delegateId })
-        .eq('id', selectedReq.id)
-
-      if (error) throw error
+      const res = await fetch('/api/delegate-store-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId: selectedReq.id,
+          assignedApproverId: delegateId === 'none' ? null : delegateId,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) throw new Error(data.error || 'Delegation failed')
       showToast('Authority delegated successfully!', 'success')
       setSelectedReq(null)
       setDelegateId('none')
@@ -578,7 +582,7 @@ function SecretariatDashboardContent() {
   }
 
   const getCellStatusLabel = (deptId: string, dayId: string) => {
-    const report = reports.find(r => r.department_id === deptId && r.event_day_id === dayId)
+    const report = reports.find(r => r.department_id === deptId && isSameEventDay(r.event_day_id, dayId, eventDays))
     if (!report) return 'Missing'
     return report.status.charAt(0).toUpperCase() + report.status.slice(1)
   }
@@ -842,44 +846,74 @@ function SecretariatDashboardContent() {
         {activeTab === 'store-requisitions' && (
           <div className="space-y-4 animate-fade-in-up">
             <Card className="glass-card border-none">
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                    Pending &amp; Active Store Requisitions
+                    Pre-Event Needs Lists &amp; Live Store Requisitions
                   </CardTitle>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Review, approve, or delegate material requests from departments.
+                    Review departmental Pre-Event Needs Lists (for market purchase) and Live Store Requisitions (from Central Stores stock).
                   </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push('/dashboard/market-list')}
+                    className="text-xs h-8 cursor-pointer border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 font-bold"
+                  >
+                    🛒 Pre-Event Market Analytics &rarr;
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push('/dashboard/store-requisitions')}
+                    className="text-xs h-8 cursor-pointer font-bold"
+                  >
+                    Open Full Approvals Console &rarr;
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {visibleStoreRequests.length === 0 ? (
-                  <p className="text-xs text-muted-foreground italic">No store requisitions found.</p>
+                  <p className="text-xs text-muted-foreground italic">No needs lists or store requisitions found.</p>
                 ) : (
                   visibleStoreRequests
                     .slice((reqsPage - 1) * reqsPageSize, reqsPage * reqsPageSize)
                     .map((req) => {
                     const cfg = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending_coordinator
+                    const isPreEvent = req.request_type === 'pre_event'
                     return (
                       <div key={req.id} className="border border-border rounded-xl p-4 space-y-3 bg-background/25">
                         <div className="flex justify-between items-start gap-4">
                           <div>
-                            <span className="text-[13px] font-bold text-foreground block">
-                              {req.department?.name} Department
-                            </span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-[13px] font-bold text-foreground">
+                                {req.department?.name} Department
+                              </span>
+                              {isPreEvent ? (
+                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                                  🛒 Pre-Event Needs List (Market Purchase)
+                                </span>
+                              ) : (
+                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                  📦 Live Event Store Requisition
+                                </span>
+                              )}
+                            </div>
                             <span className="text-[10px] text-muted-foreground block mt-0.5">
                               Submitted on {new Date(req.created_at).toLocaleDateString()}
                             </span>
                           </div>
                           <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full" style={{ background: cfg.bg, color: cfg.color, border: cfg.border }}>
-                            {cfg.label}
+                            {isPreEvent && req.status === 'approved' ? 'Approved for Market Purchase' : cfg.label}
                           </span>
                         </div>
 
                         <div className="p-3 bg-background/40 border border-border rounded-lg space-y-2">
                           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">Requisition Items:</span>
                           <div className="space-y-1.5 text-xs">
-                            {req.items_json.map((it: any, idx: number) => {
+                            {(Array.isArray(req.items_json) ? req.items_json : []).map((it: any, idx: number) => {
                               const reqQty = it.requested_quantity ?? it.quantity
                               const appQty = it.approved_quantity ?? it.quantity
                               const isAdjusted = reqQty !== undefined && appQty !== undefined && reqQty !== appQty

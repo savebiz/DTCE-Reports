@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getClient, mockDepartments, Profile } from '@/utils/supabase'
+import { getClient, isMock, mockDepartments, Profile } from '@/utils/supabase'
+import { getCurrentEventId } from '@/lib/events/current-event'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
@@ -88,8 +89,11 @@ export default function YoYComparisonPage() {
       }
     ]
 
-    // Fetch active narratives
-    const { data: activeNarrs } = await supabase.from('department_narratives').select('*')
+    // Fetch active narratives scoped to current event
+    const currentEventId = !isMock ? await getCurrentEventId(supabase) : null
+    let narrQuery = supabase.from('department_narratives').select('*')
+    if (currentEventId) narrQuery = narrQuery.eq('event_id', currentEventId)
+    const { data: activeNarrs } = await narrQuery
     const activeEoeNarrs = activeNarrs ? activeNarrs.filter((n: any) => n.is_end_of_event === true) : []
 
     const matches: CarryOverIssue[] = []

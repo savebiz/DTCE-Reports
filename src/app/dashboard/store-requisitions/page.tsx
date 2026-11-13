@@ -1,21 +1,20 @@
 'use client'
 
-import React, { useEffect, useState, useMemo, useCallback, Suspense } from 'react'
+import React, { useEffect, useState, useMemo, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { getClient, isMock, Profile } from '@/utils/supabase'
+import { getClient, isMock, mockDepartments, Profile } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
-import { TableSkeleton } from '@/components/ui/skeleton-loader'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
-import { AlertTriangle, X } from 'lucide-react'
-import { getCurrentEventId } from '@/lib/events/current-event'
+import { AlertTriangle, X, ClipboardList, Package, CheckCircle2, Clock, AlertCircle, ShoppingBag } from 'lucide-react'
+import { getCurrentEvent } from '@/lib/events/current-event'
+import { isGeneralSecretary } from '@/lib/auth/titles'
 
 interface RequestItem {
   inventory_item_id?: string | null
@@ -58,9 +57,8 @@ interface StoreRequestTicket {
   }
 }
 
-// ── Status display config ───────────────────────────────────────────────
 const STATUS_CONFIG: Record<ReqStatus, { label: string; bg: string; color: string; border: string }> = {
-  pending_coordinator:  { label: 'Pending', bg: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' },
+  pending_coordinator:  { label: 'Pending Approval', bg: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' },
   approved:            { label: 'Approved', bg: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' },
   in_progress:         { label: 'In Progress', bg: 'rgba(139,92,246,0.1)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.2)' },
   partially_fulfilled: { label: 'Partial', bg: 'rgba(236,72,153,0.1)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.2)' },
@@ -69,7 +67,14 @@ const STATUS_CONFIG: Record<ReqStatus, { label: string; bg: string; color: strin
   delivered:           { label: 'Delivered', bg: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' },
 }
 
-const FILTER_TABS: { key: ReqStatus | 'all'; label: string }[] = [
+const PRE_EVENT_FILTER_TABS: { key: 'all' | 'pending_coordinator' | 'approved' | 'declined'; label: string }[] = [
+  { key: 'all', label: 'All Needs Lists' },
+  { key: 'pending_coordinator', label: 'Awaiting Approval' },
+  { key: 'approved', label: 'Approved for Market' },
+  { key: 'declined', label: 'Declined' },
+]
+
+const DURING_EVENT_FILTER_TABS: { key: ReqStatus | 'all'; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'pending_coordinator', label: 'Pending' },
   { key: 'approved', label: 'Approved' },
@@ -84,14 +89,26 @@ const ADMIN_ROLES = ['super_admin', 'coordinator', 'national_coordinator']
 
 function AdminRequisitionsContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const targetId = searchParams.get('id')
+  const modeParam = searchParams.get('mode')
+
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [activeEvent, setActiveEvent] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [requests, setRequests] = useState<StoreRequestTicket[]>([])
-  
+  const [activeDepartments, setActiveDepartments] = useState<Array<{ id: string; name: string }>>([])
+
+  // Workflow Mode: 'pre_event' (Pre-Congress Needs Lists for Market) vs 'during_event' (Live Event Store Requisitions)
+  const [workflowMode, setWorkflowMode] = useState<'pre_event' | 'during_event'>(
+    modeParam === 'during_event' ? 'during_event' : 'pre_event'
+  )
+  const [showMissingDepts, setShowMissingDepts] = useState(false)
+
   // Available reviewers list for delegation dropdown
   const [approvers, setApprovers] = useState<Profile[]>([])
   const [catalogItems, setCatalogItems] = useState<any[]>([])
-  
+
   // Review Modal State
   const [selectedReq, setSelectedReq] = useState<StoreRequestTicket | null>(null)
   const [actionComments, setActionComments] = useState('')
@@ -108,10 +125,7 @@ function AdminRequisitionsContent() {
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [activeFilter, searchQuery])
-
-  // Batch selection
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  }, [activeFilter, searchQuery, workflowMode])
 
   const selectReqForReview = (req: StoreRequestTicket) => {
     setSelectedReq(req)
@@ -172,13 +186,26 @@ function AdminRequisitionsContent() {
     }
 
     if (!isMock) {
-      const currentEventId = await getCurrentEventId(supabase)
+      const currentEvent = await getCurrentEvent(supabase)
+      if (currentEvent) {
+        setActiveEvent(currentEvent)
+        if (!modeParam) {
+          setWorkflowMode(currentEvent.status === 'live' ? 'during_event' : 'pre_event')
+        }
+      }
+      const currentEventId = currentEvent?.id
       let reqsQuery = supabase.from('store_requests').select('*')
       if (currentEventId) reqsQuery = reqsQuery.eq('event_id', currentEventId)
-      const [reqsRes, usersRes, invRes] = await Promise.all([
+
+      let assignQuery = supabase.from('hod_assignments').select('department_id')
+      if (currentEventId) assignQuery = assignQuery.eq('event_id', currentEventId)
+
+      const [reqsRes, usersRes, invRes, deptsRes, assignRes] = await Promise.all([
         reqsQuery.order('created_at', { ascending: false }),
         supabase.from('profiles').select('*').eq('role', 'coordinator'),
-        supabase.from('inventory_items').select('*')
+        supabase.from('inventory_items').select('*'),
+        supabase.from('departments').select('id, name').order('name', { ascending: true }),
+        assignQuery,
       ])
 
       if (reqsRes.data) {
@@ -187,13 +214,23 @@ function AdminRequisitionsContent() {
       }
       if (usersRes.data) setApprovers(usersRes.data)
       if (invRes.data) setCatalogItems(invRes.data)
+
+      const allDepts = deptsRes.data || []
+      const teamDeptIds = new Set((assignRes.data || []).map((a: any) => a.department_id).filter(Boolean))
+      if (teamDeptIds.size > 0) {
+        setActiveDepartments(allDepts.filter((d: any) => teamDeptIds.has(d.id)))
+      } else {
+        setActiveDepartments(allDepts)
+      }
     } else {
       const { store: mockStore } = require('@/utils/supabase/mockClient')
       setCatalogItems(mockStore.inventoryItems || [])
+      setActiveDepartments(mockDepartments.map(d => ({ id: d.id, name: d.name })))
       setRequests([
         {
           id: 'req-mock-1',
-          items_json: [{ name: 'Analgesics', quantity: 200, requested_quantity: 200, approved_quantity: 200, category: 'consumable' }],
+          request_type: 'pre_event',
+          items_json: [{ name: 'Analgesics (Paracetamol)', quantity: 200, requested_quantity: 200, approved_quantity: 200, category: 'consumable', unit: 'packs' }],
           status: 'pending_coordinator',
           created_at: new Date().toISOString(),
           requester_profile_id: 'user-hod-med',
@@ -203,115 +240,135 @@ function AdminRequisitionsContent() {
         },
         {
           id: 'req-mock-2',
+          request_type: 'pre_event',
           items_json: [
-            { name: 'Mattresses', quantity: 50, requested_quantity: 50, approved_quantity: 50 },
-            { name: 'Pillows', quantity: 50, requested_quantity: 50, approved_quantity: 40 }
+            { name: 'Mattresses', quantity: 50, requested_quantity: 50, approved_quantity: 50, unit: 'pcs', category: 'durable' },
+            { name: 'Pillows', quantity: 50, requested_quantity: 50, approved_quantity: 40, unit: 'pcs', category: 'durable' }
           ],
           status: 'approved',
           created_at: new Date(Date.now() - 86400000).toISOString(),
           requester_profile_id: 'user-hod-accomm',
           department_id: 'dept-1',
-          reviewer_comments: 'Approved with adjusted pillow quantity.',
+          reviewer_comments: 'Approved for Congress market purchase.',
           reviewed_at: new Date(Date.now() - 86400000).toISOString(),
           requester: { full_name: 'Elder Robert', email: 'robert.accomm@dtce.org' },
           department: { name: 'Accommodation' }
         }
       ])
-      setApprovers(
-        mockStore.profiles
-          ? mockStore.profiles.filter((p: any) => p.role === 'coordinator')
-          : [{ id: 'user-coord', email: 'coordinator@dtce.org', full_name: 'Coordinator Jane', role: 'coordinator' }]
-      )
     }
-  }, [router])
+  }, [router, modeParam])
 
-  // Shared Platform-Wide Realtime Subscription for National Coordinator Console
   useRealtimeSubscription({
     channelName: 'admin-store-requisitions',
     subscriptions: [{ table: 'store_requests' }],
     onDataChange: () => loadData(),
   })
 
-  const searchParams = useSearchParams()
-  const targetId = searchParams.get('id')
-
   useEffect(() => {
     loadData()
   }, [loadData])
 
-  // Automatically open review modal when navigated with ?id=[req.id]
+  const autoOpenedTargetRef = useRef<string | null>(null)
+
+  // Automatically open review modal once when navigated with ?id=[req.id]
   useEffect(() => {
-    if (targetId && requests.length > 0) {
+    if (targetId && requests.length > 0 && autoOpenedTargetRef.current !== targetId) {
       const match = requests.find(r => r.id === targetId || r.id.substring(0, 8) === targetId.substring(0, 8))
       if (match) {
+        autoOpenedTargetRef.current = targetId
+        if (match.request_type === 'pre_event') setWorkflowMode('pre_event')
+        else setWorkflowMode('during_event')
         selectReqForReview(match)
       }
     }
   }, [targetId, requests])
 
+  // Separate requests by workflow stage
+  const preEventRequests = useMemo(
+    () => requests.filter(r => r.request_type === 'pre_event'),
+    [requests]
+  )
+  const duringEventRequests = useMemo(
+    () => requests.filter(r => (r.request_type || 'during_event') === 'during_event'),
+    [requests]
+  )
+
+  const modeRequests = workflowMode === 'pre_event' ? preEventRequests : duringEventRequests
+
+  // Pre-Event Analytics for Gen Sec & National Coordinator
+  const preEventAnalytics = useMemo(() => {
+    const submittedDeptIds = new Set(preEventRequests.map(r => r.department_id))
+    const pendingLists = preEventRequests.filter(r => r.status === 'pending_coordinator')
+    const approvedLists = preEventRequests.filter(r => r.status !== 'pending_coordinator' && r.status !== 'declined')
+
+    const distinctItems = new Set<string>()
+    let totalUnitsRequested = 0
+    let totalUnitsApproved = 0
+
+    for (const r of preEventRequests) {
+      if (r.status === 'declined') continue
+      for (const it of r.items_json || []) {
+        distinctItems.add(String(it.name || '').trim().toLowerCase())
+        const reqQ = Number(it.requested_quantity ?? it.quantity) || 0
+        const appQ = Number(it.approved_quantity ?? it.quantity) || 0
+        totalUnitsRequested += reqQ
+        if (r.status !== 'pending_coordinator') {
+          totalUnitsApproved += appQ
+        }
+      }
+    }
+
+    const submittedDepts = activeDepartments.filter(d => submittedDeptIds.has(d.id))
+    const missingDepts = activeDepartments.filter(d => !submittedDeptIds.has(d.id))
+
+    return {
+      totalDepts: activeDepartments.length,
+      submittedDeptsCount: submittedDepts.length,
+      missingDeptsCount: missingDepts.length,
+      submittedDepts,
+      missingDepts,
+      pendingListsCount: pendingLists.length,
+      approvedListsCount: approvedLists.length,
+      distinctItemsCount: distinctItems.size,
+      totalUnitsRequested,
+      totalUnitsApproved,
+      compliancePct: activeDepartments.length > 0
+        ? Math.round((submittedDepts.length / activeDepartments.length) * 100)
+        : 0,
+    }
+  }, [preEventRequests, activeDepartments])
+
   const filteredRequests = useMemo(() => {
-    let results = requests
+    let results = modeRequests
     if (activeFilter !== 'all') {
-      results = results.filter(r => r.status === activeFilter)
+      if (workflowMode === 'pre_event' && activeFilter === 'approved') {
+        results = results.filter(r => r.status !== 'pending_coordinator' && r.status !== 'declined')
+      } else {
+        results = results.filter(r => r.status === activeFilter)
+      }
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
       results = results.filter(r =>
         (r.department?.name || '').toLowerCase().includes(q) ||
         (r.requester?.full_name || '').toLowerCase().includes(q) ||
-        r.items_json.some(it => it.name.toLowerCase().includes(q))
+        (Array.isArray(r.items_json) && r.items_json.some(it => (it.name || '').toLowerCase().includes(q)))
       )
     }
     return results
-  }, [requests, activeFilter, searchQuery])
+  }, [modeRequests, activeFilter, searchQuery, workflowMode])
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { all: requests.length }
+    const c: Record<string, number> = { all: modeRequests.length }
     for (const key of Object.keys(STATUS_CONFIG)) {
-      c[key] = requests.filter(r => r.status === key).length
+      if (workflowMode === 'pre_event' && key === 'approved') {
+        c[key] = modeRequests.filter(r => r.status !== 'pending_coordinator' && r.status !== 'declined').length
+      } else {
+        c[key] = modeRequests.filter(r => r.status === key).length
+      }
     }
     return c
-  }, [requests])
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
-  const handleBatchAction = async (status: 'approved' | 'declined') => {
-    if (selectedIds.size === 0) return
-    setLoading(true)
-
-    try {
-      for (const id of selectedIds) {
-        if (isMock) {
-          setRequests(prev => prev.map(r => selectedIds.has(r.id) ? { ...r, status, reviewer_comments: `Batch ${status}` } : r))
-        } else {
-          await fetch('/api/update-store-request', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              requestId: id,
-              status,
-              reviewerComments: `Batch ${status} by coordinator`
-            })
-          })
-        }
-      }
-
-      showToast(`${selectedIds.size} requisition(s) ${status} successfully!`, 'success')
-      setSelectedIds(new Set())
-      if (!isMock) loadData()
-    } catch (err: any) {
-      showToast(`Batch action failed: ${err.message}`, 'error')
-    } finally {
-      setLoading(false)
-    }
-  }
+  }, [modeRequests, workflowMode])
 
   const handleAction = async (status: ReqStatus) => {
     if (!selectedReq) return
@@ -321,15 +378,17 @@ function AdminRequisitionsContent() {
       const validItems = editableItems
         .filter(it => it.approved_quantity > 0)
         .map(it => ({
+          inventory_item_id: it.inventory_item_id || null,
           name: it.name,
           requested_quantity: it.requested_quantity,
           approved_quantity: it.approved_quantity,
           quantity: it.approved_quantity,
-          category: it.category || 'unclassified'
+          category: it.category || 'consumable',
+          unit: it.unit || 'pcs',
         }))
 
       if (validItems.length === 0) {
-        showToast('Cannot approve a requisition with 0 items. Please use Decline instead.', 'error')
+        showToast('Cannot approve a list with 0 items. Please use Decline instead.', 'error')
         return
       }
       finalItems = validItems
@@ -338,7 +397,12 @@ function AdminRequisitionsContent() {
     setLoading(true)
 
     if (isMock) {
-      showToast(`Request ${status === 'approved' ? 'Approved' : 'Declined'} successfully (Mock)!`, 'success')
+      showToast(
+        selectedReq.request_type === 'pre_event'
+          ? `Pre-Event Needs List ${status === 'approved' ? 'Approved for Market Purchase' : 'Declined'} (Mock)!`
+          : `Request ${status === 'approved' ? 'Approved' : 'Declined'} successfully (Mock)!`,
+        'success'
+      )
       setRequests(prev => prev.map(r => r.id === selectedReq.id ? {
         ...r,
         status,
@@ -360,7 +424,7 @@ function AdminRequisitionsContent() {
           requestId: selectedReq.id,
           status,
           reviewerComments: actionComments,
-          itemsJson: finalItems
+          items_json: finalItems
         })
       })
 
@@ -369,7 +433,12 @@ function AdminRequisitionsContent() {
         throw new Error(data.error || 'Failed to update request')
       }
 
-      showToast(`Request ${status === 'approved' ? 'Approved' : 'Declined'} successfully!`, 'success')
+      showToast(
+        selectedReq.request_type === 'pre_event'
+          ? `Pre-Event Needs List ${status === 'approved' ? 'Approved & Added to Market List' : 'Declined'}!`
+          : `Store Requisition ${status === 'approved' ? 'Approved' : 'Declined'} successfully!`,
+        'success'
+      )
       setSelectedReq(null)
       setActionComments('')
       setEditableItems([])
@@ -395,14 +464,17 @@ function AdminRequisitionsContent() {
       return
     }
 
-    const supabase = getClient()
     try {
-      const { error } = await supabase
-        .from('store_requests')
-        .update({ assigned_approver_id: targetUserId })
-        .eq('id', selectedReq.id)
-
-      if (error) throw error
+      const res = await fetch('/api/delegate-store-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId: selectedReq.id,
+          assignedApproverId: targetUserId,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) throw new Error(data.error || 'Delegation failed')
 
       showToast('Authority delegated successfully!', 'success')
       setSelectedReq(null)
@@ -415,9 +487,11 @@ function AdminRequisitionsContent() {
     }
   }
 
+  const isSelectedPreEvent = selectedReq?.request_type === 'pre_event'
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      {/* Integrated Breadcrumb Strip */}
+      {/* Top Breadcrumb */}
       <div className="flex items-center justify-between px-4 md:px-6 py-2.5 border-b border-border/40 bg-background/50 backdrop-blur-xs">
         <button
           onClick={() => router.push('/dashboard')}
@@ -427,8 +501,12 @@ function AdminRequisitionsContent() {
         </button>
 
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-amber-500">Oversight Store Requisitions</span>
+          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-500">
+            {profile?.role === 'national_coordinator' && isGeneralSecretary(profile)
+              ? 'General Secretary Approval Console'
+              : 'National Materials & Requisitions Oversight'}
+          </span>
         </div>
       </div>
 
@@ -437,20 +515,34 @@ function AdminRequisitionsContent() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              <span className="text-[11px] font-bold tracking-widest text-amber-500 uppercase">National Oversight</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="text-[11px] font-bold tracking-widest text-emerald-500 uppercase">
+                {activeEvent?.name || 'Current Event'} · Materials Governance
+              </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
-              Store Requisitions Console
+              {workflowMode === 'pre_event'
+                ? 'Pre-Event Departmental Needs Lists (For Market Purchase)'
+                : 'Live Event Store Requisitions (From Stores Stock)'}
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-              Review, approve, or adjust material requisitions from all convention departments.
+              {workflowMode === 'pre_event'
+                ? 'Digitised pre-event department needs lists for Gen Sec & National Coordinator approval before Stores goes to the market.'
+                : 'Review and approve live store requests from departments collecting items from Central Stores during the event.'}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
+              onClick={() => router.push('/dashboard/market-list')}
+              className="text-xs h-9 font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
+            >
+              🛒 Consolidated Market List ({preEventAnalytics.distinctItemsCount} Items)
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
               onClick={async () => {
                 try {
                   showToast('Generating Strategic Stores Audit Report (DOCX)...', 'info')
@@ -474,20 +566,197 @@ function AdminRequisitionsContent() {
                   showToast(`Download failed: ${err.message}`, 'error')
                 }
               }}
-              className="text-xs h-9 font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer flex items-center gap-1.5 shadow-xs"
+              className="text-xs h-9 font-semibold cursor-pointer"
             >
-              📥 Export Stores Strategic Audit Report
+              📥 Export DOCX Report
             </Button>
             <Button size="sm" variant="outline" onClick={() => loadData()} className="text-xs h-9 cursor-pointer">
-              🔄 Refresh Requests
+              🔄 Refresh
             </Button>
           </div>
         </div>
 
-        {/* Filter Tabs */}
+        {/* Two Distinct Workflow Mode Tabs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="tablist">
+          <button
+            role="tab"
+            aria-selected={workflowMode === 'pre_event'}
+            onClick={() => { setWorkflowMode('pre_event'); setActiveFilter('all') }}
+            className={`text-left rounded-2xl border-2 p-4 transition-all cursor-pointer ${
+              workflowMode === 'pre_event'
+                ? 'border-emerald-500 bg-emerald-500/10 shadow-xs'
+                : 'border-border bg-card hover:bg-muted/40'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-base font-extrabold text-foreground">
+                <ClipboardList className={`w-5 h-5 ${workflowMode === 'pre_event' ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+                1. Pre-Event Needs Lists (Market Purchase)
+              </span>
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                {preEventRequests.length} Lists · {preEventAnalytics.pendingListsCount} Pending
+              </span>
+            </div>
+            <span className="block text-xs text-muted-foreground mt-1">
+              Lists sent by HODs before the event so Stores knows what to purchase at the market.
+            </span>
+          </button>
+
+          <button
+            role="tab"
+            aria-selected={workflowMode === 'during_event'}
+            onClick={() => { setWorkflowMode('during_event'); setActiveFilter('all') }}
+            className={`text-left rounded-2xl border-2 p-4 transition-all cursor-pointer ${
+              workflowMode === 'during_event'
+                ? 'border-blue-500 bg-blue-500/10 shadow-xs'
+                : 'border-border bg-card hover:bg-muted/40'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-base font-extrabold text-foreground">
+                <Package className={`w-5 h-5 ${workflowMode === 'during_event' ? 'text-blue-500' : 'text-muted-foreground'}`} />
+                2. Live Event Store Requisitions (From Store)
+              </span>
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-500 border border-blue-500/30">
+                {duringEventRequests.length} Requests
+              </span>
+            </div>
+            <span className="block text-xs text-muted-foreground mt-1">
+              Live requests during the event for items already purchased and stocked in Central Stores.
+            </span>
+          </button>
+        </div>
+
+        {/* AT-A-GLANCE PRE-EVENT ANALYTICS PANEL (Shown when in Pre-Event Needs List Mode) */}
+        {workflowMode === 'pre_event' && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Depts Submitted</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                </div>
+                <span className="text-2xl font-extrabold font-mono text-foreground mt-1.5 block">
+                  {preEventAnalytics.submittedDeptsCount} <span className="text-xs font-sans text-muted-foreground">/ {preEventAnalytics.totalDepts}</span>
+                </span>
+                <span className="text-[11px] text-emerald-500 font-semibold block mt-0.5">
+                  {preEventAnalytics.compliancePct}% submission rate
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowMissingDepts(prev => !prev)}
+                className="text-left bg-card rounded-xl p-4 border border-border/50 hover:border-red-500/40 shadow-xs cursor-pointer transition-all"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">Yet to Submit</span>
+                  <AlertCircle className="w-3.5 h-3.5 text-red-400" />
+                </div>
+                <span className="text-2xl font-extrabold font-mono text-red-500 mt-1.5 block">
+                  {preEventAnalytics.missingDeptsCount}
+                </span>
+                <span className="text-[11px] text-blue-400 underline block mt-0.5">
+                  {showMissingDepts ? 'Hide department names' : 'Click to view who has not sent'}
+                </span>
+              </button>
+
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Awaiting Approval</span>
+                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                </div>
+                <span className="text-2xl font-extrabold font-mono text-amber-500 mt-1.5 block">
+                  {preEventAnalytics.pendingListsCount}
+                </span>
+                <span className="text-[11px] text-muted-foreground block mt-0.5">
+                  Needs lists to review
+                </span>
+              </div>
+
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Approved Lists</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                </div>
+                <span className="text-2xl font-extrabold font-mono text-emerald-500 mt-1.5 block">
+                  {preEventAnalytics.approvedListsCount}
+                </span>
+                <span className="text-[11px] text-muted-foreground block mt-0.5">
+                  Added to Market List
+                </span>
+              </div>
+
+              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">Market Items Volume</span>
+                  <ShoppingBag className="w-3.5 h-3.5 text-blue-500" />
+                </div>
+                <span className="text-2xl font-extrabold font-mono text-blue-500 mt-1.5 block">
+                  {preEventAnalytics.distinctItemsCount} <span className="text-xs font-sans text-muted-foreground">items</span>
+                </span>
+                <span className="text-[11px] text-muted-foreground block mt-0.5">
+                  {preEventAnalytics.totalUnitsApproved.toLocaleString()} / {preEventAnalytics.totalUnitsRequested.toLocaleString()} units approved
+                </span>
+              </div>
+            </div>
+
+            {showMissingDepts && (
+              <Card className="bg-card border border-border/60 p-4 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                    Department Pre-Event Needs Submission Status
+                  </span>
+                  <button
+                    onClick={() => setShowMissingDepts(false)}
+                    className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    Close ✕
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="space-y-1.5">
+                    <span className="font-bold text-emerald-500 block">
+                      ✓ Submitted ({preEventAnalytics.submittedDepts.length})
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {preEventAnalytics.submittedDepts.length === 0 ? (
+                        <span className="text-muted-foreground italic">None yet</span>
+                      ) : (
+                        preEventAnalytics.submittedDepts.map(d => (
+                          <span key={d.id} className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-semibold">
+                            {d.name}
+                          </span>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="font-bold text-red-400 block">
+                      ⏳ Yet to Submit ({preEventAnalytics.missingDepts.length})
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {preEventAnalytics.missingDepts.length === 0 ? (
+                        <span className="text-emerald-500 font-semibold">All departments have submitted!</span>
+                      ) : (
+                        preEventAnalytics.missingDepts.map(d => (
+                          <span key={d.id} className="px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 font-medium">
+                            {d.name}
+                          </span>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Filter Tabs & Search */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card p-2 rounded-2xl border border-border/50">
           <div className="flex flex-wrap items-center gap-1 p-1 bg-muted/40 dark:bg-slate-800/40 rounded-xl border border-border/30">
-            {FILTER_TABS.map(tab => {
+            {(workflowMode === 'pre_event' ? PRE_EVENT_FILTER_TABS : DURING_EVENT_FILTER_TABS).map(tab => {
               const count = counts[tab.key] || 0
               return (
                 <button
@@ -509,7 +778,7 @@ function AdminRequisitionsContent() {
           </div>
 
           <Input
-            placeholder="Search department or item..."
+            placeholder="Search department, HOD, or item..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="w-full sm:w-64 h-9 text-xs bg-background/60 border-border/60"
@@ -520,106 +789,129 @@ function AdminRequisitionsContent() {
         <div className="space-y-4">
           {filteredRequests.length === 0 ? (
             <Card className="bg-card rounded-xl p-12 text-center space-y-3 border border-border/50">
-              <span className="text-4xl block">📦</span>
-              <p className="text-sm font-semibold text-muted-foreground">No store requisitions found matching this filter.</p>
+              <span className="text-4xl block">{workflowMode === 'pre_event' ? '📋' : '📦'}</span>
+              <p className="text-sm font-semibold text-muted-foreground">
+                {workflowMode === 'pre_event'
+                  ? 'No Pre-Event Departmental Needs Lists found matching this filter.'
+                  : 'No Live Event Store Requisitions found matching this filter.'}
+              </p>
             </Card>
           ) : (
             filteredRequests
               .slice((currentPage - 1) * pageSize, currentPage * pageSize)
               .map(req => {
-              const statusCfg = STATUS_CONFIG[req.status] || STATUS_CONFIG.pending_coordinator
+                const isPre = req.request_type === 'pre_event'
+                const statusCfg = isPre && req.status !== 'pending_coordinator' && req.status !== 'declined'
+                  ? { label: 'Approved for Market Purchase', bg: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.3)' }
+                  : STATUS_CONFIG[req.status] || STATUS_CONFIG.pending_coordinator
 
-              return (
-                <div
-                  key={req.id}
-                  className="bg-card rounded-xl border border-border/50 p-4 sm:p-5 space-y-3 transition-all hover:border-border"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-base font-extrabold text-foreground">
-                          {req.department?.name || 'Department'} Requisition
-                        </span>
-                        <span className="text-xs font-mono text-muted-foreground">
-                          #{req.id.substring(0, 8)}
+                return (
+                  <div
+                    key={req.id}
+                    className="bg-card rounded-xl border border-border/50 p-4 sm:p-5 space-y-3 transition-all hover:border-border"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-base font-extrabold text-foreground">
+                            {req.department?.name || 'Department'} — {isPre ? 'Pre-Event Needs List' : 'Store Requisition'}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                            isPre
+                              ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25'
+                              : 'bg-blue-500/10 text-blue-400 border-blue-500/25'
+                          }`}>
+                            {isPre ? '🛒 For Market Purchase' : '📦 From Store Stock'}
+                          </span>
+                          <span className="text-xs font-mono text-muted-foreground">
+                            #{req.id.substring(0, 8)}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted-foreground block mt-0.5">
+                          Submitted by: <strong>{req.requester?.full_name || req.requester?.email || 'HOD'}</strong> • {new Date(req.created_at).toLocaleDateString()}
                         </span>
                       </div>
-                      <span className="text-xs text-muted-foreground block mt-0.5">
-                        Requester: <strong>{req.requester?.full_name || req.requester?.email || 'HOD'}</strong> • {new Date(req.created_at).toLocaleDateString()}
+
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full flex-shrink-0 w-fit"
+                        style={{ background: statusCfg.bg, color: statusCfg.color, border: statusCfg.border }}
+                      >
+                        {statusCfg.label}
                       </span>
                     </div>
 
-                    <span
-                      className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full flex-shrink-0 w-fit"
-                      style={{ background: statusCfg.bg, color: statusCfg.color, border: statusCfg.border }}
-                    >
-                      {statusCfg.label}
-                    </span>
-                  </div>
+                    {/* Items */}
+                    <div className="p-3 bg-background/50 border border-border rounded-lg space-y-2">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">
+                        {isPre ? `Pre-Event Needs List (${Array.isArray(req.items_json) ? req.items_json.length : 0} items):` : `Requisition Items (${Array.isArray(req.items_json) ? req.items_json.length : 0} items):`}
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
+                        {Array.isArray(req.items_json) && req.items_json.map((it: any, itIdx: number) => {
+                          const reqQty = it.requested_quantity ?? it.quantity
+                          const appQty = it.approved_quantity ?? it.quantity
+                          const isAdjusted = req.status !== 'pending_coordinator' && reqQty !== undefined && appQty !== undefined && reqQty !== appQty
 
-                  {/* Requisition Items */}
-                  <div className="p-3 bg-background/50 border border-border rounded-lg space-y-2">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block font-sans">
-                      {req.request_type === 'pre_event' ? 'Needs list (before the event):' : 'Requisition Items:'}
-                    </span>
-                    <div className="space-y-1.5 text-xs">
-                      {req.items_json.map((it: any, itIdx: number) => {
-                        const reqQty = it.requested_quantity ?? it.quantity
-                        const appQty = it.approved_quantity ?? it.quantity
-                        const isAdjusted = reqQty !== undefined && appQty !== undefined && reqQty !== appQty
-
-                        return (
-                          <div key={itIdx} className="flex justify-between items-center p-2 rounded-lg bg-background/60 border border-border/40">
-                            <span className="text-foreground font-semibold">{it.name}</span>
-                            <div className="flex items-center gap-2 font-mono">
-                              {isAdjusted ? (
-                                <span className="text-xs">
-                                  <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
-                                  <span className="font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
-                                </span>
-                              ) : (
-                                <span className="font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded">
-                                  × {appQty || reqQty}
-                                </span>
-                              )}
+                          return (
+                            <div key={itIdx} className="flex justify-between items-center p-2 rounded-lg bg-background/60 border border-border/40">
+                              <div>
+                                <span className="text-foreground font-semibold block">{it.name}</span>
+                                <span className="text-[10px] text-muted-foreground uppercase">{it.unit || 'pcs'} · {it.category || 'consumable'}</span>
+                              </div>
+                              <div className="flex items-center gap-2 font-mono">
+                                {isAdjusted ? (
+                                  <span className="text-xs">
+                                    <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
+                                    <span className="font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
+                                  </span>
+                                ) : (
+                                  <span className="font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded">
+                                    {appQty || reqQty} {it.unit || 'pcs'}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {req.reviewer_comments && (
+                      <div className="text-[11px] p-2.5 rounded-lg text-muted-foreground" style={{ background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.1)' }}>
+                        <strong className="text-amber-500">Review Remarks:</strong> {req.reviewer_comments}
+                      </div>
+                    )}
+
+                    {/* Action trigger button */}
+                    <div className="flex gap-2 justify-end pt-1">
+                      {req.status === 'pending_coordinator' ? (
+                        (profile?.role !== 'coordinator' || req.assigned_approver_id === profile.id) ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => selectReqForReview(req)}
+                            className="text-xs h-8.5 px-4 cursor-pointer border-amber-500/40 text-amber-400 hover:bg-amber-500/10 font-bold shadow-xs"
+                          >
+                            {isPre ? 'Review & Approve for Market Purchase ➔' : 'Review & Edit Quantities ➔'}
+                          </Button>
+                        ) : (
+                          <span className="text-[10px] font-semibold text-slate-400 bg-slate-800/40 px-2.5 py-1 rounded-full border border-slate-700/50">
+                            Read-Only (Unassigned)
+                          </span>
                         )
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Review remarks */}
-                  {req.reviewer_comments && (
-                    <div className="text-[11px] p-2.5 rounded-lg text-muted-foreground" style={{ background: 'rgba(245,158,11,0.04)', border: '1px solid rgba(245,158,11,0.1)' }}>
-                      <strong className="text-amber-500">Review Remarks:</strong> {req.reviewer_comments}
-                    </div>
-                  )}
-
-                  {/* Action trigger button */}
-                  {req.status === 'pending_coordinator' && (
-                    (profile?.role !== 'coordinator' || req.assigned_approver_id === profile.id) ? (
-                      <div className="flex gap-2 justify-end pt-1">
+                      ) : (
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => selectReqForReview(req)}
-                          className="text-xs h-8.5 px-4 cursor-pointer border-amber-500/40 text-amber-400 hover:bg-amber-500/10 font-bold shadow-xs"
+                          className="text-xs h-8 px-3 cursor-pointer"
                         >
-                          Review &amp; Edit Quantities ➔
+                          View Details
                         </Button>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2 justify-end pt-1">
-                        <span className="text-[10px] font-semibold text-slate-400 bg-slate-800/40 px-2.5 py-1 rounded-full border border-slate-700/50">
-                          Read-Only (Unassigned)
-                        </span>
-                      </div>
-                    )
-                  )}
-                </div>
-              )
-            })
+                      )}
+                    </div>
+                  </div>
+                )
+              })
           )}
 
           <DataTablePagination
@@ -632,7 +924,7 @@ function AdminRequisitionsContent() {
           />
         </div>
 
-        {/* Requisition Review Glassmorphism Modal Overlay */}
+        {/* Review Modal Overlay */}
         {selectedReq && (
           <div
             className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in-up"
@@ -643,11 +935,20 @@ function AdminRequisitionsContent() {
             <Card className="w-full max-w-xl bg-[#0A1826] border border-blue-500/40 text-slate-100 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-slate-800">
                 <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+                      isSelectedPreEvent
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                        : 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+                    }`}>
+                      {isSelectedPreEvent ? 'Pre-Event Needs List (Market Purchase)' : 'Live Event Store Requisition'}
+                    </span>
+                  </div>
                   <CardTitle className="text-base font-bold text-white uppercase tracking-wider">
-                    Review: {selectedReq.department?.name} Request
+                    Review: {selectedReq.department?.name}
                   </CardTitle>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    ID: #{selectedReq.id.substring(0, 8)} • {selectedReq.items_json.length} line item(s)
+                    ID: #{selectedReq.id.substring(0, 8)} • {Array.isArray(selectedReq.items_json) ? selectedReq.items_json.length : 0} line item(s)
                   </p>
                 </div>
                 <button
@@ -659,22 +960,26 @@ function AdminRequisitionsContent() {
                 </button>
               </CardHeader>
               <CardContent className="space-y-4 p-5 overflow-y-auto max-h-[calc(90vh-120px)]">
-                {/* Conditional Render: Interactive Review for Pending vs Read-Only Audit for Processed */}
                 {selectedReq.status !== 'pending_coordinator' ? (
                   <div className="space-y-4 pt-2">
                     <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Requisition Items Breakdown</span>
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                          {isSelectedPreEvent ? 'Needs List Breakdown' : 'Requisition Items Breakdown'}
+                        </span>
                         <span className="text-[10px] font-mono text-slate-400">Processed Audit Log</span>
                       </div>
                       <div className="space-y-2">
-                        {selectedReq.items_json.map((it: any, idx: number) => (
+                        {Array.isArray(selectedReq.items_json) && selectedReq.items_json.map((it: any, idx: number) => (
                           <div key={idx} className="flex justify-between items-center p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs">
-                            <span className="font-semibold text-white">{it.name}</span>
+                            <div>
+                              <span className="font-semibold text-white block">{it.name}</span>
+                              <span className="text-[10px] text-slate-400 uppercase">{it.unit || 'pcs'} · {it.category || 'consumable'}</span>
+                            </div>
                             <div className="font-mono text-xs">
                               <span className="text-slate-400 mr-2">Requested: {it.requested_quantity ?? it.quantity}</span>
-                              <span className="font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                                Granted: {it.approved_quantity ?? it.quantity}
+                              <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                                Approved: {it.approved_quantity ?? it.quantity} {it.unit || 'pcs'}
                               </span>
                             </div>
                           </div>
@@ -696,13 +1001,14 @@ function AdminRequisitionsContent() {
                   </div>
                 ) : (
                   <>
-                    {/* Interactive Items adjustment list */}
                     <div className="space-y-2">
                       <Label className="text-xs font-bold text-slate-300 uppercase tracking-widest block">
-                        Edit Approved Quantities
+                        {isSelectedPreEvent ? 'Approve Quantities for Market Purchase' : 'Edit Approved Quantities'}
                       </Label>
                       <p className="text-[11px] text-slate-400">
-                        Adjust quantities or remove line items before approving. Original requested amounts are preserved.
+                        {isSelectedPreEvent
+                          ? 'Review the items this department requested for Congress. Approved quantities will be added to the Consolidated Stores Market List for purchase.'
+                          : 'Adjust quantities or remove line items before approving. Original requested amounts are preserved.'}
                       </p>
 
                       <div className="space-y-2">
@@ -711,26 +1017,44 @@ function AdminRequisitionsContent() {
                             (item.inventory_item_id && c.id === item.inventory_item_id) ||
                             c.name.toLowerCase() === item.name.toLowerCase()
                           )
-                          const isExceeding = catItem && item.approved_quantity > catItem.current_stock
+                          const availableStock = catItem
+                            ? Math.max(0, (catItem.current_stock || 0) - (catItem.reserved_stock || 0))
+                            : 0
+                          const isExceeding = !isSelectedPreEvent && catItem && item.approved_quantity > availableStock
 
                           return (
                             <div key={idx} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 text-xs">
                               <div className="flex justify-between items-center">
-                                <span className="font-bold text-white">{item.name}</span>
-                                <span className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-mono">
-                                  Requested: {item.requested_quantity} {item.unit || ''}
+                                <div>
+                                  <span className="font-bold text-white block">{item.name}</span>
+                                  <span className="text-[10px] text-slate-400 uppercase">{item.unit || 'pcs'} · {item.category || 'consumable'}</span>
+                                </div>
+                                <span className="text-[10px] text-slate-300 bg-slate-800 px-2 py-0.5 rounded font-mono">
+                                  Requested: {item.requested_quantity} {item.unit || 'pcs'}
                                 </span>
                               </div>
 
-                              {/* Live Stock Context Banner */}
-                              {catItem ? (
+                              {/* Live Stock Context Banner ONLY for During-Event Store Requisitions (or informative existing stock for Pre-Event) */}
+                              {isSelectedPreEvent ? (
+                                catItem && catItem.current_stock > 0 ? (
+                                  <div className="flex items-center justify-between p-2 rounded-lg text-[11px] font-mono bg-slate-950 border border-slate-800 text-slate-300">
+                                    <span>Already in store from previous event: <strong>{catItem.current_stock} {catItem.unit || 'pcs'}</strong></span>
+                                    <span className="text-emerald-400 text-[10px]">Market purchase item</span>
+                                  </div>
+                                ) : null
+                              ) : catItem ? (
                                 <div className={`flex items-center justify-between p-2 rounded-lg text-[11px] font-mono border ${
                                   isExceeding ? 'bg-red-500/10 border-red-500/30 text-red-300' : 'bg-slate-950 border-slate-800 text-slate-300'
                                 }`}>
-                                  <div className="flex items-center gap-1.5 font-bold">
-                                    <span>Currently in stock:</span>
-                                    <span>{catItem.current_stock} {catItem.unit || 'pcs'}</span>
-                                    {catItem.current_stock <= catItem.low_stock_threshold && (
+                                  <div className="flex items-center gap-1.5 font-bold flex-wrap">
+                                    <span>Available:</span>
+                                    <span>{availableStock} {catItem.unit || 'pcs'}</span>
+                                    {(catItem.reserved_stock || 0) > 0 && (
+                                      <span className="text-[10px] font-normal text-slate-400">
+                                        (On Hand: {catItem.current_stock}, Reserved: {catItem.reserved_stock})
+                                      </span>
+                                    )}
+                                    {availableStock <= catItem.low_stock_threshold && (
                                       <span className="text-[9px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.2 rounded border border-red-500/20">
                                         ⚠️ Low Stock
                                       </span>
@@ -742,14 +1066,16 @@ function AdminRequisitionsContent() {
                                 </div>
                               ) : (
                                 <div className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 p-1.5 rounded border border-amber-500/20">
-                                  ⚠️ Uncatalogued Item — Not tracked in stock inventory
+                                  Custom Item — Will be fulfilled manually by Stores
                                 </div>
                               )}
 
-                              {/* Approval Quantity Input & Validation Warning */}
+                              {/* Approval Quantity Input */}
                               <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800">
                                 <div className="flex items-center gap-2">
-                                  <Label className="text-[10px] font-semibold text-slate-400 uppercase">Grant Qty:</Label>
+                                  <Label className="text-[10px] font-semibold text-slate-400 uppercase">
+                                    {isSelectedPreEvent ? 'Approve to Buy:' : 'Grant Qty:'}
+                                  </Label>
                                   <Input
                                     type="number"
                                     min={0}
@@ -760,6 +1086,7 @@ function AdminRequisitionsContent() {
                                     }}
                                     className="w-20 h-7 text-xs font-mono bg-slate-950 border-slate-700 text-white"
                                   />
+                                  <span className="text-[11px] text-slate-400 font-mono">{item.unit || 'pcs'}</span>
                                 </div>
 
                                 {isExceeding ? (
@@ -787,7 +1114,7 @@ function AdminRequisitionsContent() {
                       </div>
                     </div>
 
-                    {/* Delegate selector (National Coordinator & Super Admin ONLY — filtered exclusively to Coordinators) */}
+                    {/* Delegate selector */}
                     {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
                       <div className="space-y-2 pb-4 border-b border-slate-800">
                         <Label htmlFor="del-user" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Approval Task</Label>
@@ -814,25 +1141,25 @@ function AdminRequisitionsContent() {
                       </div>
                     )}
 
-                    {/* Standard review comments */}
+                    {/* Review comments */}
                     <div className="space-y-2">
                       <Label htmlFor="review-comments" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Review Comments</Label>
                       <Textarea
                         id="review-comments"
                         value={actionComments}
                         onChange={(e) => setActionComments(e.target.value)}
-                        placeholder="Add approval comments or reasons for declining..."
+                        placeholder={isSelectedPreEvent ? 'Add remarks for HOD or Stores market team...' : 'Add approval comments or reasons for declining...'}
                         rows={3}
                         className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500 text-xs"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 pt-2">
-                      <Button onClick={() => handleAction('declined')} disabled={loading} variant="destructive" className="w-full text-xs font-bold py-2.5">
+                      <Button onClick={() => handleAction('declined')} disabled={loading} variant="destructive" className="w-full text-xs font-bold py-2.5 cursor-pointer">
                         Decline
                       </Button>
-                      <Button onClick={() => handleAction('approved')} disabled={loading} className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 shadow-xs">
-                        Approve Order
+                      <Button onClick={() => handleAction('approved')} disabled={loading} className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 shadow-xs cursor-pointer">
+                        {isSelectedPreEvent ? '✓ Approve for Market List' : '✓ Approve Store Request'}
                       </Button>
                     </div>
                   </>

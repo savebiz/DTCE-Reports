@@ -85,8 +85,10 @@ export default function ReportsExportPage() {
       const { data: reps } = await repsQuery
       setReports(reps || [])
 
-      const { data: narrs } = await supabase.from('department_narratives').select('*')
-      setNarratives((narrs || []).filter((n: any) => !eventId || !n.event_id || n.event_id === eventId))
+      let narrsQuery = supabase.from('department_narratives').select('*')
+      if (eventId) narrsQuery = narrsQuery.eq('event_id', eventId)
+      const { data: narrs } = await narrsQuery
+      setNarratives(narrs || [])
 
       const eDays = eventId ? await getEventDays(supabase, eventId) : []
       setEventDays(eDays.length > 0 || eventId ? eDays : mockEventDays)
@@ -102,7 +104,14 @@ export default function ReportsExportPage() {
       setStoreRequests(sReqs || [])
 
       const { data: logs } = await supabase.from('notification_logs').select('*')
-      setNotifLogs(logs || [])
+      const startMs = currentEvent?.start_date ? new Date(currentEvent.start_date).getTime() : null
+      const endMs = currentEvent?.end_date ? new Date(currentEvent.end_date + 'T23:59:59.999Z').getTime() : null
+      setNotifLogs((logs || []).filter((l: any) => {
+        const t = l.created_at ? new Date(l.created_at).getTime() : 0
+        if (startMs && t < startMs) return false
+        if (endMs && t > endMs) return false
+        return true
+      }))
     }
   }
 
@@ -205,10 +214,18 @@ export default function ReportsExportPage() {
       })
       const data = await res.json()
       if (data.success) {
-        showToast(`Successfully triggered daily digest reminders! Sent ${data.notifications_sent} emails in ${data.delivery_mode} mode.`, 'success')
+        const sentCount = data.notifications_dispatched ?? data.notifications_sent ?? 0
+        showToast(`Successfully triggered daily digest reminders! Dispatched ${sentCount} notifications in ${data.delivery_mode} mode.`, 'success')
         const supabase = getClient()
         const { data: logs } = await supabase.from('notification_logs').select('*')
-        setNotifLogs(logs || [])
+        const startMs = event?.start_date ? new Date(event.start_date).getTime() : null
+        const endMs = event?.end_date ? new Date(event.end_date + 'T23:59:59.999Z').getTime() : null
+        setNotifLogs((logs || []).filter((l: any) => {
+          const t = l.created_at ? new Date(l.created_at).getTime() : 0
+          if (startMs && t < startMs) return false
+          if (endMs && t > endMs) return false
+          return true
+        }))
       } else {
         showToast(`Error triggering digest: ${data.error}`, 'error')
       }
@@ -397,11 +414,9 @@ export default function ReportsExportPage() {
                   onChange={(e) => setDigestDay(e.target.value)}
                   className="w-full h-9 rounded-lg px-3 text-[13px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
                 >
-                  <option value="1" className="bg-card text-foreground">Day 1</option>
-                  <option value="2" className="bg-card text-foreground">Day 2</option>
-                  <option value="3" className="bg-card text-foreground">Day 3</option>
-                  <option value="4" className="bg-card text-foreground">Day 4</option>
-                  <option value="5" className="bg-card text-foreground">Day 5</option>
+                  {(eventDays.length > 0 ? eventDays : mockEventDays).map((ed) => (
+                    <option key={ed.id} value={String(ed.day_number)} className="bg-card text-foreground">Day {ed.day_number}</option>
+                  ))}
                 </select>
               </div>
 
@@ -505,13 +520,13 @@ export default function ReportsExportPage() {
                             <td colSpan={3} className="p-3 text-center italic">No daily report data submitted yet.</td>
                           </tr>
                         ) : (
-                          ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5'].map((dayLabel, idx) => {
-                            const dayReports = reports.filter(r => r.event_day_id === `day-${idx+1}` || r.event_day_id === mockEventDays[idx]?.id)
+                          (eventDays.length > 0 ? eventDays : mockEventDays).map((ed, idx) => {
+                            const dayReports = reports.filter(r => r.event_day_id === ed.id)
                             const mornTotal = dayReports.reduce((s, r) => s + (Number(r.attendance_morning) || 0), 0)
                             const eveTotal = dayReports.reduce((s, r) => s + (Number(r.attendance_evening) || 0), 0)
                             return (
-                              <tr key={dayLabel} className={idx % 2 === 1 ? 'bg-muted/10' : ''}>
-                                <td className="p-3 border-r border-border font-semibold text-foreground">{dayLabel}</td>
+                              <tr key={ed.id} className={idx % 2 === 1 ? 'bg-muted/10' : ''}>
+                                <td className="p-3 border-r border-border font-semibold text-foreground">Day {ed.day_number}</td>
                                 <td className="p-3 border-r border-border text-center font-mono font-bold text-foreground">{mornTotal.toLocaleString()}</td>
                                 <td className="p-3 text-center font-mono font-bold text-foreground">{eveTotal.toLocaleString()}</td>
                               </tr>
@@ -608,14 +623,24 @@ export default function ReportsExportPage() {
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border text-muted-foreground">
-                                  {deptReps.map((r, rIdx) => (
+                                  {deptReps
+                                    .slice()
+                                    .sort((a, b) => {
+                                      const dayA = eventDays.find(d => d.id === a.event_day_id)?.day_number ?? 999
+                                      const dayB = eventDays.find(d => d.id === b.event_day_id)?.day_number ?? 999
+                                      return dayA - dayB
+                                    })
+                                    .map((r, rIdx) => {
+                                      const matchedDay = eventDays.find(d => d.id === r.event_day_id)
+                                      return (
                                     <tr key={r.id}>
-                                      <td className="p-2 border-r border-border">Day {rIdx + 1}</td>
+                                      <td className="p-2 border-r border-border">Day {matchedDay?.day_number ?? (rIdx + 1)}</td>
                                       <td className="p-2 border-r border-border text-center font-mono font-semibold text-foreground">{r.attendance_morning}</td>
                                       <td className="p-2 border-r border-border text-center font-mono font-semibold text-foreground">{r.attendance_evening}</td>
                                       <td className="p-2 text-center uppercase tracking-wider text-[9px] font-bold text-emerald-500">{r.status}</td>
                                     </tr>
-                                  ))}
+                                      )
+                                    })}
                                 </tbody>
                               </table>
                             </div>

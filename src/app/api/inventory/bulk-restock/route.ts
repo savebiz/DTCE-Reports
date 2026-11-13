@@ -86,36 +86,24 @@ export async function POST(request: Request) {
         continue
       }
 
-      // Execute individual restock for matched item
-      const newStock = matchedItem.current_stock + qty
+      // Execute atomic restock RPC for matched item
+      const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc('process_inventory_restock', {
+        p_item_id: matchedItem.id,
+        p_restock_quantity: qty,
+        p_performed_by: user.id,
+        p_note: note?.trim() || `Bulk restock import${item_code ? ` (Code: ${item_code})` : ''}`,
+      })
 
-      // Update current_stock on inventory_items
-      await supabaseAdmin
-        .from('inventory_items')
-        .update({ current_stock: newStock, updated_at: new Date().toISOString() })
-        .eq('id', matchedItem.id)
-
-      // Update local state for subsequent rows matching same item in same batch
-      matchedItem.current_stock = newStock
-
-      // Insert individual audit transaction record into inventory_transactions
-      const { data: trans, error: transErr } = await supabaseAdmin
-        .from('inventory_transactions')
-        .insert({
-          inventory_item_id: matchedItem.id,
-          transaction_type: 'restock',
-          quantity_change: qty,
-          performed_by: user.id,
-          note: note?.trim() || `Bulk restock import${item_code ? ` (Code: ${item_code})` : ''}`,
-          resulting_stock_level: newStock
-        })
-        .select()
-        .single()
-
-      if (transErr) {
-        errors.push({ row: i + 1, item_code, item_name: matchedItem.name, error: transErr.message })
+      if (rpcErr || !rpcData) {
+        errors.push({ row: i + 1, item_code, item_name: matchedItem.name, error: rpcErr?.message || 'Atomic restock failed' })
       } else {
-        processedTransactions.push(trans)
+        matchedItem.current_stock = rpcData.new_stock
+        processedTransactions.push({
+          id: rpcData.transaction_id,
+          inventory_item_id: matchedItem.id,
+          quantity_change: qty,
+          resulting_stock_level: rpcData.new_stock,
+        })
       }
     }
 

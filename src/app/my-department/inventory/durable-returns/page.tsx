@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
 import { ArrowLeft, Building2, PackageCheck, AlertTriangle, CheckCircle2, ShieldAlert, Clock, RefreshCw, Send, Layers, Truck, XCircle, AlertCircle } from 'lucide-react'
+import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
+import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 
 export interface OutstandingDurableItem {
   requestId: string
@@ -67,7 +69,18 @@ export default function DurableReturnsTrackerPage() {
       .eq('id', user.id)
       .maybeSingle()
 
-    if (prof) setProfile(prof)
+    const currentEventId = !isMock ? await getCurrentEventId(supabase) : null
+    if (!isMock && prof && (prof.role === 'hod' || prof.role === 'assistant')) {
+      const assignment = await getDepartmentAssignment(supabase, user.id, currentEventId)
+      prof.department_id = assignment?.department_id ?? null
+      setProfile({ ...prof })
+      if (!prof.department_id) {
+        if (showSpinner) setLoading(false)
+        return
+      }
+    } else if (prof) {
+      setProfile(prof)
+    }
 
     if (isMock) {
       const { store: mockStore } = require('@/utils/supabase/mockClient')
@@ -85,7 +98,7 @@ export default function DurableReturnsTrackerPage() {
             const isUnresolved = ['outstanding', 'return_initiated', 'returned_damaged', 'lost'].includes(status)
 
             if (isDurable && isUnresolved && status !== 'not_applicable') {
-              const issued = Number(it.approved_quantity ?? it.quantity) || 0
+              const issued = Number(it.fulfilled_quantity ?? it.approved_quantity ?? it.quantity) || 0
               const returned = Number(it.returned_quantity) || 0
               const outstanding = Math.max(0, issued - returned)
 
@@ -117,10 +130,12 @@ export default function DurableReturnsTrackerPage() {
     }
 
     try {
-      const { data: storeReqs, error } = await supabase
+      let reqsQuery = supabase
         .from('store_requests')
         .select('*, department:departments(name)')
         .in('status', ['delivered', 'ready_for_collection', 'partially_fulfilled'])
+      if (currentEventId) reqsQuery = reqsQuery.eq('event_id', currentEventId)
+      const { data: storeReqs, error } = await reqsQuery
 
       if (error) throw error
 
@@ -137,7 +152,7 @@ export default function DurableReturnsTrackerPage() {
             const isUnresolved = ['outstanding', 'return_initiated', 'returned_damaged', 'lost'].includes(status)
 
             if (isDurable && isUnresolved && status !== 'not_applicable') {
-              const issued = Number(it.approved_quantity ?? it.quantity) || 0
+              const issued = Number(it.fulfilled_quantity ?? it.approved_quantity ?? it.quantity) || 0
               const returned = Number(it.returned_quantity) || 0
               const outstanding = Math.max(0, issued - returned)
 
@@ -324,13 +339,17 @@ export default function DurableReturnsTrackerPage() {
   })
 
   // Unique departments list for dropdown
-  const uniqueDepts = Array.from(new Set(outstandingItems.map(i => i.departmentName)))
+  const uniqueDepts = Array.from(new Map(outstandingItems.map(i => [i.departmentId, { id: i.departmentId, name: i.departmentName }])).values())
 
   // KPIs
   const totalOutstandingQty = outstandingItems.filter(i => i.returnStatus === 'outstanding' || i.returnStatus === 'return_initiated').reduce((sum, i) => sum + i.outstandingQty, 0)
   const totalInitiatedCount = outstandingItems.filter(i => i.returnStatus === 'return_initiated').length
   const totalLostCount = outstandingItems.filter(i => i.returnStatus === 'lost').length
   const totalHoldingDepts = Object.keys(groupedByDept).length
+
+  if (!isMock && profile && !profile.department_id && (profile.role === 'hod' || profile.role === 'assistant')) {
+    return <UnassignedDepartmentGate />
+  }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
@@ -422,7 +441,7 @@ export default function DurableReturnsTrackerPage() {
               <SelectContent className="max-h-60">
                 <SelectItem value="all">All Departments</SelectItem>
                 {uniqueDepts.map(d => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
+                  <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -526,12 +545,13 @@ export default function DurableReturnsTrackerPage() {
                           <td className="p-3 text-right">
                             <Button
                               size="sm"
+                              disabled={it.outstandingQty <= 0}
                               onClick={() => {
                                 setSelectedItem(it)
                                 setReturnQty(it.outstandingQty || 1)
                                 setIsLogReturnOpen(true)
                               }}
-                              className="h-7 text-[11px] font-bold cursor-pointer bg-emerald-600 hover:bg-emerald-500 text-white"
+                              className="h-7 text-[11px] font-bold cursor-pointer bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               Log Return
                             </Button>
@@ -594,7 +614,7 @@ export default function DurableReturnsTrackerPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="good">✓ Good Condition (Restores Stock &amp; Logs Return)</SelectItem>
-                      <SelectItem value="damaged">⚠️ Damaged (Restores Stock &amp; Flags Damaged Note)</SelectItem>
+                      <SelectItem value="damaged">⚠️ Damaged (Moves to Quarantine Stock — Not Available)</SelectItem>
                       <SelectItem value="lost">❌ Lost / Missing (Does NOT Restore Stock)</SelectItem>
                     </SelectContent>
                   </Select>

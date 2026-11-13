@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
-import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
+import { requireInventoryManager } from '@/lib/auth/api-guard'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
@@ -10,7 +10,7 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
 export async function POST(request: Request) {
   try {
     /* guard:POST */
-    const guard = await requireAuth({ roles: ADMIN_ROLES, allowStoresStaff: true })
+    const guard = await requireInventoryManager()
     if (!guard.ok) return guard.response
 
     const cookieStore = await cookies()
@@ -64,62 +64,56 @@ export async function POST(request: Request) {
     const invItemId = targetItem.inventory_item_id || itemId
     const deptName = reqRow.department?.name || 'Department'
 
-    const issuedQty = Number(targetItem.approved_quantity ?? targetItem.quantity) || 0
+    const issuedQty = Number(targetItem.fulfilled_quantity ?? targetItem.approved_quantity ?? targetItem.quantity) || 0
     const prevReturned = Number(targetItem.returned_quantity) || 0
     const returnQty = Math.max(1, Number(returnedQuantity) || 1)
-    const totalReturned = prevReturned + returnQty
+    const remainingOutstanding = Math.max(0, issuedQty - prevReturned)
 
+    if (returnQty > remainingOutstanding) {
+      return NextResponse.json(
+        { error: `Return quantity (${returnQty}) exceeds outstanding balance (${remainingOutstanding}).` },
+        { status: 400 }
+      )
+    }
+
+    const totalReturned = prevReturned + returnQty
     let newStatus = 'returned'
     let transactionLogged = false
     let resultingStock = 0
 
+    const auditNote =
+      condition === 'damaged'
+        ? `[DAMAGED RETURN - ${deptName}] ${conditionNote?.trim() || 'Returned in damaged condition (quarantined)'}`
+        : condition === 'lost'
+        ? `[LOST/MISSING - ${deptName}] ${conditionNote?.trim() || 'Reported lost or missing'}`
+        : `[RETURN - ${deptName}] ${conditionNote?.trim() || 'Returned in Good condition'}`
+
+    if (invItemId) {
+      const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc('process_inventory_return', {
+        p_item_id: invItemId,
+        p_return_quantity: returnQty,
+        p_condition: condition,
+        p_requisition_id: requestId,
+        p_performed_by: user.id,
+        p_note: auditNote,
+      })
+
+      if (rpcErr || !rpcData) {
+        return NextResponse.json(
+          { error: rpcErr?.message || 'Failed to record durable return.' },
+          { status: 500 }
+        )
+      }
+      resultingStock = rpcData.new_stock
+      transactionLogged = true
+    }
+
     if (condition === 'lost') {
       newStatus = 'lost'
-      // Missing / Lost: Do NOT restore stock (item is missing)
+    } else if (condition === 'damaged') {
+      newStatus = 'returned_damaged'
     } else {
-      // Good or Damaged: Item is physically back at Stores. Restore stock level!
-      if (invItemId) {
-        const { data: currentInvItem } = await supabaseAdmin
-          .from('inventory_items')
-          .select('current_stock')
-          .eq('id', invItemId)
-          .single()
-
-        if (currentInvItem) {
-          resultingStock = currentInvItem.current_stock + returnQty
-
-          // Increment current_stock
-          await supabaseAdmin
-            .from('inventory_items')
-            .update({ current_stock: resultingStock, updated_at: new Date().toISOString() })
-            .eq('id', invItemId)
-
-          // Insert audit transaction log
-          const isDamaged = condition === 'damaged'
-          const auditNote = isDamaged
-            ? `[DAMAGED RETURN - ${deptName}] ${conditionNote?.trim() || 'Returned in damaged condition'}`
-            : `[RETURN - ${deptName}] ${conditionNote?.trim() || 'Returned in Good condition'}`
-
-          await supabaseAdmin
-            .from('inventory_transactions')
-            .insert({
-              inventory_item_id: invItemId,
-              transaction_type: 'return',
-              quantity_change: returnQty,
-              performed_by: user.id,
-              note: auditNote,
-              resulting_stock_level: resultingStock
-            })
-
-          transactionLogged = true
-        }
-      }
-
-      if (condition === 'damaged') {
-        newStatus = 'returned_damaged'
-      } else {
-        newStatus = totalReturned >= issuedQty ? 'returned' : 'outstanding'
-      }
+      newStatus = totalReturned >= issuedQty ? 'returned' : 'outstanding'
     }
 
     // 2. Update line item in items_json
@@ -128,15 +122,10 @@ export async function POST(request: Request) {
       ...targetItem,
       return_status: newStatus,
       returned_quantity: totalReturned,
-      condition_note: conditionNote?.trim() || (condition === 'good' ? 'Returned in Good condition' : condition === 'damaged' ? 'Returned Damaged' : 'Reported Lost/Missing'),
+      condition_note: conditionNote?.trim() || (condition === 'good' ? 'Returned in Good condition' : condition === 'damaged' ? 'Returned Damaged (Quarantined)' : 'Reported Lost/Missing'),
       returned_at: new Date().toISOString(),
       confirmed_by: user.id
     }
-
-    // Check if ALL durable items in requisition are now returned / lost
-    const allDurableResolved = updatedItems
-      .filter((it: any) => it.category === 'durable')
-      .every((it: any) => ['returned', 'returned_damaged', 'lost'].includes(it.return_status))
 
     const { data: updatedReq, error: updateErr } = await supabaseAdmin
       .from('store_requests')

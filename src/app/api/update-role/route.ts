@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/utils/supabase/server'
 import { getServiceRoleKey } from '@/utils/supabase/admin'
+import { requireAuth } from '@/lib/auth/api-guard'
 
 export const runtime = 'nodejs'
 
@@ -9,15 +9,10 @@ const VALID_ROLES = ['hod', 'assistant', 'coordinator', 'national_coordinator', 
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Authenticate calling user
-    const supabaseUserClient = await createServerClient()
-    const { data: { user } } = await supabaseUserClient.auth.getUser()
+    // 1. Authenticate calling user (active super_admin only)
+    const auth = await requireAuth({ roles: ['super_admin'] })
+    if (!auth.ok) return auth.response
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
-    }
-
-    // 2. Verify calling user is a super_admin
     const serviceRoleKey = getServiceRoleKey()
     if (!serviceRoleKey) {
       return NextResponse.json({ error: 'Server configuration error: Service Role key is missing.' }, { status: 500 })
@@ -27,16 +22,6 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       serviceRoleKey
     )
-
-    const { data: callerProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (!callerProfile || callerProfile.role !== 'super_admin') {
-      return NextResponse.json({ error: 'Forbidden: Only super_admin can change roles.' }, { status: 403 })
-    }
 
     // 3. Parse request
     const body = await request.json()
@@ -51,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 4. Prevent self-demotion
-    if (targetUserId === user.id) {
+    if (targetUserId === auth.ctx.userId) {
       return NextResponse.json({ error: 'Cannot change your own role.' }, { status: 400 })
     }
 

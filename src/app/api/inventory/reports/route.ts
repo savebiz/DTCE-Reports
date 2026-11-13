@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { isMock } from '@/utils/supabase'
 import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
+import { getCurrentEventId } from '@/lib/events/current-event'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
@@ -186,7 +187,7 @@ export async function GET(request: NextRequest) {
               const isRelevant = ['outstanding', 'return_initiated', 'returned_damaged', 'lost'].includes(status)
 
               if (isDurable && isRelevant && status !== 'not_applicable') {
-                const issued = Number(it.approved_quantity ?? it.quantity) || 0
+                const issued = Number(it.fulfilled_quantity ?? it.approved_quantity ?? it.quantity) || 0
                 const returned = Number(it.returned_quantity) || 0
                 const outstanding = Math.max(0, issued - returned)
 
@@ -316,10 +317,13 @@ export async function GET(request: NextRequest) {
     }
 
     if (reportType === 'durable_returns') {
-      const { data: storeReqs } = await supabaseAdmin
+      const currentEventId = await getCurrentEventId(supabaseAdmin)
+      let storeReqsQuery = supabaseAdmin
         .from('store_requests')
         .select('*, department:departments(id, name)')
         .in('status', ['delivered', 'ready_for_collection', 'partially_fulfilled'])
+      if (currentEventId) storeReqsQuery = storeReqsQuery.eq('event_id', currentEventId)
+      const { data: storeReqs } = await storeReqsQuery
 
       const result: any[] = []
 

@@ -14,6 +14,7 @@
 
 export type EventType = 'convention' | 'congress' | 'other'
 export type EventStatus = 'planning' | 'requisition_open' | 'live' | 'closed' | 'archived'
+export type WindowOverride = 'auto' | 'force_open' | 'force_closed'
 
 export interface PlatformEvent {
   id: string
@@ -27,6 +28,9 @@ export interface PlatformEvent {
   is_current?: boolean | null
   requisition_opens_at?: string | null
   requisition_closes_at?: string | null
+  live_requisition_opens_at?: string | null
+  pre_event_override?: WindowOverride | null
+  live_requisition_override?: WindowOverride | null
   created_at?: string
 }
 

@@ -298,7 +298,7 @@ export async function generateSecretariatDocx(
   children.push(bulletPoint('No structured system existed for tracking challenges across departments, year-over-year issue recurrence, or post-convention feedback from departmental leadership.'))
 
   children.push(bodyText(
-    'In recognition of these persistent and well-documented operational challenges, the Secretariat Department leadership commissioned the development of a bespoke digital platform to modernise the convention reporting workflow. The resulting system — the DTCE Reporting Platform — was designed, developed, and deployed ahead of the 2026 Annual Convention, achieving full operational readiness prior to the commencement of proceedings.'
+    `In recognition of these persistent and well-documented operational challenges, the Secretariat Department leadership commissioned the development of a bespoke digital platform to modernise the event reporting workflow. The resulting system — the DTCE Reporting Platform — was designed, developed, and deployed for ${metrics.eventName}, achieving full operational readiness prior to the commencement of proceedings.`
   ))
 
   // ══════════════════════════════════════════════════════════════════════
@@ -783,7 +783,7 @@ export async function generateSecretariatDocx(
   children.push(heading(`${recSection}. STRATEGIC RECOMMENDATIONS`))
 
   children.push(bodyText(
-    'Based on the operational data gathered during this inaugural deployment and the feedback received from departmental stakeholders, the Secretariat Department respectfully submits the following recommendations to the Board for consideration:'
+    `Based on the operational data gathered during ${metrics.eventName} and the feedback received from departmental stakeholders, the Secretariat Department respectfully submits the following recommendations to the Board for consideration:`
   ))
 
   const recommendations = [
@@ -809,7 +809,7 @@ export async function generateSecretariatDocx(
   children.push(heading(`${conSection}. CONCLUSION`))
 
   children.push(bodyText(
-    'The Secretariat Department is pleased to report that the inaugural deployment of the DTCE Reporting Platform during the 2026 Annual Convention has demonstrated the transformative potential of digital operations management within the convention context.'
+    `The Secretariat Department is pleased to report that the deployment of the DTCE Reporting Platform during ${metrics.eventName} has demonstrated the transformative potential of digital operations management across all participating departments.`
   ))
 
   children.push(bodyText(

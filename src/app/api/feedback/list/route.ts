@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock, mockDepartments } from '@/utils/supabase'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
 import { store } from '@/utils/supabase/mockClient'
 import { getServiceRoleKey } from '@/utils/supabase/admin'
 
@@ -32,31 +32,15 @@ export async function GET() {
       return NextResponse.json({ feedbacks: enriched })
     }
 
-    // 1. Authenticate caller user
-    const supabaseUserClient = await createServerClient()
-    const { data: { user } } = await supabaseUserClient.auth.getUser()
+    // 1. Authenticate caller user (active admin only)
+    const auth = await requireAuth({ roles: ADMIN_ROLES })
+    if (!auth.ok) return auth.response
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
-    }
-
-    // 2. Verify caller is super_admin, coordinator, or national_coordinator
     const serviceRoleKey = getServiceRoleKey()
     const supabaseAdmin = createSupabaseClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       serviceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
-
-    const { data: callerProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    const callerRole = callerProfile?.role
-    if (callerRole !== 'super_admin' && callerRole !== 'coordinator' && callerRole !== 'national_coordinator') {
-      return NextResponse.json({ error: 'Forbidden: Only Super Admins can access feedback analytics.' }, { status: 403 })
-    }
 
     // 3. Fetch all feedback records using admin client (bypasses RLS issues)
     const { data: dbFeedbacks, error: fbErr } = await supabaseAdmin

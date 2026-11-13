@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, message: 'Stock already deducted for this requisition item.' })
     }
 
-    // 2. Try atomic stored procedure process_inventory_fulfillment
+    // 2. Atomic stored procedure process_inventory_fulfillment (no silent oversell fallback)
     const { data: rpcData, error: rpcErr } = await supabaseAdmin.rpc('process_inventory_fulfillment', {
       p_item_id: inventoryItemId,
       p_deduct_quantity: qty,
@@ -69,47 +69,14 @@ export async function POST(request: Request) {
       p_note: note?.trim() || 'Fulfilled store requisition item'
     })
 
-    let newStockResult = 0
-
-    if (!rpcErr && rpcData) {
-      newStockResult = rpcData.new_stock
-    } else {
-      // Fallback: manual lookup, stock decrement & audit log transaction
-      const { data: currentItem, error: getErr } = await supabaseAdmin
-        .from('inventory_items')
-        .select('current_stock')
-        .eq('id', inventoryItemId)
-        .single()
-
-      if (getErr || !currentItem) {
-        return NextResponse.json({ error: 'Inventory item not found.' }, { status: 404 })
-      }
-
-      newStockResult = Math.max(0, currentItem.current_stock - qty)
-
-      // Update current_stock
-      await supabaseAdmin
-        .from('inventory_items')
-        .update({ current_stock: newStockResult, updated_at: new Date().toISOString() })
-        .eq('id', inventoryItemId)
-
-      // Insert append-only transaction
-      const { error: transErr } = await supabaseAdmin
-        .from('inventory_transactions')
-        .insert({
-          inventory_item_id: inventoryItemId,
-          transaction_type: 'fulfillment_deduction',
-          quantity_change: -qty,
-          related_requisition_id: requisitionId,
-          performed_by: user.id,
-          note: note?.trim() || 'Fulfilled store requisition item',
-          resulting_stock_level: newStockResult
-        })
-
-      if (transErr) {
-        return NextResponse.json({ error: transErr.message }, { status: 500 })
-      }
+    if (rpcErr || !rpcData) {
+      return NextResponse.json(
+        { error: rpcErr?.message || 'Insufficient stock or fulfillment error.' },
+        { status: 409 }
+      )
     }
+
+    const newStockResult = rpcData.new_stock
 
     // Low Stock Threshold Alert Trigger
     const { data: updatedItem } = await supabaseAdmin
