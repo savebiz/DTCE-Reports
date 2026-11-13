@@ -16,6 +16,7 @@ import { ClipboardList, Wifi, WifiOff, Clock, Globe } from 'lucide-react'
 import { useOfflineDraft } from '@/hooks/use-offline-draft'
 import { PreEventRegistrationTotalsModal } from '@/components/registration/pre-event-totals-modal'
 import { getCurrentEventId, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
+import { evaluateDailyReportWindow } from '@/lib/events/reporting-windows'
 
 // Departments without workforce attendance breakdown
 const DEPTS_WITHOUT_ATTENDANCE = ['dept-6', 'dept-9', 'dept-13', 'dept-19', 'dept-20', 'dept-25', 'dept-26', 'dept-29', 'dept-30', 'dept-39']
@@ -773,6 +774,11 @@ function DailyLogContent() {
 
   const handleSubmit = async (submit = false) => {
     if (!profile || !department || !activeDay) return
+    const windowCheck = evaluateDailyReportWindow(activeDay)
+    if (submit && !isSuperAdminActing && !windowCheck.isOpen) {
+      showToast(windowCheck.message, 'warning')
+      return
+    }
     setLoading(true)
 
     let finalOffering = offering
@@ -1408,25 +1414,41 @@ function DailyLogContent() {
                 <p className="text-muted-foreground text-center text-xs italic">
                   This report is submitted/approved and locked. Contact Secretariat to make updates.
                 </p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  <Button
-                    onClick={() => handleSubmit(false)}
-                    disabled={loading || hasPendingSync}
-                    variant="outline"
-                    className="w-full text-xs font-semibold"
-                  >
-                    {loading ? 'Saving...' : 'Save Draft'}
-                  </Button>
-                  <Button
-                    onClick={() => handleSubmit(true)}
-                    disabled={loading}
-                    className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white"
-                  >
-                    {loading ? 'Submitting...' : !isOnline ? '📶 Submit (queues offline)' : 'Submit Daily Log'}
-                  </Button>
-                </div>
-              )}
+              ) : (() => {
+                const reportWindow = evaluateDailyReportWindow(activeDay)
+                const isSubmitLockedByWindow = !isSuperAdminActing && !reportWindow.isOpen
+                return (
+                  <div className="flex flex-col gap-2">
+                    {isSubmitLockedByWindow && (
+                      <div className="rounded-xl p-3 text-[11px] bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-300">
+                        <span className="font-bold block mb-0.5">Submission Window Not Open</span>
+                        <span>{reportWindow.message}</span>
+                      </div>
+                    )}
+                    <Button
+                      onClick={() => handleSubmit(false)}
+                      disabled={loading || hasPendingSync}
+                      variant="outline"
+                      className="w-full text-xs font-semibold"
+                    >
+                      {loading ? 'Saving...' : 'Save Draft'}
+                    </Button>
+                    <Button
+                      onClick={() => handleSubmit(true)}
+                      disabled={loading || isSubmitLockedByWindow}
+                      className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
+                    >
+                      {loading
+                        ? 'Submitting...'
+                        : isSubmitLockedByWindow
+                        ? 'Submission Locked Until Event Day'
+                        : !isOnline
+                        ? '📶 Submit (queues offline)'
+                        : 'Submit Daily Log'}
+                    </Button>
+                  </div>
+                )
+              })()}
             </CardContent>
           </Card>
         </div>

@@ -140,12 +140,11 @@ export default function RootLandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             {/* Left Column: Editorial Headline & Primary CTA */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-muted-foreground shadow-2xs">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Multi-Event Operations Platform · Offline-Ready</span>
-              </div>
+              <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.18em] text-amber-700 dark:text-amber-400">
+                Global Convention &amp; Congress Operations
+              </p>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight text-foreground leading-[1.08]">
+              <h1 className="text-4xl sm:text-5xl lg:text-[64px] xl:text-[68px] font-extrabold tracking-[-0.03em] text-foreground leading-[1.04]">
                 One Command Centre{' '}
                 <span className="text-amber-600 dark:text-amber-400">
                   for Every Event.
