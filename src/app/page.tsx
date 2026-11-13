@@ -1,73 +1,118 @@
 import React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { PwaInstallButton } from '@/components/pwa-install-button'
 import {
   ArrowRight,
   CheckCircle2,
   ClipboardCheck,
-  FileSpreadsheet,
+  FileText,
+  Layers,
   Lock,
   PackageCheck,
   ShieldCheck,
   WifiOff,
 } from 'lucide-react'
 
-const PREVIEW_DEPTS = [
-  { name: 'Medical & First Aid', status: 'Submitted', tone: 'emerald' },
-  { name: 'Registration', status: 'Reviewed', tone: 'blue' },
-  { name: 'Ushering & Protocol', status: 'Submitted', tone: 'emerald' },
-  { name: 'Central Stores', status: 'Active', tone: 'amber' },
+const WORKFLOW_ROWS = [
+  { name: 'Medical & First Aid', stage: 'Daily Log', status: 'Submitted', tone: 'emerald' },
+  { name: 'Registration', stage: 'Live Telemetry', status: 'Reviewed', tone: 'blue' },
+  { name: 'Ushering & Protocol', stage: 'Daily Log', status: 'Submitted', tone: 'emerald' },
+  { name: 'Central Stores', stage: 'Fulfillment', status: 'Active', tone: 'amber' },
+] as const
+
+const CAPABILITIES = [
+  {
+    icon: ClipboardCheck,
+    title: 'Departmental Daily Reporting',
+    description:
+      'Attendance, workforce breakdown, financial collections, and operational challenges captured offline-first and synced automatically.',
+    accent: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  },
+  {
+    icon: PackageCheck,
+    title: 'Two-Stage Stores & Procurement',
+    description:
+      'Collect pre-event market needs lists for executive sign-off, then track live warehouse issues, stock reservations, and durable returns.',
+    accent: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20',
+  },
+  {
+    icon: FileText,
+    title: 'Executive Board Compilation',
+    description:
+      'Aggregate departmental narratives, year-over-year comparisons, and logistics audits into polished Word (.docx) executive packs.',
+    accent: 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20',
+  },
+] as const
+
+const LIFECYCLE_STEPS = [
+  {
+    step: 'Pre-Event',
+    title: 'Needs & Market Approval',
+    detail: 'Departments submit pre-event item lists inside the configured window for Coordinator approval.',
+  },
+  {
+    step: 'Live Event',
+    title: 'Daily Logs & Store Issues',
+    detail: 'Teams file daily metrics and request stocked materials while Secretariat monitors compliance live.',
+  },
+  {
+    step: 'Post-Event',
+    title: 'Narratives & Board Pack',
+    detail: 'Verify durable equipment returns, finalize departmental summaries, and export the executive report.',
+  },
 ] as const
 
 export default function RootLandingPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#06090F] text-slate-100 font-sans selection:bg-amber-500/30">
-      {/* Subtle radial atmosphere */}
+    <div className="min-h-screen flex flex-col bg-background text-foreground font-sans antialiased selection:bg-amber-500/25">
+      {/* Subtle architectural top glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-0 h-[520px] opacity-60"
+        className="pointer-events-none fixed inset-x-0 top-0 h-[480px] opacity-60 dark:opacity-80"
         style={{
           background:
-            'radial-gradient(ellipse 75% 60% at 50% -10%, rgba(15, 42, 74, 0.85), transparent 75%)',
+            'radial-gradient(ellipse 75% 55% at 50% -15%, rgba(15, 42, 74, 0.22), transparent 75%)',
         }}
       />
 
       {/* Sticky Top Command Bar */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#06090F]/85 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="h-9 w-9 shrink-0 rounded-xl bg-white p-1 shadow-[0_0_0_1px_rgba(245,158,11,0.3)]">
+      <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[1360px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
+          <Link href="/" className="flex items-center gap-3 min-w-0">
+            <div className="h-9 w-9 shrink-0 rounded-xl bg-white p-1 border border-border shadow-xs">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/dtce-logo.png"
-                alt="RCCG DTCE Crest"
+                alt="DTCE Reporting Crest"
                 width={36}
                 height={36}
                 className="h-full w-full object-contain"
               />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold tracking-tight text-white truncate">
-                  DTCE Reporting
-                </span>
-                <span className="hidden sm:inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-amber-300">
-                  RCCG DTCE
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 truncate hidden sm:block">
-                Convention &amp; Congress Operations Command
-              </p>
+              <span className="text-sm font-bold tracking-tight text-foreground block truncate">
+                DTCE Reporting
+              </span>
+              <span className="text-[11px] text-muted-foreground hidden sm:block truncate">
+                Directorate of Teens &amp; Children Education
+              </span>
             </div>
-          </div>
+          </Link>
 
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            <div className="sm:hidden">
+              <ThemeToggle compact />
+            </div>
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
             <PwaInstallButton variant="compact" />
             <Link href="/login">
               <Button
                 size="sm"
-                className="h-10 sm:h-9 px-4 bg-amber-500 hover:bg-amber-400 text-[#06090F] font-bold text-xs cursor-pointer shadow-sm"
+                className="h-9 px-4 bg-[#0F2A4A] hover:bg-[#163861] text-white dark:bg-amber-500 dark:hover:bg-amber-400 dark:text-[#06090F] font-semibold text-xs cursor-pointer shadow-xs"
               >
                 Sign In
               </Button>
@@ -78,206 +123,215 @@ export default function RootLandingPage() {
 
       {/* Main Content */}
       <main className="relative z-10 flex-1">
-        {/* Hero Section — Mobile-first: Headline & CTA appear immediately above the fold */}
-        <section className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10 pt-10 pb-12 sm:pt-14 sm:pb-16 lg:pt-20 lg:pb-20">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
-            {/* Left Column: Command Hero & Primary CTAs */}
+        {/* Hero Section — Mobile-first above the fold */}
+        <section className="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-10 pt-10 pb-12 sm:pt-14 sm:pb-16 lg:pt-20 lg:pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+            {/* Left Column: Editorial Headline & Primary CTA */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/10 bg-[#0F2A4A]/60 px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider text-slate-300">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>RCCG DTCE · Convention &amp; Congress · Offline-Ready PWA</span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-muted-foreground shadow-2xs">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Multi-Event Operations Platform · Offline-Ready</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-bold tracking-tight text-white leading-[1.08]">
-                Unified Convention &amp; Congress{' '}
-                <span className="text-amber-400">Operations.</span>
+              <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight text-foreground leading-[1.08]">
+                One Command Centre{' '}
+                <span className="text-amber-600 dark:text-amber-400">
+                  for Every Event.
+                </span>
               </h1>
 
-              <p className="text-sm sm:text-base lg:text-lg text-slate-300/90 max-w-2xl leading-relaxed">
-                Real-time daily reporting, pre-event market procurement, central stores
-                fulfillment, and one-click Secretariat Board DOCX compilation across{' '}
-                <span className="font-semibold text-white">43+ departments</span>.
+              <p className="max-w-xl text-sm sm:text-base text-muted-foreground leading-relaxed">
+                Coordinate daily departmental reporting, two-stage market &amp; central stores
+                requisitions, and executive DOCX board packs across 43+ operational teams.
               </p>
 
-              {/* Primary & Secondary CTAs — full-width on mobile, inline on sm+ */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
                 <Link href="/login" className="w-full sm:w-auto">
                   <Button
                     size="lg"
-                    className="w-full sm:w-auto h-12 px-6 bg-amber-500 hover:bg-amber-400 text-[#06090F] font-bold text-sm cursor-pointer shadow-lg shadow-amber-500/10 flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto h-12 px-6 bg-[#0F2A4A] hover:bg-[#163861] text-white dark:bg-amber-500 dark:hover:bg-amber-400 dark:text-[#06090F] font-bold text-sm cursor-pointer shadow-sm"
                   >
-                    <span>Sign In to Command</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <span>Sign In to Workspace</span>
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
-                <div className="w-full sm:w-auto [&>button]:w-full sm:[&>button]:w-auto [&>button]:h-12">
-                  <PwaInstallButton />
-                </div>
+                <a
+                  href="#capabilities"
+                  className="inline-flex h-12 items-center justify-center rounded-lg border border-border bg-card px-5 text-sm font-semibold text-foreground hover:bg-accent transition-colors"
+                >
+                  Explore Capabilities
+                </a>
               </div>
 
-              {/* Trust / Access Clarification Strip */}
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-2 text-xs text-slate-400">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                  Secretariat-issued credentials required
+                  <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  Role-scoped access control
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <WifiOff className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  Offline draft &amp; auto-sync enabled
+                  <WifiOff className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  Offline draft &amp; auto-sync
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  Convention, Congress &amp; Special Events
                 </span>
               </div>
             </div>
 
-            {/* Right Column: Framed Oversight Matrix Preview Card */}
+            {/* Right Column: Clean Architectural Oversight Preview */}
             <div className="lg:col-span-5">
-              <div className="rounded-2xl border border-white/10 bg-[#0B1220]/90 p-5 sm:p-6 shadow-2xl">
-                <div className="flex items-center justify-between gap-2 pb-4 border-b border-white/10">
+              <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-[0_8px_30px_rgba(15,42,74,0.06)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.45)] space-y-5">
+                <div className="flex items-center justify-between gap-3 border-b border-border/70 pb-4">
                   <div>
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 block">
-                      Oversight Matrix Preview
-                    </span>
-                    <h2 className="text-sm font-bold text-white mt-0.5">
-                      Secretariat Command Telemetry
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Secretariat Overview
+                    </p>
+                    <h2 className="text-base font-bold text-foreground mt-0.5">
+                      Live Compliance &amp; Logistics
                     </h2>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-mono font-semibold text-emerald-300 shrink-0">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    PWA Ready
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Synced
                   </span>
                 </div>
 
-                {/* 3 Tabular KPI Tiles */}
-                <div className="grid grid-cols-3 gap-2.5 my-4">
-                  <div className="rounded-xl border border-white/10 bg-[#0F172A]/80 p-3">
-                    <span className="text-[10px] font-mono uppercase text-slate-400 block">
+                {/* Summary Metrics Strip */}
+                <div className="grid grid-cols-3 gap-2.5">
+                  <div className="rounded-xl border border-border/70 bg-muted/40 p-3">
+                    <span className="text-[11px] text-muted-foreground block">
                       Departments
                     </span>
-                    <span className="text-lg sm:text-xl font-bold font-mono text-white mt-1 block">
+                    <span className="text-xl font-extrabold tabular-nums text-foreground mt-0.5 block">
                       43+
                     </span>
                   </div>
-                  <div className="rounded-xl border border-white/10 bg-[#0F172A]/80 p-3">
-                    <span className="text-[10px] font-mono uppercase text-slate-400 block">
+                  <div className="rounded-xl border border-border/70 bg-muted/40 p-3">
+                    <span className="text-[11px] text-muted-foreground block">
                       Stores Flow
                     </span>
-                    <span className="text-lg sm:text-xl font-bold font-mono text-amber-400 mt-1 block">
+                    <span className="text-xl font-extrabold text-amber-600 dark:text-amber-400 mt-0.5 block">
                       2-Stage
                     </span>
                   </div>
-                  <div className="rounded-xl border border-white/10 bg-[#0F172A]/80 p-3">
-                    <span className="text-[10px] font-mono uppercase text-slate-400 block">
-                      Board Pack
+                  <div className="rounded-xl border border-border/70 bg-muted/40 p-3">
+                    <span className="text-[11px] text-muted-foreground block">
+                      Board Export
                     </span>
-                    <span className="text-lg sm:text-xl font-bold font-mono text-emerald-400 mt-1 block">
+                    <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
                       DOCX
                     </span>
                   </div>
                 </div>
 
-                {/* Sample Department Status Rows */}
+                {/* Departmental Workflow Sample */}
                 <div className="space-y-2">
-                  {PREVIEW_DEPTS.map((dept) => (
+                  {WORKFLOW_ROWS.map((row) => (
                     <div
-                      key={dept.name}
-                      className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-[#070B14] px-3.5 py-2.5 text-xs"
+                      key={row.name}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-background/60 px-3.5 py-2.5"
                     >
-                      <span className="font-medium text-slate-200 truncate">
-                        {dept.name}
-                      </span>
+                      <div className="min-w-0">
+                        <span className="text-xs sm:text-sm font-semibold text-foreground block truncate">
+                          {row.name}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground block">
+                          {row.stage}
+                        </span>
+                      </div>
                       <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-mono font-semibold uppercase shrink-0 ${
-                          dept.tone === 'emerald'
-                            ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
-                            : dept.tone === 'blue'
-                              ? 'bg-blue-500/10 text-blue-300 border border-blue-500/30'
-                              : 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap shrink-0 border ${
+                          row.tone === 'emerald'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/25'
+                            : row.tone === 'blue'
+                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25'
+                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25'
                         }`}
                       >
-                        <CheckCircle2 className="w-3 h-3" />
-                        {dept.status}
+                        {row.status}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <p className="mt-4 text-[11px] text-slate-400 leading-relaxed">
-                  Live compliance matrix, challenge tracking, and approved allocations unlock
-                  immediately after sign-in.
-                </p>
+                <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                    Department-scoped data isolation
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* 3-Column Bento Capability Strip */}
-        <section className="border-t border-white/10 bg-[#090E18]/80">
-          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10 py-12 sm:py-16">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8">
-              <div>
-                <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 block mb-1.5">
-                  Operational Architecture
-                </span>
-                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                  Built for Convention &amp; Congress Ground Conditions
-                </h2>
-              </div>
-              <span className="text-xs text-slate-400">
-                HODs · Assistants · Central Stores · Secretariat · Leadership
-              </span>
+        {/* Capabilities Bento Grid */}
+        <section
+          id="capabilities"
+          className="border-t border-border/70 bg-muted/25 dark:bg-muted/10"
+        >
+          <div className="mx-auto max-w-[1360px] px-4 sm:px-6 lg:px-10 py-12 sm:py-16 space-y-10">
+            <div className="max-w-2xl space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                Core Platform Modules
+              </p>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                Built for speed on the ground and clarity at the Board table.
+              </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-              <div className="rounded-2xl border border-white/10 bg-[#0D1422] p-6 space-y-3">
-                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
-                  <ClipboardCheck className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-white">
-                  Field Entry &amp; Offline Drafts
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                  HODs and Assistants submit daily attendance, offerings, and department-specific
-                  metrics even when convention-ground connectivity drops—auto-syncing when online.
-                </p>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {CAPABILITIES.map((cap) => {
+                const Icon = cap.icon
+                return (
+                  <div
+                    key={cap.title}
+                    className="rounded-2xl border border-border bg-card p-6 space-y-3 shadow-2xs transition-colors hover:border-border/90"
+                  >
+                    <div
+                      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl border ${cap.accent}`}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-base font-bold text-foreground">
+                      {cap.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {cap.description}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
 
-              <div className="rounded-2xl border border-white/10 bg-[#0D1422] p-6 space-y-3">
-                <div className="h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-white">
-                  Secretariat Oversight &amp; Locking
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                  Real-time compliance matrix across all 43+ departments with instant review,
-                  approval locking, challenge escalation tracking, and event-window controls.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-[#0D1422] p-6 space-y-3">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                  <PackageCheck className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-bold text-white">
-                  Stores &amp; Executive DOCX
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                  Two-stage procurement (Pre-Event Market Lists → Live Counter Fulfillment &amp;
-                  Durable Returns) plus one-click compiled DOCX Board &amp; Stores reports.
-                </p>
+            {/* 3-Stage Event Lifecycle */}
+            <div className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-border">
+                {LIFECYCLE_STEPS.map((item) => (
+                  <div key={item.step} className="pt-4 first:pt-0 md:pt-0 md:pl-6 first:md:pl-0 space-y-1.5">
+                    <span className="inline-block text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                      {item.step}
+                    </span>
+                    <h4 className="text-sm font-bold text-foreground">
+                      {item.title}
+                    </h4>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                      {item.detail}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 bg-[#06090F]">
-        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
-            <span>RCCG DTCE Secretariat · Digital Operations &amp; Reporting Platform</span>
-          </div>
-          <span>Audit-Ready · Role-Based Access · Multi-Event</span>
+      {/* Clean Single Footer */}
+      <footer className="border-t border-border/70 bg-background">
+        <div className="mx-auto flex max-w-[1360px] flex-col sm:flex-row items-center justify-between gap-2 px-4 sm:px-6 lg:px-10 py-5 text-xs text-muted-foreground">
+          <span>RCCG Directorate of Teens &amp; Children Education</span>
+          <span>Secure Operations &amp; Reporting Workspace</span>
         </div>
       </footer>
     </div>

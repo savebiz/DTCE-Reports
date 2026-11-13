@@ -6,18 +6,25 @@ import { useRouter } from 'next/navigation'
 import { getClient, isMock } from '@/utils/supabase'
 import { AuthInput } from '@/components/ui/auth-input'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { ScheduleDayCard } from '@/components/ui/schedule-day-card'
-import type { DayStatus } from '@/components/ui/schedule-day-card'
+import { ArrowLeft, ClipboardCheck, FileText, PackageCheck } from 'lucide-react'
 
-// ── Convention schedule (decorative, matches real event days) ───────────────
-const days: { label: string; num: number; status: DayStatus; isToday: boolean }[] = [
-  { label: 'Mon', num: 3, isToday: false, status: 'submitted' },
-  { label: 'Tue', num: 4, isToday: false, status: 'submitted' },
-  { label: 'Wed', num: 5, isToday: true,  status: 'today'     },
-  { label: 'Thu', num: 6, isToday: false, status: 'upcoming'  },
-  { label: 'Fri', num: 7, isToday: false, status: 'upcoming'  },
-  { label: 'Sat', num: 8, isToday: false, status: 'upcoming'  },
-]
+const WORKSPACE_PILLARS = [
+  {
+    icon: ClipboardCheck,
+    title: 'Daily Departmental Logs',
+    desc: 'Attendance, workforce, collections, and challenges synced online or offline.',
+  },
+  {
+    icon: PackageCheck,
+    title: 'Two-Stage Stores & Market Flow',
+    desc: 'Pre-event needs lists, central warehouse requisitions, and durable returns.',
+  },
+  {
+    icon: FileText,
+    title: 'Executive Board Compilation',
+    desc: 'Automated Word (.docx) reporting packs and cross-event analytics.',
+  },
+] as const
 
 // ── Field-level validation ──────────────────────────────────────────────────
 function validateFields(username: string, password: string) {
@@ -187,160 +194,122 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex flex-col lg:flex-row"
-      style={{ background: 'var(--background)' }}
-    >
-      {/* ── Left Panel: Cinematic Brand Side (desktop only) ── */}
-      <aside
-        className="relative hidden lg:flex w-5/12 flex-col justify-between overflow-hidden p-12"
-        style={{
-          background: 'linear-gradient(160deg, #0C1220 0%, #06090F 50%, #0A1628 100%)',
-          borderRight: '1px solid rgba(255,255,255,0.07)',
-        }}
-      >
-        {/* Ambient glow orbs */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute top-[-10%] left-[-10%] h-96 w-96 rounded-full opacity-20"
-            style={{ background: 'radial-gradient(circle, #1E40AF 0%, transparent 70%)' }} />
-          <div className="absolute bottom-[-5%] right-[-5%] h-80 w-80 rounded-full opacity-10"
-            style={{ background: 'radial-gradient(circle, #F59E0B 0%, transparent 70%)' }} />
+    <div className="min-h-screen flex flex-col lg:flex-row bg-background text-foreground font-sans antialiased">
+      {/* ── Left Panel: Architectural Brand Side (desktop only, theme-aware) ── */}
+      <aside className="relative hidden lg:flex w-5/12 flex-col justify-between overflow-hidden p-12 border-r border-border bg-muted/30 dark:bg-[#090E18]">
+        {/* Ambient glow orbs (subtle in both light & dark) */}
+        <div className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-100">
+          <div
+            className="absolute top-[-10%] left-[-10%] h-96 w-96 rounded-full opacity-20"
+            style={{ background: 'radial-gradient(circle, #1E40AF 0%, transparent 70%)' }}
+          />
+          <div
+            className="absolute bottom-[-5%] right-[-5%] h-80 w-80 rounded-full opacity-10"
+            style={{ background: 'radial-gradient(circle, #F59E0B 0%, transparent 70%)' }}
+          />
         </div>
 
         {/* Logo & tagline */}
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-8">
-            {/* DTCE Logo badge */}
-            <div
-              className="flex-shrink-0 h-14 w-14 rounded-2xl overflow-hidden"
-              style={{
-                boxShadow: '0 0 0 1px rgba(245,158,11,0.25), 0 0 20px rgba(245,158,11,0.12)',
-                background: '#fff',
-              }}
-            >
+        <div className="relative z-10 space-y-6">
+          <Link href="/" className="inline-flex items-center gap-3 group">
+            <div className="flex-shrink-0 h-12 w-12 rounded-2xl overflow-hidden bg-white p-1.5 border border-border shadow-xs">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/dtce-logo.png"
-                alt="DTCE Junior Church Global"
-                width={56}
-                height={56}
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                alt="DTCE Reporting Crest"
+                width={48}
+                height={48}
+                className="h-full w-full object-contain"
               />
             </div>
             <div>
-              <div className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">
-                DTCE Oversight System
-              </div>
+              <span className="text-base font-bold tracking-tight text-foreground block">
+                DTCE Reporting
+              </span>
+              <span className="text-xs text-muted-foreground block">
+                Operations &amp; Logistics Workspace
+              </span>
             </div>
-          </div>
-
-          <h1 className="text-3xl font-bold text-white leading-tight">
-            Executive Command<br />
-            <span className="text-gradient-gold">Portal</span>
-          </h1>
-          <p className="mt-3 text-[13px] text-slate-400 leading-relaxed max-w-xs">
-            Unified Convention &amp; Congress Operations — sign in with your provisioned credentials.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 mt-4 text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors"
-          >
-            ← Back to Portal Overview
           </Link>
+
+          <div className="space-y-3 pt-2">
+            <h1 className="text-3xl font-extrabold tracking-tight text-foreground leading-tight">
+              Sign in to your{' '}
+              <span className="text-amber-600 dark:text-amber-400">
+                operations workspace.
+              </span>
+            </h1>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
+              Access your assigned department portal, store requisitions, or executive oversight console.
+            </p>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 pt-1 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Back to Portal Overview
+            </Link>
+          </div>
         </div>
 
-        {/* Convention Schedule */}
-        <div className="relative z-10 space-y-2">
-          <p className="text-[10px] font-bold tracking-widest text-slate-600 uppercase mb-3">
-            Convention Schedule
-          </p>
-          {days.map((day) => (
-            <ScheduleDayCard
-              key={day.num}
-              dayNum={day.num}
-              dayLabel={day.label}
-              status={day.status}
-              isToday={day.isToday}
-            />
-          ))}
+        {/* Workspace Pillars (replaces static schedule numbers) */}
+        <div className="relative z-10 space-y-3">
+          {WORKSPACE_PILLARS.map((pillar) => {
+            const Icon = pillar.icon
+            return (
+              <div
+                key={pillar.title}
+                className="flex items-start gap-3 rounded-xl border border-border/80 bg-card/80 p-3.5"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-foreground block">
+                    {pillar.title}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground leading-snug block mt-0.5">
+                    {pillar.desc}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
         </div>
 
-        <div className="relative z-10 text-[10px] font-mono text-slate-700 uppercase tracking-widest">
+        <div className="relative z-10 text-xs text-muted-foreground">
           RCCG Directorate of Teens &amp; Children Education
         </div>
       </aside>
 
       {/* ── Right Panel: Login Form ── */}
-      <main className="flex flex-1 flex-col">
-        {/* Mobile header bar */}
-        <div
-          className="flex lg:hidden items-center justify-between px-5 py-4 border-b"
-          style={{
-            background: '#06090F',
-            borderColor: 'rgba(255,255,255,0.06)',
-          }}
-        >
-          <div className="flex items-center gap-2.5">
-            <Link href="/" className="flex items-center gap-2.5 min-w-0">
-              <div
-                className="flex-shrink-0 h-9 w-9 rounded-xl overflow-hidden"
-                style={{ background: '#fff', boxShadow: '0 0 0 1px rgba(245,158,11,0.2)' }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/dtce-logo.png"
-                  alt="DTCE Junior Church Global"
-                  width={36}
-                  height={36}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
-              </div>
-              <span className="text-sm font-bold text-white truncate">DTCE Command Portal</span>
-            </Link>
-          </div>
+      <main className="flex flex-1 flex-col bg-background">
+        {/* Mobile & Tablet header bar */}
+        <div className="flex lg:hidden items-center justify-between gap-2 px-4 sm:px-6 py-3.5 border-b border-border bg-background/90 backdrop-blur-md">
+          <Link href="/" className="flex items-center gap-2.5 min-w-0">
+            <div className="flex-shrink-0 h-9 w-9 rounded-xl overflow-hidden bg-white p-1 border border-border shadow-2xs">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/dtce-logo.png"
+                alt="DTCE Reporting Crest"
+                width={36}
+                height={36}
+                className="h-full w-full object-contain"
+              />
+            </div>
+            <span className="text-sm font-bold text-foreground truncate">
+              DTCE Reporting
+            </span>
+          </Link>
           <div className="flex items-center gap-2 shrink-0">
-            <Link href="/" className="text-xs font-semibold text-amber-400 hover:text-amber-300 px-2 py-1">
+            <Link
+              href="/"
+              className="inline-flex h-9 items-center rounded-lg border border-border bg-card px-3 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
+            >
               Overview
             </Link>
             <ThemeToggle compact />
           </div>
-        </div>
-
-        {/* Mobile schedule chip rail */}
-        <div
-          className="flex lg:hidden gap-2 px-5 py-3 overflow-x-auto scrollbar-hide"
-          style={{
-            background: '#06090F',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
-          }}
-        >
-          {days.map((day) => (
-            <div
-              key={day.num}
-              className="flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl"
-              style={
-                day.isToday
-                  ? { background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)' }
-                  : { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
-              }
-            >
-              <span
-                className="font-tabular text-xs font-bold"
-                style={{ color: day.isToday ? '#FCD34D' : '#475569' }}
-              >
-                {day.num}
-              </span>
-              <span
-                className="text-[9px] font-semibold uppercase tracking-wide"
-                style={{ color: day.isToday ? '#F1F5F9' : '#475569' }}
-              >
-                {day.label}
-              </span>
-              {day.isToday && (
-                <span className="h-1 w-1 rounded-full pulse-dot" style={{ background: '#FBBF24' }} />
-              )}
-            </div>
-          ))}
         </div>
 
         {/* Form area */}
@@ -451,11 +420,8 @@ export default function LoginPage() {
             </div>
 
             {/* Footer note */}
-            <p
-              className="text-center text-[11px]"
-              style={{ color: 'var(--muted-foreground)' }}
-            >
-              RCCG Directorate of Teens &amp; Children Education · Convention Edition
+            <p className="text-center text-xs text-muted-foreground">
+              RCCG Directorate of Teens &amp; Children Education
             </p>
           </div>
         </div>
