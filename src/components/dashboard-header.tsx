@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getClient, isMock, mockDepartments } from '@/utils/supabase'
-import { LayoutGrid, FileText, BarChart2, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit, Layers, Award, MessageSquare, ClipboardList } from 'lucide-react'
+import { LayoutGrid, FileText, Users, LogOut, Menu, X, ShoppingCart, Boxes, Settings, FileEdit, Layers, Award, MessageSquare, ClipboardList } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
@@ -12,7 +12,7 @@ import { isGeneralSecretary } from '@/lib/auth/titles'
 
 const NAV_ITEMS = [
   { label: 'Overview',            href: '/dashboard',                     icon: LayoutGrid },
-  { label: 'YoY Analytics',       href: '/dashboard/yoy',                 icon: BarChart2  },
+
   { label: 'Requisitions',        href: '/dashboard/store-requisitions',  icon: ShoppingCart },
   { label: 'Market List',         href: '/dashboard/market-list',         icon: ClipboardList },
   { label: 'Inventory Oversight', href: '/dashboard?tab=inventory-oversight', icon: Layers },
