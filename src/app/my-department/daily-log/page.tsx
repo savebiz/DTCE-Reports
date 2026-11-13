@@ -12,10 +12,10 @@ import { Button } from '@/components/ui/button'
 import { SchemaFormRenderer } from '@/components/schema-form-renderer'
 import { NumberField } from '@/components/ui/number-field'
 import { CurrencyField } from '@/components/ui/currency-field'
-import { ClipboardList, Wifi, WifiOff, Clock, Globe, ArrowLeft, ArrowRight, AlertTriangle, X, CheckCircle2 } from 'lucide-react'
+import { ClipboardList, Wifi, WifiOff, Clock, Globe, ArrowLeft, ArrowRight, AlertTriangle, X, CheckCircle2, Lock } from 'lucide-react'
 import { useOfflineDraft } from '@/hooks/use-offline-draft'
 import { PreEventRegistrationTotalsModal } from '@/components/registration/pre-event-totals-modal'
-import { getCurrentEventId, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
+import { getCurrentEvent, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
 import { evaluateDailyReportWindow } from '@/lib/events/reporting-windows'
 import { ModernSelect } from '@/components/ui/modern-select'
 
@@ -36,6 +36,7 @@ function DailyLogContent() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
   const [activeDay, setActiveDay] = useState<any | null>(null)
   const [eventDays, setEventDays] = useState<any[]>([])
+  const [currentEvent, setCurrentEvent] = useState<any | null>(null)
   
   // Data State
   const [reportId, setReportId] = useState<string | null>(null)
@@ -118,7 +119,9 @@ function DailyLogContent() {
       }
     }
 
-    const currentEventId = await getCurrentEventId(supabase)
+    const ev = await getCurrentEvent(supabase)
+    setCurrentEvent(ev)
+    const currentEventId = ev?.id ?? null
 
     if (activeProfile) {
       if (!activeProfile.department_id && !isMock) {
@@ -798,7 +801,7 @@ function DailyLogContent() {
 
   const handlePreSubmitCheck = () => {
     if (!activeDay || !department) return
-    const windowCheck = evaluateDailyReportWindow(activeDay)
+    const windowCheck = evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent)
     if (!isSuperAdminActing && !windowCheck.isOpen) {
       showToast(windowCheck.message, 'warning')
       return
@@ -865,7 +868,7 @@ function DailyLogContent() {
 
   // ── Auto-flush when connection returns with a pending offline payload ──────
   const handleOfflineFlush = useCallback(async (pendingPayload: any) => {
-    const windowCheck = evaluateDailyReportWindow(activeDay)
+    const windowCheck = evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent)
     if (!isSuperAdminActing && !windowCheck.isOpen) {
       showToast(windowCheck.message, 'warning')
       return
@@ -883,7 +886,7 @@ function DailyLogContent() {
 
   const handleSubmit = async (submit = false) => {
     if (!profile || !department || !activeDay) return
-    const windowCheck = evaluateDailyReportWindow(activeDay)
+    const windowCheck = evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent)
     if (submit && !isSuperAdminActing && !windowCheck.isOpen) {
       showToast(windowCheck.message, 'warning')
       return
@@ -1146,6 +1149,27 @@ function DailyLogContent() {
           })}
         </div>
       </div>
+
+      {!isSuperAdminActing && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen && (
+        <div className="rounded-xl border border-amber-500/35 bg-amber-500/10 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-start gap-2.5 text-amber-800 dark:text-amber-300">
+            <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+            <div className="text-xs">
+              <span className="font-bold block">Daily Reporting Locked (Pre-Event Phase)</span>
+              <span>{evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).message}</span>
+            </div>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => router.push('/my-department')}
+            className="h-8 px-3 text-xs font-semibold shrink-0 border-amber-500/40"
+          >
+            Back to Workspace
+          </Button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Core numbers form */}
@@ -1529,7 +1553,7 @@ function DailyLogContent() {
                   This report is submitted/approved and locked. Contact Secretariat to make updates.
                 </p>
               ) : (() => {
-                const reportWindow = evaluateDailyReportWindow(activeDay)
+                const reportWindow = evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent)
                 const isSubmitLockedByWindow = !isSuperAdminActing && !reportWindow.isOpen
                 return (
                   <div className="flex flex-col gap-2">
@@ -1541,7 +1565,7 @@ function DailyLogContent() {
                     )}
                     <Button
                       onClick={() => handleSubmit(false)}
-                      disabled={loading || hasPendingSync}
+              disabled={loading || hasPendingSync || (!isSuperAdminActing && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen)}
                       variant="outline"
                       className="w-full text-xs font-semibold"
                     >
@@ -1688,7 +1712,7 @@ function DailyLogContent() {
               size="sm"
               variant="outline"
               onClick={() => handleSubmit(false)}
-              disabled={loading || hasPendingSync}
+              disabled={loading || hasPendingSync || (!isSuperAdminActing && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen)}
               className="h-9 px-3 text-xs font-semibold"
             >
               {loading ? 'Saving...' : 'Draft'}
@@ -1697,7 +1721,7 @@ function DailyLogContent() {
               type="button"
               size="sm"
               onClick={handlePreSubmitCheck}
-              disabled={loading || (!isSuperAdminActing && !evaluateDailyReportWindow(activeDay).isOpen)}
+              disabled={loading || (!isSuperAdminActing && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen)}
               className="h-9 px-3.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
             >
               {!isOnline ? 'Queue' : 'Submit'}

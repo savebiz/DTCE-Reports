@@ -11,7 +11,8 @@ import { syncQueuedSubmissions, getSyncQueue } from '@/utils/offline'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { KPIGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
-import { Calendar, Layers, Package, FileEdit } from 'lucide-react'
+import { Calendar, Layers, Package, FileEdit, Lock } from 'lucide-react'
+import { evaluateDailyReportWindow } from '@/lib/events/reporting-windows'
 import { getCurrentEvent, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
 import { ModernSelect } from '@/components/ui/modern-select'
 
@@ -23,6 +24,7 @@ export default function MyDepartmentDashboard() {
   const [reports, setReports] = useState<any[]>([])
   const [allDepartments, setAllDepartments] = useState<Department[]>([])
   const [currentEventId, setCurrentEventId] = useState<string | null>(null)
+  const [currentEvent, setCurrentEvent] = useState<any>(null)
 
   // Connection & Sync States
   const [isOnline, setIsOnline] = useState(true)
@@ -134,6 +136,7 @@ export default function MyDepartmentDashboard() {
     const currentEvent = await getCurrentEvent(supabase)
     const eventId = currentEvent?.id ?? null
     setCurrentEventId(eventId)
+    setCurrentEvent(currentEvent)
 
     if (activeProfile) {
       if (!isMock) {
@@ -389,6 +392,8 @@ export default function MyDepartmentDashboard() {
                             department?.name?.toLowerCase().includes('secretariat')
 
   const isFinanceDept = department?.name?.toLowerCase().includes('finance')
+  const overallDailyWindow = evaluateDailyReportWindow(eventDays[0] || null, new Date(), 6, currentEvent)
+  const isDailyWorkspaceLocked = profile?.role !== 'super_admin' && !overallDailyWindow.isOpen
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
@@ -463,11 +468,17 @@ export default function MyDepartmentDashboard() {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
-                className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all bg-blue-600 hover:bg-blue-500 text-white cursor-pointer shadow-xs"
-                onClick={() => router.push('/my-department/daily-log')}
+                disabled={isDailyWorkspaceLocked}
+                title={isDailyWorkspaceLocked ? overallDailyWindow.message : undefined}
+                className={`flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all shadow-xs ${
+                  isDailyWorkspaceLocked
+                    ? 'bg-muted text-muted-foreground border border-border cursor-not-allowed opacity-70'
+                    : 'bg-blue-600 hover:bg-blue-500 text-white cursor-pointer'
+                }`}
+                onClick={() => !isDailyWorkspaceLocked && router.push('/my-department/daily-log')}
               >
-                <Calendar className="w-3.5 h-3.5" />
-                Daily Logs Workspace
+                {isDailyWorkspaceLocked ? <Lock className="w-3.5 h-3.5" /> : <Calendar className="w-3.5 h-3.5" />}
+                {isDailyWorkspaceLocked ? 'Daily Logs Locked' : 'Daily Logs Workspace'}
               </button>
               {isSecretariatDept && (
                 <button
@@ -551,16 +562,27 @@ export default function MyDepartmentDashboard() {
               <div className="text-center py-12 px-5 space-y-4">
                 <span className="flex justify-center text-muted-foreground"><Calendar className="h-8 w-8" /></span>
                 <p className="text-[13px] text-muted-foreground italic">No active event days found in the database.</p>
-                <button
-                  onClick={() => router.push('/my-department/daily-log')}
-                  className="h-9 rounded-xl px-5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer transition-all"
-                >
-                  Go to Daily Logs Workspace
-                </button>
+                {isDailyWorkspaceLocked ? (
+                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 inline-flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5" /> {overallDailyWindow.message}
+                  </p>
+                ) : (
+                  <button
+                    onClick={() => router.push('/my-department/daily-log')}
+                    className="h-9 rounded-xl px-5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer transition-all"
+                  >
+                    Go to Daily Logs Workspace
+                  </button>
+                )}
               </div>
             ) : (
               eventDays.map((day) => {
                 const shortDay = new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short' })
+                const dayWin = evaluateDailyReportWindow(day, new Date(), 6, currentEvent)
+                const isDayLocked = profile?.role !== 'super_admin' && !dayWin.isOpen
+                const opensShort = dayWin.opensAt
+                  ? dayWin.opensAt.toLocaleDateString('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short' })
+                  : 'Event Day'
                 return (
                   <div
                     key={day.id}
@@ -579,10 +601,16 @@ export default function MyDepartmentDashboard() {
                       </div>
                       <div className="ml-auto shrink-0">
                         <button
-                          onClick={() => openEntryForm(day)}
-                          className="min-h-[38px] rounded-lg px-3.5 text-[11px] font-bold whitespace-nowrap cursor-pointer border border-border bg-card hover:bg-blue-600 hover:text-white hover:border-blue-500 text-foreground transition-all duration-150 flex items-center gap-1"
+                          disabled={isDayLocked}
+                          title={isDayLocked ? dayWin.message : undefined}
+                          onClick={() => !isDayLocked && openEntryForm(day)}
+                          className={`min-h-[38px] rounded-lg px-3.5 text-[11px] font-bold whitespace-nowrap border transition-all duration-150 flex items-center gap-1 ${
+                            isDayLocked
+                              ? 'border-border/60 bg-muted/40 text-muted-foreground cursor-not-allowed'
+                              : 'cursor-pointer border-border bg-card hover:bg-blue-600 hover:text-white hover:border-blue-500 text-foreground'
+                          }`}
                         >
-                          {getButtonText(day.id)} ›
+                          {isDayLocked ? <><Lock className="w-3 h-3" /> Opens {opensShort}</> : <>{getButtonText(day.id)} ›</>}
                         </button>
                       </div>
                     </div>
@@ -602,10 +630,16 @@ export default function MyDepartmentDashboard() {
                       </div>
                       <div className="shrink-0">
                         <button
-                          onClick={() => openEntryForm(day)}
-                          className="h-8 rounded-lg px-4 text-[12px] font-bold whitespace-nowrap cursor-pointer border border-border bg-card hover:bg-blue-600 hover:text-white hover:border-blue-500 text-foreground transition-all duration-150 flex items-center gap-1.5 shadow-xs"
+                          disabled={isDayLocked}
+                          title={isDayLocked ? dayWin.message : undefined}
+                          onClick={() => !isDayLocked && openEntryForm(day)}
+                          className={`h-8 rounded-lg px-4 text-[12px] font-bold whitespace-nowrap border transition-all duration-150 flex items-center gap-1.5 shadow-xs ${
+                            isDayLocked
+                              ? 'border-border/60 bg-muted/40 text-muted-foreground cursor-not-allowed'
+                              : 'cursor-pointer border-border bg-card hover:bg-blue-600 hover:text-white hover:border-blue-500 text-foreground'
+                          }`}
                         >
-                          {getButtonText(day.id)}
+                          {isDayLocked ? <><Lock className="w-3.5 h-3.5" /> Opens {opensShort}</> : getButtonText(day.id)}
                         </button>
                       </div>
                     </div>

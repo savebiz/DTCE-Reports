@@ -9,15 +9,42 @@ export interface DailyReportWindowState {
 const ONE_HOUR_MS = 60 * 60 * 1000
 
 /**
- * Evaluates whether a daily report for `eventDay` can be officially submitted.
+ * Evaluates whether a daily report for `eventDay` can be entered/submitted.
  * By default, each event day opens `leadHours` (6h) before 00:00 WAT on that day
- * (i.e. 18:00 WAT the evening before), preventing premature pre-event submissions.
+ * (i.e. 18:00 WAT the evening before). If `event` is still in a pre-event
+ * phase (`requisition_open`, `draft`, `planning`) or its `start_date` has not
+ * reached the opening window, daily reporting remains locked.
  */
 export function evaluateDailyReportWindow(
   eventDay: { date?: string | null; label?: string | null; day_number?: number | null } | null | undefined,
   now: Date = new Date(),
-  leadHours = 6
+  leadHours = 6,
+  event?: { status?: string | null; start_date?: string | null } | null
 ): DailyReportWindowState {
+  if (event) {
+    const preEventStatuses = ['requisition_open', 'draft', 'planning']
+    const evStart = event.start_date ? startOfDayWAT(event.start_date) : null
+    const evOpensAt = evStart ? new Date(evStart.getTime() - leadHours * ONE_HOUR_MS) : null
+
+    if (event.status && preEventStatuses.includes(event.status)) {
+      return {
+        isOpen: false,
+        opensAt: evOpensAt,
+        message: evOpensAt
+          ? `Daily reporting opens on ${formatWatDateTime(evOpensAt)}. Only pre-event store requests are open right now.`
+          : 'Daily reporting is locked during the pre-event requisition phase.',
+      }
+    }
+
+    if (evOpensAt && now.getTime() < evOpensAt.getTime()) {
+      return {
+        isOpen: false,
+        opensAt: evOpensAt,
+        message: `Daily reporting opens on ${formatWatDateTime(evOpensAt)}.`,
+      }
+    }
+  }
+
   if (!eventDay?.date) {
     return {
       isOpen: true,
@@ -41,7 +68,7 @@ export function evaluateDailyReportWindow(
     return {
       isOpen: false,
       opensAt,
-      message: `Submissions for ${dayLabel} open on ${formatWatDateTime(opensAt)}. You can save a draft in the meantime.`,
+      message: `Submissions for ${dayLabel} open on ${formatWatDateTime(opensAt)}.`,
     }
   }
 
