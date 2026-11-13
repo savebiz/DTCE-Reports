@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Bell, Mail, Smartphone, ShieldCheck, Check, AlertCircle, Share, PlusSquare, Info, Calendar } from 'lucide-react'
+import { Bell, Mail, Smartphone, ShieldCheck, Check, AlertCircle, Share, PlusSquare, Info, Calendar, X } from 'lucide-react'
 import { getVapidPublicKey } from '@/lib/notifications/vapid-public'
 import { EventWindowsPanel } from '@/components/admin/event-windows-panel'
 import { Switch } from '@/components/ui/switch'
@@ -235,7 +235,7 @@ function SettingsContent() {
     if (!isMock) {
       for (const type of targetCat.types) {
         try {
-          await fetch('/api/notifications/preferences', {
+          const prefRes = await fetch('/api/notifications/preferences', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -244,6 +244,9 @@ function SettingsContent() {
               pushEnabled: channel === 'push' ? newValue : targetCat.pushEnabled,
             }),
           })
+          if (!prefRes.ok) {
+            throw new Error(`HTTP ${prefRes.status}`)
+          }
         } catch (err) {
           console.error('Failed to save preference:', err)
         }
@@ -286,11 +289,14 @@ function SettingsContent() {
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as unknown as BufferSource,
         })
 
-        await fetch('/api/push/subscribe', {
+        const subRes = await fetch('/api/push/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ subscription: sub.toJSON() }),
         })
+        if (!subRes.ok) {
+          throw new Error('Failed to save push subscription on server')
+        }
 
         setIsPushSubscribed(true)
         showToast('Web Push Notifications successfully enabled!', 'success')
@@ -493,10 +499,10 @@ function SettingsContent() {
                       <Info size={16} />
                       <span>iOS Safari Web Push Guidance</span>
                     </div>
-                    <p className="text-slate-300 leading-relaxed">
+                    <p className="text-muted-foreground leading-relaxed">
                       Apple Safari on iOS restricts Web Push notifications until the app is added to your Home Screen. In-App Bell notifications and Email alerts remain <strong>100% active</strong>.
                     </p>
-                    <div className="p-2.5 rounded-lg bg-slate-950/60 border border-white/5 space-y-1.5 text-slate-300 text-[11px]">
+                    <div className="p-2.5 rounded-lg bg-muted/60 border border-border/60 space-y-1.5 text-foreground text-[11px]">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-amber-400">1.</span>
                         <span>Tap <strong>Share <Share size={12} className="inline" /></strong> in Safari toolbar.</span>
@@ -512,7 +518,7 @@ function SettingsContent() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className={`h-2.5 w-2.5 rounded-full ${isPushSubscribed ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
-                        <span className="text-xs font-bold text-slate-200">
+                        <span className="text-xs font-bold text-foreground">
                           {isPushSubscribed ? 'Web Push Active on this Device' : 'Web Push Inactive'}
                         </span>
                       </div>
@@ -527,7 +533,7 @@ function SettingsContent() {
                       disabled={pushLoading}
                       className={`text-xs font-bold shrink-0 ${
                         isPushSubscribed
-                          ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600'
+                          ? 'bg-muted hover:bg-muted/80 text-foreground border border-border'
                           : 'bg-blue-600 hover:bg-blue-500 text-white'
                       }`}
                     >
@@ -543,21 +549,21 @@ function SettingsContent() {
 
                 {/* Device & Platform Specific Notification Notes */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                  <div className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
-                    <div className="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
+                  <div className="p-3 rounded-xl bg-muted/50 border border-border space-y-1">
+                    <div className="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                       <Info size={13} />
                       Android Sound &amp; Vibration Settings
                     </div>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
                       Android 8+ gates sound and vibration per-site via a device Notification Channel created when notifications are first granted. If notifications appear silently, check <strong>Phone Settings &rarr; Apps &rarr; Chrome/DTCE &rarr; Notifications</strong> and ensure sound and vibration are enabled.
                     </p>
                   </div>
-                  <div className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-1">
-                    <div className="text-[11px] font-bold text-purple-400 flex items-center gap-1.5">
+                  <div className="p-3 rounded-xl bg-muted/50 border border-border space-y-1">
+                    <div className="text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
                       <Info size={13} />
                       iOS Safari Vibration Notice
                     </div>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
                       On installed iOS PWAs (iOS 16.4+), sound alerts play according to your device sound profile. Custom vibration pulse patterns are restricted by Apple iOS Safari system policy.
                     </p>
                   </div>
@@ -702,7 +708,7 @@ function SettingsContent() {
                         <div key={t.id} className="flex justify-between items-center bg-background/25 border border-border p-3 rounded-xl text-sm text-foreground">
                           <span className="font-semibold">{t.name}</span>
                           <Button variant="ghost" size="icon" className="h-9 w-9 text-red-500 shrink-0" onClick={() => handleRemoveTribe(t.id, t.name)}>
-                            ✕
+                            <X className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       ))
@@ -711,7 +717,7 @@ function SettingsContent() {
                         <div key={d.id} className="flex justify-between items-center bg-background/25 border border-border p-3 rounded-xl text-sm text-foreground">
                           <span className="font-semibold">{d.name}</span>
                           <Button variant="ghost" size="icon" className="h-9 w-9 text-red-500 shrink-0" onClick={() => handleRemoveDiagnosis(d.id, d.name)}>
-                            ✕
+                            <X className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       ))

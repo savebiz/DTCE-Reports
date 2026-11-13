@@ -3,6 +3,7 @@
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { ArrowLeft } from 'lucide-react'
 
 export function UnassignedDepartmentGate({ showHomeButton = true }: { showHomeButton?: boolean }) {
   const router = useRouter()
@@ -20,7 +21,7 @@ export function UnassignedDepartmentGate({ showHomeButton = true }: { showHomeBu
             onClick={() => router.push('/my-department')}
             className="text-xs h-9 cursor-pointer"
           >
-            ← Back to Department Home
+            <span className="inline-flex items-center gap-1.5"><ArrowLeft className="h-3.5 w-3.5" /> Back to Department Home</span>
           </Button>
         )}
       </div>

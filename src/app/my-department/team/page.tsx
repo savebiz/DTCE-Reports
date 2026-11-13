@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
+import { ArrowLeft, Ticket, Zap } from 'lucide-react'
 
 interface CredentialSlip {
   fullName: string
@@ -273,7 +274,7 @@ export default function HODTeamManagement() {
             onClick={() => router.push('/my-department')}
             className="text-xs h-9 cursor-pointer w-fit text-muted-foreground hover:text-foreground border-border bg-card"
           >
-            ← Back to Dashboard
+            <span className="inline-flex items-center gap-1.5"><ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard</span>
           </Button>
         </div>
 
@@ -282,7 +283,7 @@ export default function HODTeamManagement() {
           <div className="rounded-2xl p-6 space-y-4 max-w-md bg-amber-500/10 border border-dashed border-amber-500/30">
             <div className="flex justify-between items-center">
               <span className="text-[12px] font-bold uppercase tracking-wider text-amber-500">
-                🎫 Issued Assistant Credential Slip
+                <span className="inline-flex items-center gap-1.5"><Ticket className="h-4 w-4" /> Issued Assistant Credential Slip</span>
               </span>
               <button
                 onClick={() => setIssuedSlip(null)}
@@ -354,7 +355,7 @@ export default function HODTeamManagement() {
                   className="w-full rounded-xl py-2.5 text-[13px] font-bold text-white transition-all duration-200 mt-2 cursor-pointer"
                   style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', border: '1px solid rgba(59,130,246,0.3)' }}
                 >
-                  {saving ? 'Creating Account...' : '⚡ Generate Assistant Credential'}
+                  <span className="inline-flex items-center gap-1.5"><Zap className="h-3.5 w-3.5" /> {saving ? 'Creating Account...' : 'Generate Assistant Credential'}</span>
                 </button>
               </form>
             </div>

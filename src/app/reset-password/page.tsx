@@ -7,6 +7,7 @@ import { validatePassword } from '@/lib/password-policy'
 import { showToast } from '@/components/ui/toast'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import Link from 'next/link'
+import { Lock, Check, X, AlertTriangle, ArrowRight } from 'lucide-react'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -169,7 +170,7 @@ export default function ResetPasswordPage() {
         {/* Header Block */}
         <div className="text-center space-y-2">
           <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/12 border border-amber-500/25">
-            <span className="text-amber-600 dark:text-amber-400 text-lg">🔒</span>
+            <Lock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Secure Your Account</h1>
           <p className="text-[13px] text-muted-foreground max-w-xs mx-auto">
@@ -218,7 +219,7 @@ export default function ResetPasswordPage() {
                     ].map((rule, idx) => (
                       <li key={idx} className="flex items-center gap-2">
                         <span className={`text-[12px] font-bold ${rule.ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                          {rule.ok ? '✓' : '✗'}
+                          {rule.ok ? <Check className="h-3 w-3 inline" /> : <X className="h-3 w-3 inline" />}
                         </span>
                         <span className={rule.ok ? 'text-muted-foreground' : 'text-red-700 dark:text-red-300'}>
                           {rule.label}
@@ -246,14 +247,14 @@ export default function ResetPasswordPage() {
                 className="w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-ring transition-colors"
               />
               {confirmError && (
-                <p className="text-[11px] text-red-600 dark:text-red-400 font-medium mt-1">⚠️ {confirmError}</p>
+                <p className="text-[11px] text-red-600 dark:text-red-400 font-medium mt-1"><span className="inline-flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {confirmError}</span></p>
               )}
             </div>
 
             {/* Form-level errors */}
             {submitError && (
               <div className="rounded-xl p-3 text-[12px] bg-red-500/10 border border-red-500/25 text-red-700 dark:text-red-300">
-                ⚠️ {submitError}
+                <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {submitError}</span>
               </div>
             )}
 
@@ -263,7 +264,7 @@ export default function ResetPasswordPage() {
               disabled={loading || !validation.valid || !!confirmError}
               className="w-full rounded-xl py-3 text-[13px] font-bold bg-[#0F2A4A] hover:bg-[#163861] text-white dark:bg-amber-500 dark:hover:bg-amber-400 dark:text-[#06090F] shadow-sm transition-all duration-200 mt-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Updating Password...' : '➔ Save Password & Continue'}
+              <span className="inline-flex items-center gap-1.5">{loading ? 'Updating Password...' : <><ArrowRight className="h-4 w-4" /> Save Password &amp; Continue</>}</span>
             </button>
           </form>
         </div>

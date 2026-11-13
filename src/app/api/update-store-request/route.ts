@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { after, NextResponse, type NextRequest } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 import { notify, checkAndDispatchLowStockAlert, getDepartmentRecipientIds, getStoresRecipientIds } from '@/lib/notifications/dispatch'
@@ -314,52 +314,61 @@ export async function POST(request: NextRequest) {
         itemsSummary = ` (Approved: ${summaryParts.join(', ')})`
       }
 
-      const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
-      if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
+      after(async () => {
+        try {
+          const [deptRecipients, storesRecipients] = await Promise.all([
+            getDepartmentRecipientIds(supabaseAdmin, deptId),
+            getStoresRecipientIds(supabaseAdmin),
+          ])
+          if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
 
-      if (isPreEventNeedsList) {
-        for (const recipientId of deptRecipients) {
-          await notify({
-            recipientId,
-            type: 'requisition_approved',
-            title: `Pre-Event Needs List Approved: ${deptName}`,
-            body: `Your department's Pre-Event Needs List has been approved${itemsSummary} and added to the Consolidated Stores Market List for purchase.`,
-            relatedEntity: { type: 'requisition', id: requestId },
-          })
+          if (isPreEventNeedsList) {
+            await Promise.allSettled([
+              ...deptRecipients.map((recipientId) =>
+                notify({
+                  recipientId,
+                  type: 'requisition_approved',
+                  title: `Pre-Event Needs List Approved: ${deptName}`,
+                  body: `Your department's Pre-Event Needs List has been approved${itemsSummary} and added to the Consolidated Stores Market List for purchase.`,
+                  relatedEntity: { type: 'requisition', id: requestId },
+                })
+              ),
+              ...storesRecipients.map((staffId) =>
+                notify({
+                  recipientId: staffId,
+                  type: 'requisition_routed_to_stores',
+                  title: `Market List Updated: ${deptName}`,
+                  body: `An approved Pre-Event Needs List for ${deptName} has been added to the Consolidated Market List${itemsSummary}.`,
+                  relatedEntity: { type: 'requisition', id: requestId },
+                })
+              ),
+            ])
+          } else {
+            await Promise.allSettled([
+              ...deptRecipients.map((recipientId) =>
+                notify({
+                  recipientId,
+                  type: 'requisition_approved',
+                  title: `Requisition Approved: ${deptName}`,
+                  body: `Your department's store requisition has been approved${itemsSummary} and stock has been reserved. It is now routed to Stores for fulfillment.`,
+                  relatedEntity: { type: 'requisition', id: requestId },
+                })
+              ),
+              ...storesRecipients.map((staffId) =>
+                notify({
+                  recipientId: staffId,
+                  type: 'requisition_routed_to_stores',
+                  title: `New Approved Requisition: ${deptName}`,
+                  body: `An approved requisition for ${deptName} is ready for fulfillment${itemsSummary}.`,
+                  relatedEntity: { type: 'requisition', id: requestId },
+                })
+              ),
+            ])
+          }
+        } catch (err) {
+          console.error('[update-store-request] approved notification error:', err)
         }
-
-        const storesRecipients = await getStoresRecipientIds(supabaseAdmin)
-        for (const staffId of storesRecipients) {
-          await notify({
-            recipientId: staffId,
-            type: 'requisition_routed_to_stores',
-            title: `Market List Updated: ${deptName}`,
-            body: `An approved Pre-Event Needs List for ${deptName} has been added to the Consolidated Market List${itemsSummary}.`,
-            relatedEntity: { type: 'requisition', id: requestId },
-          })
-        }
-      } else {
-        for (const recipientId of deptRecipients) {
-          await notify({
-            recipientId,
-            type: 'requisition_approved',
-            title: `Requisition Approved: ${deptName}`,
-            body: `Your department's store requisition has been approved${itemsSummary} and stock has been reserved. It is now routed to Stores for fulfillment.`,
-            relatedEntity: { type: 'requisition', id: requestId },
-          })
-        }
-
-        const storesRecipients = await getStoresRecipientIds(supabaseAdmin)
-        for (const staffId of storesRecipients) {
-          await notify({
-            recipientId: staffId,
-            type: 'requisition_routed_to_stores',
-            title: `New Approved Requisition: ${deptName}`,
-            body: `An approved requisition for ${deptName} is ready for fulfillment${itemsSummary}.`,
-            relatedEntity: { type: 'requisition', id: requestId },
-          })
-        }
-      }
+      })
     } else if (status === 'ready_for_collection') {
       let readyDetail = ''
       if (Array.isArray(finalItems) && finalItems.length > 0) {
@@ -371,31 +380,45 @@ export async function POST(request: NextRequest) {
         readyDetail = ` (${parts.join(', ')})`
       }
 
-      const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
-      if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
-
-      for (const recipientId of deptRecipients) {
-        await notify({
-          recipientId,
-          type: 'requisition_fulfilled',
-          title: `Requisition Ready for Collection: ${deptName}`,
-          body: `Your department's requisition${readyDetail} is ready for collection at Stores. ${reviewerComments ? `Note: ${reviewerComments}` : ''}`,
-          relatedEntity: { type: 'requisition', id: requestId },
-        })
-      }
+      after(async () => {
+        try {
+          const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
+          if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
+          await Promise.allSettled(
+            deptRecipients.map((recipientId) =>
+              notify({
+                recipientId,
+                type: 'requisition_fulfilled',
+                title: `Requisition Ready for Collection: ${deptName}`,
+                body: `Your department's requisition${readyDetail} is ready for collection at Stores. ${reviewerComments ? `Note: ${reviewerComments}` : ''}`,
+                relatedEntity: { type: 'requisition', id: requestId },
+              })
+            )
+          )
+        } catch (err) {
+          console.error('[update-store-request] ready_for_collection notification error:', err)
+        }
+      })
     } else if (status === 'declined') {
-      const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
-      if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
-
-      for (const recipientId of deptRecipients) {
-        await notify({
-          recipientId,
-          type: 'requisition_rejected',
-          title: `${isPreEventNeedsList ? 'Pre-Event Needs List' : 'Requisition'} Declined: ${deptName}`,
-          body: `Your department's ${isPreEventNeedsList ? 'Pre-Event Needs List' : 'store requisition'} was declined.\nReason: ${reviewerComments?.trim() || 'No reason provided.'}`,
-          relatedEntity: { type: 'requisition', id: requestId },
-        })
-      }
+      after(async () => {
+        try {
+          const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
+          if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
+          await Promise.allSettled(
+            deptRecipients.map((recipientId) =>
+              notify({
+                recipientId,
+                type: 'requisition_rejected',
+                title: `${isPreEventNeedsList ? 'Pre-Event Needs List' : 'Requisition'} Declined: ${deptName}`,
+                body: `Your department's ${isPreEventNeedsList ? 'Pre-Event Needs List' : 'store requisition'} was declined.\nReason: ${reviewerComments?.trim() || 'No reason provided.'}`,
+                relatedEntity: { type: 'requisition', id: requestId },
+              })
+            )
+          )
+        } catch (err) {
+          console.error('[update-store-request] declined notification error:', err)
+        }
+      })
     } else if (['delivered', 'partially_fulfilled', 'in_progress'].includes(status)) {
       const statusText =
         status === 'delivered'
@@ -403,18 +426,25 @@ export async function POST(request: NextRequest) {
           : status === 'partially_fulfilled'
           ? 'Partially Fulfilled'
           : 'In Progress'
-      const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
-      if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
-
-      for (const recipientId of deptRecipients) {
-        await notify({
-          recipientId,
-          type: 'requisition_fulfilled',
-          title: `Requisition Update (${statusText}): ${deptName}`,
-          body: `Your department's store request status is now '${statusText}'. ${reviewerComments ? `Note: ${reviewerComments}` : ''}`,
-          relatedEntity: { type: 'requisition', id: requestId },
-        })
-      }
+      after(async () => {
+        try {
+          const deptRecipients = await getDepartmentRecipientIds(supabaseAdmin, deptId)
+          if (requesterId && !deptRecipients.includes(requesterId)) deptRecipients.push(requesterId)
+          await Promise.allSettled(
+            deptRecipients.map((recipientId) =>
+              notify({
+                recipientId,
+                type: 'requisition_fulfilled',
+                title: `Requisition Update (${statusText}): ${deptName}`,
+                body: `Your department's store request status is now '${statusText}'. ${reviewerComments ? `Note: ${reviewerComments}` : ''}`,
+                relatedEntity: { type: 'requisition', id: requestId },
+              })
+            )
+          )
+        } catch (err) {
+          console.error('[update-store-request] status notification error:', err)
+        }
+      })
     }
 
     return NextResponse.json({ success: true, data })

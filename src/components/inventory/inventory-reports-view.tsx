@@ -11,10 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
-import {
-  BarChart3, Download, Filter, RefreshCw, Layers, ShieldAlert, FileText,
-  Building2, PackageCheck, Truck, XCircle, AlertCircle, Clock, ChevronDown, ChevronUp, Eye
-} from 'lucide-react'
+import { BarChart3, Download, Filter, RefreshCw, Layers, ShieldAlert, FileText, Building2, PackageCheck, Truck, XCircle, AlertCircle, Clock, ChevronDown, ChevronUp, Eye, FileSpreadsheet, Printer, Check, AlertTriangle } from 'lucide-react'
 
 interface InventoryReportsViewProps {
   readOnly?: boolean
@@ -294,7 +291,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
               title="Export Full Multi-Section Inventory Report as CSV"
               className="text-xs font-bold h-6 px-2 hover:bg-emerald-500/20 hover:text-emerald-400 cursor-pointer"
             >
-              📄 CSV
+              <span className="inline-flex items-center gap-1"><FileText className="h-3.5 w-3.5" /> CSV</span>
             </Button>
             <Button
               onClick={() => handleExport('xlsx', 'comprehensive_oversight')}
@@ -303,7 +300,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
               title="Export Multi-Tab Excel Workbook (.xlsx) Covering All Sections"
               className="text-xs font-bold h-6 px-2 hover:bg-blue-500/20 hover:text-blue-400 cursor-pointer"
             >
-              📊 Excel
+              <span className="inline-flex items-center gap-1"><FileSpreadsheet className="h-3.5 w-3.5" /> Excel</span>
             </Button>
             <Button
               onClick={() => handleExport('pdf', 'comprehensive_oversight')}
@@ -312,7 +309,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
               title="Print or Save Full Executive PDF Document Covering All 3 Sections"
               className="text-xs font-bold h-6 px-2 hover:bg-amber-500/20 hover:text-amber-400 cursor-pointer"
             >
-              🖨️ PDF
+              <span className="inline-flex items-center gap-1"><Printer className="h-3.5 w-3.5" /> PDF</span>
             </Button>
           </div>
         </div>
@@ -405,7 +402,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                         : 'bg-muted/40 text-muted-foreground border-border/40 hover:text-foreground'
                     }`}
                   >
-                    {isSelected ? '✓ ' : ''}{item.name}
+                    {isSelected ? <Check className="h-3 w-3 inline mr-1" /> : null}{item.name}
                   </button>
                 )
               })}
@@ -430,7 +427,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                         : 'bg-muted/40 text-muted-foreground border-border/40 hover:text-foreground'
                     }`}
                   >
-                    {isSelected ? '✓ ' : ''}{dept.name}
+                    {isSelected ? <Check className="h-3 w-3 inline mr-1" /> : null}{dept.name}
                   </button>
                 )
               })}
@@ -461,7 +458,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
 
               {lowStockCount > 0 && (
                 <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider animate-pulse flex items-center gap-1">
-                  ⚠️ {lowStockCount} Item(s) At Deficit
+                  <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> {lowStockCount} Item(s) At Deficit</span>
                 </span>
               )}
             </div>
@@ -506,11 +503,11 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                           <td className="p-3 text-center">
                             {isLow ? (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider">
-                                ⚠️ Low Stock
+                                <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low Stock</span>
                               </span>
                             ) : (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
-                                ✓ Optimal
+                                <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> Optimal</span>
                               </span>
                             )}
                           </td>
@@ -712,7 +709,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                     </thead>
                     <tbody className="divide-y divide-border/60 text-foreground">
                       {paginatedSecondary.length === 0 ? (
-                        <tr><td colSpan={6} className="p-6 text-center text-emerald-400 font-semibold italic">✓ All inventory items are optimal. No low-stock deficits recorded!</td></tr>
+                        <tr><td colSpan={6} className="p-6 text-center text-emerald-400 font-semibold italic"><span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4" /> All inventory items are optimal.</span> No low-stock deficits recorded!</td></tr>
                       ) : (
                         paginatedSecondary.map(item => {
                           const shortfall = item.shortfall ?? Math.max(0, item.low_stock_threshold - item.current_stock)

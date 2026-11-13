@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
-import { ArrowLeft, Building2, PackageCheck, AlertTriangle, CheckCircle2, ShieldAlert, Clock, RefreshCw, Send, Layers, Truck, XCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Building2, PackageCheck, AlertTriangle, CheckCircle2, ShieldAlert, Clock, RefreshCw, Send, Layers, Truck, XCircle, AlertCircle, Check, X } from 'lucide-react'
 import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 
@@ -657,9 +657,9 @@ export default function DurableReturnsTrackerPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="good">✓ Good Condition (Restores Stock &amp; Logs Return)</SelectItem>
-                      <SelectItem value="damaged">⚠️ Damaged (Moves to Quarantine Stock — Not Available)</SelectItem>
-                      <SelectItem value="lost">❌ Lost / Missing (Does NOT Restore Stock)</SelectItem>
+                      <SelectItem value="good"><span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-500" /> Good Condition (Restores Stock &amp; Logs Return)</span></SelectItem>
+                      <SelectItem value="damaged"><span className="inline-flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Damaged (Moves to Quarantine Stock — Not Available)</span></SelectItem>
+                      <SelectItem value="lost"><span className="inline-flex items-center gap-1.5"><X className="h-3.5 w-3.5 text-red-500" /> Lost / Missing (Does NOT Restore Stock)</span></SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -704,7 +704,7 @@ export default function DurableReturnsTrackerPage() {
                 <div className="font-bold flex items-center gap-1.5">
                   <AlertTriangle className="h-4 w-4" /> Trigger Automated Return Reminders
                 </div>
-                <p className="text-[11px] leading-relaxed text-slate-300">
+                <p className="text-[11px] leading-relaxed text-muted-foreground">
                   This action sends a high-priority system notification to HODs of all {totalHoldingDepts} departments currently holding {totalOutstandingQty} unreturned durable items.
                 </p>
               </div>

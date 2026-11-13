@@ -98,21 +98,21 @@ export async function GET(request: NextRequest) {
     const digestTitle = `Overdue Requisitions Alert: ${pendingReqs.length} Requisitions Awaiting Approval`
     const digestBody = `There are currently ${pendingReqs.length} store requisitions that have been pending review for over ${thresholdHours} hours:\n\n${summaryLines}\n\nPlease log in to review and approve these items.`
 
-    const dispatchResults: any[] = []
-
-    for (const recipient of recipients) {
-      const result = await notify({
-        recipientId: recipient.id,
-        type: 'requisition_stale',
-        title: digestTitle,
-        body: digestBody,
-        relatedEntity: {
-          type: 'requisition',
-          id: pendingReqs[0].id
-        }
+    const dispatchResults = await Promise.all(
+      recipients.map(async (recipient) => {
+        const result = await notify({
+          recipientId: recipient.id,
+          type: 'requisition_stale',
+          title: digestTitle,
+          body: digestBody,
+          relatedEntity: {
+            type: 'requisition',
+            id: pendingReqs[0].id
+          }
+        })
+        return { recipientId: recipient.id, email: recipient.email, result }
       })
-      dispatchResults.push({ recipientId: recipient.id, email: recipient.email, result })
-    }
+    )
 
     return NextResponse.json({
       success: true,

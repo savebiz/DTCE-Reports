@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Star, X, Check, HelpCircle, MessageSquare } from 'lucide-react'
+import { Star, X, Check, HelpCircle, MessageSquare, Monitor } from 'lucide-react'
 import { showToast } from '@/components/ui/toast'
 
 interface FeedbackModalProps {
@@ -70,7 +70,7 @@ export function EndofConventionFeedbackModal({
       return
     }
     if (!topImprovement.trim()) {
-      showToast('Please tell us the one thing we should improve before the next convention.', 'error')
+      showToast('Please tell us the one thing we should improve before the next event.', 'error')
       return
     }
 
@@ -119,8 +119,8 @@ export function EndofConventionFeedbackModal({
               <MessageSquare className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-foreground">End-of-Convention Feedback</h2>
-              <p className="text-[11px] text-muted-foreground">Your voice shapes the next convention platform experience</p>
+              <h2 className="text-base font-bold text-foreground">End-of-Event Feedback</h2>
+              <p className="text-[11px] text-muted-foreground">Your voice shapes the next event platform experience</p>
             </div>
           </div>
           <button
@@ -139,7 +139,7 @@ export function EndofConventionFeedbackModal({
           {/* Q1: Overall Satisfaction (1-5 Star Rating) */}
           <div className="space-y-2 p-4 rounded-xl bg-muted/10 border border-border/50">
             <label className="font-bold text-foreground block text-xs">
-              1. Overall satisfaction with the DTCE Convention Platform <span className="text-red-500">*</span>
+              1. Overall satisfaction with the DTCE Reporting Platform <span className="text-red-500">*</span>
             </label>
             <div className="flex items-center gap-2 py-1">
               {[1, 2, 3, 4, 5].map((star) => {
@@ -314,7 +314,7 @@ export function EndofConventionFeedbackModal({
                       : 'bg-background hover:bg-muted/30 border-border text-muted-foreground'
                   }`}
                 >
-                  {num} ★
+                  <span className="inline-flex items-center gap-0.5">{num} <Star className="h-3 w-3 fill-current" /></span>
                 </button>
               ))}
               <button
@@ -326,7 +326,7 @@ export function EndofConventionFeedbackModal({
                     : 'bg-background hover:bg-muted/30 border-border text-muted-foreground'
                 }`}
               >
-                💻 I mostly used a computer
+                <span className="inline-flex items-center gap-1.5"><Monitor className="h-3.5 w-3.5" /> I mostly used a computer</span>
               </button>
             </div>
           </div>
@@ -334,9 +334,9 @@ export function EndofConventionFeedbackModal({
           {/* Q7: NPS Score (0-10) */}
           <div className="space-y-2 p-4 rounded-xl bg-muted/10 border border-border/50">
             <label className="font-bold text-foreground block text-xs">
-              7. Likelihood to recommend this platform for future conventions (0-10) <span className="text-red-500">*</span>
+              7. Likelihood to recommend this platform for future events (0-10) <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-11 gap-1 pt-1">
+            <div className="grid grid-cols-6 sm:grid-cols-11 gap-1.5 pt-1">
               {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
                 <button
                   key={score}
@@ -361,7 +361,7 @@ export function EndofConventionFeedbackModal({
           {/* Q8: Required Top Improvement */}
           <div className="space-y-2 p-4 rounded-xl bg-muted/10 border border-border/50">
             <label className="font-bold text-foreground block text-xs">
-              8. What's the one thing we should improve before the next convention? <span className="text-red-500">*</span>
+              8. What's the one thing we should improve before the next event? <span className="text-red-500">*</span>
             </label>
             <textarea
               required

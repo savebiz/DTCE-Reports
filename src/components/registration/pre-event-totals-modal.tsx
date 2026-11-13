@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { showToast } from '@/components/ui/toast'
-import { Globe, Save, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Globe, Save, CheckCircle2, AlertCircle, X } from 'lucide-react'
 import { getCurrentEventId } from '@/lib/events/current-event'
 import { preEventTotalsFromDepartmentSchema } from '@/lib/events/pre-event-totals'
 
@@ -144,40 +144,41 @@ export function PreEventRegistrationTotalsModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in-up"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 dark:bg-slate-950/80 backdrop-blur-md animate-fade-in-up"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <Card className="w-full max-w-lg bg-[#0A1826] border border-blue-500/40 text-slate-100 shadow-2xl max-h-[90dvh] flex flex-col overflow-hidden">
-        <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3 border-b border-slate-800">
+      <Card className="w-full max-w-lg bg-card border border-blue-500/40 text-foreground shadow-2xl max-h-[90dvh] flex flex-col overflow-hidden">
+        <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3 border-b border-border">
           <div>
-            <CardTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
-              <Globe className="w-5 h-5 text-blue-400" />
+            <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+              <Globe className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               Pre-Event Online Registration Totals
             </CardTitle>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Enter total online registered delegates prior to event start for pickup rate analysis.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="h-9 w-9 flex items-center justify-center shrink-0 text-slate-400 hover:text-white font-bold text-lg rounded-md hover:bg-slate-800/60"
+            aria-label="Close"
+            className="h-9 w-9 flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted"
           >
-            ✕
+            <X className="h-4 w-4" />
           </button>
         </CardHeader>
         <CardContent className="space-y-4 pt-4 flex-1 min-h-0 overflow-y-auto">
           {loading ? (
-            <p className="text-xs font-mono text-slate-400 animate-pulse py-4 text-center">
+            <p className="text-xs font-mono text-muted-foreground animate-pulse py-4 text-center">
               Loading pre-event online totals...
             </p>
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {CATEGORY_CONFIG.map(cat => (
-                  <div key={cat.key} className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5">
-                    <Label htmlFor={`cat-${cat.key}`} className="text-xs font-semibold text-slate-300">
+                  <div key={cat.key} className="p-3 rounded-xl bg-muted/50 border border-border space-y-1.5">
+                    <Label htmlFor={`cat-${cat.key}`} className="text-xs font-semibold text-foreground">
                       {cat.label}
                     </Label>
                     <Input
@@ -189,7 +190,7 @@ export function PreEventRegistrationTotalsModal({
                         const val = parseInt(e.target.value) || 0
                         setTotals(prev => ({ ...prev, [cat.key]: val }))
                       }}
-                      className="bg-slate-950 border-slate-700 text-white font-mono text-sm h-9"
+                      className="bg-background border-border text-foreground font-mono text-sm h-9"
                     />
                   </div>
                 ))}
@@ -197,20 +198,20 @@ export function PreEventRegistrationTotalsModal({
 
               {/* Total Summary */}
               <div className="flex items-center justify-between p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs">
-                <span className="font-bold text-slate-300 uppercase tracking-wider text-[11px]">
+                <span className="font-bold text-foreground uppercase tracking-wider text-[11px]">
                   Total Online Registered (All Categories):
                 </span>
-                <span className="font-mono font-bold text-blue-400 text-sm">
+                <span className="font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">
                   {grandTotal.toLocaleString()}
                 </span>
               </div>
 
-              <div className="flex gap-2 justify-end pt-2 border-t border-slate-800">
+              <div className="flex gap-2 justify-end pt-2 border-t border-border">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={onClose}
-                  className="text-xs h-9 px-4 border-slate-700 text-slate-300 hover:bg-slate-800"
+                  className="text-xs h-9 px-4"
                 >
                   Cancel
                 </Button>

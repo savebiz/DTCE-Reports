@@ -242,21 +242,20 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
       // Unique tag for every notification so Android/iOS stacks all alerts in the shade (like WhatsApp)
       const uniqueTag = `dtce-notif-${insertedNotifId}-${Date.now()}`
 
-      for (const sub of pushSubs) {
-        const pushRes = await sendWebPushNotification(sub, {
-          title,
-          body,
-          url: pushUrl,
-          unreadCount: recipientUnreadCount,
-          tag: uniqueTag,
-          notificationId: resResult.notificationId || insertedNotifId, // Forward ID for deep-link routing
-        })
+      await Promise.allSettled(
+        pushSubs.map(async (sub) => {
+          const pushRes = await sendWebPushNotification(sub, {
+            title,
+            body,
+            url: pushUrl,
+            unreadCount: recipientUnreadCount,
+            tag: uniqueTag,
+            notificationId: resResult.notificationId || insertedNotifId, // Forward ID for deep-link routing
+          })
 
-        if (pushRes.success) {
-          resResult.pushSent = true
-        } else if (pushRes.status === 404 || pushRes.status === 410) {
-          // Clean up expired endpoint if live Supabase is active
-          if (!isMock) {
+          if (pushRes.success) {
+            resResult.pushSent = true
+          } else if ((pushRes.status === 404 || pushRes.status === 410) && !isMock) {
             const serviceKey = getServiceRoleKey()
             const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
             if (serviceKey && supabaseUrl) {
@@ -264,8 +263,8 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
               await adminSupabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint)
             }
           }
-        }
-      }
+        })
+      )
     }
 
     return resResult
@@ -385,15 +384,17 @@ export async function checkAndDispatchLowStockAlert(params: {
       p.email?.includes('store')
     )
 
-    for (const r of recipients) {
-      await notify({
-        recipientId: r.id,
-        type: 'low_stock_alert',
-        title,
-        body,
-        relatedEntity: { type: 'system', id: itemId }
-      })
-    }
+    await Promise.allSettled(
+      recipients.map((r) =>
+        notify({
+          recipientId: r.id,
+          type: 'low_stock_alert',
+          title,
+          body,
+          relatedEntity: { type: 'system', id: itemId }
+        })
+      )
+    )
     return
   }
 
@@ -411,13 +412,15 @@ export async function checkAndDispatchLowStockAlert(params: {
 
   const recipientIds = new Set<string>([...adminIds, ...storesIds])
 
-  for (const recipientId of Array.from(recipientIds)) {
-    await notify({
-      recipientId,
-      type: 'low_stock_alert',
-      title,
-      body,
-      relatedEntity: { type: 'system', id: itemId }
-    })
-  }
+  await Promise.allSettled(
+    Array.from(recipientIds).map((recipientId) =>
+      notify({
+        recipientId,
+        type: 'low_stock_alert',
+        title,
+        body,
+        relatedEntity: { type: 'system', id: itemId }
+      })
+    )
+  )
 }

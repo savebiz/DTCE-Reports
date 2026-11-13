@@ -536,7 +536,7 @@ export default function MyDepartmentDashboard() {
             </div>
             {eventDays.length === 0 ? (
               <div className="text-center py-12 px-5 space-y-4">
-                <span className="text-3xl block">📅</span>
+                <span className="flex justify-center text-muted-foreground"><Calendar className="h-8 w-8" /></span>
                 <p className="text-[13px] text-muted-foreground italic">No active event days found in the database.</p>
                 <button
                   onClick={() => router.push('/my-department/daily-log')}

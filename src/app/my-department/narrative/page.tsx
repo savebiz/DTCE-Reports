@@ -15,6 +15,7 @@ import { extractCustomMetricsSummary, formatCustomMetricsTextLines } from '@/uti
 import { getCurrentEvent, getDepartmentAssignment, getEventDays } from '@/lib/events/current-event'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 import { ModernSelect } from '@/components/ui/modern-select'
+import { ArrowLeft, X, AlertTriangle } from 'lucide-react'
 
 // Drafts are kept per event so a Convention draft never shows up during Congress.
 const narrativeDraftKey = (eventId: string | null | undefined, departmentId: string | null | undefined) =>
@@ -172,7 +173,17 @@ export default function DepartmentNarrativePage() {
 
         // Calculate offering if stored inside metrics_data (direct offering, registration, or ushering services)
         if (r.metrics_data) {
-          totalOff += Number(r.metrics_data.offering || 0)
+          const directOffering =
+            r.metrics_data.offering ??
+            r.metrics_data.offering_amount ??
+            r.metrics_data.total_offering ??
+            r.metrics_data.offering_collected ??
+            r.metrics_data.custom_schema?.offering ??
+            r.metrics_data.custom_schema?.offering_amount ??
+            r.metrics_data.custom_schema?.total_offering ??
+            r.metrics_data.custom_schema?.offering_collected ??
+            0
+          totalOff += Number(directOffering || 0)
           // Registration amount_collected
           if (Array.isArray(r.metrics_data.walkin_registrations)) {
             r.metrics_data.walkin_registrations.forEach((reg: any) => {
@@ -389,7 +400,7 @@ export default function DepartmentNarrativePage() {
             </div>
             <h1 className="text-2xl font-bold text-foreground tracking-tight">End-of-Event Narrative Report</h1>
             <p className="text-[13px] text-muted-foreground mt-0.5">
-              {department?.name} Department • {activeEvent?.name || 'Annual Convention'}
+              {department?.name} Department • {activeEvent?.name || 'Annual Event'}
             </p>
           </div>
           
@@ -408,7 +419,7 @@ export default function DepartmentNarrativePage() {
               onClick={() => router.push('/my-department')}
               className="flex items-center gap-1.5 h-10 sm:h-9 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer"
             >
-              ← Back to Dashboard
+              <span className="inline-flex items-center gap-1.5"><ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard</span>
             </button>
           </div>
         </div>
@@ -582,7 +593,7 @@ export default function DepartmentNarrativePage() {
                           className="h-10 w-10 sm:h-8 sm:w-8 shrink-0 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                           onClick={() => handleRemoveChallenge(c.id)}
                         >
-                          ✕
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       )}
                     </div>
@@ -626,7 +637,7 @@ export default function DepartmentNarrativePage() {
                             className="h-6 w-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-550 transition-colors"
                             onClick={() => handleRemoveRecommendation(r.id)}
                           >
-                            ✕
+                            <X className="h-3.5 w-3.5" />
                           </button>
                         )}
                       </div>
@@ -674,7 +685,7 @@ export default function DepartmentNarrativePage() {
               {/* Validation Warnings (Task 8) */}
               {!isViewOnly && warnings.length > 0 && (
                 <div className="rounded-xl p-4 text-[12px] space-y-1.5" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', color: '#D97706' }}>
-                  <span className="font-bold uppercase tracking-wider block">⚠️ Gating Requirements</span>
+                  <span className="font-bold uppercase tracking-wider flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" /> Gating Requirements</span>
                   <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     {warnings.map((w, idx) => <li key={idx}>{w}</li>)}
                   </ul>

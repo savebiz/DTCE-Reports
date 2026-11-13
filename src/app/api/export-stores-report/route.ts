@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     // Try loading logo
     let logoBuffer: Buffer | undefined = undefined
     try {
-      const logoPath = path.join(process.cwd(), 'public/images/logo.png')
+      const logoPath = path.join(process.cwd(), 'public/dtce-logo-white-bg.png')
       if (fs.existsSync(logoPath)) {
         logoBuffer = fs.readFileSync(logoPath)
       }
@@ -75,7 +75,7 @@ export async function GET(request: Request) {
       logoBuffer
     })
 
-    const safeEventName = (event?.name || 'Convention').replace(/[^a-zA-Z0-9_-]/g, '_')
+    const safeEventName = (event?.name || 'Event').replace(/[^a-zA-Z0-9_-]/g, '_')
     const fileName = `DTCE_Stores_Requisition_and_Materials_Flow_Report_${safeEventName}.docx`
 
     return new Response(new Uint8Array(docxBuffer), {

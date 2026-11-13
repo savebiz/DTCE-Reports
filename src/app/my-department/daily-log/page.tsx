@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { SchemaFormRenderer } from '@/components/schema-form-renderer'
 import { NumberField } from '@/components/ui/number-field'
 import { CurrencyField } from '@/components/ui/currency-field'
-import { ClipboardList, Wifi, WifiOff, Clock, Globe } from 'lucide-react'
+import { ClipboardList, Wifi, WifiOff, Clock, Globe, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react'
 import { useOfflineDraft } from '@/hooks/use-offline-draft'
 import { PreEventRegistrationTotalsModal } from '@/components/registration/pre-event-totals-modal'
 import { getCurrentEventId, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
@@ -88,6 +88,7 @@ function DailyLogContent() {
 
   // 1. Fetch User profile and Event Days
   const loadData = async () => {
+    setDataLoaded(false)
     const supabase = getClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -762,10 +763,15 @@ function DailyLogContent() {
 
   // ── Auto-flush when connection returns with a pending offline payload ──────
   const handleOfflineFlush = useCallback(async (pendingPayload: any) => {
+    const windowCheck = evaluateDailyReportWindow(activeDay)
+    if (!isSuperAdminActing && !windowCheck.isOpen) {
+      showToast(windowCheck.message, 'warning')
+      return
+    }
     setLoading(true)
     try {
       await performSubmit(pendingPayload, true)
-      showToast('✅ Report auto-submitted — you\'re back online!', 'success')
+      showToast('Report auto-submitted — you\'re back online!', 'success')
     } catch (err: any) {
       showToast(`Auto-submit failed: ${err.message}. Will retry on next load.`, 'error')
     } finally {
@@ -817,7 +823,7 @@ function DailyLogContent() {
       setStatus('submitted') // Optimistic: show as submitted from HOD's perspective
       clearDraft()
       setLoading(false)
-      showToast('📶 No signal — report saved locally. Will auto-submit when back online.', 'warning')
+      showToast('No signal — report saved locally. Will auto-submit when back online.', 'warning')
       return
     }
 
@@ -930,7 +936,7 @@ function DailyLogContent() {
             onClick={() => router.push('/my-department')}
             className="h-9 rounded-xl px-5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer transition-all"
           >
-            ← Back to Dashboard
+            <span className="inline-flex items-center gap-1.5"><ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard</span>
           </button>
         </div>
       </div>
@@ -953,7 +959,7 @@ function DailyLogContent() {
           </div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">{department.name} Daily Log Workspace</h1>
           <p className="text-[13px] text-muted-foreground mt-0.5">
-            Fill and submit department specific metrics for convention days.
+            Fill and submit department specific metrics for event days.
           </p>
         </div>
         <Button
@@ -962,7 +968,7 @@ function DailyLogContent() {
           onClick={() => router.push(isSuperAdminActing ? '/dashboard' : '/my-department')}
           className="text-xs h-9 cursor-pointer w-fit"
         >
-          ← {isSuperAdminActing ? 'Back to Submission Board' : 'Back to Dashboard'}
+          <span className="inline-flex items-center gap-1.5"><ArrowLeft className="h-3.5 w-3.5" /> {isSuperAdminActing ? 'Back to Submission Board' : 'Back to Dashboard'}</span>
         </Button>
       </div>
 
@@ -970,7 +976,7 @@ function DailyLogContent() {
       {isSuperAdminActing && (
         <div className="rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border" style={{ background: 'rgba(245,158,11,0.06)', borderColor: 'rgba(245,158,11,0.25)' }}>
           <div className="flex items-center gap-2.5">
-            <span className="text-base">⚠️</span>
+            <AlertTriangle className="h-4 w-4 shrink-0" />
             <div>
               <span className="text-[12px] font-bold text-amber-500 uppercase block tracking-wider">Secretariat On-Behalf Submission Mode</span>
               <p className="text-[11px] text-muted-foreground">
@@ -1017,7 +1023,7 @@ function DailyLogContent() {
       <div className="glass-card p-4 space-y-2.5">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Event Reporting Day</span>
-          <span className="text-[10px] text-amber-500 font-mono font-semibold sm:hidden">Swipe ← →</span>
+          <span className="text-[10px] text-amber-500 font-mono font-semibold sm:hidden inline-flex items-center gap-1">Swipe <ArrowLeft className="h-2.5 w-2.5" /><ArrowRight className="h-2.5 w-2.5" /></span>
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none snap-x -mx-1 px-1">
           {eventDays.map((d: any) => {
@@ -1404,7 +1410,7 @@ function DailyLogContent() {
               {/* Form Validation Warnings */}
               {!isReadOnly && validationErrors.length > 0 && (
                 <div className="rounded-xl p-3 text-[11px] space-y-1.5" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)', color: '#D97706' }}>
-                  <span className="font-bold uppercase tracking-wide">⚠️ Gating Warnings</span>
+                  <span className="font-bold uppercase tracking-wide inline-flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" /> Gating Warnings</span>
                   <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                     {validationErrors.map((e, idx) => <li key={idx}>{e}</li>)}
                   </ul>
@@ -1444,7 +1450,7 @@ function DailyLogContent() {
                         : isSubmitLockedByWindow
                         ? 'Submission Locked Until Event Day'
                         : !isOnline
-                        ? '📶 Submit (queues offline)'
+                        ? <span className="inline-flex items-center gap-1.5"><WifiOff className="h-3.5 w-3.5" /> Submit (queues offline)</span>
                         : 'Submit Daily Log'}
                     </Button>
                   </div>

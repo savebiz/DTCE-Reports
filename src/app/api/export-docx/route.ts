@@ -45,7 +45,7 @@ export async function GET(request: Request) {
       const supabase = await createClient()
 
       userId = auth.ctx.userId
-      userRole = 'super_admin' // passed the admin check above
+      userRole = auth.ctx.role
 
       // Which event: ?eventId=... for a past event, otherwise the current one
       const requestedEventId = searchParams.get('eventId')
@@ -63,8 +63,8 @@ export async function GET(request: Request) {
       const { data: reps } = await supabase.from('daily_reports').select('*').eq('event_id', event.id)
       repsList = reps || []
 
-      const { data: narrs } = await supabase.from('department_narratives').select('*')
-      narrsList = (narrs || []).filter((n: any) => !n.event_id || n.event_id === event.id)
+      const { data: narrs } = await supabase.from('department_narratives').select('*').eq('event_id', event.id)
+      narrsList = narrs || []
 
       eventDaysList = await getEventDays(supabase, event.id)
 
@@ -109,7 +109,7 @@ export async function GET(request: Request) {
       const versionPayload = {
         version_number: Math.floor(Math.random() * 100) + 1,
         changed_by: userId,
-        change_summary: `Generated Convention DOCX: ${label}`,
+        change_summary: `Generated Event DOCX: ${label}`,
         data: {
           event_name: event.name,
           label,

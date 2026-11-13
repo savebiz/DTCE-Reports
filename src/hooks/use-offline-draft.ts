@@ -39,7 +39,7 @@ export function useOfflineDraft<T extends Record<string, any>>(draftKey: string)
 
     // Check for any pre-existing pending payload from a previous session
     const pending = localStorage.getItem(`dtce_pending_${draftKey}`)
-    if (pending) setHasPendingSync(true)
+    setHasPendingSync(Boolean(pending))
 
     const handleOnline = () => {
       setIsOnline(true)
@@ -52,6 +52,7 @@ export function useOfflineDraft<T extends Record<string, any>>(draftKey: string)
     return () => {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
     }
   }, [draftKey, flushPendingSync])
 
@@ -80,6 +81,10 @@ export function useOfflineDraft<T extends Record<string, any>>(draftKey: string)
 
   // ── Clear draft + pending payload after confirmed submission ──────────────
   const clearDraft = useCallback(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current)
+      debounceRef.current = null
+    }
     localStorage.removeItem(`dtce_draft_${draftKey}`)
     localStorage.removeItem(`dtce_pending_${draftKey}`)
     setHasPendingSync(false)

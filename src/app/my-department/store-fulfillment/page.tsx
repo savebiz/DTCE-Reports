@@ -11,7 +11,7 @@ import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
-import { CheckCircle2, Package, ClipboardList } from 'lucide-react'
+import { CheckCircle2, Package, ClipboardList, ArrowLeft, ArrowRight, ShoppingCart, RefreshCw } from 'lucide-react'
 import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 
@@ -271,7 +271,7 @@ function StoreFulfillmentContent() {
           onClick={() => router.push('/my-department')}
           className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
-          <span>←</span> Back to {departmentName} Dashboard
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to {departmentName} Dashboard
         </button>
 
         <div className="flex items-center gap-2">
@@ -304,14 +304,14 @@ function StoreFulfillmentContent() {
               className="text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
             >
               <ClipboardList className="w-3.5 h-3.5" />
-              🛒 Pre-Event Market List ({preEventListsCount} Dept Lists)
+              <span className="inline-flex items-center gap-1.5"><ShoppingCart className="h-3.5 w-3.5" /> Pre-Event Market List ({preEventListsCount} Dept Lists)</span>
             </Button>
             <Button
               onClick={() => router.push('/my-department/inventory')}
               variant="outline"
               className="text-xs font-semibold h-9 border-amber-500/30 text-amber-500 hover:bg-amber-500/10 cursor-pointer w-fit"
             >
-              📦 Store Inventory &amp; Stock
+              <span className="inline-flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> Store Inventory &amp; Stock</span>
             </Button>
             <Button
               onClick={() => loadData(true)}
@@ -319,7 +319,7 @@ function StoreFulfillmentContent() {
               size="sm"
               className="text-xs font-semibold h-9 px-3.5 border-border/70 hover:bg-accent/60 transition-colors shadow-xs cursor-pointer"
             >
-              🔄 Refresh
+              <span className="inline-flex items-center gap-1.5"><RefreshCw className="h-3.5 w-3.5" /> Refresh</span>
             </Button>
           </div>
         </div>
@@ -339,7 +339,7 @@ function StoreFulfillmentContent() {
               onClick={() => router.push('/my-department/market-list')}
               className="shrink-0 h-9 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
             >
-              Open Market List →
+              <span className="inline-flex items-center gap-1">Open Market List <ArrowRight className="h-3.5 w-3.5" /></span>
             </Button>
           </div>
         )}
@@ -412,7 +412,7 @@ function StoreFulfillmentContent() {
           <TableSkeleton rows={4} cols={3} />
         ) : filteredRequisitions.length === 0 ? (
           <Card className="bg-card rounded-xl p-12 text-center space-y-3 border border-border/50 shadow-xs">
-            <span className="text-4xl block">📦</span>
+            <span className="flex justify-center text-muted-foreground"><Package className="h-10 w-10" /></span>
             <p className="text-sm font-semibold text-muted-foreground">No live store requisitions match your filter criteria.</p>
           </Card>
         ) : (

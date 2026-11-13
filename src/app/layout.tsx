@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s · DTCE Reports",
   },
   description:
-    "Secure departmental reporting tools for DTCE Junior Church Global convention operations.",
+    "Secure departmental reporting tools for DTCE Junior Church Global event operations.",
   applicationName: "DTCE Reporting",
   appleWebApp: {
     capable: true,

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { showToast } from '@/components/ui/toast'
 import { isMock } from '@/utils/supabase'
-import { PackageCheck, ShoppingBag, CheckCircle2, Clock, AlertCircle, Printer, Download } from 'lucide-react'
+import { PackageCheck, ShoppingBag, CheckCircle2, Clock, AlertCircle, Printer, Download, ClipboardList, Package, ArrowLeft, ChevronDown, ChevronRight } from 'lucide-react'
 import { ModernSelect } from '@/components/ui/modern-select'
 
 interface MarketItem {
@@ -330,7 +330,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                 className="h-10 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
               >
                 <PackageCheck className="w-4 h-4" />
-                {stockingAll ? 'Stocking Inventory…' : `📦 Stock Received Items into Store (${unstockedReceivedItems.length})`}
+                <span className="inline-flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> {stockingAll ? 'Stocking Inventory…' : `Stock Received Items into Store (${unstockedReceivedItems.length})`}</span>
               </Button>
             )}
             <Button
@@ -338,7 +338,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
               onClick={() => router.push('/dashboard/store-requisitions?mode=pre_event')}
               className="h-10 px-4 text-xs font-semibold cursor-pointer"
             >
-              📋 Review Department Lists {analytics.departmentsPendingApproval > 0 ? `(${analytics.departmentsPendingApproval} Pending)` : ''}
+              <span className="inline-flex items-center gap-1.5"><ClipboardList className="h-3.5 w-3.5" /> Review Department Lists {analytics.departmentsPendingApproval > 0 ? `(${analytics.departmentsPendingApproval} Pending)` : ''}</span>
             </Button>
             <Button variant="outline" onClick={() => window.print()} className="h-10 px-3.5 text-xs cursor-pointer flex items-center gap-1.5">
               <Printer className="w-3.5 h-3.5" /> Print
@@ -347,7 +347,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
               <Download className="w-3.5 h-3.5" /> Export Excel (CSV)
             </Button>
             <Button variant="outline" onClick={() => router.push(backHref)} className="h-10 px-3.5 text-xs cursor-pointer">
-              ← Back
+              <span className="inline-flex items-center gap-1"><ArrowLeft className="h-3.5 w-3.5" /> Back</span>
             </Button>
           </div>
         </div>
@@ -595,7 +595,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                 className="text-left font-bold text-sm text-foreground hover:underline cursor-pointer"
                                 aria-expanded={openKey === item.key}
                               >
-                                {item.name} {openKey === item.key ? '▾' : '▸'}
+                                <span className="inline-flex items-center gap-1.5">{item.name} {openKey === item.key ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}</span>
                               </button>
                               <span className="block text-[11px] text-muted-foreground mt-0.5">
                                 {item.unit} · {item.category} · {item.departments.length} dept{item.departments.length === 1 ? '' : 's'}

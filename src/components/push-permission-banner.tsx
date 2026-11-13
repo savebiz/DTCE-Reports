@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Bell, Sparkles, X, Smartphone, CheckCircle2 } from 'lucide-react'
+import { Bell, Sparkles, X, Smartphone, CheckCircle2, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { showToast } from '@/components/ui/toast'
 import { triggerHaptic } from '@/utils/haptics'
@@ -165,7 +165,7 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
   if (!showBanner || subscribed) return null
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-slate-900/90 p-4 shadow-2xl backdrop-blur-xl transition-all animate-fade-in-up">
+    <div className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-card/95 p-4 shadow-lg backdrop-blur-xl transition-all animate-fade-in-up">
       {/* Background ambient glow */}
       <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
       <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-blue-500/10 blur-2xl pointer-events-none" />
@@ -178,23 +178,23 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
 
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-white tracking-tight">
+              <span className="text-sm font-bold text-foreground tracking-tight">
                 Enable {isMobileDevice ? 'Mobile' : 'Desktop'} Background Alerts
               </span>
               <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/20">
                 Recommended
               </span>
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed max-w-xl">
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-xl">
               Get instant alerts for Store Requisitions &amp; Department Reports {isMobileDevice ? 'on your lock screen, even when the DTCE App is closed or your phone is locked.' : 'on your desktop, even when you\'re in another tab or browser.'}
             </p>
 
             {/* Special iOS Guidance note if on iPhone outside standalone PWA */}
             {isIos && !isStandalone && (
-              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-blue-300 bg-blue-500/10 p-2 rounded-lg border border-blue-500/20">
-                <Smartphone className="h-4 w-4 text-blue-400 shrink-0" />
+              <div className="mt-2 flex items-center gap-1.5 text-[11px] text-blue-700 dark:text-blue-300 bg-blue-500/10 p-2 rounded-lg border border-blue-500/20">
+                <Smartphone className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
                 <span>
-                  <strong>iPhone Note:</strong> Tap <strong>Share</strong> ➔ <strong>Add to Home Screen</strong> first to receive background alerts on iOS.
+                  <strong>iPhone Note:</strong> Tap <strong>Share</strong> <ArrowRight className="inline h-3 w-3 mx-0.5" /> <strong>Add to Home Screen</strong> first to receive background alerts on iOS.
                 </span>
               </div>
             )}
@@ -215,7 +215,7 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
 
           <button
             onClick={handleDismiss}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Dismiss notification prompt"
           >
             <X className="h-4 w-4" />

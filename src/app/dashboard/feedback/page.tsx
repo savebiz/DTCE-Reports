@@ -216,14 +216,16 @@ function FeedbackAnalyticsContent() {
       ].join(',')
     })
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n')
-    const encodedUri = encodeURI(csvContent)
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.setAttribute('href', encodedUri)
+    link.setAttribute('href', url)
     link.setAttribute('download', `dtce_event_feedback_export_${new Date().toISOString().slice(0, 10)}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
     showToast('Feedback survey data exported successfully!', 'success')
   }
 
@@ -437,7 +439,7 @@ function FeedbackAnalyticsContent() {
                 <div className="p-3.5 rounded-xl bg-muted/20 border border-border/60 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-foreground">Mobile User Rating</span>
-                    <span className="text-xs font-bold text-amber-400">{avgMobileRating} ★</span>
+                    <span className="text-xs font-bold text-amber-500 dark:text-amber-400 inline-flex items-center gap-1">{avgMobileRating} <Star className="h-3.5 w-3.5 fill-current" /></span>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Average rating among mobile delegates. {computerOnlyCount} users reported using a desktop/laptop computer.

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { notify, getDepartmentRecipientIds } from '@/lib/notifications/dispatch'
 import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
@@ -80,26 +80,34 @@ export async function POST(request: Request) {
       })
     }
 
-    // 3. Dispatch return reminder notification to each department holding outstanding items
-    const notifiedDepts: string[] = []
+    // 3. Dispatch return reminder notifications in background after returning response
+    const deptEntries = Object.entries(deptOutstandingMap).filter(([, d]) => d.items.length > 0)
+    const notifiedDepts = deptEntries.map(([, d]) => d.deptName)
 
-    for (const [deptId, data] of Object.entries(deptOutstandingMap)) {
-      if (data.items.length > 0) {
-        const recipientIds = await getDepartmentRecipientIds(supabaseAdmin, deptId)
-        const itemsSummary = data.items.join(', ')
-
-        for (const recipientId of recipientIds) {
-          await notify({
-            recipientId,
-            type: 'durable_return_reminder',
-            title: `📋 Event Closed: Action Required - Return Borrowed Stores Equipment`,
-            body: `The event has officially closed. ${data.deptName} is currently holding the following unreturned durable items: ${itemsSummary}. Please return all equipment to Stores promptly.`,
-            relatedEntity: { type: 'event', id: eventId }
-          })
+    if (deptEntries.length > 0) {
+      after(async () => {
+        try {
+          await Promise.allSettled(
+            deptEntries.map(async ([deptId, data]) => {
+              const recipientIds = await getDepartmentRecipientIds(supabaseAdmin, deptId)
+              const itemsSummary = data.items.join(', ')
+              await Promise.allSettled(
+                recipientIds.map((recipientId) =>
+                  notify({
+                    recipientId,
+                    type: 'durable_return_reminder',
+                    title: 'Event Closed: Action Required - Return Borrowed Stores Equipment',
+                    body: `The event has officially closed. ${data.deptName} is currently holding the following unreturned durable items: ${itemsSummary}. Please return all equipment to Stores promptly.`,
+                    relatedEntity: { type: 'event', id: eventId }
+                  })
+                )
+              )
+            })
+          )
+        } catch (err) {
+          console.error('[events/close] background notification error:', err)
         }
-
-        notifiedDepts.push(data.deptName)
-      }
+      })
     }
 
     return NextResponse.json({

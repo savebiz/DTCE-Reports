@@ -48,7 +48,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="flex items-center justify-center text-slate-500 hover:text-slate-300 transition-colors p-0.5"
+                  className="flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors p-0.5"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   tabIndex={-1}
                 >

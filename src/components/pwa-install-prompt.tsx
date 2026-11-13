@@ -83,21 +83,21 @@ export function PwaInstallPrompt() {
                   <img src="/icon-192.png" alt="DTCE App" className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                     Install DTCE App on iOS
                   </h4>
                 </div>
               </div>
               <button
                 onClick={dismissIosPrompt}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
                 aria-label="Close install prompt"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5 space-y-2 text-xs text-slate-300">
+            <div className="p-3 rounded-xl bg-muted/60 border border-border/60 space-y-2 text-xs text-foreground">
               <div className="flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-bold">1</span>
                 <span>Tap the <strong className="text-amber-400 inline-flex items-center gap-1">Share <Share size={12} className="inline" /></strong> icon in Safari toolbar.</span>
@@ -111,7 +111,7 @@ export function PwaInstallPrompt() {
             <div className="flex justify-end gap-2 pt-1">
               <button
                 onClick={dismissIosPrompt}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-800 transition-colors"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted transition-colors"
               >
                 Got it, dismiss
               </button>
@@ -123,21 +123,14 @@ export function PwaInstallPrompt() {
       {/* ── ANDROID / CHROMIUM COMPACT INSTALL PROMPT ── */}
       {showAndroidBanner && (
         <div className="fixed bottom-4 left-4 right-4 z-[9999] max-w-md mx-auto animate-fade-in-up">
-          <div
-            className="p-3.5 rounded-2xl border shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3"
-            style={{
-              background: 'rgba(15, 26, 46, 0.95)',
-              borderColor: 'rgba(59, 130, 246, 0.3)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.6)',
-            }}
-          >
+          <div className="p-3.5 rounded-2xl border border-blue-500/30 bg-card/95 shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="relative h-9 w-9 rounded-xl overflow-hidden bg-white shrink-0 border border-blue-500/30">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/icon-192.png" alt="DTCE App" className="w-full h-full object-cover" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
                   <Smartphone size={13} className="text-blue-400" />
                   Install DTCE Reporting App
                 </h4>
@@ -152,7 +145,7 @@ export function PwaInstallPrompt() {
               </button>
               <button
                 onClick={dismissAndroidBanner}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X size={14} />
               </button>

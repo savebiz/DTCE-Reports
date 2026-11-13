@@ -337,7 +337,7 @@ export async function generateDTCEConventionDocx({
       spacing: spacing(120, 180),
       children: [
         new TextRun({
-          text: `This consolidated report presents the administrative, attendance, and operational metrics of the Junior Church Global Secretariat during the ${event?.name || 'Annual Event'}. It compiles metrics from all ${sortedDepts.length} departments tasked with delegate management, welfare, medical care, and logistics. Through diligent data collation and real-time offline-first form synchronization, the Secretariat maintained comprehensive reporting standards to ensure the spiritual and physical well-being of all attendees.`,
+          text: `This consolidated report presents the administrative, attendance, and operational metrics of the Junior Church Global Secretariat during the ${event?.name || 'Annual Event'}. It compiles metrics from all ${sortedDepts.length} ${sortedDepts.length === 1 ? "department" : "departments"} tasked with delegate management, welfare, medical care, and logistics. Through diligent data collation and real-time offline-first form synchronization, the Secretariat maintained comprehensive reporting standards to ensure the spiritual and physical well-being of all attendees.`,
           size: 22,
           font: 'Outfit'
         })

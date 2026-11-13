@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
@@ -105,41 +105,46 @@ export async function POST(request: Request) {
         const itemQty = targetItem.approved_quantity || targetItem.requested_quantity || targetItem.quantity || 1
         const unitStr = targetItem.unit || 'pcs'
 
-        // 1. Notify Stores Department Personnel & Stores HOD
-        const storesRecipientIds = await getStoresRecipientIds(supabaseAdmin)
-        for (const recipientId of storesRecipientIds) {
-          await notify({
-            recipientId,
-            type: 'requisition_return_initiated',
-            title: `Return Initiated: ${deptName}`,
-            body: `${deptName} has initiated a return for durable item "${itemName}" (${itemQty} ${unitStr}). Please expect item hand-over.`,
-            relatedEntity: { type: 'requisition', id: requestId }
-          })
-        }
-
-        // 2. Notify National Coordinators & Executive Secretariat
-        const adminRecipientIds = await getAdminRecipientIds(supabaseAdmin)
-        for (const recipientId of adminRecipientIds) {
-          await notify({
-            recipientId,
-            type: 'requisition_return_initiated',
-            title: `Material Return Initiated: ${deptName}`,
-            body: `${deptName} initiated return of ${itemQty} ${itemName} (${unitStr}).`,
-            relatedEntity: { type: 'requisition', id: requestId }
-          })
-        }
-
-        // 3. Notify Requesting Department Members (HOD + Assistants)
-        const deptRecipientIds = await getDepartmentRecipientIds(supabaseAdmin, reqRow.department_id)
-        for (const recipientId of deptRecipientIds) {
-          await notify({
-            recipientId,
-            type: 'requisition_return_initiated',
-            title: `Return Initiated: ${itemName}`,
-            body: `Your department initiated the return of ${itemQty} ${itemName} (${unitStr}). Please deliver item to Stores.`,
-            relatedEntity: { type: 'requisition', id: requestId }
-          })
-        }
+        after(async () => {
+          try {
+            const [storesRecipientIds, adminRecipientIds, deptRecipientIds] = await Promise.all([
+              getStoresRecipientIds(supabaseAdmin),
+              getAdminRecipientIds(supabaseAdmin),
+              getDepartmentRecipientIds(supabaseAdmin, reqRow.department_id),
+            ])
+            await Promise.allSettled([
+              ...storesRecipientIds.map((recipientId) =>
+                notify({
+                  recipientId,
+                  type: 'requisition_return_initiated',
+                  title: `Return Initiated: ${deptName}`,
+                  body: `${deptName} has initiated a return for durable item "${itemName}" (${itemQty} ${unitStr}). Please expect item hand-over.`,
+                  relatedEntity: { type: 'requisition', id: requestId }
+                })
+              ),
+              ...adminRecipientIds.map((recipientId) =>
+                notify({
+                  recipientId,
+                  type: 'requisition_return_initiated',
+                  title: `Material Return Initiated: ${deptName}`,
+                  body: `${deptName} initiated return of ${itemQty} ${itemName} (${unitStr}).`,
+                  relatedEntity: { type: 'requisition', id: requestId }
+                })
+              ),
+              ...deptRecipientIds.map((recipientId) =>
+                notify({
+                  recipientId,
+                  type: 'requisition_return_initiated',
+                  title: `Return Initiated: ${itemName}`,
+                  body: `Your department initiated the return of ${itemQty} ${itemName} (${unitStr}). Please deliver item to Stores.`,
+                  relatedEntity: { type: 'requisition', id: requestId }
+                })
+              ),
+            ])
+          } catch (err) {
+            console.error('[Initiate Return] Background notification error:', err)
+          }
+        })
       } catch (notifErr) {
         console.error('[Initiate Return] Failed to dispatch notifications:', notifErr)
       }

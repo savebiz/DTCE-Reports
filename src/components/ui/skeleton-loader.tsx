@@ -55,7 +55,7 @@ export function MatrixGridSkeleton() {
         <Skeleton className="h-5 w-1/3" />
         <Skeleton className="h-8 w-1/4" />
       </div>
-      <div className="grid grid-cols-6 gap-2 pt-2">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2">
         {Array.from({ length: 24 }).map((_, i) => (
           <Skeleton key={i} className="h-12 w-full rounded-lg" />
         ))}

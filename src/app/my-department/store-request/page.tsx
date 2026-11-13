@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { NumberField } from '@/components/ui/number-field'
 import { Label } from '@/components/ui/label'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
-import { Truck, RefreshCw, ClipboardList, Package, Copy, ArrowRight, Lock, Unlock } from 'lucide-react'
+import { Truck, RefreshCw, ClipboardList, Package, Copy, ArrowRight, Lock, Unlock, ArrowLeft, Send, Check, Download } from 'lucide-react'
 import { getCurrentEvent, getDepartmentAssignment } from '@/lib/events/current-event'
 import { evaluateRequisitionWindow } from '@/lib/events/requisition-windows'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
@@ -481,7 +481,7 @@ function StoreRequestContent() {
             onClick={() => router.push('/my-department')}
             className="text-xs h-9 cursor-pointer w-fit"
           >
-            ← Back to Department Home
+            <span className="inline-flex items-center gap-1.5"><ArrowLeft className="h-3.5 w-3.5" /> Back to Department Home</span>
           </Button>
         </div>
 
@@ -581,7 +581,7 @@ function StoreRequestContent() {
                     className="w-full h-11 text-xs font-bold border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 cursor-pointer flex items-center justify-center gap-2"
                   >
                     <Copy className="w-3.5 h-3.5" />
-                    {copying ? 'Copying previous list…' : 'Copy My Department List from Last Convention'}
+                    {copying ? 'Copying previous list…' : 'Copy My Department List from Last Event'}
                   </Button>
 
                   <div className="space-y-2">
@@ -710,7 +710,7 @@ function StoreRequestContent() {
                         disabled={loading || !preEventWindow.isOpen}
                         className="w-full mt-3 h-12 text-sm font-extrabold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer shadow-xs"
                       >
-                        {loading ? 'Sending Needs List…' : `📤 Submit Pre-Event Needs List (${items.length} Items)`}
+                        <span className="inline-flex items-center gap-1.5"><Send className="h-3.5 w-3.5" /> {loading ? 'Sending Needs List…' : `Submit Pre-Event Needs List (${items.length} Items)`}</span>
                       </Button>
                     </div>
                   )}
@@ -748,7 +748,7 @@ function StoreRequestContent() {
                       <ClipboardList className="w-8 h-8 text-muted-foreground mx-auto opacity-60" />
                       <p className="text-sm font-semibold text-foreground">No Pre-Event Needs List submitted yet for {activeEvent?.name || 'this event'}.</p>
                       <p className="text-xs text-muted-foreground">
-                        Use the form on the left (or copy your previous Convention list) to send your department&apos;s needs list for market procurement.
+                        Use the form on the left (or copy your previous event list) to send your department&apos;s needs list for market procurement.
                       </p>
                     </div>
                   ) : (
@@ -783,7 +783,7 @@ function StoreRequestContent() {
                                 ? 'Awaiting Gen Sec / Nat. Coordinator Approval'
                                 : req.status === 'declined'
                                 ? 'Declined'
-                                : '✓ Approved for Market Purchase'}
+                                : 'Approved for Market Purchase'}
                             </span>
                           </div>
 
@@ -833,13 +833,13 @@ function StoreRequestContent() {
                           {req.status !== 'pending_coordinator' && req.status !== 'declined' && (
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pt-1">
                               <span className="text-[11px] text-emerald-500 font-medium">
-                                ✓ Consolidated into Stores Market List for purchase.
+                                <span className="inline-flex items-center gap-1"><Check className="h-3.5 w-3.5 shrink-0" /> Consolidated into Stores Market List for purchase.</span>
                               </span>
                               <button
                                 onClick={() => handleLoadFromPreEventList(req.items_json)}
                                 className="text-xs font-bold text-blue-500 hover:text-blue-400 underline cursor-pointer text-left sm:text-right py-1"
                               >
-                                Request these items from Store during event →
+                                <span className="inline-flex items-center gap-1">Request these items from Store during event <ArrowRight className="h-3.5 w-3.5" /></span>
                               </button>
                             </div>
                           )}
@@ -884,7 +884,7 @@ function StoreRequestContent() {
                       variant="outline"
                       className="w-full h-11 text-xs font-bold border-blue-500/40 text-blue-400 hover:bg-blue-500/10 cursor-pointer flex items-center justify-center gap-2"
                     >
-                      📥 Load Items from My Approved Pre-Event Needs List ({approvedPreEventItems.length})
+                      <span className="inline-flex items-center gap-1.5"><Download className="h-3.5 w-3.5" /> Load Items from My Approved Pre-Event Needs List ({approvedPreEventItems.length})</span>
                     </Button>
                   )}
 
@@ -952,7 +952,7 @@ function StoreRequestContent() {
                     </div>
                   ) : (
                     <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-0.5">
-                      <span className="text-emerald-400 font-bold block">✓ Available in Store Catalog</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold inline-flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Available in Store Catalog</span>
                       <p className="text-[10px] text-muted-foreground">
                         Fulfilled from Central Stores stock upon approval.
                       </p>
@@ -1012,7 +1012,7 @@ function StoreRequestContent() {
                         disabled={loading || !liveWindow.isOpen}
                         className="w-full mt-3 h-12 text-sm font-extrabold bg-blue-600 hover:bg-blue-500 text-white cursor-pointer shadow-xs"
                       >
-                        {loading ? 'Sending Request…' : `📦 Send Store Requisition (${items.length} Items)`}
+                        <span className="inline-flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> {loading ? 'Sending Request…' : `Send Store Requisition (${items.length} Items)`}</span>
                       </Button>
                     </div>
                   )}
@@ -1137,7 +1137,7 @@ function StoreRequestContent() {
                                           </button>
                                         ) : (
                                           <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                                            ✓ {it.return_status?.replace('_', ' ')}
+                                            <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> {it.return_status?.replace('_', ' ')}</span>
                                           </span>
                                         )}
                                       </div>
@@ -1150,7 +1150,7 @@ function StoreRequestContent() {
 
                           {req.assigned_approver && (
                             <div className="text-[11px] text-muted-foreground flex gap-1.5 items-center">
-                              <span>➡️</span>
+                              <ArrowRight className="h-3.5 w-3.5 inline" />
                               <span>Delegated to review by: <strong>{req.assigned_approver.full_name || req.assigned_approver.email}</strong></span>
                             </div>
                           )}

@@ -113,26 +113,26 @@ export function PwaInstallButton({ variant = 'default' }: { variant?: 'default' 
 
       {/* ── iOS SAFARI GUIDED INSTALL MODAL ── */}
       {showIosModal && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div className="max-w-sm w-full bg-slate-900 border border-amber-500/30 rounded-2xl p-5 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/50 dark:bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="max-w-sm w-full bg-card border border-amber-500/30 rounded-2xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Smartphone size={18} className="text-amber-400" />
-                <h3 className="text-sm font-bold text-slate-100">Install on iOS Safari</h3>
+                <Smartphone size={18} className="text-amber-600 dark:text-amber-400" />
+                <h3 className="text-sm font-bold text-foreground">Install on iOS Safari</h3>
               </div>
               <button
                 onClick={() => setShowIosModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors"
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Apple iOS Safari requires adding the web app to your Home Screen manually:
             </p>
 
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-white/5 space-y-2 text-xs text-slate-300">
+            <div className="p-3 rounded-xl bg-muted/60 border border-border/60 space-y-2 text-xs text-foreground">
               <div className="flex items-center gap-2">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-bold">1</span>
                 <span>Tap <strong>Share <Share size={12} className="inline text-amber-400" /></strong> in Safari toolbar.</span>
@@ -145,7 +145,7 @@ export function PwaInstallButton({ variant = 'default' }: { variant?: 'default' 
 
             <button
               onClick={() => setShowIosModal(false)}
-              className="w-full py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-200 hover:bg-slate-700 transition-colors"
+              className="w-full py-2 rounded-xl text-xs font-bold bg-muted text-foreground hover:bg-muted/80 transition-colors"
             >
               Got it, Close
             </button>

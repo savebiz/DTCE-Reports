@@ -63,16 +63,16 @@ export async function POST(request: Request) {
 
     const results: any[] = []
 
+    const dispatchTasks: Promise<void>[] = []
+
     // 1. Dispatch reminders for HODs and Assistants of missing departments
     for (const dept of missingDepts) {
       const assignedProfileIds = new Set<string>()
-      
       profiles.forEach(p => {
         if (p.department_id === dept.id && (p.role === 'hod' || p.role === 'assistant')) {
           assignedProfileIds.add(p.id)
         }
       })
-
       hodAssignments.forEach(h => {
         if (h.department_id === dept.id) {
           assignedProfileIds.add(h.profile_id)
@@ -80,18 +80,19 @@ export async function POST(request: Request) {
       })
 
       const deptStaff = profiles.filter(p => assignedProfileIds.has(p.id))
-      
       for (const staff of deptStaff) {
         const body = `Reminder: The daily report for the ${dept.name} Department is missing for Day ${dayNumber}.\n\nPlease log in to enter today's metrics and narrative before the ${cutoffTime} cutoff.`
-        
-        const dispatchRes = await notify({
-          recipientId: staff.id,
-          type: 'missing_report_reminder',
-          title: `DTCE Reporting Reminder: ${dept.name} (Day ${dayNumber})`,
-          body,
-          relatedEntity: { type: 'report', id: currentDayObj.id }
-        })
-        results.push({ recipient: staff.email, type: 'hod-reminder', dispatchRes })
+        dispatchTasks.push(
+          notify({
+            recipientId: staff.id,
+            type: 'missing_report_reminder',
+            title: `DTCE Reporting Reminder: ${dept.name} (Day ${dayNumber})`,
+            body,
+            relatedEntity: { type: 'report', id: currentDayObj.id }
+          }).then((dispatchRes) => {
+            results.push({ recipient: staff.email, type: 'hod-reminder', dispatchRes })
+          })
+        )
       }
     }
 
@@ -100,15 +101,20 @@ export async function POST(request: Request) {
     const secBody = `The following ${missingDepts.length} departments have not submitted their reports for Day ${dayNumber} as of today's ${cutoffTime} cutoff:\n\n${missingDeptsNames.map((name, i) => `${i + 1}. ${name}`).join('\n')}`
 
     for (const sec of secretariatUsers) {
-      const dispatchRes = await notify({
-        recipientId: sec.id,
-        type: 'secretariat_summary',
-        title: `DTCE Daily Collation Summary: Day ${dayNumber}`,
-        body: secBody,
-        relatedEntity: { type: 'report', id: currentDayObj.id }
-      })
-      results.push({ recipient: sec.email, type: 'secretariat-summary', dispatchRes })
+      dispatchTasks.push(
+        notify({
+          recipientId: sec.id,
+          type: 'secretariat_summary',
+          title: `DTCE Daily Collation Summary: Day ${dayNumber}`,
+          body: secBody,
+          relatedEntity: { type: 'report', id: currentDayObj.id }
+        }).then((dispatchRes) => {
+          results.push({ recipient: sec.email, type: 'secretariat-summary', dispatchRes })
+        })
+      )
     }
+
+    await Promise.allSettled(dispatchTasks)
 
     return NextResponse.json({
       success: true,

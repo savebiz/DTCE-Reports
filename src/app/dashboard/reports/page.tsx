@@ -20,7 +20,7 @@ import {
 } from '@/utils/customMetricsSummarizer'
 import { compileStrategicStoresReport, StrategicStoresSummary } from '@/utils/storesReportSummarizer'
 import Link from 'next/link'
-import { Bell, ShoppingBag, FileSpreadsheet, Layers, BarChart3, X, Download, Award } from 'lucide-react'
+import { Bell, ShoppingBag, FileSpreadsheet, Layers, BarChart3, X, Download, Award, ArrowRight, Check, Landmark, FileText, Pin, Church } from 'lucide-react'
 import { getCurrentEvent, getEventDays } from '@/lib/events/current-event'
 import { ModernSelect } from '@/components/ui/modern-select'
 
@@ -196,14 +196,16 @@ export default function ReportsExportPage() {
       rows.push(`"Stores Consumables Log","${c.dayLabel} - ${c.itemName.replace(/"/g, '""')}","Dept: ${c.department}","Qty Issued: ${c.qtyIssued}",""`)
     })
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n')
-    const encodedUri = encodeURI(csvContent)
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.setAttribute('href', encodedUri)
+    link.setAttribute('href', url)
     link.setAttribute('download', `dtce_stores_requisition_and_materials_flow_export_${new Date().toISOString().slice(0, 10)}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(url)
     showToast('Stores materials flow CSV dataset exported successfully!', 'success')
   }
 
@@ -214,9 +216,9 @@ export default function ReportsExportPage() {
         method: 'POST'
       })
       const data = await res.json()
-      if (data.success) {
+      if (res.ok && data.success) {
         const sentCount = data.notifications_dispatched ?? data.notifications_sent ?? 0
-        showToast(`Successfully triggered daily digest reminders! Dispatched ${sentCount} notifications in ${data.delivery_mode} mode.`, 'success')
+        showToast(`Successfully triggered daily digest reminders! Dispatched ${sentCount} notifications.`, 'success')
         const supabase = getClient()
         const { data: logs } = await supabase.from('notification_logs').select('*')
         const startMs = event?.start_date ? new Date(event.start_date).getTime() : null
@@ -248,7 +250,7 @@ export default function ReportsExportPage() {
     
     const link = document.createElement('a')
     link.href = downloadUrl
-    link.setAttribute('download', `${event?.name || 'DTCE_Convention'}_Report.docx`)
+    link.setAttribute('download', `${event?.name || 'DTCE_Event'}_Report.docx`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -287,7 +289,7 @@ export default function ReportsExportPage() {
               <button
                 className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-semibold transition-all border border-border/70 bg-card hover:bg-accent/60 text-foreground cursor-pointer shadow-xs"
               >
-                ➔ Oversight Grid Matrix
+                <ArrowRight className="h-3.5 w-3.5" /> Oversight Grid Matrix
               </button>
             </Link>
           </div>
@@ -317,10 +319,10 @@ export default function ReportsExportPage() {
               </div>
 
               <div className="p-3.5 rounded-xl text-[12px] text-muted-foreground space-y-2.5 bg-muted/20 border border-border">
-                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Branded Letterhead</p>
-                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> All {departments.length || 43} Departments</p>
-                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Specialized Tables (Ushering, Medical, Reg, Welfare, Stores)</p>
-                <p className="flex items-center gap-2"><span className="text-emerald-400 font-bold">✓</span> Income &amp; Expenditure Appendix</p>
+                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" /> Branded Letterhead</p>
+                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" /> All {departments.length || 43} Departments</p>
+                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" /> Specialized Tables (Ushering, Medical, Reg, Welfare, Stores)</p>
+                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" /> Income &amp; Expenditure Appendix</p>
               </div>
 
               <button
@@ -331,7 +333,7 @@ export default function ReportsExportPage() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.9' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
               >
-                {exporting ? 'Generating...' : '📥 Export General DOCX'}
+                <><Download className="h-4 w-4 mr-1.5" /> {exporting ? 'Generating...' : 'Export General DOCX'}</>
               </button>
             </div>
           </div>
@@ -356,7 +358,7 @@ export default function ReportsExportPage() {
                 disabled={exportingStores}
                 className="w-full rounded-xl py-2.5 text-[12px] font-bold text-black transition-all cursor-pointer bg-amber-500 hover:bg-amber-400 flex items-center justify-center gap-1.5 shadow-xs"
               >
-                {exportingStores ? 'Generating Stores Report...' : '📥 Export Stores DOCX Report'}
+                <><Download className="h-4 w-4 mr-1.5" /> {exportingStores ? 'Generating Stores Report...' : 'Export Stores DOCX Report'}</>
               </button>
 
               <div className="grid grid-cols-2 gap-2">
@@ -396,7 +398,7 @@ export default function ReportsExportPage() {
               disabled={exportingSecretariat}
               className="w-full rounded-xl py-2.5 text-[12px] font-bold text-white transition-all cursor-pointer bg-purple-600 hover:bg-purple-500 flex items-center justify-center gap-1.5 shadow-xs"
             >
-              {exportingSecretariat ? 'Compiling Board Report...' : '🏛️ Export Board DOCX Report'}
+              <><Landmark className="h-4 w-4 mr-1.5" /> {exportingSecretariat ? 'Compiling Board Report...' : 'Export Board DOCX Report'}</>
             </button>
           </div>
 
@@ -479,15 +481,15 @@ export default function ReportsExportPage() {
                 
                 {/* Header Letterhead Preview */}
                 <div className="flex flex-col items-center pb-6 text-center space-y-2.5 font-sans border-b-2 border-primary/20">
-                  <div className="h-14 w-14 flex items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary text-xl font-bold font-mono">⛪</div>
+                  <div className="h-14 w-14 flex items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary"><Church className="h-7 w-7" /></div>
                   <h3 className="text-[16px] font-bold text-foreground tracking-wide uppercase">THE REDEEMED CHRISTIAN CHURCH OF GOD</h3>
                   <h4 className="text-[12px] font-bold text-amber-500 uppercase tracking-widest">JUNIOR CHURCH GLOBAL SECRETARIAT</h4>
-                  <p className="text-[11px] text-muted-foreground uppercase font-mono tracking-wider">{event?.name || 'CONVENTION REPORT'}</p>
+                  <p className="text-[11px] text-muted-foreground uppercase font-mono tracking-wider">{event?.name || 'EVENT REPORT'}</p>
                 </div>
 
                 {/* Title Section */}
                 <div className="py-6 text-center space-y-2 font-sans">
-                  <h2 className="text-2xl font-extrabold text-foreground tracking-tight">{event?.name || 'CONVENTION SUMMARY REPORT'}</h2>
+                  <h2 className="text-2xl font-extrabold text-foreground tracking-tight">{event?.name || 'EVENT SUMMARY REPORT'}</h2>
                   <p className="text-[13px] text-muted-foreground italic">Consolidated Administrative and Departmental Activity Log</p>
                 </div>
 
@@ -495,10 +497,10 @@ export default function ReportsExportPage() {
                 <div className="space-y-3">
                   <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">1. Executive Summary</h3>
                   <p className="text-[14px] text-muted-foreground font-light">
-                    This consolidated report presents the administrative, attendance, and operational metrics of the Junior Church Global Secretariat during the {event?.name || 'Annual Convention'}. It compiles metrics from all {departments.length || 43} departments tasked with delegate management, welfare, medical care, and logistics.
+                    This consolidated report presents the administrative, attendance, and operational metrics of the Junior Church Global Secretariat during the {event?.name || 'Annual Event'}. It compiles metrics from all {departments.length || 43} departments tasked with delegate management, welfare, medical care, and logistics.
                   </p>
                   <p className="text-[12px] italic text-muted-foreground font-sans bg-muted/20 p-2 rounded border border-border/50">
-                    📊 Data freshness: {reports.length > 0 ? `${new Set(reports.map(r => r.department_id)).size} of ${departments.length || 43} departments have submitted daily data. ${eoeNarratives.length} of ${departments.length || 43} departments have finalized end-of-event narratives.` : 'No daily data submitted yet.'}
+                    <BarChart3 className="h-3.5 w-3.5 inline mr-1 text-primary" /> Data freshness: {reports.length > 0 ? `${new Set(reports.map(r => r.department_id)).size} of ${departments.length || 43} departments have submitted daily data. ${eoeNarratives.length} of ${departments.length || 43} departments have finalized end-of-event narratives.` : 'No daily data submitted yet.'}
                   </p>
                 </div>
 
@@ -510,7 +512,7 @@ export default function ReportsExportPage() {
                     <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="text-foreground font-bold bg-muted/40 border-b border-border">
-                          <th className="p-3 border-r border-border">Convention Day</th>
+                          <th className="p-3 border-r border-border">Event Day</th>
                           <th className="p-3 border-r border-border text-center font-tabular">Total Morning Attendance</th>
                           <th className="p-3 text-center font-tabular">Total Evening Attendance</th>
                         </tr>
@@ -598,7 +600,7 @@ export default function ReportsExportPage() {
                             <h5 className="text-[12px] font-bold text-teal-400 font-sans uppercase tracking-wider">Daily Operational &amp; Qualitative Notes</h5>
                             {qualLogs.map((qLog, qIdx) => (
                               <div key={qIdx} className="p-3 rounded-lg bg-teal-950/20 border border-teal-500/30 text-[12px] space-y-1 font-sans">
-                                <div className="font-bold text-teal-300">📌 {qLog.dayLabel} Log</div>
+                                <div className="font-bold text-teal-600 dark:text-teal-300 flex items-center gap-1.5"><Pin className="h-3.5 w-3.5" /> {qLog.dayLabel} Log</div>
                                 {qLog.overview && <p><strong className="text-foreground">Overview:</strong> {qLog.overview}</p>}
                                 {qLog.achievements && <p><strong className="text-foreground">Activities &amp; Achievements:</strong> {qLog.achievements}</p>}
                                 {qLog.challenges && <p><strong className="text-amber-400">Challenges:</strong> {qLog.challenges}</p>}
@@ -1102,7 +1104,7 @@ export default function ReportsExportPage() {
                 <div className="space-y-4 pt-4 border-t border-border font-sans">
                   <h3 className="text-[15px] font-bold text-foreground pb-1.5">7. Appreciation &amp; Secretariat Approvals</h3>
                   <p className="text-[13px] text-muted-foreground font-light">
-                    We express our profound gratitude to the National Coordinators, HODs, and Secretariat volunteers whose tireless execution kept convention reporting running seamlessly under offline settings.
+                    We express our profound gratitude to the National Coordinators, HODs, and Secretariat volunteers whose tireless execution kept event reporting running seamlessly under offline settings.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 text-[12px] font-semibold text-foreground">
                     <div>Secretariat General Approval: ___________________</div>
@@ -1135,7 +1137,7 @@ export default function ReportsExportPage() {
                       Stores Requisition &amp; Materials Flow Strategic Audit
                     </h2>
                     <p className="text-xs text-muted-foreground">
-                      Standalone executive audit report • {event?.name || 'Convention'}
+                      Standalone executive audit report • {event?.name || 'Event'}
                     </p>
                   </div>
                 </div>

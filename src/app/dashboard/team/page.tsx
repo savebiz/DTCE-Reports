@@ -9,6 +9,7 @@ import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import Link from 'next/link'
 import { getCurrentEventId, assignmentMapForEvent } from '@/lib/events/current-event'
 import { ModernSelect } from '@/components/ui/modern-select'
+import { ArrowRight, Ticket, Zap, AlertTriangle, KeyRound } from 'lucide-react'
 
 interface CredentialSlip {
   fullName: string
@@ -344,7 +345,7 @@ export default function SecretariatTeamManagement() {
     try {
       if (isMock) {
         const password = generateCompliantPassword()
-        const emailAddress = row.email || `${row.username}@accounts.dtce-reports.vercel.app`
+        const emailAddress = row.email || `${row.username}@accounts.dtcereports.vercel.app`
         const newUserId = 'mock-bulk-' + Math.random().toString(36).substr(2, 9)
 
         const { store: mockStore } = require('@/utils/supabase/mockClient')
@@ -427,7 +428,7 @@ export default function SecretariatTeamManagement() {
 
         pending.forEach(row => {
           const password = generateCompliantPassword()
-          const emailAddress = row.email || `${row.username}@accounts.dtce-reports.vercel.app`
+          const emailAddress = row.email || `${row.username}@accounts.dtcereports.vercel.app`
           const newUserId = 'mock-bulk-' + Math.random().toString(36).substr(2, 9)
 
           mockStore.profiles.push({
@@ -567,7 +568,7 @@ export default function SecretariatTeamManagement() {
               <button
                 className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200 bg-card border border-border text-muted-foreground hover:text-foreground cursor-pointer"
               >
-                ➔ Oversight Dashboard
+                <span className="inline-flex items-center gap-1.5"><ArrowRight className="h-3.5 w-3.5" /> Oversight Dashboard</span>
               </button>
             </Link>
           </div>
@@ -582,7 +583,7 @@ export default function SecretariatTeamManagement() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print-hide">
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                  <span>🎫</span> Newly Issued HOD Credentials ({revealedSlips.length})
+                  <Ticket className="h-4 w-4 inline" /> Newly Issued HOD Credentials ({revealedSlips.length})
                 </h3>
                 <p className="text-[12px] text-slate-500 mt-1">
                   Copy passwords now. These will never be re-fetchable after this view closes.
@@ -636,7 +637,7 @@ export default function SecretariatTeamManagement() {
                       </div>
                       <div>
                         <span className="text-slate-500 block text-[9px] uppercase font-mono">Portal URL</span>
-                        <span className="font-mono text-slate-400">dtce-reports.vercel.app</span>
+                        <span className="font-mono text-slate-400">dtcereports.vercel.app</span>
                       </div>
                     </div>
 
@@ -707,7 +708,7 @@ export default function SecretariatTeamManagement() {
                       }}
                     >
                       {deptOptions.map(d => (
-                        <option key={d.id} value={d.id} style={{ background: '#111827' }}>{d.name}</option>
+                        <option key={d.id} value={d.id}>{d.name}</option>
                       ))}
                     </ModernSelect>
                   </div>
@@ -750,17 +751,17 @@ export default function SecretariatTeamManagement() {
                     }}
                   >
                     {profile?.role === 'super_admin' && (
-                      <option value="hod" style={{ background: '#111827' }}>HOD (Department Head)</option>
+                      <option value="hod">HOD (Department Head)</option>
                     )}
-                    <option value="assistant" style={{ background: '#111827' }}>Assistant</option>
+                    <option value="assistant">Assistant</option>
                     {profile?.role === 'super_admin' && (
-                      <option value="coordinator" style={{ background: '#111827' }}>Coordinator</option>
-                    )}
-                    {profile?.role === 'super_admin' && (
-                      <option value="national_coordinator" style={{ background: '#111827' }}>National Coordinator</option>
+                      <option value="coordinator">Coordinator</option>
                     )}
                     {profile?.role === 'super_admin' && (
-                      <option value="super_admin" style={{ background: '#111827' }}>Super Admin</option>
+                      <option value="national_coordinator">National Coordinator</option>
+                    )}
+                    {profile?.role === 'super_admin' && (
+                      <option value="super_admin">Super Admin</option>
                     )}
                   </ModernSelect>
                 </div>
@@ -771,7 +772,7 @@ export default function SecretariatTeamManagement() {
                   className="w-full rounded-xl py-2.5 text-[13px] font-bold text-white transition-all duration-200 mt-2"
                   style={{ background: 'linear-gradient(135deg, #1E40AF, #3B82F6)', border: '1px solid rgba(59,130,246,0.3)' }}
                 >
-                  {savingSingle ? 'Provisioning...' : '⚡ Generate Single Credential'}
+                  <span className="inline-flex items-center gap-1.5"><Zap className="h-3.5 w-3.5" /> {savingSingle ? 'Provisioning...' : 'Generate Single Credential'}</span>
                 </button>
               </form>
             </div>
@@ -809,7 +810,7 @@ export default function SecretariatTeamManagement() {
 
               {collisions.length > 0 && (
                 <div className="px-5 py-3.5 border-b text-[11px] text-red-400 bg-red-950/10 border-red-950/20 space-y-1">
-                  <p className="font-bold uppercase tracking-wider">⚠️ Username Collision Errors Detected:</p>
+                  <p className="font-bold uppercase tracking-wider"><span className="inline-flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" /> Username Collision Errors Detected:</span></p>
                   <ul className="list-disc pl-4 space-y-0.5">
                     {collisions.map((c, idx) => <li key={idx}>{c}</li>)}
                   </ul>
@@ -828,7 +829,7 @@ export default function SecretariatTeamManagement() {
                       <th className="p-3 w-1/8 text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800 text-slate-300">
+                  <tbody className="divide-y divide-border text-foreground/90">
                     {bulkList
                       .slice((bulkPage - 1) * bulkPageSize, bulkPage * bulkPageSize)
                       .map((item, idx) => {
@@ -926,7 +927,7 @@ export default function SecretariatTeamManagement() {
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
+              <tbody className="divide-y divide-border text-foreground/90">
                 {users.map(u => {
                   const isNationalRole = ['super_admin', 'national_coordinator', 'nc_assistant'].includes(u.role)
                   const effectiveDeptId = u.department_id || hodAssignMap[u.id]
@@ -941,7 +942,7 @@ export default function SecretariatTeamManagement() {
 
                   return (
                     <tr key={u.id} className="hover:bg-slate-900/10">
-                      <td className="p-3 font-semibold text-slate-200">{u.full_name || '—'}</td>
+                      <td className="p-3 font-semibold text-foreground">{u.full_name || '—'}</td>
                       <td className="p-3 font-mono text-slate-400">{u.username || '—'}</td>
                       <td className="p-3 text-slate-500">{u.email}</td>
                       <td className="p-3 font-medium">
@@ -1023,11 +1024,11 @@ export default function SecretariatTeamManagement() {
                               )
                             }}
                           >
-                            <option value="hod" style={{ background: '#111827' }}>HOD</option>
-                            <option value="assistant" style={{ background: '#111827' }}>ASSISTANT</option>
-                            <option value="coordinator" style={{ background: '#111827' }}>COORDINATOR</option>
-                            <option value="national_coordinator" style={{ background: '#111827' }}>NATIONAL_COORDINATOR</option>
-                            <option value="super_admin" style={{ background: '#111827' }}>SUPER_ADMIN</option>
+                            <option value="hod">HOD</option>
+                            <option value="assistant">ASSISTANT</option>
+                            <option value="coordinator">COORDINATOR</option>
+                            <option value="national_coordinator">NATIONAL_COORDINATOR</option>
+                            <option value="super_admin">SUPER_ADMIN</option>
                           </ModernSelect>
                         ) : (
                           <span
@@ -1069,7 +1070,7 @@ export default function SecretariatTeamManagement() {
                               onClick={() => setResetModalTarget(u)}
                               className="h-7 rounded-lg px-2.5 text-[11px] font-semibold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer flex items-center gap-1"
                             >
-                              <span>🔑</span> Reset Password
+                              <KeyRound className="h-3.5 w-3.5" /> Reset Password
                             </button>
                           )}
                           {u.id !== profile?.id && (
@@ -1119,23 +1120,23 @@ export default function SecretariatTeamManagement() {
         {/* Confirmation Modal for Reset Password */}
         {resetModalTarget && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90dvh] overflow-y-auto">
+            <div className="bg-card border border-border rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90dvh] overflow-y-auto">
               <div className="flex items-center gap-3 text-amber-400">
-                <span className="text-xl">🔑</span>
+                <KeyRound className="h-5 w-5 text-amber-500" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">Confirm Password Reset</h3>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Reset password for <strong className="text-white font-semibold">{resetModalTarget.full_name || resetModalTarget.username}</strong> ({resetModalTarget.username || 'user'})?
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Reset password for <strong className="text-foreground font-semibold">{resetModalTarget.full_name || resetModalTarget.username}</strong> ({resetModalTarget.username || 'user'})?
                 <br />
                 <span className="text-slate-400 block mt-1.5 leading-normal">
                   A temporary password will be generated for this account. Upon signing in with the temporary password, the user will be automatically routed to create their new password.
                 </span>
               </p>
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+              <div className="flex justify-end gap-3 pt-3 border-t border-border">
                 <button
                   onClick={() => setResetModalTarget(null)}
                   disabled={resettingPassword}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>

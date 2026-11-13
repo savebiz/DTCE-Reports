@@ -125,13 +125,13 @@ export async function generateStoresMaterialsDocx({
   mainChildren.push(new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: spacing(0, 40),
-    children: [new TextRun({ text: 'DEEPER LIFE BIBLE CHURCH', bold: true, size: 28, font: 'Outfit', color: NAVY })]
+    children: [new TextRun({ text: 'THE REDEEMED CHRISTIAN CHURCH OF GOD', bold: true, size: 28, font: 'Outfit', color: NAVY })]
   }))
 
   mainChildren.push(new Paragraph({
     alignment: AlignmentType.CENTER,
     spacing: spacing(0, 100),
-    children: [new TextRun({ text: 'DISTRICT & TERRITORIAL CHURCH EXCELLENCE (DTCE)', bold: true, size: 20, font: 'Outfit', color: GOLD })]
+    children: [new TextRun({ text: 'DIRECTORATE OF TEENS & CHILDREN EDUCATION (DTCE)', bold: true, size: 20, font: 'Outfit', color: GOLD })]
   }))
 
   mainChildren.push(new Paragraph({
@@ -171,7 +171,7 @@ export async function generateStoresMaterialsDocx({
     spacing: spacing(60, 120),
     children: [
       new TextRun({
-        text: `This report provides an independent, highly strategic audit of material requisitions, stores distribution velocity, inventory movement, and departmental consumption for ${event?.name || 'the event'}. Out of ${summary.kpis.totalRequisitions} total submitted store requisitions across ${summary.kpis.totalDepartmentsRequesting} departments, ${summary.kpis.deliveredCount + summary.kpis.approvedCount} were approved/fulfilled, yielding an overall fulfillment rate of ${summary.kpis.fulfillmentRate}%.`,
+        text: `This report provides an independent, highly strategic audit of material requisitions, stores distribution velocity, inventory movement, and departmental consumption for ${event?.name || 'the event'}. Out of ${summary.kpis.totalRequisitions} total submitted store requisitions across ${summary.kpis.totalDepartmentsRequesting} ${summary.kpis.totalDepartmentsRequesting === 1 ? "department" : "departments"}, ${summary.kpis.deliveredCount + summary.kpis.approvedCount} ${(summary.kpis.deliveredCount + summary.kpis.approvedCount) === 1 ? "was" : "were"} approved/fulfilled, yielding an overall fulfillment rate of ${summary.kpis.fulfillmentRate}%.`,
         font: 'Outfit',
         size: 18,
         color: SLATE_DARK

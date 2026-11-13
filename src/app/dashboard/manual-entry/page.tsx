@@ -370,12 +370,12 @@ function ManualEntryContent() {
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5" />
-              Convention Day
+              Event Day
             </Label>
             <Select value={selectedDayId} onValueChange={(val) => setSelectedDayId(val || '')}>
               <SelectTrigger className="h-10 text-xs font-medium bg-background border-border/60">
-                <SelectValue placeholder="Select Convention Day...">
-                  {selectedDay ? `Day ${selectedDay.day_number} — ${new Date(`${selectedDay.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })}` : 'Select Convention Day...'}
+                <SelectValue placeholder="Select Event Day...">
+                  {selectedDay ? `Day ${selectedDay.day_number} — ${new Date(`${selectedDay.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })}` : 'Select Event Day...'}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>

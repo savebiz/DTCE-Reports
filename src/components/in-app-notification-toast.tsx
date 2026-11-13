@@ -155,17 +155,10 @@ export function InAppNotificationToast() {
         role="alert"
       >
         <div
-          className="flex items-start gap-3 rounded-2xl p-3.5 shadow-2xl"
-          style={{
-            background: 'rgba(15, 26, 46, 0.97)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(245, 158, 11, 0.25)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(245,158,11,0.1)',
-          }}
+          className="flex items-start gap-3 p-3.5 rounded-2xl bg-card/95 border border-amber-500/30 shadow-2xl backdrop-blur-xl"
         >
           {/* DTCE Logo */}
-          <div className="flex-shrink-0 relative w-10 h-10 rounded-xl overflow-hidden bg-[#0f172a] border border-white/10">
+          <div className="flex-shrink-0 relative w-10 h-10 rounded-xl overflow-hidden bg-muted border border-border">
             <Image
               src="/dtce-logo.png"
               alt="DTCE"
@@ -179,7 +172,7 @@ export function InAppNotificationToast() {
           <div className="flex-1 min-w-0">
             <div className="flex items-baseline justify-between gap-2">
               <p
-                className="text-[13px] font-bold text-white truncate"
+                className="text-[13px] font-bold text-foreground truncate"
                 style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
               >
                 {current.title}
@@ -189,7 +182,7 @@ export function InAppNotificationToast() {
               </span>
             </div>
             <p
-              className="text-[12px] text-slate-300/90 mt-0.5 line-clamp-2 leading-snug"
+              className="text-[12px] text-muted-foreground mt-0.5 line-clamp-2 leading-snug"
               style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}
             >
               {current.body}
@@ -198,7 +191,7 @@ export function InAppNotificationToast() {
 
           {/* Dismiss button */}
           <button
-            className="flex-shrink-0 self-start text-slate-500 hover:text-slate-300 transition-colors p-0.5"
+            className="flex-shrink-0 self-start text-muted-foreground hover:text-foreground transition-colors p-0.5"
             onClick={(e) => { e.stopPropagation(); dismiss() }}
             aria-label="Dismiss notification"
           >

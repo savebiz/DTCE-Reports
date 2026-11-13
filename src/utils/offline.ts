@@ -98,24 +98,41 @@ export async function syncQueuedSubmissions(supabaseClient: any): Promise<{ sync
       const { data: { user } } = await supabaseClient.auth.getUser()
       if (!user) throw new Error('User session not found during sync')
 
-      // Insert/update daily_reports
-      const { data: insertedReport, error: reportErr } = await supabaseClient
+      // Upsert daily_reports (update existing draft if present to avoid duplicates)
+      const { data: existingReport } = await supabaseClient
         .from('daily_reports')
-        .insert({
-          event_id: report.event_id,
-          event_day_id: report.event_day_id,
-          department_id: report.department_id,
-          attendance_morning: report.attendance_morning,
-          attendance_evening: report.attendance_evening,
-          submitted_by: user.id,
-          status: 'submitted',
-          metrics_data: report.metrics_data || {}
-        })
-        .select()
+        .select('id')
+        .eq('event_day_id', report.event_day_id)
+        .eq('department_id', report.department_id)
+        .maybeSingle()
 
-      if (reportErr) throw reportErr
+      const reportPayload = {
+        event_id: report.event_id,
+        event_day_id: report.event_day_id,
+        department_id: report.department_id,
+        attendance_morning: report.attendance_morning,
+        attendance_evening: report.attendance_evening,
+        submitted_by: user.id,
+        status: 'submitted',
+        metrics_data: report.metrics_data || {}
+      }
 
-      const dailyReportId = insertedReport[0].id
+      let dailyReportId: string
+      if (existingReport?.id) {
+        const { error: updateErr } = await supabaseClient
+          .from('daily_reports')
+          .update(reportPayload)
+          .eq('id', existingReport.id)
+        if (updateErr) throw updateErr
+        dailyReportId = existingReport.id
+      } else {
+        const { data: insertedReport, error: reportErr } = await supabaseClient
+          .from('daily_reports')
+          .insert(reportPayload)
+          .select()
+        if (reportErr) throw reportErr
+        dailyReportId = insertedReport[0].id
+      }
 
       // Insert department_narratives
       const { error: narrativeErr } = await supabaseClient

@@ -112,6 +112,7 @@ export function compileStrategicStoresReport(
     approved: number
     pending: number
     delivered: number
+    declined: number
   }> = {}
 
   const itemVelocityMap: Record<string, {
@@ -132,7 +133,7 @@ export function compileStrategicStoresReport(
     if (deptId) requestingDeptsSet.add(deptId)
 
     if (!deptDemandMap[deptName]) {
-      deptDemandMap[deptName] = { deptName, requests: 0, requested: 0, approved: 0, pending: 0, delivered: 0 }
+      deptDemandMap[deptName] = { deptName, requests: 0, requested: 0, approved: 0, pending: 0, delivered: 0, declined: 0 }
     }
     deptDemandMap[deptName].requests++
 
@@ -144,6 +145,8 @@ export function compileStrategicStoresReport(
       deptDemandMap[deptName].pending++
     } else if (status === 'declined') {
       declinedCount++
+      deptDemandMap[deptName].declined++
+      deptDemandMap[deptName].declined++
     } else if (status === 'partially_fulfilled') {
       partialCount++
       approvedCount++
@@ -204,7 +207,7 @@ export function compileStrategicStoresReport(
 
   const totalRequisitions = reqList.length
   const fulfillmentRate = totalRequisitions > 0
-    ? Math.round(((deliveredCount + approvedCount + partialCount) / totalRequisitions) * 100)
+    ? Math.min(100, Math.round(((deliveredCount + approvedCount) / totalRequisitions) * 100))
     : 0
 
   const kpis: StoresSummaryKPIs = {
@@ -223,7 +226,7 @@ export function compileStrategicStoresReport(
   // 2. Department Demand Rows
   const departmentDemand: DepartmentMaterialDemandRow[] = Object.entries(deptDemandMap).map(([departmentName, data]) => {
     const deptFulfillment = data.requests > 0
-      ? Math.round(((data.delivered + (data.requests - data.pending - data.delivered)) / data.requests) * 100)
+      ? Math.round(((data.requests - data.pending - data.declined) / data.requests) * 100)
       : 0
     return {
       departmentId: departmentName,
@@ -314,14 +317,14 @@ export function compileStrategicStoresReport(
   const topDept = departmentDemand[0]
   if (topDept) {
     recommendations.push(
-      `High Material Consumption Priority: ${topDept.departmentName} generated the largest demand with ${topDept.totalUnitsRequested.toLocaleString()} item units across ${topDept.totalRequests} requisitions.`
+      `High Material Consumption Priority: ${topDept.departmentName} generated the largest demand with ${topDept.totalUnitsRequested.toLocaleString()} item units across ${topDept.totalRequests} ${topDept.totalRequests === 1 ? "requisition" : "requisitions"}.`
     )
   }
 
   if (totalItemsApproved < totalItemsRequested) {
     const gap = totalItemsRequested - totalItemsApproved
     recommendations.push(
-      `Buffer Stock Optimization: An overall gap of ${gap.toLocaleString()} requested material units was unfulfilled; expand safety stock allocations prior to the next convention.`
+      `Buffer Stock Optimization: An overall gap of ${gap.toLocaleString()} requested material units was unfulfilled; expand safety stock allocations prior to the next event.`
     )
   } else {
     recommendations.push(

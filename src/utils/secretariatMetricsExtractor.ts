@@ -276,7 +276,7 @@ export function compileSecretariatMetrics(data: {
 
   const durables = inventoryItems.filter((i: any) => i.category === 'durable').length
   const consumables = inventoryItems.filter((i: any) => i.category === 'consumable').length
-  const lowStock = inventoryItems.filter((i: any) => (i.current_stock || 0) < (i.low_stock_threshold || 0)).length
+  const lowStock = inventoryItems.filter((i: any) => (i.current_stock || 0) <= (i.low_stock_threshold || 0)).length
 
   const txnTypes = { restock: 0, fulfillment: 0, adjustment: 0, return: 0 }
   const txnKeyMap: Record<string, keyof typeof txnTypes> = {

@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import dynamic from 'next/dynamic'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
-import { CheckCircle2, RotateCcw, Check, AlertCircle, X, Calendar } from 'lucide-react'
+import { CheckCircle2, RotateCcw, Check, AlertCircle, X, Calendar, ShoppingCart, Package, FileEdit } from 'lucide-react'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { KPIGridSkeleton, MatrixGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
 import { InventoryReportsView } from '@/components/inventory/inventory-reports-view'
@@ -863,7 +863,7 @@ function SecretariatDashboardContent() {
                     onClick={() => router.push('/dashboard/market-list')}
                     className="text-xs h-8 cursor-pointer border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 font-bold"
                   >
-                    🛒 Pre-Event Market Analytics &rarr;
+                    <ShoppingCart className="h-3.5 w-3.5" /> Pre-Event Market Analytics
                   </Button>
                   <Button
                     size="sm"
@@ -894,11 +894,11 @@ function SecretariatDashboardContent() {
                               </span>
                               {isPreEvent ? (
                                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30">
-                                  🛒 Pre-Event Needs List (Market Purchase)
+                                  <ShoppingCart className="h-3.5 w-3.5 inline mr-1.5" /> Pre-Event Needs List (Market Purchase)
                                 </span>
                               ) : (
                                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                                  📦 Live Event Store Requisition
+                                  <Package className="h-3.5 w-3.5 inline mr-1.5" /> Live Event Store Requisition
                                 </span>
                               )}
                             </div>
@@ -1473,7 +1473,7 @@ function SecretariatDashboardContent() {
                     }}
                     className="mt-4 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer shadow-xs"
                   >
-                    📝 Digitise Manual Paper Report
+                    <FileEdit className="h-3.5 w-3.5 mr-1.5" /> Digitise Manual Paper Report
                   </Button>
                 )}
               </div>
@@ -1484,38 +1484,39 @@ function SecretariatDashboardContent() {
 
       {/* ── RESOLUTION CONFIRMATION MODAL ── */}
       {resolvingItem && (
-        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div className="max-w-md w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/50 dark:bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="max-w-md w-full bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-400" />
-                <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Mark Challenge as Treated</h3>
+                <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400" />
+                <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Mark Challenge as Treated</h3>
               </div>
               <button
                 onClick={() => setResolvingItem(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors"
+                aria-label="Close modal"
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
               >
-                ✕
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1 text-xs">
-              <div className="flex justify-between items-center text-slate-400 font-semibold">
+            <div className="p-3 rounded-xl bg-muted/50 border border-border space-y-1 text-xs">
+              <div className="flex justify-between items-center text-muted-foreground font-semibold">
                 <span>{resolvingItem.deptName} Department</span>
                 <span>Day {resolvingItem.dayNumber}</span>
               </div>
-              <p className="text-red-400 font-sans mt-1">"{resolvingItem.challenges}"</p>
+              <p className="text-red-600 dark:text-red-400 font-sans mt-1">"{resolvingItem.challenges}"</p>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-slate-300">
-                Resolution Note <span className="text-slate-500 font-normal">(Optional: What was done to address this?)</span>
+              <Label className="text-xs font-semibold text-foreground">
+                Resolution Note <span className="text-muted-foreground font-normal">(Optional: What was done to address this?)</span>
               </Label>
               <Textarea
                 value={resolutionNoteInput}
                 onChange={(e) => setResolutionNoteInput(e.target.value)}
                 placeholder="e.g. Dispatched 50 extra mattresses via General Welfare and assigned 2 additional personnel."
-                className="bg-slate-950/80 border-slate-700 text-xs text-slate-100 min-h-[90px] focus:border-emerald-500"
+                className="bg-background border-border text-xs text-foreground min-h-[90px] focus:border-emerald-500"
               />
             </div>
 

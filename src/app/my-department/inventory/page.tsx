@@ -26,7 +26,7 @@ import {
   CatalogValidationRow,
   RestockValidationRow
 } from '@/utils/inventory-bulk'
-import { Download, Upload, AlertTriangle, CheckCircle2, FileSpreadsheet, Plus, RefreshCw, Layers, BarChart3, FileText } from 'lucide-react'
+import { Download, Upload, AlertTriangle, CheckCircle2, FileSpreadsheet, Plus, RefreshCw, Layers, BarChart3, FileText, ArrowLeft, Check } from 'lucide-react'
 
 export default function StoresInventoryPage() {
   const router = useRouter()
@@ -627,7 +627,7 @@ export default function StoresInventoryPage() {
           onClick={() => router.push('/my-department')}
           className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
-          <span>←</span> Back to Stores Dashboard
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Stores Dashboard
         </button>
 
         <div className="flex items-center gap-2">
@@ -953,15 +953,15 @@ export default function StoresInventoryPage() {
                         </div>
                         {isLowStock ? (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase whitespace-nowrap shrink-0">
-                            ⚠️ Low Stock
+                            <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low Stock</span>
                           </span>
                         ) : (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase whitespace-nowrap shrink-0">
-                            ✓ Optimal
+                            <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> Optimal</span>
                           </span>
                         )}
                       </div>
-                      <div className="grid grid-cols-4 gap-1.5 rounded-lg bg-muted/30 p-2 font-mono text-center">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 rounded-lg bg-muted/30 p-2 font-mono text-center">
                         <div>
                           <span className="text-[9px] text-muted-foreground font-sans block">Stock</span>
                           <span className="font-bold text-foreground">{item.current_stock}</span>
@@ -1075,11 +1075,11 @@ export default function StoresInventoryPage() {
                           <td className="p-3 text-center">
                             {isLowStock ? (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider animate-pulse">
-                                ⚠️ Low Stock
+                                <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low Stock</span>
                               </span>
                             ) : (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
-                                ✓ Optimal
+                                <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> Optimal</span>
                               </span>
                             )}
                           </td>
@@ -1178,7 +1178,7 @@ export default function StoresInventoryPage() {
                     <SelectTrigger className="w-full text-xs input-dark">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                    <SelectContent>
                       <SelectItem value="consumable">Consumable</SelectItem>
                       <SelectItem value="durable">Durable</SelectItem>
                     </SelectContent>

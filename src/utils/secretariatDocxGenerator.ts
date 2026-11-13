@@ -748,7 +748,7 @@ export async function generateSecretariatDocx(
   ))
 
   const impactData = [
-    ['Report Collection Time', '3–5 days post-convention', 'Real-time (within minutes)', '~99% faster'],
+    ['Report Collection Time', '3–5 days post-event', 'Real-time (within minutes)', '~99% faster'],
     ['Final Report Compilation', '1–3 weeks manual effort', '< 30 seconds (one-click export)', '~99.9% faster'],
     ['Compliance Visibility', 'Post-hoc discovery only', 'Live colour-coded matrix', '100% real-time'],
     ['Missing Report Detection', 'Manual phone calls to HODs', 'Automated push notifications', 'Fully automated'],
@@ -794,7 +794,7 @@ export async function generateSecretariatDocx(
     'Integrate Financial Reporting Module — Extend the platform to support structured financial data capture, including income and expenditure tracking, offering reconciliation, and budgetary reporting directly linked to departmental activities.',
     'Implement Data Visualisation Dashboards — Add interactive charts and trend graphs to the Secretariat Command Centre, enabling real-time visual analysis of attendance patterns, submission trends, and resource consumption during the event.',
     'Establish Departmental Performance Recognition — Institute a formal recognition mechanism for departments achieving 100% compliance, incentivising timely and complete reporting across all event days.',
-    'Archive and Benchmark — Preserve the 2026 event dataset as the institutional baseline for Year-over-Year comparison in subsequent events, enabling evidence-based tracking of improvements, recurring issues, and resource allocation efficiency.',
+    `Archive and Benchmark — Preserve the ${m.eventName} dataset as the institutional baseline for Year-over-Year comparison in subsequent events, enabling evidence-based tracking of improvements, recurring issues, and resource allocation efficiency.`,
   ]
 
   recommendations.forEach((r, i) => children.push(numberedItem(i + 1, r)))

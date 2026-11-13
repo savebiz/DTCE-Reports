@@ -294,7 +294,7 @@ export async function GET(request: NextRequest) {
         } else if (reportType === 'fulfillment_history') {
           headers = ['Timestamp', 'Department', 'Item Name', 'Transaction Type', 'Quantity Change', 'Resulting Stock Level', 'Audit Note']
           rows = historyData.map((d: FulfillmentHistoryItem) => [
-            new Date(d.timestamp).toLocaleString(), `"${d.department_name}"`, `"${d.item_name}"`,
+            `"${new Date(d.timestamp).toLocaleString().replace(/"/g, '""')}"`, `"${d.department_name}"`, `"${d.item_name}"`,
             d.transaction_type, String(d.quantity_change), String(d.resulting_stock_level), `"${d.note || ''}"`
           ])
         }
@@ -450,7 +450,7 @@ export async function GET(request: NextRequest) {
           <td class="text-right font-mono text-green">+${d.total_restocked || 0}</td>
           <td class="text-right font-mono text-amber">-${d.total_fulfilled || 0}</td>
           <td class="text-center">
-            ${d.is_low_stock ? '<span class="badge badge-red">⚠️ LOW STOCK</span>' : '<span class="badge badge-green">✓ OPTIMAL</span>'}
+            ${d.is_low_stock ? '<span class="badge badge-red">LOW STOCK</span>' : '<span class="badge badge-green">OPTIMAL</span>'}
           </td>
         </tr>
       `).join('')
@@ -522,9 +522,9 @@ export async function GET(request: NextRequest) {
 
 <body>
   <div class="no-print" style="background: #0f172a; color: #ffffff; padding: 12px 16px; margin: -20px -20px 20px; display: flex; justify-content: space-between; align-items: center;">
-    <span style="font-weight: 700; font-size: 12px;">📄 Comprehensive Inventory Oversight Document — Ready for Print / PDF Save</span>
+    <span style="font-weight: 700; font-size: 12px;">Comprehensive Inventory Oversight Document — Ready for Print / PDF Save</span>
     <button onclick="window.print()" style="background: #f59e0b; color: #000000; border: none; padding: 6px 16px; border-radius: 6px; font-weight: 800; font-size: 12px; cursor: pointer;">
-      🖨️ Print / Save Full PDF Report
+      Print / Save Full PDF Report
     </button>
   </div>
 

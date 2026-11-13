@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { NumberField } from '@/components/ui/number-field'
 import { CurrencyField } from '@/components/ui/currency-field'
+import { X } from 'lucide-react'
 
 export interface FieldSchema {
   name: string
@@ -118,7 +119,7 @@ export function SchemaFormRenderer({ fields, value, onChange, readOnly = false, 
             <Label htmlFor={fieldId} className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
               {field.label}
             </Label>
-            <div className="rounded-md bg-slate-900/60 p-2.5 text-sm font-mono font-bold text-foreground border border-border/80 flex items-center justify-between">
+            <div className="rounded-md bg-muted/50 p-2.5 text-sm font-mono font-bold text-foreground border border-border/80 flex items-center justify-between">
               <span className="text-[11px] text-muted-foreground font-sans">
                 {field.computeFormula === 'sum_fields' ? 'Calculated Total' : 'Auto S/N'}
               </span>
@@ -290,7 +291,7 @@ function CardKeyedRow({
             className="h-7 px-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-950/20 font-bold"
             onClick={() => onRemove(index)}
           >
-            ✕ Remove
+            <span className="inline-flex items-center gap-1"><X className="h-3 w-3" /> Remove</span>
           </Button>
         )}
       </div>

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
 import { ModernSelect } from '@/components/ui/modern-select'
+import { ArrowRight, AlertTriangle } from 'lucide-react'
 
 interface CarryOverIssue {
   departmentName: string
@@ -166,14 +167,14 @@ export default function YoYComparisonPage() {
               <span className="text-[11px] font-bold tracking-widest text-muted-foreground uppercase">Secretariat Analytics Panel</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Year-over-Year Comparison</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Compare 2025 and 2026 convention cycles.</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Compare 2025 and 2026 event cycles.</p>
           </div>
           <div className="flex items-center">
             <Link href="/dashboard">
               <button
                 className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-semibold transition-all border border-border/70 bg-card hover:bg-accent/60 text-foreground cursor-pointer shadow-xs"
               >
-                ➔ Oversight Dashboard
+                <span className="inline-flex items-center gap-1.5"><ArrowRight className="h-3.5 w-3.5" /> Oversight Dashboard</span>
               </button>
             </Link>
           </div>
@@ -277,7 +278,7 @@ export default function YoYComparisonPage() {
             </div>
 
             <div className="mt-5 rounded-xl p-3 text-[12px] text-center font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20">
-              ➔ +38.1% Increase in collections YoY
+              <span className="inline-flex items-center gap-1"><ArrowRight className="h-3 w-3" /> +38.1% Increase in collections YoY</span>
             </div>
           </div>
 
@@ -315,7 +316,7 @@ export default function YoYComparisonPage() {
         {/* Unresolved Carry-over Challenges / Recommendations */}
         <div className="glass-card overflow-hidden">
           <div className="px-5 py-4 border-b flex flex-col gap-1" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.2)' }}>
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">⚠️ Carry-Over Challenges &amp; Unresolved Recommendations</span>
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500"><span className="inline-flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Carry-Over Challenges</span> &amp; Unresolved Recommendations</span>
             <p className="text-[12px] text-slate-500">Automatically matching challenges from 2025 that recurrently appeared in 2026 narrative reports.</p>
           </div>
 
@@ -330,10 +331,10 @@ export default function YoYComparisonPage() {
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-red-400" style={{ background: 'rgba(239,68,68,0.02)' }}>2026 Recurrent Challenge</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
+              <tbody className="divide-y divide-border text-foreground">
                 {carryOvers.map((item, idx) => (
                   <tr key={idx} className="hover:bg-slate-900/10">
-                    <td className="p-3 font-bold text-slate-200">{item.departmentName}</td>
+                    <td className="p-3 font-bold text-foreground">{item.departmentName}</td>
                     <td className="p-3">
                       <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' }}>
                         {item.keywordMatched}

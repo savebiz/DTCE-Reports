@@ -323,7 +323,7 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
   const canEditPreTotals = userRole === 'super_admin'
 
   return (
-    <Card className="glass-card border border-teal-500/30 bg-[#071524]/90 shadow-xl animate-fade-in-up my-6">
+    <Card className="glass-card border border-teal-500/30 bg-card/95 shadow-xl animate-fade-in-up my-6">
       <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-teal-500/20 flex-wrap gap-2">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-400">
@@ -336,7 +336,7 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
                 Two-Channel Analytics
               </span>
             </CardTitle>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Online manual pickup fulfillment rates vs. offline walk-in registrations and fees.
             </p>
           </div>
@@ -358,7 +358,7 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
         {/* KPI Summary Strip */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Online Pickup Rate */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-teal-500/30 space-y-1">
+          <div className="p-4 rounded-xl bg-muted/50 border border-teal-500/30 space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-teal-400 uppercase tracking-wider">Overall Pickup Rate</span>
               <Percent className="w-4 h-4 text-teal-400" />
@@ -366,13 +366,13 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
             <div className="text-2xl font-bold font-mono text-slate-100">
               {overallPickupRate}%
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-muted-foreground">
               {totalOnlinePickedUp.toLocaleString()} of {totalOnlinePreRegistered.toLocaleString()} online pre-registrations picked up
             </p>
           </div>
 
           {/* Card 2: Total Online Manuals Picked Up */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-blue-500/30 space-y-1">
+          <div className="p-4 rounded-xl bg-muted/50 border border-blue-500/30 space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Online Pickups (Section A)</span>
               <CheckCircle2 className="w-4 h-4 text-blue-400" />
@@ -380,13 +380,13 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
             <div className="text-2xl font-bold font-mono text-slate-100">
               {totalOnlinePickedUp.toLocaleString()}
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-muted-foreground">
               Zero-currency pure fulfillment pickups
             </p>
           </div>
 
           {/* Card 3: Total Walk-In Registrations */}
-          <div className="p-4 rounded-xl bg-slate-900/80 border border-purple-500/30 space-y-1">
+          <div className="p-4 rounded-xl bg-muted/50 border border-purple-500/30 space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-purple-400 uppercase tracking-wider">Walk-In Registrations (Section B)</span>
               <TrendingUp className="w-4 h-4 text-purple-400" />
@@ -394,7 +394,7 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
             <div className="text-2xl font-bold font-mono text-slate-100">
               {totalWalkInRegs.toLocaleString()}
             </div>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-muted-foreground">
               New offline registrations during event
             </p>
           </div>
@@ -419,12 +419,12 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
 
         {/* Category Breakdown Table */}
         <div className="space-y-2">
-          <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+          <h4 className="text-xs font-bold text-foreground/90 uppercase tracking-wider">
             Category Fulfillment &amp; Pickup Performance
           </h4>
-          <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60">
+          <div className="overflow-x-auto rounded-xl border border-border bg-muted/40">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900/90 text-slate-400 font-semibold border-b border-slate-800">
+              <thead className="bg-muted/70 text-muted-foreground font-semibold border-b border-border">
                 <tr>
                   <th className="p-3">Category</th>
                   <th className="p-3 font-mono">Pre-Registered</th>
@@ -435,11 +435,11 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
                   <th className="p-3 font-mono">Fee Revenue</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-200">
+              <tbody className="divide-y divide-border/60 text-foreground">
                 {categoryStats.map(stat => (
-                  <tr key={stat.key} className="hover:bg-slate-900/40 transition-colors">
+                  <tr key={stat.key} className="hover:bg-muted/60 transition-colors">
                     <td className="p-3 font-bold text-slate-100">{stat.label}</td>
-                    <td className="p-3 font-mono text-slate-300">{stat.preRegistered.toLocaleString()}</td>
+                    <td className="p-3 font-mono text-foreground/90">{stat.preRegistered.toLocaleString()}</td>
                     <td className="p-3 font-mono text-blue-400 font-semibold">{stat.pickedUp.toLocaleString()}</td>
                     <td className="p-3">
                       <div className="flex items-center gap-2">
@@ -449,11 +449,11 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
                             style={{ width: `${Math.min(100, stat.pickupRate)}%` }}
                           />
                         </div>
-                        <span className="font-mono font-bold text-slate-200">{stat.pickupRate}%</span>
+                        <span className="font-mono font-bold text-foreground">{stat.pickupRate}%</span>
                       </div>
                     </td>
                     <td className="p-3 font-mono text-purple-400">{stat.walkInRegs.toLocaleString()}</td>
-                    <td className="p-3 font-mono text-slate-300">{stat.manualsDistributed.toLocaleString()}</td>
+                    <td className="p-3 font-mono text-foreground/90">{stat.manualsDistributed.toLocaleString()}</td>
                     <td className="p-3 font-mono text-teal-300 font-bold">₦{stat.revenue.toLocaleString()}</td>
                   </tr>
                 ))}
@@ -464,13 +464,13 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
 
         {/* Daily Trend Table */}
         {dailyTrends.length > 0 && (
-          <div className="space-y-2 pt-2 border-t border-slate-800">
-            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+          <div className="space-y-2 pt-2 border-t border-border">
+            <h4 className="text-xs font-bold text-foreground/90 uppercase tracking-wider">
               Daily Registration &amp; Fulfillment Progression
             </h4>
-            <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60">
+            <div className="overflow-x-auto rounded-xl border border-border bg-muted/40">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-900/90 text-slate-400 font-semibold border-b border-slate-800">
+                <thead className="bg-muted/70 text-muted-foreground font-semibold border-b border-border">
                   <tr>
                     <th className="p-3">Event Day</th>
                     <th className="p-3 font-mono">Section A (Online Pickups)</th>
@@ -479,13 +479,13 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
                     <th className="p-3 font-mono">Fee Revenue</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-200">
+                <tbody className="divide-y divide-border/60 text-foreground">
                   {dailyTrends.map(day => (
-                    <tr key={day.dayNumber} className="hover:bg-slate-900/40">
+                    <tr key={day.dayNumber} className="hover:bg-muted/60">
                       <td className="p-3 font-bold text-slate-100">Day {day.dayNumber}</td>
                       <td className="p-3 font-mono text-blue-400 font-semibold">{day.onlinePickups.toLocaleString()}</td>
                       <td className="p-3 font-mono text-purple-400 font-semibold">{day.newRegistrations.toLocaleString()}</td>
-                      <td className="p-3 font-mono text-slate-300">{day.manualsDistributed.toLocaleString()}</td>
+                      <td className="p-3 font-mono text-foreground/90">{day.manualsDistributed.toLocaleString()}</td>
                       <td className="p-3 font-mono text-teal-300 font-bold">₦{day.revenue.toLocaleString()}</td>
                     </tr>
                   ))}

@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
-import { AlertTriangle, X, ClipboardList, Package, CheckCircle2, Clock, AlertCircle, ShoppingBag } from 'lucide-react'
+import { AlertTriangle, X, ClipboardList, Package, CheckCircle2, Clock, AlertCircle, ShoppingBag, ArrowLeft, ArrowRight, ShoppingCart, Download, RefreshCw, Check } from 'lucide-react'
 import { getCurrentEvent } from '@/lib/events/current-event'
 import { isGeneralSecretary } from '@/lib/auth/titles'
 import { ModernSelect } from '@/components/ui/modern-select'
@@ -498,7 +498,7 @@ function AdminRequisitionsContent() {
           onClick={() => router.push('/dashboard')}
           className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
-          <span>←</span> Back to Command Centre
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Command Centre
         </button>
 
         <div className="flex items-center gap-2">
@@ -539,7 +539,7 @@ function AdminRequisitionsContent() {
               onClick={() => router.push('/dashboard/market-list')}
               className="text-xs h-9 font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
             >
-              🛒 Consolidated Market List ({preEventAnalytics.distinctItemsCount} Items)
+              <ShoppingCart className="h-3.5 w-3.5" /> Consolidated Market List ({preEventAnalytics.distinctItemsCount} Items)
             </Button>
             <Button
               size="sm"
@@ -569,10 +569,10 @@ function AdminRequisitionsContent() {
               }}
               className="text-xs h-9 font-semibold cursor-pointer"
             >
-              📥 Export DOCX Report
+              <Download className="h-3.5 w-3.5 mr-1.5" /> Export DOCX Report
             </Button>
             <Button size="sm" variant="outline" onClick={() => loadData()} className="text-xs h-9 cursor-pointer">
-              🔄 Refresh
+              <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Refresh
             </Button>
           </div>
         </div>
@@ -712,13 +712,13 @@ function AdminRequisitionsContent() {
                     onClick={() => setShowMissingDepts(false)}
                     className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                   >
-                    Close ✕
+                    <span className="inline-flex items-center gap-1">Close <X className="h-3.5 w-3.5" /></span>
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div className="space-y-1.5">
                     <span className="font-bold text-emerald-500 block">
-                      ✓ Submitted ({preEventAnalytics.submittedDepts.length})
+                      <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> Submitted ({preEventAnalytics.submittedDepts.length})</span>
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {preEventAnalytics.submittedDepts.length === 0 ? (
@@ -790,7 +790,7 @@ function AdminRequisitionsContent() {
         <div className="space-y-4">
           {filteredRequests.length === 0 ? (
             <Card className="bg-card rounded-xl p-12 text-center space-y-3 border border-border/50">
-              <span className="text-4xl block">{workflowMode === 'pre_event' ? '📋' : '📦'}</span>
+              <span className="flex justify-center text-muted-foreground">{workflowMode === 'pre_event' ? <ClipboardList className="h-10 w-10" /> : <Package className="h-10 w-10" />}</span>
               <p className="text-sm font-semibold text-muted-foreground">
                 {workflowMode === 'pre_event'
                   ? 'No Pre-Event Departmental Needs Lists found matching this filter.'
@@ -822,7 +822,7 @@ function AdminRequisitionsContent() {
                               ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25'
                               : 'bg-blue-500/10 text-blue-400 border-blue-500/25'
                           }`}>
-                            {isPre ? '🛒 For Market Purchase' : '📦 From Store Stock'}
+                            <span className="inline-flex items-center gap-1">{isPre ? <><ShoppingCart className="h-3 w-3" /> For Market Purchase</> : <><Package className="h-3 w-3" /> From Store Stock</>}</span>
                           </span>
                           <span className="text-xs font-mono text-muted-foreground">
                             #{req.id.substring(0, 8)}
@@ -892,7 +892,7 @@ function AdminRequisitionsContent() {
                             onClick={() => selectReqForReview(req)}
                             className="text-xs h-8.5 px-4 cursor-pointer border-amber-500/40 text-amber-400 hover:bg-amber-500/10 font-bold shadow-xs"
                           >
-                            {isPre ? 'Review & Approve for Market Purchase ➔' : 'Review & Edit Quantities ➔'}
+                            <span className="inline-flex items-center gap-1.5">{isPre ? 'Review & Approve for Market Purchase' : 'Review & Edit Quantities'} <ArrowRight className="h-3.5 w-3.5" /></span>
                           </Button>
                         ) : (
                           <span className="text-[10px] font-semibold text-slate-400 bg-slate-800/40 px-2.5 py-1 rounded-full border border-slate-700/50">
@@ -928,33 +928,33 @@ function AdminRequisitionsContent() {
         {/* Review Modal Overlay */}
         {selectedReq && (
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in-up"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/50 dark:bg-slate-950/80 backdrop-blur-md animate-fade-in-up"
             onClick={(e) => {
               if (e.target === e.currentTarget) setSelectedReq(null)
             }}
           >
-            <Card className="w-full max-w-xl bg-[#0A1826] border border-blue-500/40 text-slate-100 shadow-2xl max-h-[92dvh] flex flex-col overflow-hidden">
-              <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3 border-b border-slate-800">
+            <Card className="w-full max-w-xl bg-card border border-blue-500/40 text-foreground shadow-2xl max-h-[92dvh] flex flex-col overflow-hidden">
+              <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3 border-b border-border">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
                       isSelectedPreEvent
-                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                        : 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                        : 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30'
                     }`}>
                       {isSelectedPreEvent ? 'Pre-Event Needs List (Market Purchase)' : 'Live Event Store Requisition'}
                     </span>
                   </div>
-                  <CardTitle className="text-base font-bold text-white uppercase tracking-wider">
+                  <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
                     Review: {selectedReq.department?.name}
                   </CardTitle>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
                     ID: #{selectedReq.id.substring(0, 8)} • {Array.isArray(selectedReq.items_json) ? selectedReq.items_json.length : 0} line item(s)
                   </p>
                 </div>
                 <button
                   onClick={() => setSelectedReq(null)}
-                  className="h-9 w-9 flex items-center justify-center shrink-0 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="h-9 w-9 flex items-center justify-center shrink-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                   title="Close modal"
                 >
                   <X className="w-5 h-5" />
@@ -963,23 +963,23 @@ function AdminRequisitionsContent() {
               <CardContent className="space-y-4 p-4 sm:p-5 flex-1 min-h-0 overflow-y-auto">
                 {selectedReq.status !== 'pending_coordinator' ? (
                   <div className="space-y-4 pt-2">
-                    <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
+                    <div className="p-3.5 rounded-xl bg-muted/50 border border-border space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                        <span className="text-xs font-bold uppercase tracking-wider text-foreground">
                           {isSelectedPreEvent ? 'Needs List Breakdown' : 'Requisition Items Breakdown'}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400">Processed Audit Log</span>
+                        <span className="text-[10px] font-mono text-muted-foreground">Processed Audit Log</span>
                       </div>
                       <div className="space-y-2">
                         {Array.isArray(selectedReq.items_json) && selectedReq.items_json.map((it: any, idx: number) => (
-                          <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs">
+                          <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-2.5 rounded-lg bg-background border border-border text-xs">
                             <div>
-                              <span className="font-semibold text-white block">{it.name}</span>
-                              <span className="text-[10px] text-slate-400 uppercase">{it.unit || 'pcs'} · {it.category || 'consumable'}</span>
+                              <span className="font-semibold text-foreground block">{it.name}</span>
+                              <span className="text-[10px] text-muted-foreground uppercase">{it.unit || 'pcs'} · {it.category || 'consumable'}</span>
                             </div>
                             <div className="font-mono text-xs">
-                              <span className="text-slate-400 mr-2">Requested: {it.requested_quantity ?? it.quantity}</span>
-                              <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                              <span className="text-muted-foreground mr-2">Requested: {it.requested_quantity ?? it.quantity}</span>
+                              <span className="font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                                 Approved: {it.approved_quantity ?? it.quantity} {it.unit || 'pcs'}
                               </span>
                             </div>
@@ -989,26 +989,26 @@ function AdminRequisitionsContent() {
                     </div>
 
                     {selectedReq.reviewer_comments && (
-                      <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs space-y-1">
-                        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest block">Reviewer Remarks:</span>
-                        <p className="text-slate-300 leading-relaxed">{selectedReq.reviewer_comments}</p>
+                      <div className="p-3 rounded-xl bg-muted/40 border border-border text-xs space-y-1">
+                        <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest block">Reviewer Remarks:</span>
+                        <p className="text-foreground/90 leading-relaxed">{selectedReq.reviewer_comments}</p>
                       </div>
                     )}
 
-                    <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
-                      <span>Status: <strong className="text-emerald-400 uppercase">{selectedReq.status.replace('_', ' ')}</strong></span>
-                      <span className="text-slate-400 font-semibold">Read-Only Completed Audit Record</span>
+                    <div className="p-3 rounded-xl bg-muted/40 border border-border text-[11px] text-muted-foreground flex items-center justify-between">
+                      <span>Status: <strong className="text-emerald-700 dark:text-emerald-400 uppercase">{selectedReq.status.replace('_', ' ')}</strong></span>
+                      <span className="text-muted-foreground font-semibold">Read-Only Completed Audit Record</span>
                     </div>
                   </div>
                 ) : (
                   <>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-slate-300 uppercase tracking-widest block">
+                      <Label className="text-xs font-bold text-foreground uppercase tracking-widest block">
                         {isSelectedPreEvent ? 'Approve Quantities for Market Purchase' : 'Edit Approved Quantities'}
                       </Label>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-muted-foreground">
                         {isSelectedPreEvent
-                          ? 'Review the items this department requested for Congress. Approved quantities will be added to the Consolidated Stores Market List for purchase.'
+                          ? 'Review the items this department requested for this event. Approved quantities will be added to the Consolidated Stores Market List for purchase.'
                           : 'Adjust quantities or remove line items before approving. Original requested amounts are preserved.'}
                       </p>
 
@@ -1024,13 +1024,13 @@ function AdminRequisitionsContent() {
                           const isExceeding = !isSelectedPreEvent && catItem && item.approved_quantity > availableStock
 
                           return (
-                            <div key={idx} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 text-xs">
+                            <div key={idx} className="p-3 rounded-xl bg-muted/50 border border-border space-y-2 text-xs">
                               <div className="flex flex-wrap justify-between items-center gap-2">
                                 <div className="min-w-0">
-                                  <span className="font-bold text-white block">{item.name}</span>
-                                  <span className="text-[10px] text-slate-400 uppercase">{item.unit || 'pcs'} · {item.category || 'consumable'}</span>
+                                  <span className="font-bold text-foreground block">{item.name}</span>
+                                  <span className="text-[10px] text-muted-foreground uppercase">{item.unit || 'pcs'} · {item.category || 'consumable'}</span>
                                 </div>
-                                <span className="text-[10px] text-slate-300 bg-slate-800 px-2 py-0.5 rounded font-mono">
+                                <span className="text-[10px] text-foreground bg-muted px-2 py-0.5 rounded font-mono">
                                   Requested: {item.requested_quantity} {item.unit || 'pcs'}
                                 </span>
                               </div>
@@ -1038,7 +1038,7 @@ function AdminRequisitionsContent() {
                               {/* Live Stock Context Banner ONLY for During-Event Store Requisitions (or informative existing stock for Pre-Event) */}
                               {isSelectedPreEvent ? (
                                 catItem && catItem.current_stock > 0 ? (
-                                  <div className="flex items-center justify-between p-2 rounded-lg text-[11px] font-mono bg-slate-950 border border-slate-800 text-slate-300">
+                                  <div className="flex items-center justify-between p-2 rounded-lg text-[11px] font-mono bg-background border border-border text-foreground/90">
                                     <span>Already in store from previous event: <strong>{catItem.current_stock} {catItem.unit || 'pcs'}</strong></span>
                                     <span className="text-emerald-400 text-[10px]">Market purchase item</span>
                                   </div>
@@ -1057,7 +1057,7 @@ function AdminRequisitionsContent() {
                                     )}
                                     {availableStock <= catItem.low_stock_threshold && (
                                       <span className="text-[9px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.2 rounded border border-red-500/20">
-                                        ⚠️ Low Stock
+                                        <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low Stock</span>
                                       </span>
                                     )}
                                   </div>
@@ -1106,7 +1106,7 @@ function AdminRequisitionsContent() {
                                   className="ml-auto h-9 w-9 flex items-center justify-center shrink-0 text-red-400 hover:text-red-300 font-bold rounded-lg text-xs hover:bg-red-500/10"
                                   title="Remove item"
                                 >
-                                  ✕
+                                  <X className="h-4 w-4" />
                                 </button>
                               </div>
                             </div>
@@ -1126,11 +1126,11 @@ function AdminRequisitionsContent() {
                             onChange={(e) => setDelegateId(e.target.value)}
                             className="w-full min-w-0 h-10 sm:h-9 rounded-xl px-3 text-xs font-medium text-slate-100 bg-slate-900 border border-slate-700 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer sm:flex-1"
                           >
-                            <option value="none" className="bg-slate-900 text-slate-100">none</option>
+                            <option value="none" >none</option>
                             {approvers
                               .filter(a => (a.role === 'coordinator' || !a.role) && a.id !== profile?.id)
                               .map((a) => (
-                                <option key={a.id} value={a.id} className="bg-slate-900 text-slate-100">
+                                <option key={a.id} value={a.id} >
                                   {a.full_name || a.username || a.email} (Coordinator)
                                 </option>
                               ))}
@@ -1160,7 +1160,7 @@ function AdminRequisitionsContent() {
                         Decline
                       </Button>
                       <Button onClick={() => handleAction('approved')} disabled={loading} className="w-full min-h-[40px] text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 shadow-xs cursor-pointer">
-                        {isSelectedPreEvent ? '✓ Approve for Market List' : '✓ Approve Store Request'}
+                        <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> {isSelectedPreEvent ? 'Approve for Market List' : 'Approve Store Request'}</span>
                       </Button>
                     </div>
                   </>
