@@ -202,7 +202,7 @@ export default function RootLandingPage() {
                       Live Compliance &amp; Logistics
                     </h2>
                   </div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/12 border border-emerald-600/25 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 shrink-0">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/12 border border-emerald-600/25 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 whitespace-nowrap shrink-0">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Synced
                   </span>

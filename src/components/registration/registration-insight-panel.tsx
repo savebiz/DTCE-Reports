@@ -326,13 +326,13 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
     <Card className="glass-card border border-teal-500/30 bg-card/95 shadow-xl animate-fade-in-up my-6">
       <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-teal-500/20 flex-wrap gap-2">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-400">
+          <div className="p-2 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-700 dark:text-teal-400">
             <Globe className="w-5 h-5" />
           </div>
           <div>
-            <CardTitle className="text-base font-bold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+            <CardTitle className="text-sm sm:text-base font-bold text-foreground uppercase tracking-wider flex flex-wrap items-center gap-2">
               Registration &amp; Manual Fulfillment Insight
-              <span className="text-[10px] font-semibold text-teal-400 bg-teal-500/10 border border-teal-500/30 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-semibold text-teal-700 dark:text-teal-700 dark:text-teal-400 bg-teal-500/10 border border-teal-500/30 px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0">
                 Two-Channel Analytics
               </span>
             </CardTitle>
@@ -360,10 +360,10 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
           {/* Card 1: Online Pickup Rate */}
           <div className="p-4 rounded-xl bg-muted/50 border border-teal-500/30 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-teal-400 uppercase tracking-wider">Overall Pickup Rate</span>
-              <Percent className="w-4 h-4 text-teal-400" />
+              <span className="text-[11px] font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider">Overall Pickup Rate</span>
+              <Percent className="w-4 h-4 text-teal-700 dark:text-teal-400" />
             </div>
-            <div className="text-2xl font-bold font-mono text-slate-100">
+            <div className="text-2xl font-bold font-mono text-foreground">
               {overallPickupRate}%
             </div>
             <p className="text-[11px] text-muted-foreground">
@@ -374,10 +374,10 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
           {/* Card 2: Total Online Manuals Picked Up */}
           <div className="p-4 rounded-xl bg-muted/50 border border-blue-500/30 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Online Pickups (Section A)</span>
-              <CheckCircle2 className="w-4 h-4 text-blue-400" />
+              <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">Online Pickups (Section A)</span>
+              <CheckCircle2 className="w-4 h-4 text-blue-700 dark:text-blue-400" />
             </div>
-            <div className="text-2xl font-bold font-mono text-slate-100">
+            <div className="text-2xl font-bold font-mono text-foreground">
               {totalOnlinePickedUp.toLocaleString()}
             </div>
             <p className="text-[11px] text-muted-foreground">
@@ -388,10 +388,10 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
           {/* Card 3: Total Walk-In Registrations */}
           <div className="p-4 rounded-xl bg-muted/50 border border-purple-500/30 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-purple-400 uppercase tracking-wider">Walk-In Registrations (Section B)</span>
-              <TrendingUp className="w-4 h-4 text-purple-400" />
+              <span className="text-[11px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Walk-In Registrations (Section B)</span>
+              <TrendingUp className="w-4 h-4 text-purple-700 dark:text-purple-400" />
             </div>
-            <div className="text-2xl font-bold font-mono text-slate-100">
+            <div className="text-2xl font-bold font-mono text-foreground">
               {totalWalkInRegs.toLocaleString()}
             </div>
             <p className="text-[11px] text-muted-foreground">
@@ -400,18 +400,18 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
           </div>
 
           {/* Card 4: Registration Revenue Total (Visually Distinct from Worship Offering) */}
-          <div className="p-4 rounded-xl bg-teal-950/40 border border-teal-500/50 space-y-1 shadow-inner">
+          <div className="p-4 rounded-xl bg-teal-500/10 dark:bg-teal-950/40 border border-teal-500/50 space-y-1 shadow-inner">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-teal-300 uppercase tracking-wider">Registration Fees Collected</span>
+              <span className="text-[11px] font-bold text-teal-800 dark:text-teal-300 uppercase tracking-wider">Registration Fees Collected</span>
               <div className="flex items-center gap-1">
-                <Banknote className="w-4 h-4 text-teal-400" />
-                <span className="text-[11px] font-extrabold font-mono text-teal-300 border border-teal-500/50 rounded px-1 py-0.2 leading-none">₦</span>
+                <Banknote className="w-4 h-4 text-teal-700 dark:text-teal-400" />
+                <span className="text-[11px] font-extrabold font-mono text-teal-800 dark:text-teal-300 border border-teal-500/50 rounded px-1 py-0.2 leading-none">₦</span>
               </div>
             </div>
-            <div className="text-2xl font-bold font-mono text-teal-300">
+            <div className="text-2xl font-bold font-mono text-teal-800 dark:text-teal-300">
               ₦{totalRevenue.toLocaleString()}
             </div>
-            <p className="text-[10px] text-teal-400/80 italic font-medium">
+            <p className="text-[10px] text-teal-700/90 dark:text-teal-700 dark:text-teal-400/80 italic font-medium">
               Administrative fees ONLY (Separate from Worship Offering)
             </p>
           </div>
@@ -438,12 +438,12 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
               <tbody className="divide-y divide-border/60 text-foreground">
                 {categoryStats.map(stat => (
                   <tr key={stat.key} className="hover:bg-muted/60 transition-colors">
-                    <td className="p-3 font-bold text-slate-100">{stat.label}</td>
+                    <td className="p-3 font-bold text-foreground">{stat.label}</td>
                     <td className="p-3 font-mono text-foreground/90">{stat.preRegistered.toLocaleString()}</td>
-                    <td className="p-3 font-mono text-blue-400 font-semibold">{stat.pickedUp.toLocaleString()}</td>
+                    <td className="p-3 font-mono text-blue-700 dark:text-blue-400 font-semibold">{stat.pickedUp.toLocaleString()}</td>
                     <td className="p-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-16 h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
                           <div
                             className={`h-full ${stat.pickupRate >= 80 ? 'bg-emerald-400' : stat.pickupRate >= 50 ? 'bg-amber-400' : 'bg-teal-400'}`}
                             style={{ width: `${Math.min(100, stat.pickupRate)}%` }}
@@ -452,9 +452,9 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
                         <span className="font-mono font-bold text-foreground">{stat.pickupRate}%</span>
                       </div>
                     </td>
-                    <td className="p-3 font-mono text-purple-400">{stat.walkInRegs.toLocaleString()}</td>
+                    <td className="p-3 font-mono text-purple-700 dark:text-purple-400">{stat.walkInRegs.toLocaleString()}</td>
                     <td className="p-3 font-mono text-foreground/90">{stat.manualsDistributed.toLocaleString()}</td>
-                    <td className="p-3 font-mono text-teal-300 font-bold">₦{stat.revenue.toLocaleString()}</td>
+                    <td className="p-3 font-mono text-teal-800 dark:text-teal-300 font-bold">₦{stat.revenue.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -482,11 +482,11 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
                 <tbody className="divide-y divide-border/60 text-foreground">
                   {dailyTrends.map(day => (
                     <tr key={day.dayNumber} className="hover:bg-muted/60">
-                      <td className="p-3 font-bold text-slate-100">Day {day.dayNumber}</td>
-                      <td className="p-3 font-mono text-blue-400 font-semibold">{day.onlinePickups.toLocaleString()}</td>
-                      <td className="p-3 font-mono text-purple-400 font-semibold">{day.newRegistrations.toLocaleString()}</td>
+                      <td className="p-3 font-bold text-foreground">Day {day.dayNumber}</td>
+                      <td className="p-3 font-mono text-blue-700 dark:text-blue-400 font-semibold">{day.onlinePickups.toLocaleString()}</td>
+                      <td className="p-3 font-mono text-purple-700 dark:text-purple-400 font-semibold">{day.newRegistrations.toLocaleString()}</td>
                       <td className="p-3 font-mono text-foreground/90">{day.manualsDistributed.toLocaleString()}</td>
-                      <td className="p-3 font-mono text-teal-300 font-bold">₦{day.revenue.toLocaleString()}</td>
+                      <td className="p-3 font-mono text-teal-800 dark:text-teal-300 font-bold">₦{day.revenue.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>

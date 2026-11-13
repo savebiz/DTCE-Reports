@@ -115,7 +115,7 @@ export function EndofConventionFeedbackModal({
         {/* Header Bar */}
         <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/20 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
+            <div className="h-8 w-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-700 dark:text-amber-400">
               <MessageSquare className="w-4 h-4" />
             </div>
             <div>
@@ -156,14 +156,14 @@ export function EndofConventionFeedbackModal({
                     <Star
                       className={`w-7 h-7 ${
                         isFilled
-                          ? 'fill-amber-400 text-amber-400'
+                          ? 'fill-amber-400 text-amber-700 dark:text-amber-400'
                           : 'text-muted-foreground/40 fill-none'
                       }`}
                     />
                   </button>
                 )
               })}
-              <span className="ml-2 text-xs font-semibold text-amber-400">
+              <span className="ml-2 text-xs font-semibold text-amber-700 dark:text-amber-400">
                 {overallSatisfaction === 1 && '1 — Poor'}
                 {overallSatisfaction === 2 && '2 — Fair'}
                 {overallSatisfaction === 3 && '3 — Good'}
@@ -261,7 +261,7 @@ export function EndofConventionFeedbackModal({
                 onClick={() => setEncounteredBugs(true)}
                 className={`flex-1 py-2 rounded-lg border text-xs font-semibold transition-all ${
                   encounteredBugs === true
-                    ? 'bg-amber-500/20 text-amber-500 border-amber-500'
+                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500'
                     : 'bg-background hover:bg-muted/30 border-border text-muted-foreground'
                 }`}
               >
@@ -275,7 +275,7 @@ export function EndofConventionFeedbackModal({
                 }}
                 className={`flex-1 py-2 rounded-lg border text-xs font-semibold transition-all ${
                   encounteredBugs === false
-                    ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500'
+                    ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500'
                     : 'bg-background hover:bg-muted/30 border-border text-muted-foreground'
                 }`}
               >

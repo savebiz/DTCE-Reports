@@ -484,7 +484,7 @@ function SettingsContent() {
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                   <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                    <Smartphone size={16} className="text-blue-400" />
+                    <Smartphone size={16} className="text-blue-700 dark:text-blue-400" />
                     Device Web Push Status
                   </CardTitle>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -495,7 +495,7 @@ function SettingsContent() {
               <CardContent className="space-y-4">
                 {isIosNotInstalled ? (
                   <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs space-y-2">
-                    <div className="flex items-center gap-2 text-amber-400 font-bold">
+                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold">
                       <Info size={16} />
                       <span>iOS Safari Web Push Guidance</span>
                     </div>
@@ -504,11 +504,11 @@ function SettingsContent() {
                     </p>
                     <div className="p-2.5 rounded-lg bg-muted/60 border border-border/60 space-y-1.5 text-foreground text-[11px]">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-amber-400">1.</span>
+                        <span className="font-bold text-amber-700 dark:text-amber-400">1.</span>
                         <span>Tap <strong>Share <Share size={12} className="inline" /></strong> in Safari toolbar.</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-amber-400">2.</span>
+                        <span className="font-bold text-amber-700 dark:text-amber-400">2.</span>
                         <span>Tap <strong>Add to Home Screen <PlusSquare size={12} className="inline" /></strong>.</span>
                       </div>
                     </div>
@@ -542,7 +542,7 @@ function SettingsContent() {
                   </div>
                 ) : (
                   <div className="p-4 rounded-xl bg-slate-800/40 border border-border/50 text-xs text-muted-foreground flex items-center gap-2">
-                    <AlertCircle size={16} className="text-slate-400 shrink-0" />
+                    <AlertCircle size={16} className="text-muted-foreground shrink-0" />
                     <span>Web Push Manager is not supported on this browser version. In-App and Email alerts remain active.</span>
                   </div>
                 )}
@@ -550,7 +550,7 @@ function SettingsContent() {
                 {/* Device & Platform Specific Notification Notes */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
                   <div className="p-3 rounded-xl bg-muted/50 border border-border space-y-1">
-                    <div className="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                    <div className="text-[11px] font-bold text-amber-600 dark:text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                       <Info size={13} />
                       Android Sound &amp; Vibration Settings
                     </div>
@@ -559,7 +559,7 @@ function SettingsContent() {
                     </p>
                   </div>
                   <div className="p-3 rounded-xl bg-muted/50 border border-border space-y-1">
-                    <div className="text-[11px] font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                    <div className="text-[11px] font-bold text-purple-600 dark:text-purple-700 dark:text-purple-400 flex items-center gap-1.5">
                       <Info size={13} />
                       iOS Safari Vibration Notice
                     </div>
@@ -575,7 +575,7 @@ function SettingsContent() {
             <Card className="glass-card border-none">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Bell size={16} className="text-amber-400" />
+                  <Bell size={16} className="text-amber-700 dark:text-amber-400" />
                   Sound &amp; Haptic Vibration Feedback Profile
                 </CardTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -588,7 +588,7 @@ function SettingsContent() {
                     { key: 'standard', label: 'Standard Pulse', desc: 'Double pulse [300ms, 100ms, 300ms]', color: 'border-blue-500/40 bg-blue-500/10' },
                     { key: 'urgent', label: 'Urgent Triple Buzz', desc: 'High priority triple burst [400ms×3]', color: 'border-amber-500/40 bg-amber-500/10' },
                     { key: 'subtle', label: 'Subtle Tap', desc: 'Single gentle pulse [150ms]', color: 'border-purple-500/40 bg-purple-500/10' },
-                    { key: 'silent', label: 'Visual Only (Silent)', desc: 'No device vibration', color: 'border-slate-600 bg-slate-800/40' },
+                    { key: 'silent', label: 'Visual Only (Silent)', desc: 'No device vibration', color: 'border-border bg-muted/60 dark:border-slate-600 dark:bg-slate-800/40' },
                   ].map(v => (
                     <div
                       key={v.key}
@@ -609,7 +609,7 @@ function SettingsContent() {
                     >
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-xs font-bold text-foreground">{v.label}</span>
-                        {vibrationMode === v.key && <Check size={14} className="text-amber-400" />}
+                        {vibrationMode === v.key && <Check size={14} className="text-amber-700 dark:text-amber-400" />}
                       </div>
                       <p className="text-[10px] text-muted-foreground">{v.desc}</p>
                     </div>
@@ -622,7 +622,7 @@ function SettingsContent() {
             <Card className="glass-card border-none">
               <CardHeader>
                 <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <ShieldCheck size={16} className="text-emerald-400" />
+                  <ShieldCheck size={16} className="text-emerald-700 dark:text-emerald-400" />
                   Category Notification Channels
                 </CardTitle>
                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -645,10 +645,10 @@ function SettingsContent() {
                         {/* In-App Baseline Channel (Mandatory) */}
                         <div className="flex items-center justify-between p-2.5 rounded-lg bg-background/40 border border-border/40">
                           <div className="flex items-center gap-2">
-                            <Bell size={14} className="text-amber-400" />
+                            <Bell size={14} className="text-amber-700 dark:text-amber-400" />
                             <span className="text-xs font-semibold text-foreground">In-App Bell</span>
                           </div>
-                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
                             <Check size={10} /> Required
                           </span>
                         </div>
@@ -667,7 +667,7 @@ function SettingsContent() {
                         {/* Push Channel Toggle */}
                         <div className="flex items-center justify-between p-2.5 rounded-lg bg-background/40 border border-border/40">
                           <div className="flex items-center gap-2">
-                            <Smartphone size={14} className="text-purple-400" />
+                            <Smartphone size={14} className="text-purple-700 dark:text-purple-400" />
                             <span className="text-xs font-semibold text-foreground">Web Push</span>
                           </div>
                           <Switch

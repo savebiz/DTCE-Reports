@@ -282,7 +282,7 @@ export default function HODTeamManagement() {
         {issuedSlip && (
           <div className="rounded-2xl p-6 space-y-4 max-w-md bg-amber-500/10 border border-dashed border-amber-500/30">
             <div className="flex justify-between items-center">
-              <span className="text-[12px] font-bold uppercase tracking-wider text-amber-500">
+              <span className="text-[12px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
                 <span className="inline-flex items-center gap-1.5"><Ticket className="h-4 w-4" /> Issued Assistant Credential Slip</span>
               </span>
               <button
@@ -307,7 +307,7 @@ export default function HODTeamManagement() {
                   </div>
                   <div>
                     <span className="text-muted-foreground block text-[8px] uppercase">Temporary Password</span>
-                    <span className="font-bold text-amber-500">{issuedSlip.temporaryPassword}</span>
+                    <span className="font-bold text-amber-700 dark:text-amber-400">{issuedSlip.temporaryPassword}</span>
                   </div>
                 </div>
               </div>
@@ -386,14 +386,14 @@ export default function HODTeamManagement() {
                           </div>
                           <div className="flex flex-wrap justify-end gap-1.5 shrink-0">
                             {asst.must_change_password ? (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 whitespace-nowrap">Pending Reset</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 whitespace-nowrap">Pending Reset</span>
                             ) : (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 whitespace-nowrap">Logged In</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">Logged In</span>
                             )}
                             {asst.is_active !== false ? (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 whitespace-nowrap">Active</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap">Active</span>
                             ) : (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 whitespace-nowrap">Deactivated</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 whitespace-nowrap">Deactivated</span>
                             )}
                           </div>
                         </div>
@@ -429,20 +429,20 @@ export default function HODTeamManagement() {
                           <td className="p-3 font-mono text-muted-foreground">{asst.username}</td>
                           <td className="p-3">
                             {asst.must_change_password ? (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                                 Pending Reset
                               </span>
                             ) : (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                                 Active
                               </span>
                             )}
                           </td>
                           <td className="p-3">
                             {asst.is_active !== false ? (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Active</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">Active</span>
                             ) : (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/20">Deactivated</span>
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20">Deactivated</span>
                             )}
                           </td>
                           <td className="p-2 text-right">

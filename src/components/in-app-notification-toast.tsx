@@ -177,7 +177,7 @@ export function InAppNotificationToast() {
               >
                 {current.title}
               </p>
-              <span className="text-[10px] text-amber-400/70 flex-shrink-0">
+              <span className="text-[10px] text-amber-700 dark:text-amber-400/80 flex-shrink-0">
                 now
               </span>
             </div>

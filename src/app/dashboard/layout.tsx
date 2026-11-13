@@ -28,7 +28,7 @@ export default function DashboardLayout({
             'radial-gradient(ellipse 65% 45% at 20% -5%, rgba(59, 130, 246, 0.08), transparent 70%), radial-gradient(ellipse 45% 35% at 85% 5%, rgba(245, 158, 11, 0.06), transparent 65%)',
         }}
       />
-      <Suspense fallback={<div className="h-14 bg-[#0A1826] border-b border-border" />}>
+      <Suspense fallback={<div className="h-14 bg-card border-b border-border" />}>
         <DashboardHeader />
       </Suspense>
       <div className="relative z-10 flex-1 pt-14 lg:pl-14 transition-all duration-300">

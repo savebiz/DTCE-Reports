@@ -177,7 +177,7 @@ export function FloatingNotificationPrompt() {
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center gap-3">
           {/* Bell Icon Pill */}
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-500/20 text-blue-700 dark:text-blue-400 border border-blue-500/30">
             <Bell className="h-4 w-4 animate-pulse" />
           </div>
           <h3 className="text-sm font-bold text-foreground tracking-tight leading-snug">

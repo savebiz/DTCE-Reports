@@ -172,7 +172,7 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
 
       <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3.5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-inner">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 shadow-inner">
             <Bell className="h-5 w-5 animate-pulse" />
           </div>
 
@@ -181,7 +181,7 @@ export function PushPermissionBanner({ userId }: { userId?: string }) {
               <span className="text-sm font-bold text-foreground tracking-tight">
                 Enable {isMobileDevice ? 'Mobile' : 'Desktop'} Background Alerts
               </span>
-              <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/20">
+              <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400 whitespace-nowrap shrink-0 border border-amber-500/20">
                 Recommended
               </span>
             </div>

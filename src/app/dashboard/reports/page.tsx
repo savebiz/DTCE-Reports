@@ -319,10 +319,10 @@ export default function ReportsExportPage() {
               </div>
 
               <div className="p-3.5 rounded-xl text-[12px] text-muted-foreground space-y-2.5 bg-muted/20 border border-border">
-                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" /> Branded Letterhead</p>
-                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" /> All {departments.length || 43} Departments</p>
-                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" /> Specialized Tables (Ushering, Medical, Reg, Welfare, Stores)</p>
-                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" /> Income &amp; Expenditure Appendix</p>
+                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-700 dark:text-emerald-400 shrink-0" /> Branded Letterhead</p>
+                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-700 dark:text-emerald-400 shrink-0" /> All {departments.length || 43} Departments</p>
+                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-700 dark:text-emerald-400 shrink-0" /> Specialized Tables (Ushering, Medical, Reg, Welfare, Stores)</p>
+                <p className="flex items-center gap-2"><Check className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-700 dark:text-emerald-400 shrink-0" /> Income &amp; Expenditure Appendix</p>
               </div>
 
               <button
@@ -342,9 +342,9 @@ export default function ReportsExportPage() {
           <div className="glass-card p-5 border-amber-500/40 bg-amber-500/5">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-[11px] font-semibold uppercase tracking-widest text-amber-500 flex items-center gap-1.5 font-sans">
-                <ShoppingBag className="w-4 h-4 text-amber-400" /> Stores Material Audit
+                <ShoppingBag className="w-4 h-4 text-amber-700 dark:text-amber-400" /> Stores Material Audit
               </h2>
-              <span className="text-[10px] font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30 font-mono">
+              <span className="text-[10px] font-bold bg-amber-500/20 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30 font-mono">
                 Standalone Report
               </span>
             </div>
@@ -366,14 +366,14 @@ export default function ReportsExportPage() {
                   onClick={handleExportStoresCsv}
                   className="rounded-xl py-2 text-[11px] font-semibold text-foreground transition-all bg-card border border-border hover:bg-muted/40 flex items-center justify-center gap-1 cursor-pointer"
                 >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-teal-400" /> Stores CSV
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400" /> Stores CSV
                 </button>
 
                 <button
                   onClick={() => setShowStoresModal(true)}
-                  className="rounded-xl py-2 text-[11px] font-semibold text-amber-400 transition-all bg-amber-950/30 border border-amber-500/30 hover:bg-amber-950/50 flex items-center justify-center gap-1 cursor-pointer"
+                  className="rounded-xl py-2 text-[11px] font-semibold text-amber-700 dark:text-amber-400 transition-all bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 flex items-center justify-center gap-1 cursor-pointer"
                 >
-                  <BarChart3 className="w-3.5 h-3.5 text-amber-400" /> View Preview
+                  <BarChart3 className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" /> View Preview
                 </button>
               </div>
             </div>
@@ -382,10 +382,10 @@ export default function ReportsExportPage() {
           {/* Secretariat Strategic Board Report Card */}
           <div className="glass-card p-5 border-purple-500/40 bg-purple-500/5">
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-purple-400 flex items-center gap-1.5 font-sans">
-                <Award className="w-4 h-4 text-purple-400" /> Secretariat Board Report
+              <h2 className="text-[11px] font-semibold uppercase tracking-widest text-purple-700 dark:text-purple-400 flex items-center gap-1.5 font-sans">
+                <Award className="w-4 h-4 text-purple-700 dark:text-purple-400" /> Secretariat Board Report
               </h2>
-              <span className="text-[10px] font-bold bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30 font-mono">
+              <span className="text-[10px] font-bold bg-purple-500/20 text-purple-800 dark:text-purple-300 px-2 py-0.5 rounded-full border border-purple-500/30 font-mono">
                 Board Presentation
               </span>
             </div>
@@ -404,7 +404,7 @@ export default function ReportsExportPage() {
 
           <div className="glass-card p-5">
             <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1 flex items-center gap-1.5 font-sans">
-              <Bell className="w-3.5 h-3.5 text-amber-400" /> Daily Reminders
+              <Bell className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" /> Daily Reminders
             </h2>
             <p className="text-[12px] text-muted-foreground mb-4">Send reminders to HODs and collation logs to Secretariat.</p>
             
@@ -597,14 +597,14 @@ export default function ReportsExportPage() {
                         {/* Daily Qualitative Logs */}
                         {qualLogs.length > 0 && (
                           <div className="space-y-2.5 my-2">
-                            <h5 className="text-[12px] font-bold text-teal-400 font-sans uppercase tracking-wider">Daily Operational &amp; Qualitative Notes</h5>
+                            <h5 className="text-[12px] font-bold text-teal-700 dark:text-teal-400 font-sans uppercase tracking-wider">Daily Operational &amp; Qualitative Notes</h5>
                             {qualLogs.map((qLog, qIdx) => (
-                              <div key={qIdx} className="p-3 rounded-lg bg-teal-950/20 border border-teal-500/30 text-[12px] space-y-1 font-sans">
-                                <div className="font-bold text-teal-600 dark:text-teal-300 flex items-center gap-1.5"><Pin className="h-3.5 w-3.5" /> {qLog.dayLabel} Log</div>
+                              <div key={qIdx} className="p-3 rounded-lg bg-teal-500/10 border border-teal-500/30 text-[12px] space-y-1 font-sans">
+                                <div className="font-bold text-teal-600 dark:text-teal-800 dark:text-teal-300 flex items-center gap-1.5"><Pin className="h-3.5 w-3.5" /> {qLog.dayLabel} Log</div>
                                 {qLog.overview && <p><strong className="text-foreground">Overview:</strong> {qLog.overview}</p>}
                                 {qLog.achievements && <p><strong className="text-foreground">Activities &amp; Achievements:</strong> {qLog.achievements}</p>}
-                                {qLog.challenges && <p><strong className="text-amber-400">Challenges:</strong> {qLog.challenges}</p>}
-                                {qLog.recommendations && <p><strong className="text-teal-400">Solutions / Recommendations:</strong> {qLog.recommendations}</p>}
+                                {qLog.challenges && <p><strong className="text-amber-700 dark:text-amber-400">Challenges:</strong> {qLog.challenges}</p>}
+                                {qLog.recommendations && <p><strong className="text-teal-700 dark:text-teal-400">Solutions / Recommendations:</strong> {qLog.recommendations}</p>}
                                 {qLog.plansForTomorrow && <p><strong className="text-foreground">Plans / Follow-up:</strong> {qLog.plansForTomorrow}</p>}
                               </div>
                             ))}
@@ -655,11 +655,11 @@ export default function ReportsExportPage() {
                         {/* 1. Registration Two-Channel Section */}
                         {isRegistration && regSummary && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-teal-400 uppercase tracking-wider">Registration — Two-Channel Analysis</h5>
+                            <h5 className="text-[12px] font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider">Registration — Two-Channel Analysis</h5>
                             
                             {/* Section A */}
                             <div className="border border-teal-500/30 rounded-xl overflow-x-auto bg-background">
-                              <div className="bg-teal-950/40 px-3 py-1.5 border-b border-teal-500/30 font-bold text-teal-300 text-[11px]">
+                              <div className="bg-teal-500/10 px-3 py-1.5 border-b border-teal-500/30 font-bold text-teal-800 dark:text-teal-300 text-[11px]">
                                 SECTION A — Online Manual Pickups
                               </div>
                               <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
@@ -682,7 +682,7 @@ export default function ReportsExportPage() {
 
                             {/* Section B */}
                             <div className="border border-teal-500/30 rounded-xl overflow-x-auto bg-background">
-                              <div className="bg-teal-950/40 px-3 py-1.5 border-b border-teal-500/30 font-bold text-teal-300 text-[11px]">
+                              <div className="bg-teal-500/10 px-3 py-1.5 border-b border-teal-500/30 font-bold text-teal-800 dark:text-teal-300 text-[11px]">
                                 SECTION B — Offline / Walk-in Registrations
                               </div>
                               <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
@@ -712,10 +712,10 @@ export default function ReportsExportPage() {
                         {/* 2. Ushering 5-Section Summary */}
                         {isUshering && usheringSummary.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Ushering — Granular Five-Section Daily Attendance &amp; Offering Breakdown</h5>
+                            <h5 className="text-[12px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Ushering — Granular Five-Section Daily Attendance &amp; Offering Breakdown</h5>
                             {usheringSummary.map((sec, idx) => (
                               <div key={idx} className="border border-amber-500/30 rounded-xl overflow-x-auto bg-background space-y-1">
-                                <div className="bg-amber-950/40 px-3 py-1.5 border-b border-amber-500/30 font-bold text-amber-300 text-[11px] flex justify-between">
+                                <div className="bg-amber-500/10 px-3 py-1.5 border-b border-amber-500/30 font-bold text-amber-800 dark:text-amber-300 text-[11px] flex justify-between">
                                   <span>{sec.sectionTitle}</span>
                                   <span>Total Offering: ₦{sec.totals.offering.toLocaleString()}</span>
                                 </div>
@@ -734,7 +734,7 @@ export default function ReportsExportPage() {
                                   <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
                                     {sec.rows.map((row, rIdx) => (
                                       <tr key={rIdx}>
-                                        <td className="p-2 border-r border-border font-bold text-amber-400">{row.dayLabel}</td>
+                                        <td className="p-2 border-r border-border font-bold text-amber-700 dark:text-amber-400">{row.dayLabel}</td>
                                         <td className="p-2 border-r border-border font-semibold text-foreground">{row.event || '—'}</td>
                                         <td className="p-2 border-r border-border text-foreground/80">{row.preacher || '—'}</td>
                                         <td className="p-2 border-r border-border text-center font-mono">{row.male.toLocaleString()}</td>
@@ -753,10 +753,10 @@ export default function ReportsExportPage() {
                         {/* 3. Medical Department Summary */}
                         {isMedical && medSummary && (medSummary.demographics.length > 0 || medSummary.diagnoses.length > 0) && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-emerald-400 uppercase tracking-wider">Medical — Granular Daily Consultations &amp; Clinical Case Index</h5>
+                            <h5 className="text-[12px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Medical — Granular Daily Consultations &amp; Clinical Case Index</h5>
                             {medSummary.demographics.length > 0 && (
                               <div className="border border-emerald-500/30 rounded-xl overflow-x-auto bg-background">
-                                <div className="bg-emerald-950/40 px-3 py-1.5 border-b border-emerald-500/30 font-bold text-emerald-300 text-[11px]">
+                                <div className="bg-emerald-500/10 px-3 py-1.5 border-b border-emerald-500/30 font-bold text-emerald-800 dark:text-emerald-300 text-[11px]">
                                   Patient Demographics (Daily Figures)
                                 </div>
                                 <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
@@ -771,7 +771,7 @@ export default function ReportsExportPage() {
                                   <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
                                     {medSummary.demographics.map((d, idx) => (
                                       <tr key={idx}>
-                                        <td className="p-2 border-r border-border font-bold text-emerald-400">{d.dayLabel || '—'}</td>
+                                        <td className="p-2 border-r border-border font-bold text-emerald-700 dark:text-emerald-400">{d.dayLabel || '—'}</td>
                                         <td className="p-2 border-r border-border font-semibold text-foreground">{d.category}</td>
                                         <td className="p-2 border-r border-border text-center font-mono capitalize">{d.gender}</td>
                                         <td className="p-2 text-right font-mono font-bold text-foreground">{d.count.toLocaleString()}</td>
@@ -779,7 +779,7 @@ export default function ReportsExportPage() {
                                     ))}
                                   </tbody>
                                   <tfoot>
-                                    <tr className="bg-emerald-950/20 font-bold text-emerald-300 text-[11px]">
+                                    <tr className="bg-emerald-500/10 font-bold text-emerald-800 dark:text-emerald-300 text-[11px]">
                                       <td colSpan={3} className="p-2 border-r border-border uppercase">Total Patients Registered</td>
                                       <td className="p-2 text-right font-mono font-bold">{medSummary.totals.patients.toLocaleString()}</td>
                                     </tr>
@@ -789,7 +789,7 @@ export default function ReportsExportPage() {
                             )}
                             {medSummary.diagnoses.length > 0 && (
                               <div className="border border-emerald-500/30 rounded-xl overflow-x-auto bg-background">
-                                <div className="bg-emerald-950/40 px-3 py-1.5 border-b border-emerald-500/30 font-bold text-emerald-300 text-[11px]">
+                                <div className="bg-emerald-500/10 px-3 py-1.5 border-b border-emerald-500/30 font-bold text-emerald-800 dark:text-emerald-300 text-[11px]">
                                   Diagnoses &amp; Cases Treated (Daily Figures)
                                 </div>
                                 <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
@@ -803,14 +803,14 @@ export default function ReportsExportPage() {
                                   <tbody className="divide-y divide-border text-muted-foreground text-[11px]">
                                     {medSummary.diagnoses.map((d, idx) => (
                                       <tr key={idx}>
-                                        <td className="p-2 border-r border-border font-bold text-emerald-400">{d.dayLabel || '—'}</td>
+                                        <td className="p-2 border-r border-border font-bold text-emerald-700 dark:text-emerald-400">{d.dayLabel || '—'}</td>
                                         <td className="p-2 border-r border-border font-semibold text-foreground">{d.diagnosis}</td>
                                         <td className="p-2 text-right font-mono font-bold text-foreground">{d.count.toLocaleString()}</td>
                                       </tr>
                                     ))}
                                   </tbody>
                                   <tfoot>
-                                    <tr className="bg-emerald-950/20 font-bold text-emerald-300 text-[11px]">
+                                    <tr className="bg-emerald-500/10 font-bold text-emerald-800 dark:text-emerald-300 text-[11px]">
                                       <td colSpan={2} className="p-2 border-r border-border uppercase">Total Clinical Cases Treated</td>
                                       <td className="p-2 text-right font-mono font-bold">{medSummary.totals.cases.toLocaleString()}</td>
                                     </tr>
@@ -824,7 +824,7 @@ export default function ReportsExportPage() {
                         {/* 4. Welfare (Serving) Department Summary */}
                         {isWelfare && welfareSummary.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Welfare (Kitchen / Serving) — Meal Allocations</h5>
+                            <h5 className="text-[12px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Welfare (Kitchen / Serving) — Meal Allocations</h5>
                             <div className="border border-amber-500/30 rounded-xl overflow-x-auto bg-background">
                               <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
@@ -851,10 +851,10 @@ export default function ReportsExportPage() {
                         {/* 5. Stores Department Summary */}
                         {isStores && storesSummary && (storesSummary.durables.length > 0 || storesSummary.consumables.length > 0) && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-blue-400 uppercase tracking-wider">Stores — Inventory Tracking &amp; Requisitions</h5>
+                            <h5 className="text-[12px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider">Stores — Inventory Tracking &amp; Requisitions</h5>
                             {storesSummary.durables.length > 0 && (
                               <div className="border border-blue-500/30 rounded-xl overflow-x-auto bg-background">
-                                <div className="bg-blue-950/40 px-3 py-1.5 border-b border-blue-500/30 font-bold text-blue-300 text-[11px]">Durables Log</div>
+                                <div className="bg-blue-500/10 px-3 py-1.5 border-b border-blue-500/30 font-bold text-blue-800 dark:text-blue-300 text-[11px]">Durables Log</div>
                                 <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                   <thead>
                                     <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
@@ -879,7 +879,7 @@ export default function ReportsExportPage() {
                             )}
                             {storesSummary.consumables.length > 0 && (
                               <div className="border border-blue-500/30 rounded-xl overflow-x-auto bg-background">
-                                <div className="bg-blue-950/40 px-3 py-1.5 border-b border-blue-500/30 font-bold text-blue-300 text-[11px]">Consumables Log</div>
+                                <div className="bg-blue-500/10 px-3 py-1.5 border-b border-blue-500/30 font-bold text-blue-800 dark:text-blue-300 text-[11px]">Consumables Log</div>
                                 <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                   <thead>
                                     <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
@@ -906,7 +906,7 @@ export default function ReportsExportPage() {
                         {/* 6. SEPU Safety Department Summary */}
                         {isSepu && sepuSummary.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-red-400 uppercase tracking-wider">SEPU — Daily Incident Index</h5>
+                            <h5 className="text-[12px] font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">SEPU — Daily Incident Index</h5>
                             <div className="border border-red-500/30 rounded-xl overflow-x-auto bg-background">
                               <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
@@ -933,7 +933,7 @@ export default function ReportsExportPage() {
                         {/* 7. Bible Study / Holy Land Summary */}
                         {isBibleStudy && bibleStudySummary.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-purple-400 uppercase tracking-wider">Bible Study — Tribal Attendance Breakdown</h5>
+                            <h5 className="text-[12px] font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Bible Study — Tribal Attendance Breakdown</h5>
                             <div className="border border-purple-500/30 rounded-xl overflow-x-auto bg-background">
                               <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
@@ -962,7 +962,7 @@ export default function ReportsExportPage() {
                         {/* 8. Teens Programs Summary */}
                         {isTeensProgram && teensSummary.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-indigo-400 uppercase tracking-wider">Programs (Teens) — Service Statistics</h5>
+                            <h5 className="text-[12px] font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">Programs (Teens) — Service Statistics</h5>
                             <div className="border border-indigo-500/30 rounded-xl overflow-x-auto bg-background">
                               <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
@@ -989,7 +989,7 @@ export default function ReportsExportPage() {
                         {/* Generic Custom Metrics Summary Table for other departments */}
                         {!isRegistration && !isUshering && !isMedical && !isWelfare && !isStores && !isSepu && !isBibleStudy && !isTeensProgram && customGroups.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
-                            <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Operational Metrics Summary</h5>
+                            <h5 className="text-[12px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Operational Metrics Summary</h5>
                             <div className="border border-amber-500/30 rounded-xl overflow-x-auto bg-background">
                               <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
@@ -1046,14 +1046,14 @@ export default function ReportsExportPage() {
                     {consolidated.recommendations.length > 0 ? (
                       consolidated.recommendations.map((rec, idx) => (
                         <div key={idx} className="p-2.5 rounded-lg bg-teal-500/10 border border-teal-500/30 flex items-start gap-2">
-                          <span className="font-mono font-bold text-teal-400 text-[11px] bg-teal-500/20 px-1.5 py-0.5 rounded shrink-0">
+                          <span className="font-mono font-bold text-teal-700 dark:text-teal-400 text-[11px] bg-teal-500/20 px-1.5 py-0.5 rounded shrink-0">
                             [{rec.source}]
                           </span>
                           <div>
                             <span className="font-bold text-foreground font-sans block text-[12px]">{rec.departmentName}</span>
                             <span className="text-muted-foreground font-light">{rec.text}</span>
                             {rec.linkedChallengeId && (
-                              <span className="text-[11px] text-amber-400 italic block mt-0.5 font-sans">
+                              <span className="text-[11px] text-amber-700 dark:text-amber-400 italic block mt-0.5 font-sans">
                                 (Linked to Challenge {rec.linkedChallengeId})
                               </span>
                             )}
@@ -1129,7 +1129,7 @@ export default function ReportsExportPage() {
               {/* Modal Header */}
               <div className="p-4 md:p-6 border-b border-border bg-amber-500/10 flex items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <div className="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-700 dark:text-amber-400">
                     <ShoppingBag className="w-5 h-5" />
                   </div>
                   <div>
@@ -1155,30 +1155,30 @@ export default function ReportsExportPage() {
                 {/* 1. Summary KPI Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-1">
-                    <div className="text-[10px] uppercase font-bold text-amber-400">Total Requisitions</div>
+                    <div className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-400">Total Requisitions</div>
                     <div className="text-xl font-extrabold text-foreground font-mono">{storesReport.kpis.totalRequisitions}</div>
                     <div className="text-[10px] text-muted-foreground">{storesReport.kpis.totalDepartmentsRequesting} departments</div>
                   </div>
                   <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 space-y-1">
-                    <div className="text-[10px] uppercase font-bold text-emerald-400">Fulfillment Rate</div>
-                    <div className="text-xl font-extrabold text-emerald-400 font-mono">{storesReport.kpis.fulfillmentRate}%</div>
+                    <div className="text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400">Fulfillment Rate</div>
+                    <div className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">{storesReport.kpis.fulfillmentRate}%</div>
                     <div className="text-[10px] text-muted-foreground">{storesReport.kpis.deliveredCount} delivered</div>
                   </div>
                   <div className="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/30 space-y-1">
-                    <div className="text-[10px] uppercase font-bold text-blue-400">Items Requested</div>
+                    <div className="text-[10px] uppercase font-bold text-blue-700 dark:text-blue-400">Items Requested</div>
                     <div className="text-xl font-extrabold text-foreground font-mono">{storesReport.kpis.totalItemsRequested.toLocaleString()}</div>
                     <div className="text-[10px] text-muted-foreground">total material units</div>
                   </div>
                   <div className="p-3.5 rounded-xl bg-teal-500/10 border border-teal-500/30 space-y-1">
-                    <div className="text-[10px] uppercase font-bold text-teal-400">Items Approved</div>
-                    <div className="text-xl font-extrabold text-teal-400 font-mono">{storesReport.kpis.totalItemsApproved.toLocaleString()}</div>
+                    <div className="text-[10px] uppercase font-bold text-teal-700 dark:text-teal-400">Items Approved</div>
+                    <div className="text-xl font-extrabold text-teal-700 dark:text-teal-400 font-mono">{storesReport.kpis.totalItemsApproved.toLocaleString()}</div>
                     <div className="text-[10px] text-muted-foreground">total material units</div>
                   </div>
                 </div>
 
                 {/* 2. Department Demand Ranking */}
                 <div className="space-y-2">
-                  <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">1. Departmental Material Demand Ranking</h3>
+                  <h3 className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">1. Departmental Material Demand Ranking</h3>
                   <div className="border border-border rounded-xl overflow-x-auto bg-background">
                     <table className="w-full text-left border-collapse text-[11px]">
                       <thead>
@@ -1186,7 +1186,7 @@ export default function ReportsExportPage() {
                           <th className="p-2 border-r border-border">Department Name</th>
                           <th className="p-2 border-r border-border text-center">Requests</th>
                           <th className="p-2 border-r border-border text-center font-bold">Units Requested</th>
-                          <th className="p-2 border-r border-border text-center text-emerald-400 font-bold">Units Approved</th>
+                          <th className="p-2 border-r border-border text-center text-emerald-700 dark:text-emerald-400 font-bold">Units Approved</th>
                           <th className="p-2 text-right">Fulfillment (%)</th>
                         </tr>
                       </thead>
@@ -1196,7 +1196,7 @@ export default function ReportsExportPage() {
                             <td className="p-2 border-r border-border font-bold text-foreground">{d.departmentName}</td>
                             <td className="p-2 border-r border-border text-center font-mono">{d.totalRequests}</td>
                             <td className="p-2 border-r border-border text-center font-mono font-bold text-foreground">{d.totalUnitsRequested.toLocaleString()}</td>
-                            <td className="p-2 border-r border-border text-center font-mono font-bold text-emerald-400">{d.totalUnitsApproved.toLocaleString()}</td>
+                            <td className="p-2 border-r border-border text-center font-mono font-bold text-emerald-700 dark:text-emerald-400">{d.totalUnitsApproved.toLocaleString()}</td>
                             <td className="p-2 text-right font-mono font-bold">{d.fulfillmentRate}%</td>
                           </tr>
                         ))}
@@ -1207,7 +1207,7 @@ export default function ReportsExportPage() {
 
                 {/* 3. Item Velocity & Consumption Index */}
                 <div className="space-y-2">
-                  <h3 className="text-xs font-bold text-teal-400 uppercase tracking-wider">2. Material Velocity &amp; Item-Level Consumption Index</h3>
+                  <h3 className="text-xs font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider">2. Material Velocity &amp; Item-Level Consumption Index</h3>
                   <div className="border border-border rounded-xl overflow-x-auto bg-background">
                     <table className="w-full text-left border-collapse text-[11px]">
                       <thead>
@@ -1215,7 +1215,7 @@ export default function ReportsExportPage() {
                           <th className="p-2 border-r border-border">Item Name</th>
                           <th className="p-2 border-r border-border">Category</th>
                           <th className="p-2 border-r border-border text-center">Requested</th>
-                          <th className="p-2 border-r border-border text-center font-bold text-teal-400">Approved</th>
+                          <th className="p-2 border-r border-border text-center font-bold text-teal-700 dark:text-teal-400">Approved</th>
                           <th className="p-2 text-right">Approval Ratio</th>
                         </tr>
                       </thead>
@@ -1225,8 +1225,8 @@ export default function ReportsExportPage() {
                             <td className="p-2 border-r border-border font-bold text-foreground">{item.itemName}</td>
                             <td className="p-2 border-r border-border">{item.category}</td>
                             <td className="p-2 border-r border-border text-center font-mono">{item.totalRequested.toLocaleString()} {item.unit}</td>
-                            <td className="p-2 border-r border-border text-center font-mono font-bold text-teal-400">{item.totalApproved.toLocaleString()} {item.unit}</td>
-                            <td className={`p-2 text-right font-mono font-bold ${item.shortageFlag ? 'text-amber-400' : 'text-foreground'}`}>
+                            <td className="p-2 border-r border-border text-center font-mono font-bold text-teal-700 dark:text-teal-400">{item.totalApproved.toLocaleString()} {item.unit}</td>
+                            <td className={`p-2 text-right font-mono font-bold ${item.shortageFlag ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'}`}>
                               {item.approvalRatio}%
                             </td>
                           </tr>
@@ -1241,8 +1241,8 @@ export default function ReportsExportPage() {
                   <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">3. Strategic Recommendations &amp; Material Flow Audit</h3>
                   <div className="space-y-2">
                     {storesReport.recommendations.map((rec, idx) => (
-                      <div key={idx} className="p-3 rounded-xl bg-teal-950/20 border border-teal-500/30 text-muted-foreground leading-relaxed">
-                        <strong className="text-teal-400 font-semibold">{idx + 1}. </strong>{rec}
+                      <div key={idx} className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/30 text-muted-foreground leading-relaxed">
+                        <strong className="text-teal-700 dark:text-teal-400 font-semibold">{idx + 1}. </strong>{rec}
                       </div>
                     ))}
                   </div>
@@ -1264,7 +1264,7 @@ export default function ReportsExportPage() {
                     onClick={handleExportStoresCsv}
                     className="px-4 py-2 rounded-xl text-xs font-semibold text-foreground bg-card border border-border hover:bg-muted/40 flex items-center gap-1.5 cursor-pointer"
                   >
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-teal-400" /> Export CSV
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400" /> Export CSV
                   </button>
                   <button
                     onClick={handleExportStoresDocx}

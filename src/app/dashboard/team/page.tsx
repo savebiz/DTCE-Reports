@@ -582,7 +582,7 @@ export default function SecretariatTeamManagement() {
           <div className="rounded-2xl p-6 space-y-6 print-container" style={{ background: 'rgba(245,158,11,0.04)', border: '1px dashed rgba(245,158,11,0.25)' }}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print-hide">
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
                   <Ticket className="h-4 w-4 inline" /> Newly Issued HOD Credentials ({revealedSlips.length})
                 </h3>
                 <p className="text-[12px] text-slate-500 mt-1">
@@ -598,7 +598,7 @@ export default function SecretariatTeamManagement() {
                 </button>
                 <button
                   onClick={handleExportCSV}
-                  className="h-8 rounded-lg px-4 text-[12px] font-semibold text-amber-400 transition-all border border-amber-900/30 bg-amber-950/20 hover:bg-amber-950/40"
+                  className="h-8 rounded-lg px-4 text-[12px] font-semibold text-amber-700 dark:text-amber-400 transition-all border border-amber-900/30 bg-amber-950/20 hover:bg-amber-950/40"
                 >
                   Download CSV
                 </button>
@@ -633,11 +633,11 @@ export default function SecretariatTeamManagement() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px] pt-3" style={{ borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
                       <div>
                         <span className="text-slate-500 block text-[9px] uppercase font-mono">Department</span>
-                        <span className="font-semibold text-slate-300">{slip.departmentName}</span>
+                        <span className="font-semibold text-foreground">{slip.departmentName}</span>
                       </div>
                       <div>
                         <span className="text-slate-500 block text-[9px] uppercase font-mono">Portal URL</span>
-                        <span className="font-mono text-slate-400">dtcereports.vercel.app</span>
+                        <span className="font-mono text-muted-foreground">dtcereports.vercel.app</span>
                       </div>
                     </div>
 
@@ -648,7 +648,7 @@ export default function SecretariatTeamManagement() {
                       </div>
                       <div>
                         <span className="text-slate-500 block text-[8px] uppercase">Temporary Password</span>
-                        <span className="font-bold text-amber-400 select-all">{slip.temporaryPassword}</span>
+                        <span className="font-bold text-amber-700 dark:text-amber-400 select-all">{slip.temporaryPassword}</span>
                       </div>
                     </div>
                   </div>
@@ -663,7 +663,7 @@ export default function SecretariatTeamManagement() {
             <div className="flex justify-end print-hide">
               <button
                 onClick={() => setRevealedSlips([])}
-                className="text-[12px] font-semibold text-slate-500 hover:text-slate-400 transition-colors"
+                className="text-[12px] font-semibold text-slate-500 hover:text-muted-foreground transition-colors"
               >
                 Clear Slip View
               </button>
@@ -700,7 +700,7 @@ export default function SecretariatTeamManagement() {
                       id="single-dept"
                       value={singleDeptId}
                       onChange={(e) => handleSingleDeptSelectChange(e.target.value)}
-                      className="w-full h-9 rounded-lg px-3 text-[13px] font-medium text-slate-300 cursor-pointer"
+                      className="w-full h-9 rounded-lg px-3 text-[13px] font-medium text-foreground cursor-pointer"
                       style={{
                         background: 'rgba(255,255,255,0.06)',
                         border: '1px solid rgba(255,255,255,0.1)',
@@ -743,7 +743,7 @@ export default function SecretariatTeamManagement() {
                     id="single-role"
                     value={singleRole}
                     onChange={(e: any) => setSingleRole(e.target.value)}
-                    className="w-full h-9 rounded-lg px-3 text-[13px] font-medium text-slate-300 cursor-pointer"
+                    className="w-full h-9 rounded-lg px-3 text-[13px] font-medium text-foreground cursor-pointer"
                     style={{
                       background: 'rgba(255,255,255,0.06)',
                       border: '1px solid rgba(255,255,255,0.1)',
@@ -781,7 +781,7 @@ export default function SecretariatTeamManagement() {
           {/* Bulk HOD table Provision List (Grid of 40 departments) */}
           <div className="lg:col-span-2">
             <div className="glass-card overflow-hidden flex flex-col" style={{ maxHeight: '80vh' }}>
-              <div className="px-5 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.2)' }}>
+              <div className="px-5 py-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4" >
                 <div>
                   <h2 className="text-[11px] font-semibold uppercase tracking-widest text-slate-500 mb-1">Bulk HOD Provisioning Grid</h2>
                   <p className="text-[12px] text-slate-500">Grid lists all {bulkList.length} departments. Enter leader names to provision.</p>
@@ -803,13 +803,13 @@ export default function SecretariatTeamManagement() {
 
               {/* Progress and Collisions Warnings */}
               {provisionProgress && (
-                <div className="px-5 py-3 border-b text-[12px] text-amber-400 bg-amber-950/10 border-amber-950/20">
+                <div className="px-5 py-3 border-b text-[12px] text-amber-700 dark:text-amber-400 bg-amber-500/10 border-amber-950/20">
                   ⌛ {provisionProgress}
                 </div>
               )}
 
               {collisions.length > 0 && (
-                <div className="px-5 py-3.5 border-b text-[11px] text-red-400 bg-red-950/10 border-red-950/20 space-y-1">
+                <div className="px-5 py-3.5 border-b text-[11px] text-red-700 dark:text-red-400 bg-red-500/10 border-red-950/20 space-y-1">
                   <p className="font-bold uppercase tracking-wider"><span className="inline-flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" /> Username Collision Errors Detected:</span></p>
                   <ul className="list-disc pl-4 space-y-0.5">
                     {collisions.map((c, idx) => <li key={idx}>{c}</li>)}
@@ -821,7 +821,7 @@ export default function SecretariatTeamManagement() {
               <div className="overflow-y-auto overflow-x-auto flex-1 scrollbar-hide">
                 <table className="w-full min-w-[680px] text-left border-collapse text-[12px]">
                   <thead>
-                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
+                    <tr >
                       <th className="p-3 w-1/4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Department</th>
                       <th className="p-3 w-1/4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">HOD Full Name</th>
                       <th className="p-3 w-1/4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Username Slug</th>
@@ -836,7 +836,7 @@ export default function SecretariatTeamManagement() {
                       const actualIdx = (bulkPage - 1) * bulkPageSize + idx
                       return (
                         <tr key={item.id} className="hover:bg-slate-900/10">
-                          <td className="p-3 font-semibold text-slate-400">{item.name}</td>
+                          <td className="p-3 font-semibold text-muted-foreground">{item.name}</td>
                           <td className="p-2">
                             <input
                               value={item.leaderName}
@@ -910,14 +910,14 @@ export default function SecretariatTeamManagement() {
 
         {/* Existing Accounts Audit list */}
         <div className="glass-card overflow-hidden print-hide">
-          <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.2)' }}>
+          <div className="px-5 py-4 border-b flex items-center justify-between" >
             <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Active System Accounts ({users.length})</span>
           </div>
 
           <div className="overflow-x-auto scrollbar-hide text-[12px]">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
+                <tr >
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Full Name</th>
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Username</th>
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">System Email</th>
@@ -943,7 +943,7 @@ export default function SecretariatTeamManagement() {
                   return (
                     <tr key={u.id} className="hover:bg-slate-900/10">
                       <td className="p-3 font-semibold text-foreground">{u.full_name || '—'}</td>
-                      <td className="p-3 font-mono text-slate-400">{u.username || '—'}</td>
+                      <td className="p-3 font-mono text-muted-foreground">{u.username || '—'}</td>
                       <td className="p-3 text-slate-500">{u.email}</td>
                       <td className="p-3 font-medium">
                         {canEditDept ? (
@@ -987,7 +987,7 @@ export default function SecretariatTeamManagement() {
                             ))}
                           </ModernSelect>
                         ) : (
-                          <span className="text-slate-400">{deptName}</span>
+                          <span className="text-muted-foreground">{deptName}</span>
                         )}
                       </td>
                       <td className="p-3">
@@ -1068,7 +1068,7 @@ export default function SecretariatTeamManagement() {
                           {profile?.role === 'super_admin' && (
                             <button
                               onClick={() => setResetModalTarget(u)}
-                              className="h-7 rounded-lg px-2.5 text-[11px] font-semibold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer flex items-center gap-1"
+                              className="h-7 rounded-lg px-2.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 transition-all cursor-pointer flex items-center gap-1"
                             >
                               <KeyRound className="h-3.5 w-3.5" /> Reset Password
                             </button>
@@ -1121,14 +1121,14 @@ export default function SecretariatTeamManagement() {
         {resetModalTarget && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
             <div className="bg-card border border-border rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90dvh] overflow-y-auto">
-              <div className="flex items-center gap-3 text-amber-400">
+              <div className="flex items-center gap-3 text-amber-700 dark:text-amber-400">
                 <KeyRound className="h-5 w-5 text-amber-500" />
                 <h3 className="text-sm font-bold uppercase tracking-wider">Confirm Password Reset</h3>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Reset password for <strong className="text-foreground font-semibold">{resetModalTarget.full_name || resetModalTarget.username}</strong> ({resetModalTarget.username || 'user'})?
                 <br />
-                <span className="text-slate-400 block mt-1.5 leading-normal">
+                <span className="text-muted-foreground block mt-1.5 leading-normal">
                   A temporary password will be generated for this account. Upon signing in with the temporary password, the user will be automatically routed to create their new password.
                 </span>
               </p>

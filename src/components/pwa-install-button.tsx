@@ -104,7 +104,7 @@ export function PwaInstallButton({ variant = 'default' }: { variant?: 'default' 
               : 'border border-border bg-card hover:bg-accent text-foreground px-3 sm:px-4 py-2 text-xs'
           }`}
         >
-          <Download size={14} className={variant === 'hero' ? 'text-slate-950' : 'text-amber-600 dark:text-amber-400'} />
+          <Download size={14} className={variant === 'hero' ? 'text-slate-950' : 'text-amber-600 dark:text-amber-700 dark:text-amber-400'} />
           <span className={variant === 'compact' ? 'hidden sm:inline' : ''}>
             {variant === 'hero' ? 'Install App (WebAPK)' : 'Install App'}
           </span>
@@ -117,7 +117,7 @@ export function PwaInstallButton({ variant = 'default' }: { variant?: 'default' 
           <div className="max-w-sm w-full bg-card border border-amber-500/30 rounded-2xl p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Smartphone size={18} className="text-amber-600 dark:text-amber-400" />
+                <Smartphone size={18} className="text-amber-600 dark:text-amber-700 dark:text-amber-400" />
                 <h3 className="text-sm font-bold text-foreground">Install on iOS Safari</h3>
               </div>
               <button
@@ -134,12 +134,12 @@ export function PwaInstallButton({ variant = 'default' }: { variant?: 'default' 
 
             <div className="p-3 rounded-xl bg-muted/60 border border-border/60 space-y-2 text-xs text-foreground">
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-bold">1</span>
-                <span>Tap <strong>Share <Share size={12} className="inline text-amber-400" /></strong> in Safari toolbar.</span>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold">1</span>
+                <span>Tap <strong>Share <Share size={12} className="inline text-amber-700 dark:text-amber-400" /></strong> in Safari toolbar.</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-bold">2</span>
-                <span>Scroll down &amp; tap <strong>Add to Home Screen <PlusSquare size={12} className="inline text-amber-400" /></strong>.</span>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400 text-[10px] font-bold">2</span>
+                <span>Scroll down &amp; tap <strong>Add to Home Screen <PlusSquare size={12} className="inline text-amber-700 dark:text-amber-400" /></strong>.</span>
               </div>
             </div>
 

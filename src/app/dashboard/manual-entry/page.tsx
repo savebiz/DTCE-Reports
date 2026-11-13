@@ -309,7 +309,7 @@ function ManualEntryContent() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 border border-amber-500/20">
               Secretariat Desk Proxy Portal
             </span>
           </div>
@@ -601,7 +601,7 @@ function ManualEntryContent() {
                       </div>
                       <div className="flex justify-between items-center pt-2 text-sm border-t-2 border-emerald-500/50">
                         <span className="font-bold text-emerald-500 font-sans uppercase tracking-wider">Grand Total Offering:</span>
-                        <span className="font-extrabold text-emerald-400 font-mono text-base">₦{total.toLocaleString()}</span>
+                        <span className="font-extrabold text-emerald-700 dark:text-emerald-400 font-mono text-base">₦{total.toLocaleString()}</span>
                       </div>
                     </div>
                   )

@@ -460,7 +460,7 @@ function StoreRequestContent() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-500">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-700 dark:text-emerald-400">
                 {deptName || 'Department'} · Materials &amp; Store Portal
               </span>
             </div>
@@ -499,15 +499,15 @@ function StoreRequestContent() {
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-foreground leading-snug">
-                <ClipboardList className={`w-5 h-5 shrink-0 ${requestType === 'pre_event' ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+                <ClipboardList className={`w-5 h-5 shrink-0 ${requestType === 'pre_event' ? 'text-emerald-700 dark:text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'}`} />
                 1. Pre-Event Needs List (Market Purchase)
               </span>
               <div className="flex items-center gap-1.5 shrink-0">
-                <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${preEventWindow.isOpen ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30' : 'bg-amber-500/15 text-amber-500 border border-amber-500/30'}`}>
+                <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${preEventWindow.isOpen ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-700 dark:text-amber-400 border border-amber-500/30'}`}>
                   {preEventWindow.isOpen ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                   {preEventWindow.isOpen ? 'Open' : 'Locked'}
                 </span>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 whitespace-nowrap">
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
                   {preEventLists.length} Sent
                 </span>
               </div>
@@ -529,15 +529,15 @@ function StoreRequestContent() {
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-foreground leading-snug">
-                <Package className={`w-5 h-5 shrink-0 ${requestType === 'during_event' ? 'text-blue-500' : 'text-muted-foreground'}`} />
+                <Package className={`w-5 h-5 shrink-0 ${requestType === 'during_event' ? 'text-blue-700 dark:text-blue-700 dark:text-blue-400' : 'text-muted-foreground'}`} />
                 2. Live Event Store Requisition (From Store)
               </span>
               <div className="flex items-center gap-1.5 shrink-0">
-                <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${liveWindow.isOpen ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30' : 'bg-slate-500/15 text-muted-foreground border border-border'}`}>
+                <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${liveWindow.isOpen ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 border border-emerald-500/30' : 'bg-slate-500/15 text-muted-foreground border border-border'}`}>
                   {liveWindow.isOpen ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                   {liveWindow.isOpen ? 'Open' : 'Locked'}
                 </span>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-500 border border-blue-500/30 whitespace-nowrap">
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-700 dark:text-blue-400 border border-blue-500/30 whitespace-nowrap">
                   {duringEventRequisitions.length} Sent
                 </span>
               </div>
@@ -556,7 +556,7 @@ function StoreRequestContent() {
               <Card className="glass-card border-emerald-500/30">
                 <CardHeader>
                   <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4 text-emerald-500" />
+                    <ClipboardList className="w-4 h-4 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400" />
                     Build Pre-Event Needs List
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
@@ -565,7 +565,7 @@ function StoreRequestContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {!preEventWindow.isOpen && (
-                    <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs flex items-start gap-2">
+                    <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-700 dark:text-amber-400 text-xs flex items-start gap-2">
                       <Lock className="w-4 h-4 shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold block">Pre-Event Needs List Locked</span>
@@ -578,7 +578,7 @@ function StoreRequestContent() {
                     onClick={handleCopyLastList}
                     disabled={copying}
                     variant="outline"
-                    className="w-full h-11 text-xs font-bold border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 cursor-pointer flex items-center justify-center gap-2"
+                    className="w-full h-11 text-xs font-bold border-emerald-500/30 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer flex items-center justify-center gap-2"
                   >
                     <Copy className="w-3.5 h-3.5" />
                     {copying ? 'Copying previous list…' : 'Copy My Department List from Last Event'}
@@ -665,12 +665,12 @@ function StoreRequestContent() {
                   {items.length > 0 && (
                     <div className="pt-4 border-t border-border space-y-2.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider">
+                        <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
                           Needs List Draft ({items.length} {items.length === 1 ? 'item' : 'items'})
                         </span>
                         <button
                           onClick={() => setItems([])}
-                          className="text-[11px] text-muted-foreground hover:text-red-400 cursor-pointer"
+                          className="text-[11px] text-muted-foreground hover:text-red-700 dark:hover:text-red-400 cursor-pointer"
                         >
                           Clear all
                         </button>
@@ -736,7 +736,7 @@ function StoreRequestContent() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleLoadFromPreEventList()}
-                      className="text-xs h-9 font-bold border-blue-500/40 text-blue-400 hover:bg-blue-500/10 cursor-pointer flex items-center gap-1.5"
+                      className="text-xs h-9 font-bold border-blue-500/40 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10 cursor-pointer flex items-center gap-1.5"
                     >
                       Request Approved Items from Store <ArrowRight className="w-3.5 h-3.5" />
                     </Button>
@@ -761,7 +761,7 @@ function StoreRequestContent() {
                                 <span className="text-sm font-bold text-foreground">
                                   Pre-Event Market Needs List
                                 </span>
-                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                                   Market Purchase
                                 </span>
                               </div>
@@ -807,7 +807,7 @@ function StoreRequestContent() {
                                       {isAdjusted ? (
                                         <span>
                                           <span className="line-through text-muted-foreground mr-1">{reqQty}</span>
-                                          <span className="font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                                          <span className="font-bold text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
                                             Approved: {appQty}
                                           </span>
                                         </span>
@@ -824,7 +824,7 @@ function StoreRequestContent() {
                           </div>
 
                           {req.reviewer_comments && (
-                            <div className="rounded-lg p-3 text-[11px] space-y-1 bg-amber-500/5 border border-amber-500/15 text-amber-600 dark:text-amber-400">
+                            <div className="rounded-lg p-3 text-[11px] space-y-1 bg-amber-500/5 border border-amber-500/15 text-amber-600 dark:text-amber-700 dark:text-amber-400">
                               <span className="font-bold uppercase tracking-wider block">Approval Remarks:</span>
                               <p className="leading-relaxed">{req.reviewer_comments}</p>
                             </div>
@@ -832,12 +832,12 @@ function StoreRequestContent() {
 
                           {req.status !== 'pending_coordinator' && req.status !== 'declined' && (
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pt-1">
-                              <span className="text-[11px] text-emerald-500 font-medium">
+                              <span className="text-[11px] text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 font-medium">
                                 <span className="inline-flex items-center gap-1"><Check className="h-3.5 w-3.5 shrink-0" /> Consolidated into Stores Market List for purchase.</span>
                               </span>
                               <button
                                 onClick={() => handleLoadFromPreEventList(req.items_json)}
-                                className="text-xs font-bold text-blue-500 hover:text-blue-400 underline cursor-pointer text-left sm:text-right py-1"
+                                className="text-xs font-bold text-blue-700 dark:text-blue-700 dark:text-blue-400 hover:text-blue-700 dark:text-blue-400 underline cursor-pointer text-left sm:text-right py-1"
                               >
                                 <span className="inline-flex items-center gap-1">Request these items from Store during event <ArrowRight className="h-3.5 w-3.5" /></span>
                               </button>
@@ -859,7 +859,7 @@ function StoreRequestContent() {
               <Card className="glass-card border-blue-500/30">
                 <CardHeader>
                   <CardTitle className="text-lg font-bold text-foreground flex items-center gap-2">
-                    <Package className="w-4 h-4 text-blue-500" />
+                    <Package className="w-4 h-4 text-blue-700 dark:text-blue-700 dark:text-blue-400" />
                     Request Items from Store
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground">
@@ -868,7 +868,7 @@ function StoreRequestContent() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {!liveWindow.isOpen && (
-                    <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs flex items-start gap-2">
+                    <div className="p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-700 dark:text-amber-400 text-xs flex items-start gap-2">
                       <Lock className="w-4 h-4 shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold block">Live Event Store Requisition Locked</span>
@@ -882,7 +882,7 @@ function StoreRequestContent() {
                     <Button
                       onClick={() => handleLoadFromPreEventList()}
                       variant="outline"
-                      className="w-full h-11 text-xs font-bold border-blue-500/40 text-blue-400 hover:bg-blue-500/10 cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full h-11 text-xs font-bold border-blue-500/40 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10 cursor-pointer flex items-center justify-center gap-2"
                     >
                       <span className="inline-flex items-center gap-1.5"><Download className="h-3.5 w-3.5" /> Load Items from My Approved Pre-Event Needs List ({approvedPreEventItems.length})</span>
                     </Button>
@@ -952,7 +952,7 @@ function StoreRequestContent() {
                     </div>
                   ) : (
                     <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-0.5">
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold inline-flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Available in Store Catalog</span>
+                      <span className="text-emerald-600 dark:text-emerald-700 dark:text-emerald-400 font-bold inline-flex items-center gap-1"><Check className="h-3.5 w-3.5" /> Available in Store Catalog</span>
                       <p className="text-[10px] text-muted-foreground">
                         Fulfilled from Central Stores stock upon approval.
                       </p>
@@ -978,7 +978,7 @@ function StoreRequestContent() {
 
                   {items.length > 0 && (
                     <div className="pt-4 border-t border-border space-y-2">
-                      <span className="text-[10px] font-bold text-blue-400 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider block">
                         Store Request Items ({items.length}):
                       </span>
                       <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
@@ -1055,13 +1055,13 @@ function StoreRequestContent() {
                               </span>
                             </div>
                             <span
-                              className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full w-fit max-w-full leading-tight"
+                              className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full w-fit max-w-full leading-tight whitespace-nowrap shrink-0"
                               style={
                                 req.status === 'pending_coordinator' ? { background: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' } :
                                 req.status === 'approved' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
                                 req.status === 'in_progress' ? { background: 'rgba(139,92,246,0.1)', color: '#7C3AED', border: '1px solid rgba(139,92,246,0.2)' } :
                                 req.status === 'partially_fulfilled' ? { background: 'rgba(236,72,153,0.1)', color: '#DB2777', border: '1px solid rgba(236,72,153,0.2)' } :
-                                req.status === 'ready_for_collection' ? { background: 'rgba(245,158,11,0.2)', color: '#F59E0B', border: '1px solid rgba(245,158,11,0.4)' } :
+                                req.status === 'ready_for_collection' ? { background: 'rgba(245,158,11,0.2)', color: '#B45309', border: '1px solid rgba(245,158,11,0.4)' } :
                                 req.status === 'delivered' ? { background: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' } :
                                 { background: 'rgba(239,68,68,0.1)', color: '#DC2626', border: '1px solid rgba(239,68,68,0.2)' }
                               }
@@ -1094,7 +1094,7 @@ function StoreRequestContent() {
                                         {isAdjusted ? (
                                           <span className="font-mono text-xs">
                                             <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
-                                            <span className="font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
+                                            <span className="font-bold text-amber-700 dark:text-amber-700 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
                                           </span>
                                         ) : (
                                           <span className="font-mono font-bold text-foreground bg-muted/40 px-2 py-0.5 rounded">
@@ -1108,7 +1108,7 @@ function StoreRequestContent() {
                                       <div className="flex items-center justify-between text-[10px] pt-1 border-t border-border/40 mt-1">
                                         <span className="text-muted-foreground">Durable Return Status:</span>
                                         {isInitiated ? (
-                                          <span className="font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1">
+                                          <span className="font-bold text-blue-700 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20 flex items-center gap-1">
                                             <Truck className="w-3 h-3" /> Return Initiated
                                           </span>
                                         ) : isOutstanding ? (
@@ -1131,12 +1131,12 @@ function StoreRequestContent() {
                                                 showToast(`Failed: ${err.message}`, 'error')
                                               }
                                             }}
-                                            className="font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 min-h-[34px] rounded border border-amber-500/30 cursor-pointer transition-colors flex items-center gap-1"
+                                            className="font-bold text-amber-700 dark:text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 min-h-[34px] rounded border border-amber-500/30 cursor-pointer transition-colors flex items-center gap-1"
                                           >
                                             <RefreshCw className="w-3 h-3" /> Initiate Return
                                           </button>
                                         ) : (
-                                          <span className="font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                                          <span className="font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                                             <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> {it.return_status?.replace('_', ' ')}</span>
                                           </span>
                                         )}
@@ -1156,7 +1156,7 @@ function StoreRequestContent() {
                           )}
 
                           {req.reviewer_comments && (
-                            <div className="rounded-lg p-3 text-[11px] space-y-1 bg-amber-500/5 border border-amber-500/10 text-amber-600 dark:text-amber-400">
+                            <div className="rounded-lg p-3 text-[11px] space-y-1 bg-amber-500/5 border border-amber-500/10 text-amber-600 dark:text-amber-700 dark:text-amber-400">
                               <span className="font-bold uppercase tracking-wider block">Reviewer Remarks:</span>
                               <p className="leading-relaxed">{req.reviewer_comments}</p>
                             </div>

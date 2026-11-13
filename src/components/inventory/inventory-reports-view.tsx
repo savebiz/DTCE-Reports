@@ -289,7 +289,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
               size="sm"
               variant="ghost"
               title="Export Full Multi-Section Inventory Report as CSV"
-              className="text-xs font-bold h-6 px-2 hover:bg-emerald-500/20 hover:text-emerald-400 cursor-pointer"
+              className="text-xs font-bold h-6 px-2 hover:bg-emerald-500/20 hover:text-emerald-700 dark:hover:text-emerald-700 dark:text-emerald-400 cursor-pointer"
             >
               <span className="inline-flex items-center gap-1"><FileText className="h-3.5 w-3.5" /> CSV</span>
             </Button>
@@ -298,7 +298,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
               size="sm"
               variant="ghost"
               title="Export Multi-Tab Excel Workbook (.xlsx) Covering All Sections"
-              className="text-xs font-bold h-6 px-2 hover:bg-blue-500/20 hover:text-blue-400 cursor-pointer"
+              className="text-xs font-bold h-6 px-2 hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-700 dark:text-blue-400 cursor-pointer"
             >
               <span className="inline-flex items-center gap-1"><FileSpreadsheet className="h-3.5 w-3.5" /> Excel</span>
             </Button>
@@ -307,7 +307,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
               size="sm"
               variant="ghost"
               title="Print or Save Full Executive PDF Document Covering All 3 Sections"
-              className="text-xs font-bold h-6 px-2 hover:bg-amber-500/20 hover:text-amber-400 cursor-pointer"
+              className="text-xs font-bold h-6 px-2 hover:bg-amber-500/20 hover:text-amber-700 dark:hover:text-amber-700 dark:text-amber-400 cursor-pointer"
             >
               <span className="inline-flex items-center gap-1"><Printer className="h-3.5 w-3.5" /> PDF</span>
             </Button>
@@ -457,7 +457,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
               </div>
 
               {lowStockCount > 0 && (
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider animate-pulse flex items-center gap-1">
+                <span className="px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 uppercase tracking-wider animate-pulse flex items-center gap-1">
                   <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> {lowStockCount} Item(s) At Deficit</span>
                 </span>
               )}
@@ -487,26 +487,26 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                         <tr key={item.id} className={`hover:bg-muted/20 transition-colors ${isLow ? 'bg-red-500/5' : ''}`}>
                           <td className="p-3 font-semibold text-foreground">{item.name}</td>
                           <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                              item.category === 'durable' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                            <span className={`px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold uppercase tracking-wider ${
+                              item.category === 'durable' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20' : 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20'
                             }`}>
                               {item.category}
                             </span>
                           </td>
                           <td className="p-3 font-mono text-muted-foreground">{item.unit}</td>
-                          <td className={`p-3 text-right font-mono font-bold text-sm ${isLow ? 'text-red-400 animate-pulse' : 'text-foreground'}`}>
+                          <td className={`p-3 text-right font-mono font-bold text-sm ${isLow ? 'text-red-700 dark:text-red-400 animate-pulse' : 'text-foreground'}`}>
                             {item.current_stock}
                           </td>
                           <td className="p-3 text-right font-mono text-muted-foreground">{item.low_stock_threshold}</td>
-                          <td className="p-3 text-right font-mono text-emerald-400 font-bold">+{item.total_restocked || 0}</td>
-                          <td className="p-3 text-right font-mono text-amber-400 font-bold">-{item.total_fulfilled || 0}</td>
+                          <td className="p-3 text-right font-mono text-emerald-700 dark:text-emerald-400 font-bold">+{item.total_restocked || 0}</td>
+                          <td className="p-3 text-right font-mono text-amber-700 dark:text-amber-400 font-bold">-{item.total_fulfilled || 0}</td>
                           <td className="p-3 text-center">
                             {isLow ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider">
+                              <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 uppercase tracking-wider">
                                 <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low Stock</span>
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                              <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
                                 <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> Optimal</span>
                               </span>
                             )}
@@ -534,7 +534,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
           <div className="glass-card overflow-hidden rounded-xl border border-border bg-card shadow-md p-4 space-y-3">
             <div className="pb-3 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-blue-400" />
+                <Building2 className="w-4 h-4 text-blue-700 dark:text-blue-400" />
                 <div>
                   <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">
                     2. Department Consumption &amp; Distribution Equity Report
@@ -572,7 +572,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                       return (
                         <tr key={`${row.department_id}_${row.item_id}_${idx}`} className="hover:bg-muted/20 transition-colors">
                           <td className="p-3 font-semibold text-foreground flex items-center gap-2">
-                            <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                            <Building2 className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
                             {row.department_name}
                           </td>
                           <td className="p-3 font-semibold text-amber-500">{row.item_name}</td>
@@ -612,9 +612,9 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
 
           {/* Secondary Views / Drill-Down Sub-Tabs (Paginated) */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-2">
               <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-purple-400" />
+                <Eye className="w-4 h-4 text-purple-700 dark:text-purple-400" />
                 <span className="text-xs font-bold text-foreground uppercase tracking-wider">3. Secondary Operational Drill-Downs</span>
               </div>
               <div className="flex gap-2">
@@ -631,7 +631,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                     }}
                     className={`text-[11px] font-bold px-3 py-1 rounded-lg transition-all cursor-pointer border ${
                       secondaryType === sub.id
-                        ? 'bg-purple-500/10 text-purple-400 border-purple-500/30 font-bold'
+                        ? 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30 font-bold'
                         : 'bg-background/40 border-border/40 text-muted-foreground hover:text-foreground'
                     }`}
                   >
@@ -670,15 +670,15 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                               <td className="p-3 font-semibold text-foreground">{h.department_name}</td>
                               <td className="p-3 font-semibold text-amber-500">{h.item_name}</td>
                               <td className="p-3">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                <span className={`px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold uppercase tracking-wider ${
                                   isRestock
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
+                                    : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
                                 }`}>
                                   {h.transaction_type.replace('_', ' ')}
                                 </span>
                               </td>
-                              <td className={`p-3 text-right font-mono font-bold ${isRestock ? 'text-emerald-400' : 'text-amber-400'}`}>
+                              <td className={`p-3 text-right font-mono font-bold ${isRestock ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
                                 {h.quantity_change > 0 ? `+${h.quantity_change}` : h.quantity_change} {h.unit}
                               </td>
                               <td className="p-3 text-right font-mono font-bold text-foreground">
@@ -709,7 +709,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                     </thead>
                     <tbody className="divide-y divide-border/60 text-foreground">
                       {paginatedSecondary.length === 0 ? (
-                        <tr><td colSpan={6} className="p-6 text-center text-emerald-400 font-semibold italic"><span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4" /> All inventory items are optimal.</span> No low-stock deficits recorded!</td></tr>
+                        <tr><td colSpan={6} className="p-6 text-center text-emerald-700 dark:text-emerald-400 font-semibold italic"><span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4" /> All inventory items are optimal.</span> No low-stock deficits recorded!</td></tr>
                       ) : (
                         paginatedSecondary.map(item => {
                           const shortfall = item.shortfall ?? Math.max(0, item.low_stock_threshold - item.current_stock)
@@ -717,16 +717,16 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                             <tr key={item.id} className="hover:bg-muted/20 transition-colors bg-red-500/5">
                               <td className="p-3 font-semibold text-foreground">{item.name}</td>
                               <td className="p-3">
-                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                  item.category === 'durable' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                <span className={`px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold uppercase tracking-wider ${
+                                  item.category === 'durable' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20' : 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20'
                                 }`}>
                                   {item.category}
                                 </span>
                               </td>
                               <td className="p-3 font-mono text-muted-foreground">{item.unit}</td>
-                              <td className="p-3 text-right font-mono font-bold text-red-400 text-sm animate-pulse">{item.current_stock}</td>
+                              <td className="p-3 text-right font-mono font-bold text-red-700 dark:text-red-400 text-sm animate-pulse">{item.current_stock}</td>
                               <td className="p-3 text-right font-mono text-muted-foreground">{item.low_stock_threshold}</td>
-                              <td className="p-3 text-right font-mono font-bold text-red-400">-{shortfall} {item.unit}</td>
+                              <td className="p-3 text-right font-mono font-bold text-red-700 dark:text-red-400">-{shortfall} {item.unit}</td>
                             </tr>
                           )
                         })
@@ -755,12 +755,12 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                         paginatedSecondary.map(r => (
                           <tr key={r.id} className="hover:bg-muted/20 transition-colors">
                             <td className="p-3 font-semibold text-foreground flex items-center gap-2">
-                              <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                              <Building2 className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" />
                               {r.department_name}
                             </td>
                             <td className="p-3 font-mono">
                               {r.item_code ? (
-                                <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                                   {r.item_code}
                                 </span>
                               ) : (
@@ -769,23 +769,23 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                             </td>
                             <td className="p-3 font-semibold text-amber-500">{r.item_name}</td>
                             <td className="p-3 text-right font-mono font-bold text-foreground">{r.quantity_issued}</td>
-                            <td className="p-3 text-right font-mono font-bold text-emerald-400">{r.quantity_returned}</td>
-                            <td className="p-3 text-right font-mono font-bold text-amber-400 text-sm">{r.outstanding_quantity}</td>
+                            <td className="p-3 text-right font-mono font-bold text-emerald-700 dark:text-emerald-400">{r.quantity_returned}</td>
+                            <td className="p-3 text-right font-mono font-bold text-amber-700 dark:text-amber-400 text-sm">{r.outstanding_quantity}</td>
                             <td className="p-3 text-center">
                               {r.return_status === 'return_initiated' ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider animate-pulse inline-flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20 uppercase tracking-wider animate-pulse inline-flex items-center gap-1">
                                   <Truck className="w-3 h-3" /> Return Initiated
                                 </span>
                               ) : r.return_status === 'returned_damaged' ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase tracking-wider inline-flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-500/20 uppercase tracking-wider inline-flex items-center gap-1">
                                   <AlertCircle className="w-3 h-3" /> Returned Damaged
                                 </span>
                               ) : r.return_status === 'lost' ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider inline-flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 uppercase tracking-wider inline-flex items-center gap-1">
                                   <XCircle className="w-3 h-3" /> Lost / Missing
                                 </span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider inline-flex items-center gap-1">
+                                <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 uppercase tracking-wider inline-flex items-center gap-1">
                                   <Clock className="w-3 h-3" /> Outstanding
                                 </span>
                               )}

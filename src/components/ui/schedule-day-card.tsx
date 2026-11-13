@@ -9,30 +9,22 @@ interface StatusBadgeProps {
   className?: string
 }
 
-const statusConfig: Record<DayStatus, { label: string; bg: string; color: string; border: string }> = {
+const statusConfig: Record<DayStatus, { label: string; className: string }> = {
   submitted: {
     label: 'Submitted',
-    bg: 'rgba(16,185,129,0.10)',
-    color: '#34D399',
-    border: 'rgba(16,185,129,0.22)',
+    className: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-400 border-emerald-500/25',
   },
   today: {
     label: 'Today',
-    bg: 'rgba(245,158,11,0.15)',
-    color: '#FCD34D',
-    border: 'rgba(245,158,11,0.30)',
+    className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
   },
   upcoming: {
     label: 'Upcoming',
-    bg: 'rgba(255,255,255,0.04)',
-    color: '#334155',
-    border: 'rgba(255,255,255,0.07)',
+    className: 'bg-muted text-muted-foreground border-border',
   },
   missed: {
     label: 'Missed',
-    bg: 'rgba(239,68,68,0.10)',
-    color: '#FCA5A5',
-    border: 'rgba(239,68,68,0.22)',
+    className: 'bg-red-500/12 text-red-700 dark:text-red-400 border-red-500/25',
   },
 }
 
@@ -40,12 +32,7 @@ export function StatusBadge({ status, className = '' }: StatusBadgeProps) {
   const cfg = statusConfig[status]
   return (
     <span
-      className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${className}`}
-      style={{
-        background: cfg.bg,
-        color: cfg.color,
-        border: `1px solid ${cfg.border}`,
-      }}
+      className={`inline-flex items-center whitespace-nowrap shrink-0 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${cfg.className} ${className}`}
     >
       {cfg.label}
     </span>
@@ -62,29 +49,27 @@ interface ScheduleDayCardProps {
 export function ScheduleDayCard({ dayNum, dayLabel, status, isToday }: ScheduleDayCardProps) {
   return (
     <div
-      className="flex items-center justify-between rounded-xl px-4 py-3 transition-all duration-300"
-      style={
+      className={`flex items-center justify-between rounded-xl px-4 py-3 border transition-all duration-300 ${
         isToday
-          ? { background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.28)' }
-          : { background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }
-      }
+          ? 'bg-amber-500/10 border-amber-500/30'
+          : 'bg-card/60 border-border'
+      }`}
     >
       <div className="flex items-center gap-3">
         {isToday && (
-          <span
-            className="h-1.5 w-1.5 rounded-full pulse-dot"
-            style={{ background: '#FBBF24' }}
-          />
+          <span className="h-1.5 w-1.5 rounded-full pulse-dot bg-amber-500 dark:bg-amber-400 shrink-0" />
         )}
         <span
-          className="font-tabular text-sm font-bold"
-          style={{ color: isToday ? '#FCD34D' : '#475569' }}
+          className={`font-tabular text-sm font-bold ${
+            isToday ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground'
+          }`}
         >
           {dayNum.toString().padStart(2, '0')}
         </span>
         <span
-          className="text-[11px] font-semibold uppercase tracking-wider"
-          style={{ color: isToday ? '#F1F5F9' : '#475569' }}
+          className={`text-[11px] font-semibold uppercase tracking-wider ${
+            isToday ? 'text-foreground' : 'text-muted-foreground'
+          }`}
         >
           {dayLabel}
         </span>

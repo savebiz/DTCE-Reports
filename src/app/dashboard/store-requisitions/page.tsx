@@ -503,7 +503,7 @@ function AdminRequisitionsContent() {
 
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-500">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-700 dark:text-emerald-400">
             {profile?.role === 'national_coordinator' && isGeneralSecretary(profile)
               ? 'General Secretary Approval Console'
               : 'National Materials & Requisitions Oversight'}
@@ -517,7 +517,7 @@ function AdminRequisitionsContent() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[11px] font-bold tracking-widest text-emerald-500 uppercase">
+              <span className="text-[11px] font-bold tracking-widest text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 uppercase">
                 {activeEvent?.name || 'Current Event'} · Materials Governance
               </span>
             </div>
@@ -591,10 +591,10 @@ function AdminRequisitionsContent() {
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-foreground leading-snug">
-                <ClipboardList className={`w-5 h-5 shrink-0 ${workflowMode === 'pre_event' ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+                <ClipboardList className={`w-5 h-5 shrink-0 ${workflowMode === 'pre_event' ? 'text-emerald-700 dark:text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'}`} />
                 1. Pre-Event Needs Lists (Market Purchase)
               </span>
-              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 whitespace-nowrap shrink-0">
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 whitespace-nowrap shrink-0">
                 {preEventRequests.length} Lists · {preEventAnalytics.pendingListsCount} Pending
               </span>
             </div>
@@ -635,12 +635,12 @@ function AdminRequisitionsContent() {
               <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Depts Submitted</span>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400" />
                 </div>
                 <span className="text-2xl font-extrabold font-mono text-foreground mt-1.5 block">
                   {preEventAnalytics.submittedDeptsCount} <span className="text-xs font-sans text-muted-foreground">/ {preEventAnalytics.totalDepts}</span>
                 </span>
-                <span className="text-[11px] text-emerald-500 font-semibold block mt-0.5">
+                <span className="text-[11px] text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 font-semibold block mt-0.5">
                   {preEventAnalytics.compliancePct}% submission rate
                 </span>
               </div>
@@ -651,13 +651,13 @@ function AdminRequisitionsContent() {
                 className="text-left bg-card rounded-xl p-4 border border-border/50 hover:border-red-500/40 shadow-xs cursor-pointer transition-all"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider">Yet to Submit</span>
-                  <AlertCircle className="w-3.5 h-3.5 text-red-400" />
+                  <span className="text-[10px] font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">Yet to Submit</span>
+                  <AlertCircle className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
                 </div>
                 <span className="text-2xl font-extrabold font-mono text-red-500 mt-1.5 block">
                   {preEventAnalytics.missingDeptsCount}
                 </span>
-                <span className="text-[11px] text-blue-400 underline block mt-0.5">
+                <span className="text-[11px] text-blue-700 dark:text-blue-400 underline block mt-0.5">
                   {showMissingDepts ? 'Hide department names' : 'Click to view who has not sent'}
                 </span>
               </button>
@@ -677,10 +677,10 @@ function AdminRequisitionsContent() {
 
               <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Approved Lists</span>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Approved Lists</span>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400" />
                 </div>
-                <span className="text-2xl font-extrabold font-mono text-emerald-500 mt-1.5 block">
+                <span className="text-2xl font-extrabold font-mono text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 mt-1.5 block">
                   {preEventAnalytics.approvedListsCount}
                 </span>
                 <span className="text-[11px] text-muted-foreground block mt-0.5">
@@ -717,7 +717,7 @@ function AdminRequisitionsContent() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div className="space-y-1.5">
-                    <span className="font-bold text-emerald-500 block">
+                    <span className="font-bold text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 block">
                       <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> Submitted ({preEventAnalytics.submittedDepts.length})</span>
                     </span>
                     <div className="flex flex-wrap gap-1.5">
@@ -725,7 +725,7 @@ function AdminRequisitionsContent() {
                         <span className="text-muted-foreground italic">None yet</span>
                       ) : (
                         preEventAnalytics.submittedDepts.map(d => (
-                          <span key={d.id} className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-semibold">
+                          <span key={d.id} className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-semibold">
                             {d.name}
                           </span>
                         ))
@@ -733,15 +733,15 @@ function AdminRequisitionsContent() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <span className="font-bold text-red-400 block">
+                    <span className="font-bold text-red-700 dark:text-red-400 block">
                       ⏳ Yet to Submit ({preEventAnalytics.missingDepts.length})
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {preEventAnalytics.missingDepts.length === 0 ? (
-                        <span className="text-emerald-500 font-semibold">All departments have submitted!</span>
+                        <span className="text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 font-semibold">All departments have submitted!</span>
                       ) : (
                         preEventAnalytics.missingDepts.map(d => (
-                          <span key={d.id} className="px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 font-medium">
+                          <span key={d.id} className="px-2.5 py-1 rounded-full bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 font-medium">
                             {d.name}
                           </span>
                         ))
@@ -819,8 +819,8 @@ function AdminRequisitionsContent() {
                           </span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
                             isPre
-                              ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/25'
-                              : 'bg-blue-500/10 text-blue-400 border-blue-500/25'
+                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 border-emerald-500/25'
+                              : 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/25'
                           }`}>
                             <span className="inline-flex items-center gap-1">{isPre ? <><ShoppingCart className="h-3 w-3" /> For Market Purchase</> : <><Package className="h-3 w-3" /> From Store Stock</>}</span>
                           </span>
@@ -890,12 +890,12 @@ function AdminRequisitionsContent() {
                             size="sm"
                             variant="outline"
                             onClick={() => selectReqForReview(req)}
-                            className="text-xs h-8.5 px-4 cursor-pointer border-amber-500/40 text-amber-400 hover:bg-amber-500/10 font-bold shadow-xs"
+                            className="text-xs h-8.5 px-4 cursor-pointer border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 font-bold shadow-xs"
                           >
                             <span className="inline-flex items-center gap-1.5">{isPre ? 'Review & Approve for Market Purchase' : 'Review & Edit Quantities'} <ArrowRight className="h-3.5 w-3.5" /></span>
                           </Button>
                         ) : (
-                          <span className="text-[10px] font-semibold text-slate-400 bg-slate-800/40 px-2.5 py-1 rounded-full border border-slate-700/50">
+                          <span className="text-[10px] font-semibold text-muted-foreground bg-slate-800/40 px-2.5 py-1 rounded-full border border-slate-700/50">
                             Read-Only (Unassigned)
                           </span>
                         )
@@ -939,8 +939,8 @@ function AdminRequisitionsContent() {
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
                       isSelectedPreEvent
-                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
-                        : 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30'
+                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                        : 'bg-blue-500/15 text-blue-700 dark:text-blue-700 dark:text-blue-400 border-blue-500/30'
                     }`}>
                       {isSelectedPreEvent ? 'Pre-Event Needs List (Market Purchase)' : 'Live Event Store Requisition'}
                     </span>
@@ -979,7 +979,7 @@ function AdminRequisitionsContent() {
                             </div>
                             <div className="font-mono text-xs">
                               <span className="text-muted-foreground mr-2">Requested: {it.requested_quantity ?? it.quantity}</span>
-                              <span className="font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                              <span className="font-bold text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                                 Approved: {it.approved_quantity ?? it.quantity} {it.unit || 'pcs'}
                               </span>
                             </div>
@@ -990,13 +990,13 @@ function AdminRequisitionsContent() {
 
                     {selectedReq.reviewer_comments && (
                       <div className="p-3 rounded-xl bg-muted/40 border border-border text-xs space-y-1">
-                        <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest block">Reviewer Remarks:</span>
+                        <span className="text-[10px] font-bold text-amber-600 dark:text-amber-700 dark:text-amber-400 uppercase tracking-widest block">Reviewer Remarks:</span>
                         <p className="text-foreground/90 leading-relaxed">{selectedReq.reviewer_comments}</p>
                       </div>
                     )}
 
                     <div className="p-3 rounded-xl bg-muted/40 border border-border text-[11px] text-muted-foreground flex items-center justify-between">
-                      <span>Status: <strong className="text-emerald-700 dark:text-emerald-400 uppercase">{selectedReq.status.replace('_', ' ')}</strong></span>
+                      <span>Status: <strong className="text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 uppercase">{selectedReq.status.replace('_', ' ')}</strong></span>
                       <span className="text-muted-foreground font-semibold">Read-Only Completed Audit Record</span>
                     </div>
                   </div>
@@ -1040,41 +1040,41 @@ function AdminRequisitionsContent() {
                                 catItem && catItem.current_stock > 0 ? (
                                   <div className="flex items-center justify-between p-2 rounded-lg text-[11px] font-mono bg-background border border-border text-foreground/90">
                                     <span>Already in store from previous event: <strong>{catItem.current_stock} {catItem.unit || 'pcs'}</strong></span>
-                                    <span className="text-emerald-400 text-[10px]">Market purchase item</span>
+                                    <span className="text-emerald-700 dark:text-emerald-400 text-[10px]">Market purchase item</span>
                                   </div>
                                 ) : null
                               ) : catItem ? (
                                 <div className={`flex items-center justify-between p-2 rounded-lg text-[11px] font-mono border ${
-                                  isExceeding ? 'bg-red-500/10 border-red-500/30 text-red-300' : 'bg-slate-950 border-slate-800 text-slate-300'
+                                  isExceeding ? 'bg-red-500/10 border-red-500/30 text-red-300' : 'bg-slate-950 border-border text-foreground'
                                 }`}>
                                   <div className="flex items-center gap-1.5 font-bold flex-wrap">
                                     <span>Available:</span>
                                     <span>{availableStock} {catItem.unit || 'pcs'}</span>
                                     {(catItem.reserved_stock || 0) > 0 && (
-                                      <span className="text-[10px] font-normal text-slate-400">
+                                      <span className="text-[10px] font-normal text-muted-foreground">
                                         (On Hand: {catItem.current_stock}, Reserved: {catItem.reserved_stock})
                                       </span>
                                     )}
                                     {availableStock <= catItem.low_stock_threshold && (
-                                      <span className="text-[9px] font-bold text-red-400 bg-red-500/10 px-1.5 py-0.2 rounded border border-red-500/20">
+                                      <span className="text-[9px] font-bold text-red-700 dark:text-red-400 bg-red-500/10 px-1.5 py-0.2 rounded border border-red-500/20">
                                         <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low Stock</span>
                                       </span>
                                     )}
                                   </div>
-                                  <span className="text-[10px] text-slate-400">
+                                  <span className="text-[10px] text-muted-foreground">
                                     Threshold: {catItem.low_stock_threshold}
                                   </span>
                                 </div>
                               ) : (
-                                <div className="text-[10px] font-semibold text-amber-400 bg-amber-500/10 p-1.5 rounded border border-amber-500/20">
+                                <div className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/10 p-1.5 rounded border border-amber-500/20">
                                   Custom Item — Will be fulfilled manually by Stores
                                 </div>
                               )}
 
                               {/* Approval Quantity Input */}
-                              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
+                              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border">
                                 <div className="flex items-center gap-2">
-                                  <Label className="text-[10px] font-semibold text-slate-400 uppercase whitespace-nowrap">
+                                  <Label className="text-[10px] font-semibold text-muted-foreground uppercase whitespace-nowrap">
                                     {isSelectedPreEvent ? 'Approve to Buy:' : 'Grant Qty:'}
                                   </Label>
                                   <Input
@@ -1085,17 +1085,17 @@ function AdminRequisitionsContent() {
                                       const val = parseInt(e.target.value) || 0
                                       setEditableItems(prev => prev.map((it, i) => i === idx ? { ...it, approved_quantity: val } : it))
                                     }}
-                                    className="w-20 h-9 text-xs font-mono bg-slate-950 border-slate-700 text-white"
+                                    className="w-20 h-9 text-xs font-mono bg-background border-input text-foreground"
                                   />
-                                  <span className="text-[11px] text-slate-400 font-mono">{item.unit || 'pcs'}</span>
+                                  <span className="text-[11px] text-muted-foreground font-mono">{item.unit || 'pcs'}</span>
                                 </div>
 
                                 {isExceeding ? (
-                                  <span className="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30 flex items-center gap-1">
-                                    <AlertTriangle className="w-3 h-3 text-red-400" /> Exceeds Stock ({catItem.current_stock})
+                                  <span className="text-[10px] font-bold text-red-700 dark:text-red-400 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/30 flex items-center gap-1">
+                                    <AlertTriangle className="w-3 h-3 text-red-700 dark:text-red-400" /> Exceeds Stock ({catItem.current_stock})
                                   </span>
                                 ) : item.approved_quantity !== item.requested_quantity ? (
-                                  <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                                     Adjusted
                                   </span>
                                 ) : null}
@@ -1103,7 +1103,7 @@ function AdminRequisitionsContent() {
                                 <button
                                   type="button"
                                   onClick={() => setEditableItems(prev => prev.filter((_, i) => i !== idx))}
-                                  className="ml-auto h-9 w-9 flex items-center justify-center shrink-0 text-red-400 hover:text-red-300 font-bold rounded-lg text-xs hover:bg-red-500/10"
+                                  className="ml-auto h-9 w-9 flex items-center justify-center shrink-0 text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-bold rounded-lg text-xs hover:bg-red-500/10"
                                   title="Remove item"
                                 >
                                   <X className="h-4 w-4" />
@@ -1117,14 +1117,14 @@ function AdminRequisitionsContent() {
 
                     {/* Delegate selector */}
                     {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
-                      <div className="space-y-2 pb-4 border-b border-slate-800">
-                        <Label htmlFor="del-user" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Approval Task</Label>
+                      <div className="space-y-2 pb-4 border-b border-border">
+                        <Label htmlFor="del-user" className="text-xs font-bold text-foreground uppercase tracking-widest">Delegate Approval Task</Label>
                         <div className="flex flex-col sm:flex-row gap-2">
                           <ModernSelect
                             id="del-user"
                             value={delegateId}
                             onChange={(e) => setDelegateId(e.target.value)}
-                            className="w-full min-w-0 h-10 sm:h-9 rounded-xl px-3 text-xs font-medium text-slate-100 bg-slate-900 border border-slate-700 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer sm:flex-1"
+                            className="w-full min-w-0 h-10 sm:h-9 rounded-xl px-3 text-xs font-medium text-foreground bg-background border border-input outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer sm:flex-1"
                           >
                             <option value="none" >none</option>
                             {approvers
@@ -1144,14 +1144,14 @@ function AdminRequisitionsContent() {
 
                     {/* Review comments */}
                     <div className="space-y-2">
-                      <Label htmlFor="review-comments" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Review Comments</Label>
+                      <Label htmlFor="review-comments" className="text-xs font-bold text-foreground uppercase tracking-widest">Review Comments</Label>
                       <Textarea
                         id="review-comments"
                         value={actionComments}
                         onChange={(e) => setActionComments(e.target.value)}
                         placeholder={isSelectedPreEvent ? 'Add remarks for HOD or Stores market team...' : 'Add approval comments or reasons for declining...'}
                         rows={3}
-                        className="bg-slate-900 border-slate-700 text-slate-100 placeholder:text-slate-500 text-xs"
+                        className="bg-background border-input text-foreground placeholder:text-muted-foreground text-xs"
                       />
                     </div>
 

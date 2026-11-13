@@ -147,7 +147,7 @@
   --primary:               #3B82F6;
   --primary-foreground:    #ffffff;
   --secondary:             #F59E0B;
-  --secondary-foreground:  #ffffff;
+  --secondary-foreground:  #0F2A4A;
   --muted:                 #1E2D45;
   --muted-foreground:      #94A3B8;
   --accent:                #1E2D45;
@@ -262,6 +262,12 @@
   }
 
   .text-gradient-blue {
+    background: linear-gradient(135deg, #1D4ED8, #1E40AF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .dark .text-gradient-blue {
     background: linear-gradient(135deg, #60A5FA, #3B82F6);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -269,6 +275,12 @@
   }
 
   .text-gradient-gold {
+    background: linear-gradient(135deg, #B45309, #D97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .dark .text-gradient-gold {
     background: linear-gradient(135deg, #FCD34D, #F59E0B);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -287,6 +299,10 @@
   }
 
   .status-pill-green {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
     background: rgba(16, 185, 129, 0.12);
     color: #047857;
     border: 1px solid rgba(16, 185, 129, 0.28);
@@ -300,6 +316,10 @@
   .dark .status-pill-green { color: #34D399; border-color: rgba(16, 185, 129, 0.25); }
 
   .status-pill-amber {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
     background: rgba(245, 158, 11, 0.12);
     color: #B45309;
     border: 1px solid rgba(245, 158, 11, 0.28);
@@ -313,6 +333,10 @@
   .dark .status-pill-amber { color: #FCD34D; border-color: rgba(245, 158, 11, 0.25); }
 
   .status-pill-red {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
     background: rgba(239, 68, 68, 0.12);
     color: #B91C1C;
     border: 1px solid rgba(239, 68, 68, 0.28);
@@ -326,6 +350,10 @@
   .dark .status-pill-red { color: #FCA5A5; border-color: rgba(239, 68, 68, 0.25); }
 
   .status-pill-blue {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
     background: rgba(59, 130, 246, 0.12);
     color: #1D4ED8;
     border: 1px solid rgba(59, 130, 246, 0.28);
@@ -376,11 +404,11 @@
   }
 
   .input-dark::placeholder {
-    color: #94A3B8;
+    color: #64748B;
   }
 
   .dark .input-dark::placeholder {
-    color: #475569;
+    color: #94A3B8;
   }
 
   .input-dark:focus {
@@ -403,7 +431,7 @@
     caret-color: var(--foreground);
   }
 
-  :root .auth-input {
+  :root:not(.dark) .auth-input {
     background: rgba(15, 42, 74, 0.05);
     border: 1px solid rgba(15, 42, 74, 0.15);
   }

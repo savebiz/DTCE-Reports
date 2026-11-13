@@ -276,7 +276,7 @@ function StoreFulfillmentContent() {
 
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-blue-500">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-700 dark:text-blue-400">
             Phase 2 · Live Event Store Counter Fulfillment
           </span>
         </div>
@@ -288,7 +288,7 @@ function StoreFulfillmentContent() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-              <span className="text-[11px] font-bold tracking-widest text-blue-500 uppercase">Stores Department Console</span>
+              <span className="text-[11px] font-bold tracking-widest text-blue-700 dark:text-blue-700 dark:text-blue-400 uppercase">Stores Department Console</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
               Live Event Store Requisitions &amp; Counter Fulfillment
@@ -309,7 +309,7 @@ function StoreFulfillmentContent() {
             <Button
               onClick={() => router.push('/my-department/inventory')}
               variant="outline"
-              className="text-xs font-semibold h-9 border-amber-500/30 text-amber-500 hover:bg-amber-500/10 cursor-pointer w-fit"
+              className="text-xs font-semibold h-9 border-amber-500/30 text-amber-700 dark:text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer w-fit"
             >
               <span className="inline-flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> Store Inventory &amp; Stock</span>
             </Button>
@@ -352,8 +352,8 @@ function StoreFulfillmentContent() {
             <span className="text-[10px] text-muted-foreground font-medium">During-event requests</span>
           </Card>
           <Card className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
-            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">Pending Approval</span>
-            <span className="text-3xl sm:text-4xl font-extrabold text-amber-600 dark:text-amber-400 mt-2 mb-0.5 tracking-tight font-mono block">{pendingCount}</span>
+            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-700 dark:text-amber-400 uppercase tracking-wider block">Pending Approval</span>
+            <span className="text-3xl sm:text-4xl font-extrabold text-amber-600 dark:text-amber-700 dark:text-amber-400 mt-2 mb-0.5 tracking-tight font-mono block">{pendingCount}</span>
             <span className="text-[10px] text-muted-foreground font-medium">Awaiting Coordinator</span>
           </Card>
           <Card className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
@@ -391,7 +391,7 @@ function StoreFulfillmentContent() {
               >
                 <span>{tab.label}</span>
                 <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                  activeTab === tab.id ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-muted/60 text-muted-foreground'
+                  activeTab === tab.id ? 'bg-amber-500/15 text-amber-600 dark:text-amber-700 dark:text-amber-400' : 'bg-muted/60 text-muted-foreground'
                 }`}>
                   {tab.count}
                 </span>
@@ -495,14 +495,14 @@ function StoreFulfillmentContent() {
                               {stockInfo && (
                                 <span className={`ml-2 text-[10px] font-mono px-1.5 py-0.5 rounded border ${
                                   availStock === 0
-                                    ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                                    ? 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20'
                                     : 'bg-slate-500/10 text-muted-foreground border-border'
                                 }`}>
                                   In Stock: {stockInfo.current_stock} · Reserved: {stockInfo.reserved_stock} · Avail: {availStock}
                                 </span>
                               )}
                               {prevFulfilled > 0 && prevFulfilled < appQty && (
-                                <span className="ml-2 text-[10px] font-bold text-pink-500 bg-pink-500/10 px-1.5 py-0.5 rounded border border-pink-500/20">
+                                <span className="ml-2 text-[10px] font-bold text-pink-700 dark:text-pink-400 bg-pink-500/10 px-1.5 py-0.5 rounded border border-pink-500/20">
                                   Issued: {prevFulfilled} / {appQty} (Backorder: {appQty - prevFulfilled})
                                 </span>
                               )}
@@ -511,10 +511,10 @@ function StoreFulfillmentContent() {
                               {isAdjusted ? (
                                 <span className="text-xs">
                                   <span className="line-through text-muted-foreground mr-1">Req: {reqQty}</span>
-                                  <span className="font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
+                                  <span className="font-bold text-amber-700 dark:text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Approved: {appQty}</span>
                                 </span>
                               ) : (
-                                <span className="font-bold text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                                <span className="font-bold text-amber-600 dark:text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
                                   × {appQty || reqQty} {item.unit || ''}
                                 </span>
                               )}
@@ -546,7 +546,7 @@ function StoreFulfillmentContent() {
                   </div>
 
                   {req.reviewer_comments && (
-                    <div className="text-xs text-amber-700 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
+                    <div className="text-xs text-amber-700 dark:text-amber-700 dark:text-amber-400 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
                       <strong>Coordinator Notes:</strong> {req.reviewer_comments}
                     </div>
                   )}
@@ -554,18 +554,18 @@ function StoreFulfillmentContent() {
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-border/40">
                     <div>
                       {req.status === 'pending_coordinator' && (
-                        <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold italic flex items-center gap-1.5">
+                        <span className="text-xs text-amber-600 dark:text-amber-700 dark:text-amber-400 font-semibold italic flex items-center gap-1.5">
                           <span>⏳</span> Awaiting Approval
                         </span>
                       )}
                       {req.status === 'approved' && (
-                        <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> Approved — Ready for Store Counter Preparation
+                        <span className="text-xs text-blue-600 dark:text-blue-700 dark:text-blue-400 font-semibold flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-blue-700 dark:text-blue-400" /> Approved — Ready for Store Counter Preparation
                         </span>
                       )}
                       {(req.status as string) === 'ready_for_collection' && (
-                        <span className="text-xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1.5">
-                          <Package className="w-3.5 h-3.5 text-amber-400" /> Set Aside at Stores — Ready for Department Collection
+                        <span className="text-xs text-amber-600 dark:text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-1.5">
+                          <Package className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" /> Set Aside at Stores — Ready for Department Collection
                         </span>
                       )}
                     </div>

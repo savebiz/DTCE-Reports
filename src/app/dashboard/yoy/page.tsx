@@ -315,7 +315,7 @@ export default function YoYComparisonPage() {
 
         {/* Unresolved Carry-over Challenges / Recommendations */}
         <div className="glass-card overflow-hidden">
-          <div className="px-5 py-4 border-b flex flex-col gap-1" style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.2)' }}>
+          <div className="px-5 py-4 border-b flex flex-col gap-1" >
             <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500"><span className="inline-flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Carry-Over Challenges</span> &amp; Unresolved Recommendations</span>
             <p className="text-[12px] text-slate-500">Automatically matching challenges from 2025 that recurrently appeared in 2026 narrative reports.</p>
           </div>
@@ -323,12 +323,12 @@ export default function YoYComparisonPage() {
           <div className="overflow-x-auto scrollbar-hide text-[12px]">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
+                <tr >
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Department</th>
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Matched Keyword</th>
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">2025 Challenge</th>
                   <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">2025 Unaddressed Recommendation</th>
-                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-red-400" style={{ background: 'rgba(239,68,68,0.02)' }}>2026 Recurrent Challenge</th>
+                  <th className="p-3 text-[11px] font-semibold uppercase tracking-wider text-red-700 dark:text-red-400" style={{ background: 'rgba(239,68,68,0.02)' }}>2026 Recurrent Challenge</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border text-foreground">
@@ -336,13 +336,13 @@ export default function YoYComparisonPage() {
                   <tr key={idx} className="hover:bg-slate-900/10">
                     <td className="p-3 font-bold text-foreground">{item.departmentName}</td>
                     <td className="p-3">
-                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.2)' }}>
+                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full" >
                         {item.keywordMatched}
                       </span>
                     </td>
-                    <td className="p-3 text-slate-400">{item.challenge2025}</td>
-                    <td className="p-3 italic font-semibold text-slate-300">{item.recommendation2025}</td>
-                    <td className="p-3 font-medium text-red-300" style={{ background: 'rgba(239,68,68,0.01)' }}>{item.challenge2026}</td>
+                    <td className="p-3 text-muted-foreground">{item.challenge2025}</td>
+                    <td className="p-3 italic font-semibold text-foreground/90">{item.recommendation2025}</td>
+                    <td className="p-3 font-medium text-red-700 dark:text-red-300" style={{ background: 'rgba(239,68,68,0.01)' }}>{item.challenge2026}</td>
                   </tr>
                 ))}
                 {carryOvers.length === 0 && (

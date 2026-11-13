@@ -978,7 +978,7 @@ function DailyLogContent() {
           <div className="flex items-center gap-2.5">
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <div>
-              <span className="text-[12px] font-bold text-amber-500 uppercase block tracking-wider">Secretariat On-Behalf Submission Mode</span>
+              <span className="text-[12px] font-bold text-amber-700 dark:text-amber-700 dark:text-amber-400 uppercase block tracking-wider">Secretariat On-Behalf Submission Mode</span>
               <p className="text-[11px] text-muted-foreground">
                 You are entering daily logs for the <strong>{department.name}</strong> department. Any submit action will record you as reviewer on-behalf.
               </p>
@@ -1012,7 +1012,7 @@ function DailyLogContent() {
       )}
       {behalfAdminName && (
         <div className="rounded-xl p-4 flex items-center gap-2.5 border" style={{ background: 'rgba(59,130,246,0.06)', borderColor: 'rgba(59,130,246,0.2)' }}>
-          <span className="text-base text-blue-400">ℹ️</span>
+          <span className="text-base text-blue-700 dark:text-blue-400">ℹ️</span>
           <p className="text-[12px] text-muted-foreground">
             This log was <strong>Submitted on behalf of {department.name} by {behalfAdminName}</strong>.
           </p>
@@ -1023,7 +1023,7 @@ function DailyLogContent() {
       <div className="glass-card p-4 space-y-2.5">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Event Reporting Day</span>
-          <span className="text-[10px] text-amber-500 font-mono font-semibold sm:hidden inline-flex items-center gap-1">Swipe <ArrowLeft className="h-2.5 w-2.5" /><ArrowRight className="h-2.5 w-2.5" /></span>
+          <span className="text-[10px] text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono font-semibold sm:hidden inline-flex items-center gap-1">Swipe <ArrowLeft className="h-2.5 w-2.5" /><ArrowRight className="h-2.5 w-2.5" /></span>
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-none snap-x -mx-1 px-1">
           {eventDays.map((d: any) => {
@@ -1034,7 +1034,7 @@ function DailyLogContent() {
                 onClick={() => handleDayChange(d.id)}
                 className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer snap-center ${
                   active
-                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 shadow-xs'
+                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/40 shadow-xs'
                     : 'bg-card text-muted-foreground border-border hover:border-slate-400 dark:hover:border-slate-700'
                 }`}
               >
@@ -1204,8 +1204,8 @@ function DailyLogContent() {
                           <span className="font-bold text-foreground">₦{tn.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between items-center pt-2 text-sm border-t-2 border-emerald-500/50">
-                          <span className="font-bold text-emerald-500 font-sans uppercase tracking-wider">Grand Total Offering:</span>
-                          <span className="font-extrabold text-emerald-400 font-mono text-base">₦{total.toLocaleString()}</span>
+                          <span className="font-bold text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 font-sans uppercase tracking-wider">Grand Total Offering:</span>
+                          <span className="font-extrabold text-emerald-700 dark:text-emerald-400 font-mono text-base">₦{total.toLocaleString()}</span>
                         </div>
                       </div>
                     )
@@ -1325,7 +1325,7 @@ function DailyLogContent() {
                     size="sm"
                     variant="outline"
                     onClick={() => setIsPreTotalsOpen(true)}
-                    className="text-[11px] h-9 sm:h-8 px-3 border-teal-500/40 text-teal-400 hover:bg-teal-500/10 font-bold shrink-0"
+                    className="text-[11px] h-9 sm:h-8 px-3 border-teal-500/40 text-teal-700 dark:text-teal-400 whitespace-nowrap hover:bg-teal-500/10 font-bold shrink-0"
                   >
                     <Globe className="w-3 h-3 mr-1" />
                     Online Pre-Totals
@@ -1374,17 +1374,17 @@ function DailyLogContent() {
               <div className="flex items-center justify-between text-[11px] pb-3 border-b border-border gap-2">
                 <div className="flex items-center gap-1.5">
                   {isOnline
-                    ? <Wifi className="h-3.5 w-3.5 text-emerald-400" />
-                    : <WifiOff className="h-3.5 w-3.5 text-amber-400 animate-pulse" />}
-                  <span className={isOnline ? 'text-emerald-400 font-semibold' : 'text-amber-400 font-semibold'}>
+                    ? <Wifi className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" />
+                    : <WifiOff className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400 animate-pulse" />}
+                  <span className={isOnline ? 'text-emerald-700 dark:text-emerald-400 font-semibold' : 'text-amber-700 dark:text-amber-400 font-semibold'}>
                     {isOnline ? 'Online' : 'No signal'}
                   </span>
                   {draftSaved && (
-                    <span className="ml-2 text-slate-400 italic">· Draft saved</span>
+                    <span className="ml-2 text-muted-foreground italic">· Draft saved</span>
                   )}
                 </div>
                 <span
-                  className="font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                  className="font-bold uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap shrink-0"
                   style={
                     hasPendingSync ? { background: 'rgba(245,158,11,0.12)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' } :
                     status === 'draft' ? { background: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' } :
@@ -1399,10 +1399,10 @@ function DailyLogContent() {
               {/* Pending sync banner */}
               {hasPendingSync && (
                 <div className="flex items-start gap-2.5 rounded-xl p-3 text-[11px]" style={{ background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                  <Clock className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                  <div className="text-amber-300">
+                  <Clock className="h-4 w-4 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div className="text-amber-800 dark:text-amber-300">
                     <span className="font-bold block">Report queued for sync</span>
-                    <span className="text-amber-400/80">This report will auto-submit the moment your connection is restored. No action needed.</span>
+                    <span className="text-amber-700/90 dark:text-amber-700 dark:text-amber-400/80">This report will auto-submit the moment your connection is restored. No action needed.</span>
                   </div>
                 </div>
               )}
@@ -1427,7 +1427,7 @@ function DailyLogContent() {
                 return (
                   <div className="flex flex-col gap-2">
                     {isSubmitLockedByWindow && (
-                      <div className="rounded-xl p-3 text-[11px] bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-300">
+                      <div className="rounded-xl p-3 text-[11px] bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-800 dark:text-amber-300">
                         <span className="font-bold block mb-0.5">Submission Window Not Open</span>
                         <span>{reportWindow.message}</span>
                       </div>

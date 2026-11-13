@@ -52,7 +52,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
         onClick={() => setTheme(nextMode)}
         title={`Theme: ${activeTheme} (click for ${nextMode})`}
         aria-label={`Current theme ${activeTheme}. Switch to ${nextMode} theme`}
-        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground hover:bg-accent transition-colors cursor-pointer"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
       >
         <CurrentIcon className="h-4 w-4" />
       </button>

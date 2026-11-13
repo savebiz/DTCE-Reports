@@ -123,7 +123,7 @@ export function SchemaFormRenderer({ fields, value, onChange, readOnly = false, 
               <span className="text-[11px] text-muted-foreground font-sans">
                 {field.computeFormula === 'sum_fields' ? 'Calculated Total' : 'Auto S/N'}
               </span>
-              <span className="text-emerald-400 font-extrabold text-base">
+              <span className="text-emerald-700 dark:text-emerald-400 font-extrabold text-base">
                 {isCompCurrency ? `₦${Number(computedVal || 0).toLocaleString()}` : Number(computedVal || 0).toLocaleString()}
               </span>
             </div>
@@ -194,11 +194,11 @@ export function SchemaFormRenderer({ fields, value, onChange, readOnly = false, 
         return (
           <div key={fieldId} className="space-y-4 border-l-2 border-amber-500/40 pl-4 py-2 my-6 bg-muted/10 rounded-r-xl p-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-bold text-amber-500 uppercase tracking-wider">
+              <h4 className="text-sm font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
                 {field.label} {field.required && <span className="text-red-500">*</span>}
               </h4>
               {!readOnly && (
-                <Button type="button" variant="outline" size="sm" onClick={handleAddGroupRow} className="border-amber-500/40 text-amber-500 hover:bg-amber-500/10 font-bold">
+                <Button type="button" variant="outline" size="sm" onClick={handleAddGroupRow} className="border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 font-bold">
                   + Add Row
                 </Button>
               )}
@@ -282,13 +282,13 @@ function CardKeyedRow({
   return (
     <div className="relative rounded-xl border border-border/80 bg-card p-4 shadow-xs space-y-3">
       <div className="flex items-center justify-between pb-2 border-b border-border/50">
-        <span className="text-xs font-bold text-amber-500 font-mono">Row #{index + 1}</span>
+        <span className="text-xs font-bold text-amber-700 dark:text-amber-400 font-mono">Row #{index + 1}</span>
         {!readOnly && (
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="h-7 px-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-950/20 font-bold"
+            className="h-7 px-2 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-500/10 font-bold"
             onClick={() => onRemove(index)}
           >
             <span className="inline-flex items-center gap-1"><X className="h-3 w-3" /> Remove</span>

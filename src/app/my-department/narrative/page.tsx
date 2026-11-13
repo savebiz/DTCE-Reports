@@ -481,7 +481,7 @@ export default function DepartmentNarrativePage() {
                   <div className="space-y-3">
                     {extractCustomMetricsSummary(reports).map(group => (
                       <div key={group.groupKey} className="rounded-xl p-3 bg-background/50 border border-border space-y-1.5">
-                        <span className="text-[10px] font-bold text-amber-500 uppercase block tracking-wider">
+                        <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase block tracking-wider">
                           {group.groupTitle}
                         </span>
                         <div className="space-y-1 text-xs">
@@ -634,7 +634,7 @@ export default function DepartmentNarrativePage() {
                         {!isViewOnly && (
                           <button
                             type="button"
-                            className="h-6 w-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-550 transition-colors"
+                            className="h-6 w-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                             onClick={() => handleRemoveRecommendation(r.id)}
                           >
                             <X className="h-3.5 w-3.5" />

@@ -632,7 +632,7 @@ export default function StoresInventoryPage() {
 
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">Stores Inventory System</span>
+          <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-700 dark:text-emerald-400">Stores Inventory System</span>
         </div>
       </div>
 
@@ -642,7 +642,7 @@ export default function StoresInventoryPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-              <span className="text-[11px] font-bold tracking-widest text-amber-600 dark:text-amber-400 uppercase">Stores Department Ledger</span>
+              <span className="text-[11px] font-bold tracking-widest text-amber-600 dark:text-amber-700 dark:text-amber-400 uppercase">Stores Department Ledger</span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Catalog &amp; Stock Tracking</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -655,7 +655,7 @@ export default function StoresInventoryPage() {
               onClick={() => router.push('/my-department/inventory/durable-returns')}
               variant="outline"
               size="sm"
-              className="text-xs font-bold h-9 border-amber-500/40 text-amber-400 hover:bg-amber-500/10 cursor-pointer shadow-xs flex items-center gap-1.5"
+              className="text-xs font-bold h-9 border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer shadow-xs flex items-center gap-1.5"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Durable Returns Tracker
@@ -664,7 +664,7 @@ export default function StoresInventoryPage() {
               onClick={() => router.push('/my-department/inventory/reports')}
               variant="outline"
               size="sm"
-              className="text-xs font-semibold h-9 border-amber-500/30 text-amber-500 hover:bg-amber-500/10 cursor-pointer shadow-xs flex items-center gap-1.5"
+              className="text-xs font-semibold h-9 border-amber-500/30 text-amber-700 dark:text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer shadow-xs flex items-center gap-1.5"
             >
               <BarChart3 className="h-3.5 w-3.5" />
               Reports
@@ -681,7 +681,7 @@ export default function StoresInventoryPage() {
               onClick={() => setIsBulkCatalogOpen(true)}
               variant="outline"
               size="sm"
-              className="text-xs font-semibold h-9 border-blue-500/30 text-blue-400 hover:bg-blue-500/10 cursor-pointer"
+              className="text-xs font-semibold h-9 border-blue-500/30 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10 cursor-pointer"
             >
               <Upload className="h-3.5 w-3.5 mr-1" /> Bulk Catalog
             </Button>
@@ -715,7 +715,7 @@ export default function StoresInventoryPage() {
 
           <Card className={`glass-card p-4 space-y-1 border ${lowStockCount > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-card border-border'}`}>
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest block">Low Stock Alerts</span>
-            <span className={`text-2xl font-bold font-mono ${lowStockCount > 0 ? 'text-red-400 animate-pulse' : 'text-foreground'}`}>
+            <span className={`text-2xl font-bold font-mono ${lowStockCount > 0 ? 'text-red-700 dark:text-red-400 animate-pulse' : 'text-foreground'}`}>
               {lowStockCount}
             </span>
             <span className="text-[10px] text-muted-foreground block">Below threshold warning</span>
@@ -723,13 +723,13 @@ export default function StoresInventoryPage() {
 
           <Card className="glass-card bg-card border-border p-4 space-y-1">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest block">Consumable Stock</span>
-            <span className="text-2xl font-bold text-amber-500 font-mono">{consumableTotal}</span>
+            <span className="text-2xl font-bold text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono">{consumableTotal}</span>
             <span className="text-[10px] text-muted-foreground block">Total units available</span>
           </Card>
 
           <Card className="glass-card bg-card border-border p-4 space-y-1">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest block">Durable Stock</span>
-            <span className="text-2xl font-bold text-blue-400 font-mono">{durableTotal}</span>
+            <span className="text-2xl font-bold text-blue-700 dark:text-blue-400 font-mono">{durableTotal}</span>
             <span className="text-[10px] text-muted-foreground block">Total units available</span>
           </Card>
         </div>
@@ -788,7 +788,7 @@ export default function StoresInventoryPage() {
                 <h3 className="text-sm font-bold text-foreground">Append-Only Inventory Transaction Ledger</h3>
                 <p className="text-[11px] text-muted-foreground">Complete audit trail of all restocks and fulfillment deductions.</p>
               </div>
-              <span className="text-xs font-mono font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full">
+              <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full">
                 {transactions.length} Records Logged
               </span>
             </div>
@@ -816,8 +816,8 @@ export default function StoresInventoryPage() {
                             {new Date(t.created_at).toLocaleString()} {itemCode ? `· ${itemCode}` : ''}
                           </div>
                         </div>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${
-                          isRestock ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        <span className={`px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                          isRestock ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
                         }`}>
                           {t.transaction_type.replace('_', ' ')}
                         </span>
@@ -825,7 +825,7 @@ export default function StoresInventoryPage() {
                       <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/30 p-2 font-mono">
                         <div>
                           <span className="text-[10px] text-muted-foreground font-sans block">Change</span>
-                          <span className={`font-bold ${isRestock ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          <span className={`font-bold ${isRestock ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
                             {t.quantity_change > 0 ? `+${t.quantity_change}` : t.quantity_change} {unit}
                           </span>
                         </div>
@@ -877,21 +877,21 @@ export default function StoresInventoryPage() {
                           <td className="p-3">
                             <div className="font-semibold text-foreground">{itemName}</div>
                             {itemCode && (
-                              <span className="inline-block text-[10px] font-mono text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20 mt-0.5">
+                              <span className="inline-block text-[10px] font-mono text-amber-700 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20 mt-0.5">
                                 {itemCode}
                               </span>
                             )}
                           </td>
                           <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            <span className={`px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold uppercase tracking-wider ${
                               isRestock
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20'
+                                : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20'
                             }`}>
                               {t.transaction_type.replace('_', ' ')}
                             </span>
                           </td>
-                          <td className={`p-3 text-right font-mono font-bold ${isRestock ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          <td className={`p-3 text-right font-mono font-bold ${isRestock ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
                             {t.quantity_change > 0 ? `+${t.quantity_change}` : t.quantity_change} {unit}
                           </td>
                           <td className="p-3 text-right font-mono font-bold text-foreground">
@@ -942,21 +942,21 @@ export default function StoresInventoryPage() {
                           <div className="font-bold text-sm text-foreground">{item.name}</div>
                           <div className="flex flex-wrap items-center gap-1.5 mt-1">
                             {item.item_code && (
-                              <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                              <span className="text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
                                 {item.item_code}
                               </span>
                             )}
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${item.category === 'durable' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>
+                            <span className={`px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold uppercase ${item.category === 'durable' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400' : 'bg-purple-500/10 text-purple-700 dark:text-purple-400'}`}>
                               {item.category} · {item.unit}
                             </span>
                           </div>
                         </div>
                         {isLowStock ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase whitespace-nowrap shrink-0">
+                          <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 uppercase whitespace-nowrap shrink-0">
                             <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low Stock</span>
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase whitespace-nowrap shrink-0">
+                          <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 uppercase whitespace-nowrap shrink-0">
                             <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> Optimal</span>
                           </span>
                         )}
@@ -968,15 +968,15 @@ export default function StoresInventoryPage() {
                         </div>
                         <div>
                           <span className="text-[9px] text-muted-foreground font-sans block">Reserved</span>
-                          <span className="font-bold text-amber-400">{reserved}</span>
+                          <span className="font-bold text-amber-700 dark:text-amber-400">{reserved}</span>
                         </div>
                         <div>
                           <span className="text-[9px] text-muted-foreground font-sans block">Avail</span>
-                          <span className="font-bold text-emerald-400">{available}</span>
+                          <span className="font-bold text-emerald-700 dark:text-emerald-400">{available}</span>
                         </div>
                         <div>
                           <span className="text-[9px] text-muted-foreground font-sans block">Quar.</span>
-                          <span className="font-bold text-orange-400">{quarantined}</span>
+                          <span className="font-bold text-orange-700 dark:text-orange-400">{quarantined}</span>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
@@ -984,7 +984,7 @@ export default function StoresInventoryPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => { setSelectedRestockItem(item); setIsRestockOpen(true) }}
-                          className="h-9 text-xs font-semibold cursor-pointer border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                          className="h-9 text-xs font-semibold cursor-pointer border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
                         >
                           + Restock
                         </Button>
@@ -992,7 +992,7 @@ export default function StoresInventoryPage() {
                           size="sm"
                           variant="outline"
                           onClick={() => { setSelectedAdjustItem(item); setAdjustCount(item.current_stock || 0); setAdjustReason(''); setIsAdjustOpen(true) }}
-                          className="h-9 text-xs font-semibold cursor-pointer border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                          className="h-9 text-xs font-semibold cursor-pointer border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
                         >
                           Adjust
                         </Button>
@@ -1039,7 +1039,7 @@ export default function StoresInventoryPage() {
                         <tr key={item.id} className="hover:bg-muted/20 transition-colors">
                           <td className="p-3 font-mono">
                             {item.item_code ? (
-                              <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                              <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                                 {item.item_code}
                               </span>
                             ) : (
@@ -1048,10 +1048,10 @@ export default function StoresInventoryPage() {
                           </td>
                           <td className="p-3 font-semibold text-foreground">{item.name}</td>
                           <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            <span className={`px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold uppercase tracking-wider ${
                               item.category === 'durable'
-                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                ? 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20'
+                                : 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-500/20'
                             }`}>
                               {item.category}
                             </span>
@@ -1060,13 +1060,13 @@ export default function StoresInventoryPage() {
                           <td className="p-3 text-right font-mono font-bold text-foreground text-sm">
                             {item.current_stock}
                           </td>
-                          <td className="p-3 text-right font-mono text-amber-400">
+                          <td className="p-3 text-right font-mono text-amber-700 dark:text-amber-400">
                             {reserved}
                           </td>
-                          <td className="p-3 text-right font-mono font-bold text-emerald-400">
+                          <td className="p-3 text-right font-mono font-bold text-emerald-700 dark:text-emerald-400">
                             {available}
                           </td>
-                          <td className="p-3 text-right font-mono text-orange-400">
+                          <td className="p-3 text-right font-mono text-orange-700 dark:text-orange-400">
                             {quarantined}
                           </td>
                           <td className="p-3 text-right font-mono text-muted-foreground">
@@ -1074,11 +1074,11 @@ export default function StoresInventoryPage() {
                           </td>
                           <td className="p-3 text-center">
                             {isLowStock ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider animate-pulse">
+                              <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 uppercase tracking-wider animate-pulse">
                                 <span className="inline-flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Low Stock</span>
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                              <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
                                 <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" /> Optimal</span>
                               </span>
                             )}
@@ -1092,7 +1092,7 @@ export default function StoresInventoryPage() {
                                   setSelectedRestockItem(item)
                                   setIsRestockOpen(true)
                                 }}
-                                className="h-7 text-[11px] font-semibold cursor-pointer border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                                className="h-7 text-[11px] font-semibold cursor-pointer border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
                               >
                                 + Restock
                               </Button>
@@ -1105,7 +1105,7 @@ export default function StoresInventoryPage() {
                                   setAdjustReason('')
                                   setIsAdjustOpen(true)
                                 }}
-                                className="h-7 text-[11px] font-semibold cursor-pointer border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                                className="h-7 text-[11px] font-semibold cursor-pointer border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
                               >
                                 Adjust
                               </Button>
@@ -1259,7 +1259,7 @@ export default function StoresInventoryPage() {
                       {selectedRestockItem ? `${selectedRestockItem.item_code ? `[${selectedRestockItem.item_code}] ` : ''}${selectedRestockItem.name} (${selectedRestockItem.current_stock} ${selectedRestockItem.unit})` : null}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-200 max-h-60">
+                  <SelectContent className="max-h-60">
                     {items.map(i => (
                       <SelectItem key={i.id} value={i.id} className="cursor-pointer text-xs">
                         {i.item_code ? `[${i.item_code}] ` : ''}{i.name} ({i.current_stock} {i.unit})
@@ -1277,7 +1277,7 @@ export default function StoresInventoryPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">New Stock Level:</span>
-                    <span className="font-bold text-emerald-400">{selectedRestockItem.current_stock + Math.max(1, Number(restockQty) || 0)} {selectedRestockItem.unit}</span>
+                    <span className="font-bold text-emerald-700 dark:text-emerald-400">{selectedRestockItem.current_stock + Math.max(1, Number(restockQty) || 0)} {selectedRestockItem.unit}</span>
                   </div>
                 </div>
               )}
@@ -1288,7 +1288,7 @@ export default function StoresInventoryPage() {
                   value={restockQty}
                   onChange={setRestockQty}
                   min={1}
-                  className="input-dark text-xs font-mono text-emerald-400 font-bold"
+                  className="input-dark text-xs font-mono text-emerald-700 dark:text-emerald-400 font-bold"
                 />
               </div>
 
@@ -1336,7 +1336,7 @@ export default function StoresInventoryPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Variance:</span>
-                    <span className={`font-bold ${adjustCount - selectedAdjustItem.current_stock >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <span className={`font-bold ${adjustCount - selectedAdjustItem.current_stock >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
                       {adjustCount - selectedAdjustItem.current_stock >= 0 ? '+' : ''}
                       {adjustCount - selectedAdjustItem.current_stock} {selectedAdjustItem.unit}
                     </span>
@@ -1349,7 +1349,7 @@ export default function StoresInventoryPage() {
                     value={adjustCount}
                     onChange={setAdjustCount}
                     min={0}
-                    className="input-dark text-xs font-mono font-bold text-amber-400"
+                    className="input-dark text-xs font-mono font-bold text-amber-700 dark:text-amber-400"
                   />
                 </div>
 
@@ -1383,7 +1383,7 @@ export default function StoresInventoryPage() {
               <div className="flex items-center justify-between pr-6">
                 <div>
                   <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
-                    <FileSpreadsheet className="h-4 w-4 text-blue-400" /> Bulk Add to Catalog
+                    <FileSpreadsheet className="h-4 w-4 text-blue-700 dark:text-blue-400" /> Bulk Add to Catalog
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground">
                     Upload CSV / Excel file to populate multiple catalog items at once.
@@ -1393,7 +1393,7 @@ export default function StoresInventoryPage() {
                   onClick={downloadCatalogTemplate}
                   variant="outline"
                   size="sm"
-                  className="text-xs font-semibold h-8 border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                  className="text-xs font-semibold h-8 border-blue-500/30 text-blue-700 dark:text-blue-400 hover:bg-blue-500/10"
                 >
                   <Download className="h-3.5 w-3.5 mr-1" /> Download CSV Template
                 </Button>
@@ -1411,7 +1411,7 @@ export default function StoresInventoryPage() {
                   className="hidden"
                 />
                 <label htmlFor="bulk-catalog-file" className="cursor-pointer space-y-2 block">
-                  <Upload className="h-8 w-8 mx-auto text-blue-400 animate-bounce" />
+                  <Upload className="h-8 w-8 mx-auto text-blue-700 dark:text-blue-400 animate-bounce" />
                   <div className="text-xs font-bold text-foreground">
                     {catalogFile ? catalogFile.name : 'Click to select CSV or Excel file'}
                   </div>
@@ -1432,11 +1432,11 @@ export default function StoresInventoryPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 border border-border">
                     <div className="flex items-center gap-3 text-xs font-semibold">
-                      <span className="flex items-center gap-1 text-emerald-400 font-bold">
+                      <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-bold">
                         <CheckCircle2 className="h-4 w-4" /> {catalogValidation.validCount} Valid Rows
                       </span>
                       {catalogValidation.invalidCount > 0 && (
-                        <span className="flex items-center gap-1 text-red-400 font-bold">
+                        <span className="flex items-center gap-1 text-red-700 dark:text-red-400 font-bold">
                           <AlertTriangle className="h-4 w-4" /> {catalogValidation.invalidCount} Invalid Rows
                         </span>
                       )}
@@ -1464,23 +1464,23 @@ export default function StoresInventoryPage() {
                         {catalogValidation.rows.map(r => (
                           <tr key={r.rowIndex} className={`hover:bg-muted/20 ${r.isValid ? '' : 'bg-red-500/5'}`}>
                             <td className="p-2.5 font-mono text-[11px] text-muted-foreground">#{r.rowIndex}</td>
-                            <td className="p-2.5 font-mono text-amber-400">{r.item_code || '—'}</td>
+                            <td className="p-2.5 font-mono text-amber-700 dark:text-amber-400">{r.item_code || '—'}</td>
                             <td className="p-2.5 font-semibold text-foreground">{r.name || '—'}</td>
                             <td className="p-2.5 uppercase text-[10px] font-bold text-muted-foreground">{r.category}</td>
                             <td className="p-2.5 font-mono">{r.unit}</td>
                             <td className="p-2.5 text-right font-mono font-bold">{r.initial_stock}</td>
                             <td className="p-2.5 text-center">
                               {r.isValid ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                                   Valid
                                 </span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20">
+                                <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20">
                                   Invalid
                                 </span>
                               )}
                             </td>
-                            <td className="p-2.5 text-[11px] text-red-400">{r.errorReason || 'Ready'}</td>
+                            <td className="p-2.5 text-[11px] text-red-700 dark:text-red-400">{r.errorReason || 'Ready'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1513,7 +1513,7 @@ export default function StoresInventoryPage() {
               <div className="flex items-center justify-between pr-6">
                 <div>
                   <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
-                    <Layers className="h-4 w-4 text-emerald-400" /> Bulk Restock Import
+                    <Layers className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> Bulk Restock Import
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground">
                     Restock multiple catalog items simultaneously with individual ledger attribution per row.
@@ -1523,7 +1523,7 @@ export default function StoresInventoryPage() {
                   onClick={downloadRestockTemplate}
                   variant="outline"
                   size="sm"
-                  className="text-xs font-semibold h-8 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                  className="text-xs font-semibold h-8 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
                 >
                   <Download className="h-3.5 w-3.5 mr-1" /> Download CSV Template
                 </Button>
@@ -1541,7 +1541,7 @@ export default function StoresInventoryPage() {
                   className="hidden"
                 />
                 <label htmlFor="bulk-restock-file" className="cursor-pointer space-y-2 block">
-                  <Upload className="h-8 w-8 mx-auto text-emerald-400 animate-bounce" />
+                  <Upload className="h-8 w-8 mx-auto text-emerald-700 dark:text-emerald-400 animate-bounce" />
                   <div className="text-xs font-bold text-foreground">
                     {restockFile ? restockFile.name : 'Click to select CSV or Excel restock file'}
                   </div>
@@ -1562,11 +1562,11 @@ export default function StoresInventoryPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 border border-border">
                     <div className="flex items-center gap-3 text-xs font-semibold">
-                      <span className="flex items-center gap-1 text-emerald-400 font-bold">
+                      <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-bold">
                         <CheckCircle2 className="h-4 w-4" /> {restockValidation.validCount} Matched &amp; Valid Rows
                       </span>
                       {restockValidation.invalidCount > 0 && (
-                        <span className="flex items-center gap-1 text-red-400 font-bold">
+                        <span className="flex items-center gap-1 text-red-700 dark:text-red-400 font-bold">
                           <AlertTriangle className="h-4 w-4" /> {restockValidation.invalidCount} Unmatched / Invalid Rows
                         </span>
                       )}
@@ -1594,27 +1594,27 @@ export default function StoresInventoryPage() {
                         {restockValidation.rows.map(r => (
                           <tr key={r.rowIndex} className={`hover:bg-muted/20 ${r.isValid ? '' : 'bg-red-500/5'}`}>
                             <td className="p-2.5 font-mono text-[11px] text-muted-foreground">#{r.rowIndex}</td>
-                            <td className="p-2.5 font-mono text-amber-400">
+                            <td className="p-2.5 font-mono text-amber-700 dark:text-amber-400">
                               {r.item_code ? `[${r.item_code}] ` : ''}{r.item_name || '—'}
                             </td>
                             <td className="p-2.5 font-semibold text-foreground">
                               {r.matchedItemName ? `${r.matchedItemName} (${r.unit})` : '—'}
                             </td>
                             <td className="p-2.5 text-right font-mono text-muted-foreground">{r.currentStock}</td>
-                            <td className="p-2.5 text-right font-mono font-bold text-emerald-400">+{r.quantity_to_add}</td>
+                            <td className="p-2.5 text-right font-mono font-bold text-emerald-700 dark:text-emerald-400">+{r.quantity_to_add}</td>
                             <td className="p-2.5 text-right font-mono font-bold text-foreground">{r.calculatedNewStock}</td>
                             <td className="p-2.5 text-center">
                               {r.isValid ? (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
                                   Valid
                                 </span>
                               ) : (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20">
+                                <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20">
                                   Invalid
                                 </span>
                               )}
                             </td>
-                            <td className="p-2.5 text-[11px] text-red-400">{r.errorReason || 'Ready'}</td>
+                            <td className="p-2.5 text-[11px] text-red-700 dark:text-red-400">{r.errorReason || 'Ready'}</td>
                           </tr>
                         ))}
                       </tbody>

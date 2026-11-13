@@ -523,7 +523,7 @@ export function EventWindowsPanel() {
                     variant="outline"
                     disabled={saving}
                     onClick={() => handleSave(true)}
-                    className="text-xs h-9 font-bold border-emerald-500/40 text-emerald-500 hover:bg-emerald-500/10"
+                    className="text-xs h-9 font-bold border-emerald-500/40 text-emerald-700 dark:text-emerald-400 whitespace-nowrap hover:bg-emerald-500/10"
                   >
                     Save &amp; Set as Active Event
                   </Button>
@@ -532,7 +532,7 @@ export function EventWindowsPanel() {
                   size="sm"
                   disabled={saving}
                   onClick={() => handleSave(false)}
-                  className="text-xs h-9 font-bold bg-amber-500 hover:bg-amber-600 text-white"
+                  className="text-xs h-9 font-bold bg-amber-600 hover:bg-amber-500 text-white whitespace-nowrap"
                 >
                   {saving ? 'Saving...' : 'Save Event & Window Settings'}
                 </Button>

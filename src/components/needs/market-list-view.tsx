@@ -78,7 +78,7 @@ function deptStatus(d: DeptRow): { label: string; className: string } {
   if (d.submitted === 0) return { label: 'Not sent yet', className: 'bg-muted text-muted-foreground border border-border' }
   if (d.pending > 0) return { label: 'Awaiting Approval', className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30' }
   if (d.approved > 0) return { label: 'Approved for Market', className: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' }
-  return { label: 'Declined', className: 'bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30' }
+  return { label: 'Declined', className: 'bg-red-500/15 text-red-600 dark:text-red-700 dark:text-red-400 border border-red-500/30' }
 }
 
 function csvCell(v: unknown): string {
@@ -311,7 +311,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-500">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
                 Phase 1 · Pre-Event Needs &amp; Market Procurement
               </span>
             </div>
@@ -329,8 +329,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                 disabled={stockingAll}
                 className="h-10 px-4 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
               >
-                <PackageCheck className="w-4 h-4" />
-                <span className="inline-flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> {stockingAll ? 'Stocking Inventory…' : `Stock Received Items into Store (${unstockedReceivedItems.length})`}</span>
+                                <span className="inline-flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> {stockingAll ? 'Stocking Inventory…' : `Stock Received Items into Store (${unstockedReceivedItems.length})`}</span>
               </Button>
             )}
             <Button
@@ -362,14 +361,14 @@ export function MarketListView({ backHref }: { backHref: string }) {
             </div>
           </div>
           <div className="flex items-start gap-3 p-2.5 rounded-xl bg-background/60 border border-border/40">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-500 font-bold text-xs">2</span>
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold text-xs">2</span>
             <div>
               <p className="text-xs font-bold text-foreground">Gen Sec &amp; Nat. Coordinator Approve</p>
               <p className="text-[11px] text-muted-foreground">Approved lists automatically consolidate here per item so Stores can go to the market.</p>
             </div>
           </div>
           <div className="flex items-start gap-3 p-2.5 rounded-xl bg-background/60 border border-border/40">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-500 font-bold text-xs">3</span>
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold text-xs">3</span>
             <div>
               <p className="text-xs font-bold text-foreground">Stores Buys &amp; Stocks Store Inventory</p>
               <p className="text-[11px] text-muted-foreground">Stores records market purchases and stocks received items into Store Inventory for the live event.</p>
@@ -379,7 +378,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
 
         {loading && <p className="text-sm font-mono text-muted-foreground animate-pulse">Loading pre-event market analytics…</p>}
         {error && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-400">
+          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-700 dark:text-red-400">
             {error}
           </div>
         )}
@@ -391,12 +390,12 @@ export function MarketListView({ backHref }: { backHref: string }) {
               <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Depts Submitted</span>
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                 </div>
                 <span className="text-2xl font-extrabold font-mono text-foreground mt-1.5 block">
                   {analytics.departmentsSubmitted} <span className="text-xs font-sans text-muted-foreground">/ {analytics.totalDepartments}</span>
                 </span>
-                <span className="text-[11px] text-emerald-500 font-semibold block mt-0.5">
+                <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-semibold block mt-0.5">
                   {submissionRate}% submission rate
                 </span>
               </div>
@@ -404,7 +403,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
               <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Yet to Submit</span>
-                  <AlertCircle className="w-3.5 h-3.5 text-red-400" />
+                  <AlertCircle className="w-3.5 h-3.5 text-red-700 dark:text-red-400" />
                 </div>
                 <span className="text-2xl font-extrabold font-mono text-red-500 mt-1.5 block">
                   {analytics.departmentsNotSubmitted}
@@ -416,10 +415,10 @@ export function MarketListView({ backHref }: { backHref: string }) {
 
               <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Awaiting Approval</span>
-                  <Clock className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Awaiting Approval</span>
+                  <Clock className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                 </div>
-                <span className="text-2xl font-extrabold font-mono text-amber-500 mt-1.5 block">
+                <span className="text-2xl font-extrabold font-mono text-amber-700 dark:text-amber-400 mt-1.5 block">
                   {analytics.departmentsPendingApproval}
                 </span>
                 <span className="text-[11px] text-muted-foreground block mt-0.5">
@@ -456,10 +455,10 @@ export function MarketListView({ backHref }: { backHref: string }) {
 
               <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Stocked in Store</span>
-                  <PackageCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Stocked in Store</span>
+                  <PackageCheck className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
                 </div>
-                <span className="text-2xl font-extrabold font-mono text-emerald-500 mt-1.5 block">
+                <span className="text-2xl font-extrabold font-mono text-emerald-700 dark:text-emerald-400 mt-1.5 block">
                   {analytics.totalUnitsStocked.toLocaleString()}
                 </span>
                 <span className="text-[11px] text-muted-foreground block mt-0.5">
@@ -517,7 +516,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                           </p>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${st.className}`}>
+                          <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${st.className}`}>
                             {st.label}
                           </span>
                           {d.latestRequestId && (
@@ -605,11 +604,11 @@ export function MarketListView({ backHref }: { backHref: string }) {
                           <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/30 p-2 font-mono text-center">
                             <div>
                               <span className="text-[9px] text-muted-foreground font-sans block">Approved</span>
-                              <span className="font-extrabold text-emerald-500 text-sm">{item.approved}</span>
+                              <span className="font-extrabold text-emerald-700 dark:text-emerald-400 text-sm">{item.approved}</span>
                             </div>
                             <div>
                               <span className="text-[9px] text-muted-foreground font-sans block">Waiting</span>
-                              <span className="font-semibold text-amber-500 text-sm">{item.awaiting > 0 ? item.awaiting : '–'}</span>
+                              <span className="font-semibold text-amber-700 dark:text-amber-400 text-sm">{item.awaiting > 0 ? item.awaiting : '–'}</span>
                             </div>
                             <div>
                               <span className="text-[9px] text-muted-foreground font-sans block">In Store</span>
@@ -617,7 +616,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                             </div>
                           </div>
                           {unstockedDelta > 0 && (
-                            <span className="block text-[11px] text-amber-500 font-semibold">
+                            <span className="block text-[11px] text-amber-700 dark:text-amber-400 font-semibold">
                               {unstockedDelta} received ready to stock
                             </span>
                           )}
@@ -751,21 +750,21 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                     {item.unit} · {item.category} · {item.departments.length} dept{item.departments.length === 1 ? '' : 's'}
                                   </span>
                                 </td>
-                                <td className="py-3 pr-3 text-right font-mono text-base font-extrabold text-emerald-500">
+                                <td className="py-3 pr-3 text-right font-mono text-base font-extrabold text-emerald-700 dark:text-emerald-400">
                                   {item.approved}
                                 </td>
-                                <td className="py-3 pr-3 text-right font-mono text-amber-500 font-semibold">
+                                <td className="py-3 pr-3 text-right font-mono text-amber-700 dark:text-amber-400 font-semibold">
                                   {item.awaiting > 0 ? item.awaiting : '–'}
                                 </td>
                                 <td className="py-3 pr-3 text-right font-mono text-xs text-muted-foreground">
                                   {item.currentStoreStock || 0} {item.unit}
                                   {item.stockedFromMarket > 0 && (
-                                    <span className="block text-[10px] text-emerald-500 font-semibold">
+                                    <span className="block text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">
                                       +{item.stockedFromMarket} stocked from market
                                     </span>
                                   )}
                                   {unstockedDelta > 0 && (
-                                    <span className="block text-[10px] text-amber-500 font-semibold">
+                                    <span className="block text-[10px] text-amber-700 dark:text-amber-400 font-semibold">
                                       {unstockedDelta} received ready to stock
                                     </span>
                                   )}

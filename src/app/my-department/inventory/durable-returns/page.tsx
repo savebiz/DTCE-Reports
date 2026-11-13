@@ -364,7 +364,7 @@ export default function DurableReturnsTrackerPage() {
 
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400">Durable Asset Accountability</span>
+          <span className="text-[11px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-700 dark:text-amber-400">Durable Asset Accountability</span>
         </div>
       </div>
 
@@ -374,7 +374,7 @@ export default function DurableReturnsTrackerPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[11px] font-bold tracking-widest text-emerald-600 dark:text-emerald-400 uppercase">Stores &amp; National Coordinator Tracker</span>
+              <span className="text-[11px] font-bold tracking-widest text-emerald-600 dark:text-emerald-700 dark:text-emerald-400 uppercase">Stores &amp; National Coordinator Tracker</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
               Outstanding Durable Items Tracker
@@ -407,7 +407,7 @@ export default function DurableReturnsTrackerPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <Card className="glass-card bg-card border-border p-4 space-y-1">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest block">Outstanding Items</span>
-            <span className="text-2xl font-bold text-amber-500 font-mono">{totalOutstandingQty}</span>
+            <span className="text-2xl font-bold text-amber-700 dark:text-amber-700 dark:text-amber-400 font-mono">{totalOutstandingQty}</span>
             <span className="text-[10px] text-muted-foreground block">Currently holding by depts</span>
           </Card>
 
@@ -419,13 +419,13 @@ export default function DurableReturnsTrackerPage() {
 
           <Card className="glass-card bg-card border-border p-4 space-y-1">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest block">Return Initiated</span>
-            <span className="text-2xl font-bold text-blue-400 font-mono">{totalInitiatedCount}</span>
+            <span className="text-2xl font-bold text-blue-700 dark:text-blue-400 font-mono">{totalInitiatedCount}</span>
             <span className="text-[10px] text-muted-foreground block">Heads-up from departments</span>
           </Card>
 
           <Card className="glass-card bg-card border-border p-4 space-y-1">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest block">Reported Lost / Missing</span>
-            <span className="text-2xl font-bold text-red-400 font-mono">{totalLostCount}</span>
+            <span className="text-2xl font-bold text-red-700 dark:text-red-400 font-mono">{totalLostCount}</span>
             <span className="text-[10px] text-muted-foreground block">Unrestored stock balance</span>
           </Card>
         </div>
@@ -460,7 +460,7 @@ export default function DurableReturnsTrackerPage() {
           <TableSkeleton rows={4} cols={5} />
         ) : Object.keys(groupedByDept).length === 0 ? (
           <Card className="glass-card p-12 text-center space-y-3 bg-card border-border">
-            <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto" />
+            <CheckCircle2 className="h-10 w-10 text-emerald-700 dark:text-emerald-400 mx-auto" />
             <h3 className="text-base font-bold text-foreground">No Outstanding Durable Items</h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
               All borrowed durable equipment across all departments has been returned to Stores in optimal condition!
@@ -472,9 +472,9 @@ export default function DurableReturnsTrackerPage() {
               <div key={deptName} className="glass-card overflow-hidden rounded-xl border border-border bg-card">
                 <div className="px-5 py-3.5 border-b border-border flex items-center justify-between bg-muted/20">
                   <div className="flex items-center gap-2.5">
-                    <Building2 className="h-4 w-4 text-blue-400" />
+                    <Building2 className="h-4 w-4 text-blue-700 dark:text-blue-400" />
                     <h3 className="text-sm font-bold text-foreground">{deptName}</h3>
-                    <span className="text-[11px] font-mono font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
+                    <span className="text-[11px] font-mono font-bold text-amber-700 dark:text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full">
                       {items.reduce((sum, i) => sum + i.outstandingQty, 0)} Items Outstanding
                     </span>
                   </div>
@@ -493,7 +493,7 @@ export default function DurableReturnsTrackerPage() {
                             {it.itemCode || 'Unassigned'} · Delivered {new Date(it.deliveredAt).toLocaleDateString()}
                           </div>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase whitespace-nowrap shrink-0 bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold uppercase whitespace-nowrap shrink-0 bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                           {it.returnStatus.replace('_', ' ')}
                         </span>
                       </div>
@@ -505,11 +505,11 @@ export default function DurableReturnsTrackerPage() {
                         </div>
                         <div>
                           <span className="text-[9px] text-muted-foreground font-sans block">Returned</span>
-                          <span className="font-bold text-emerald-400">{it.quantityReturned}</span>
+                          <span className="font-bold text-emerald-700 dark:text-emerald-400">{it.quantityReturned}</span>
                         </div>
                         <div>
                           <span className="text-[9px] text-muted-foreground font-sans block">Outstanding</span>
-                          <span className="font-bold text-amber-400">{it.outstandingQty}</span>
+                          <span className="font-bold text-amber-700 dark:text-amber-400">{it.outstandingQty}</span>
                         </div>
                       </div>
                       <Button
@@ -546,7 +546,7 @@ export default function DurableReturnsTrackerPage() {
                         <tr key={`${it.requestId}_${idx}`} className="hover:bg-muted/20 transition-colors">
                           <td className="p-3 font-mono">
                             {it.itemCode ? (
-                              <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                              <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
                                 {it.itemCode}
                               </span>
                             ) : (
@@ -562,23 +562,23 @@ export default function DurableReturnsTrackerPage() {
                             )}
                           </td>
                           <td className="p-3 text-right font-mono font-bold text-foreground">{it.quantityIssued}</td>
-                          <td className="p-3 text-right font-mono font-bold text-emerald-400">{it.quantityReturned}</td>
-                          <td className="p-3 text-right font-mono font-bold text-amber-400 text-sm">{it.outstandingQty}</td>
+                          <td className="p-3 text-right font-mono font-bold text-emerald-700 dark:text-emerald-400">{it.quantityReturned}</td>
+                          <td className="p-3 text-right font-mono font-bold text-amber-700 dark:text-amber-400 text-sm">{it.outstandingQty}</td>
                           <td className="p-3 text-center">
                             {it.returnStatus === 'return_initiated' ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-wider animate-pulse flex items-center justify-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/20 uppercase tracking-wider animate-pulse flex items-center justify-center gap-1">
                                 <Truck className="w-3 h-3" /> Return Initiated
                               </span>
                             ) : it.returnStatus === 'returned_damaged' ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500/10 text-orange-400 border border-orange-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
                                 <AlertCircle className="w-3 h-3" /> Returned Damaged
                               </span>
                             ) : it.returnStatus === 'lost' ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-red-500/10 text-red-700 dark:text-red-400 border border-red-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
                                 <XCircle className="w-3 h-3" /> Lost / Missing
                               </span>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
+                              <span className="px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 uppercase tracking-wider flex items-center justify-center gap-1">
                                 <Clock className="w-3 h-3" /> Outstanding
                               </span>
                             )}
@@ -615,7 +615,7 @@ export default function DurableReturnsTrackerPage() {
           <DialogContent className="bg-card border-border text-foreground sm:max-w-md max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
-                <PackageCheck className="h-4 w-4 text-emerald-400" /> Log Authoritative Durable Return
+                <PackageCheck className="h-4 w-4 text-emerald-700 dark:text-emerald-400" /> Log Authoritative Durable Return
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
                 Confirm return of borrowed equipment to Stores and select physical item condition.
@@ -631,7 +631,7 @@ export default function DurableReturnsTrackerPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Item:</span>
-                    <span className="font-bold text-amber-400">{selectedItem.itemName} {selectedItem.itemCode ? `[${selectedItem.itemCode}]` : ''}</span>
+                    <span className="font-bold text-amber-700 dark:text-amber-400">{selectedItem.itemName} {selectedItem.itemCode ? `[${selectedItem.itemCode}]` : ''}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Outstanding Qty:</span>
@@ -646,7 +646,7 @@ export default function DurableReturnsTrackerPage() {
                     onChange={setReturnQty}
                     min={1}
                     max={selectedItem.outstandingQty || 100}
-                    className="input-dark text-xs font-mono font-bold text-emerald-400"
+                    className="input-dark text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400"
                   />
                 </div>
 
@@ -658,7 +658,7 @@ export default function DurableReturnsTrackerPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="good"><span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-500" /> Good Condition (Restores Stock &amp; Logs Return)</span></SelectItem>
-                      <SelectItem value="damaged"><span className="inline-flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Damaged (Moves to Quarantine Stock — Not Available)</span></SelectItem>
+                      <SelectItem value="damaged"><span className="inline-flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5 text-amber-700 dark:text-amber-700 dark:text-amber-400" /> Damaged (Moves to Quarantine Stock — Not Available)</span></SelectItem>
                       <SelectItem value="lost"><span className="inline-flex items-center gap-1.5"><X className="h-3.5 w-3.5 text-red-500" /> Lost / Missing (Does NOT Restore Stock)</span></SelectItem>
                     </SelectContent>
                   </Select>
@@ -692,7 +692,7 @@ export default function DurableReturnsTrackerPage() {
           <DialogContent className="bg-card border-border text-foreground sm:max-w-md max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
-                <Send className="h-4 w-4 text-amber-400" /> Event Close Return Reminders
+                <Send className="h-4 w-4 text-amber-700 dark:text-amber-400" /> Event Close Return Reminders
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
                 Automatically notify every department holding unreturned durable items requesting immediate return.
@@ -700,7 +700,7 @@ export default function DurableReturnsTrackerPage() {
             </DialogHeader>
 
             <div className="space-y-3 py-2 text-xs">
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 space-y-1">
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 space-y-1">
                 <div className="font-bold flex items-center gap-1.5">
                   <AlertTriangle className="h-4 w-4" /> Trigger Automated Return Reminders
                 </div>

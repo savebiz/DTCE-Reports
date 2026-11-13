@@ -4,13 +4,7 @@ import React from 'react'
 
 export function Skeleton({ className = '' }: { className?: string }) {
   return (
-    <div
-      className={`animate-pulse rounded-lg bg-muted/40 ${className}`}
-      style={{
-        backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 100%)',
-        backgroundSize: '200% 100%',
-      }}
-    />
+    <div className={`shimmer animate-pulse rounded-lg bg-muted/60 ${className}`} />
   )
 }
 

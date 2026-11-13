@@ -305,7 +305,7 @@ export default function MyDepartmentDashboard() {
     const report = reports.find(r => r.event_day_id === dayId)
     if (!report) {
       return (
-        <span className="inline-flex items-center whitespace-nowrap rounded-full bg-red-500/10 text-red-400 px-2.5 py-0.5 text-xs font-bold border border-red-500/20 uppercase tracking-wider font-sans">
+        <span className="inline-flex items-center whitespace-nowrap rounded-full bg-red-500/10 text-red-700 dark:text-red-400 px-2.5 py-0.5 text-xs font-bold border border-red-500/20 uppercase tracking-wider font-sans">
           Missing
         </span>
       )
@@ -314,25 +314,25 @@ export default function MyDepartmentDashboard() {
     switch (report.status) {
       case 'draft':
         return (
-          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-amber-500/10 text-amber-400 px-2.5 py-0.5 text-xs font-bold border border-amber-500/20 uppercase tracking-wider font-sans">
+          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 text-xs font-bold border border-amber-500/20 uppercase tracking-wider font-sans">
             Draft
           </span>
         )
       case 'submitted':
         return (
-          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-blue-500/10 text-blue-400 px-2.5 py-0.5 text-xs font-bold border border-blue-500/20 uppercase tracking-wider font-sans">
+          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-400 px-2.5 py-0.5 text-xs font-bold border border-blue-500/20 uppercase tracking-wider font-sans">
             Submitted
           </span>
         )
       case 'reviewed':
         return (
-          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-purple-500/10 text-purple-400 px-2.5 py-0.5 text-xs font-bold border border-purple-500/20 uppercase tracking-wider font-sans">
+          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-purple-500/10 text-purple-700 dark:text-purple-400 px-2.5 py-0.5 text-xs font-bold border border-purple-500/20 uppercase tracking-wider font-sans">
             Reviewed
           </span>
         )
       case 'approved':
         return (
-          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 text-xs font-bold border border-emerald-500/20 uppercase tracking-wider font-sans">
+          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 px-2.5 py-0.5 text-xs font-bold border border-emerald-500/20 uppercase tracking-wider font-sans">
             Approved
           </span>
         )
@@ -399,16 +399,16 @@ export default function MyDepartmentDashboard() {
               boxShadow: isOnline ? '0 0 6px #10B981' : '0 0 6px #F59E0B',
             }}
           />
-          <span className="font-semibold" style={{ color: isOnline ? '#10B981' : '#F59E0B' }}>
+          <span className={isOnline ? "font-semibold text-emerald-700 dark:text-emerald-400" : "font-semibold text-amber-700 dark:text-amber-400"}>
             {isOnline ? 'Connected' : 'Offline Mode'}
           </span>
         </div>
         {pendingSyncCount > 0 && (
           <div className="flex items-center gap-3">
-            <span className="text-amber-500 font-semibold">{pendingSyncCount} pending upload(s)</span>
+            <span className="text-amber-700 dark:text-amber-400 font-semibold">{pendingSyncCount} pending upload(s)</span>
             {isOnline && (
               <button
-                className="min-h-[34px] rounded-lg px-3 py-1 text-[11px] font-semibold text-white transition-all bg-amber-500 shadow-xs"
+                className="min-h-[34px] rounded-lg px-3 py-1 text-[11px] font-semibold text-white transition-all bg-amber-600 hover:bg-amber-500 text-white whitespace-nowrap shadow-xs"
                 onClick={triggerSync}
                 disabled={syncing}
               >
@@ -467,7 +467,7 @@ export default function MyDepartmentDashboard() {
               </button>
               {isSecretariatDept && (
                 <button
-                  className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-bold transition-all border border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 cursor-pointer shadow-xs"
+                  className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-bold transition-all border border-blue-500/40 bg-blue-500/10 text-blue-600 dark:text-blue-700 dark:text-blue-400 hover:bg-blue-500/20 cursor-pointer shadow-xs"
                   onClick={() => router.push('/dashboard/manual-entry')}
                 >
                   <FileEdit className="w-3.5 h-3.5" />
@@ -477,21 +477,21 @@ export default function MyDepartmentDashboard() {
               {isStoresDept ? (
                 <>
                   <button
-                    className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 cursor-pointer shadow-xs"
+                    className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-700 dark:text-blue-400 hover:bg-blue-500/20 cursor-pointer shadow-xs"
                     onClick={() => router.push('/my-department/market-list')}
                   >
                     <Package className="w-3.5 h-3.5" />
                     Pre-Event Market List
                   </button>
                   <button
-                    className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer shadow-xs"
+                    className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer shadow-xs"
                     onClick={() => router.push('/my-department/inventory')}
                   >
                     <Layers className="w-3.5 h-3.5" />
                     Inventory Catalog
                   </button>
                   <button
-                    className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 cursor-pointer shadow-xs"
+                    className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-700 dark:text-amber-400 hover:bg-amber-500/20 cursor-pointer shadow-xs"
                     onClick={() => router.push('/my-department/store-fulfillment')}
                   >
                     <Package className="w-3.5 h-3.5" />
@@ -500,7 +500,7 @@ export default function MyDepartmentDashboard() {
                 </>
               ) : (
                 <button
-                  className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 cursor-pointer shadow-xs"
+                  className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-700 dark:text-blue-400 cursor-pointer shadow-xs"
                   onClick={() => router.push('/my-department/store-request')}
                 >
                   <Package className="w-3.5 h-3.5" />

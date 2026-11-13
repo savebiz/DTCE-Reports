@@ -570,15 +570,15 @@ function SecretariatDashboardContent() {
     }
   }
 
-  const getCellStatusStyle = (deptId: string, dayId: string): React.CSSProperties => {
+  const getCellStatusClass = (deptId: string, dayId: string): string => {
     const report = reports.find(r => r.department_id === deptId && isSameEventDay(r.event_day_id, dayId, eventDays))
-    if (!report) return { background: 'rgba(239,68,68,0.12)', color: '#FCA5A5', border: '1px solid rgba(239,68,68,0.2)' }
+    if (!report) return 'bg-red-500/12 text-red-700 dark:text-red-300 border border-red-500/25'
     switch (report.status) {
-      case 'draft':     return { background: 'rgba(100,116,139,0.1)', color: '#94A3B8', border: '1px solid rgba(100,116,139,0.2)' }
-      case 'submitted': return { background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.25)' }
-      case 'reviewed':  return { background: 'rgba(59,130,246,0.1)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.25)' }
-      case 'approved':  return { background: 'rgba(16,185,129,0.1)', color: '#34D399', border: '1px solid rgba(16,185,129,0.25)' }
-      default:          return { background: 'rgba(100,116,139,0.08)', color: '#64748B', border: '1px solid rgba(100,116,139,0.15)' }
+      case 'draft':     return 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-500/25'
+      case 'submitted': return 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/25'
+      case 'reviewed':  return 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/25'
+      case 'approved':  return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 border border-emerald-500/25'
+      default:          return 'bg-muted text-muted-foreground border border-border'
     }
   }
 
@@ -611,7 +611,7 @@ function SecretariatDashboardContent() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="h-2 w-2 rounded-full bg-purple-400 animate-ping" />
-              <span className="text-[11px] font-semibold tracking-widest text-purple-400 uppercase">
+              <span className="text-[11px] font-semibold tracking-widest text-purple-700 dark:text-purple-400 uppercase">
                 {profile?.role === 'national_coordinator' ? (isGeneralSecretary(profile) ? 'General Secretary Executive Desk' : 'National Coordinator Executive Desk') : isCoordinatorAssistant ? 'Coordinator Assistant View' : 'Secretariat Command Centre'}
               </span>
             </div>
@@ -728,41 +728,41 @@ function SecretariatDashboardContent() {
           <div className="space-y-6 animate-fade-in-up">
             {/* KPI Cards Bar (Stripe Pattern Elevation & Typography) */}
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block truncate">Reporting Submissions</span>
+              <div className="bg-card rounded-xl p-3 sm:p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wide sm:tracking-wider leading-tight block line-clamp-2">Reporting Submissions</span>
                 <span className="text-2xl sm:text-3xl font-extrabold font-mono text-foreground mt-2 mb-0.5 tracking-tight block truncate">
                   {kpis.reporting} <span className="text-xs font-sans text-muted-foreground">/ {kpis.expectedSubmissions}</span>
                 </span>
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold block truncate">{kpis.complianceRate}% compliance</span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-700 dark:text-emerald-400 font-semibold block truncate">{kpis.complianceRate}% compliance</span>
               </div>
 
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block truncate">Missing Reports</span>
+              <div className="bg-card rounded-xl p-3 sm:p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wide sm:tracking-wider leading-tight block line-clamp-2">Missing Reports</span>
                 <span className="text-2xl sm:text-3xl font-extrabold font-mono mt-2 mb-0.5 tracking-tight block truncate" style={{ color: kpis.missing > 0 ? '#EF4444' : '#10B981' }}>{kpis.missing}</span>
                 <span className="text-[10px] text-muted-foreground font-medium block truncate">Pending submission</span>
               </div>
 
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block truncate">Awaiting Review</span>
+              <div className="bg-card rounded-xl p-3 sm:p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wide sm:tracking-wider leading-tight block line-clamp-2">Awaiting Review</span>
                 <span className="text-2xl sm:text-3xl font-extrabold font-mono text-blue-600 dark:text-blue-400 mt-2 mb-0.5 tracking-tight block truncate">{kpis.review}</span>
                 <span className="text-[10px] text-muted-foreground font-medium block truncate">Daily reports pending</span>
               </div>
 
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
-                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block truncate">Pending Store Reqs</span>
-                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-400 mt-2 mb-0.5 tracking-tight block truncate">{kpis.pendingReqs}</span>
+              <div className="bg-card rounded-xl p-3 sm:p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-700 dark:text-amber-400 uppercase tracking-wide sm:tracking-wider leading-tight block line-clamp-2">Pending Store Reqs</span>
+                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-600 dark:text-amber-700 dark:text-amber-400 mt-2 mb-0.5 tracking-tight block truncate">{kpis.pendingReqs}</span>
                 <span className="text-[10px] text-muted-foreground font-medium block truncate">Requires approval</span>
               </div>
 
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
-                <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block truncate">Fulfilled Store Reqs</span>
-                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-400 mt-2 mb-0.5 tracking-tight block truncate">{kpis.deliveredReqs}</span>
+              <div className="bg-card rounded-xl p-3 sm:p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[10px] sm:text-[11px] font-bold text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 uppercase tracking-wide sm:tracking-wider leading-tight block line-clamp-2">Fulfilled Store Reqs</span>
+                <span className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-600 dark:text-emerald-700 dark:text-emerald-400 mt-2 mb-0.5 tracking-tight block truncate">{kpis.deliveredReqs}</span>
                 <span className="text-[10px] text-muted-foreground font-medium block truncate">Delivered by Stores</span>
               </div>
 
-              <div className="bg-card rounded-xl p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
-                <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider block truncate">Recorded Offering</span>
-                <span className="text-[1.15rem] sm:text-xl lg:text-2xl font-extrabold font-mono text-purple-600 dark:text-purple-400 mt-2 mb-0.5 tracking-tight block truncate">
+              <div className="bg-card rounded-xl p-3 sm:p-4 border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.4)] transition-all duration-150 hover:shadow-[0_3px_8px_rgba(15,42,74,0.08)] min-w-0 overflow-hidden">
+                <span className="text-[10px] sm:text-[11px] font-bold text-purple-700 dark:text-purple-700 dark:text-purple-400 uppercase tracking-wide sm:tracking-wider leading-tight block line-clamp-2">Recorded Offering</span>
+                <span className="text-[1.15rem] sm:text-xl lg:text-2xl font-extrabold font-mono text-purple-600 dark:text-purple-700 dark:text-purple-400 mt-2 mb-0.5 tracking-tight block truncate">
                   ₦{kpis.offeringSum.toLocaleString()}
                 </span>
                 <span className="text-[10px] text-muted-foreground font-medium block truncate">
@@ -816,8 +816,7 @@ function SecretariatDashboardContent() {
                           <td key={day.id} className="p-1.5 border-r border-border/50">
                             <button
                               onClick={() => handleCellClick(dept, day)}
-                              className="w-full rounded-md py-1 px-2 text-[11px] font-semibold font-tabular transition-all duration-150 cursor-pointer"
-                              style={{ ...getCellStatusStyle(dept.id, day.id), letterSpacing: '0.03em' }}
+                              className={`w-full rounded-md py-1 px-2 text-[11px] font-semibold font-tabular tracking-[0.03em] whitespace-nowrap transition-all duration-150 cursor-pointer ${getCellStatusClass(dept.id, day.id)}`}
                             >
                               {getCellStatusLabel(dept.id, day.id)}
                             </button>
@@ -897,7 +896,7 @@ function SecretariatDashboardContent() {
                                   <ShoppingCart className="h-3.5 w-3.5 inline mr-1.5" /> Pre-Event Needs List (Market Purchase)
                                 </span>
                               ) : (
-                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-700 dark:text-amber-400 border border-amber-500/30">
                                   <Package className="h-3.5 w-3.5 inline mr-1.5" /> Live Event Store Requisition
                                 </span>
                               )}
@@ -952,7 +951,7 @@ function SecretariatDashboardContent() {
                               size="sm" 
                               variant="outline" 
                               onClick={() => router.push(`/dashboard/store-requisitions?id=${req.id}`)} 
-                              className="text-xs h-8 cursor-pointer border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:text-white transition-colors font-semibold"
+                              className="text-xs h-8 cursor-pointer border-blue-500/30 text-blue-700 dark:text-blue-400 hover:bg-blue-500/15 hover:text-blue-800 dark:hover:text-blue-300 transition-colors font-semibold"
                             >
                               Review &amp; Approve &rarr;
                             </Button>
@@ -961,7 +960,7 @@ function SecretariatDashboardContent() {
                               size="sm" 
                               variant="outline" 
                               onClick={() => router.push(`/dashboard/store-requisitions?id=${req.id}`)} 
-                              className="text-xs h-8 cursor-pointer border-slate-700 text-slate-300 hover:bg-slate-800/60 hover:text-white transition-colors font-semibold"
+                              className="text-xs h-8 cursor-pointer border-border text-foreground hover:bg-accent transition-colors font-semibold"
                             >
                               View Details &rarr;
                             </Button>
@@ -1000,9 +999,9 @@ function SecretariatDashboardContent() {
                   <div key={dept.id} className="flex items-center justify-between p-3 rounded-xl border border-border bg-background/25">
                     <div className="flex items-center gap-3">
                       <span className={`h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs ${
-                        index === 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40' :
+                        index === 0 ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40' :
                         index === 1 ? 'bg-slate-400/20 text-slate-300 border border-slate-400/40' :
-                        index === 2 ? 'bg-orange-600/20 text-orange-400 border border-orange-600/40' :
+                        index === 2 ? 'bg-orange-600/20 text-orange-700 dark:text-orange-400 border border-orange-600/40' :
                         'bg-muted text-muted-foreground'
                       }`}>
                         #{index + 1}
@@ -1013,7 +1012,7 @@ function SecretariatDashboardContent() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-emerald-400">{dept.complianceRate}%</p>
+                      <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">{dept.complianceRate}%</p>
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Compliance</p>
                     </div>
                   </div>
@@ -1043,10 +1042,10 @@ function SecretariatDashboardContent() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">
+                <span className="text-[11px] font-bold text-red-700 dark:text-red-400 bg-red-500/10 px-2.5 py-1 rounded-full border border-red-500/20">
                   {aggregatedChallenges.filter(c => c.status === 'open').length} Open
                 </span>
-                <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
                   {aggregatedChallenges.filter(c => c.status === 'resolved').length} Treated
                 </span>
               </div>
@@ -1078,7 +1077,7 @@ function SecretariatDashboardContent() {
                             </span>
                           </div>
                           {isResolved ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-500/30">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-500/30">
                               <CheckCircle2 size={12} />
                               <span>Treated / Resolved</span>
                             </span>
@@ -1101,7 +1100,7 @@ function SecretariatDashboardContent() {
                           {item.solutions && (
                             <div>
                               <strong className="text-slate-600 dark:text-slate-400 uppercase tracking-wider text-[10px] block font-bold mt-1 mb-0.5">Proposed Solution:</strong>
-                              <p className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                              <p className="text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 font-semibold">
                                 {item.solutions}
                               </p>
                             </div>
@@ -1111,7 +1110,7 @@ function SecretariatDashboardContent() {
                         {/* Resolution Audit Note */}
                         {item.resolutionNote && (
                           <div className="p-3 rounded-lg bg-emerald-100/70 dark:bg-emerald-950/30 border border-emerald-300/80 dark:border-emerald-500/30 text-xs space-y-1">
-                            <div className="flex items-center justify-between text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase">
+                            <div className="flex items-center justify-between text-[10px] font-bold text-emerald-800 dark:text-emerald-700 dark:text-emerald-400 uppercase">
                               <span>Log Action Note:</span>
                               <span>{item.resolvedAt ? new Date(item.resolvedAt).toLocaleDateString() : ''}</span>
                             </div>
@@ -1227,8 +1226,8 @@ function SecretariatDashboardContent() {
                     <span className="text-xl font-extrabold font-mono text-foreground mt-0.5 block tracking-tight">{activeReport.attendance_evening ?? 0}</span>
                   </div>
                   <div className="rounded-lg p-3 bg-amber-500/8 dark:bg-amber-500/10 border border-amber-500/20 text-center">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400 block">Combined</span>
-                    <span className="text-xl font-extrabold font-mono text-amber-600 dark:text-amber-400 mt-0.5 block tracking-tight">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-700 dark:text-amber-400 block">Combined</span>
+                    <span className="text-xl font-extrabold font-mono text-amber-600 dark:text-amber-700 dark:text-amber-400 mt-0.5 block tracking-tight">
                       {(Number(activeReport.attendance_morning || 0) + Number(activeReport.attendance_evening || 0)).toLocaleString()}
                     </span>
                   </div>
@@ -1276,10 +1275,10 @@ function SecretariatDashboardContent() {
                         </tbody>
                         <tfoot>
                           <tr className="bg-amber-500/5 dark:bg-amber-500/8">
-                            <td className="px-3 py-2 font-extrabold text-amber-600 dark:text-amber-400 text-[11px]">Total</td>
-                            <td className="text-center px-3 py-2 font-mono font-bold text-amber-600 dark:text-amber-400">{totalM}</td>
-                            <td className="text-center px-3 py-2 font-mono font-bold text-amber-600 dark:text-amber-400">{totalF}</td>
-                            <td className="text-right px-3 py-2 font-mono font-extrabold text-amber-600 dark:text-amber-400 text-sm">{totalM + totalF}</td>
+                            <td className="px-3 py-2 font-extrabold text-amber-600 dark:text-amber-700 dark:text-amber-400 text-[11px]">Total</td>
+                            <td className="text-center px-3 py-2 font-mono font-bold text-amber-600 dark:text-amber-700 dark:text-amber-400">{totalM}</td>
+                            <td className="text-center px-3 py-2 font-mono font-bold text-amber-600 dark:text-amber-700 dark:text-amber-400">{totalF}</td>
+                            <td className="text-right px-3 py-2 font-mono font-extrabold text-amber-600 dark:text-amber-700 dark:text-amber-400 text-sm">{totalM + totalF}</td>
                           </tr>
                         </tfoot>
                       </table>
@@ -1297,10 +1296,10 @@ function SecretariatDashboardContent() {
                   </h3>
                   <div className="rounded-lg p-3.5 bg-purple-500/5 dark:bg-purple-500/10 border border-purple-500/15 flex items-center justify-between gap-3">
                     <div>
-                      <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 block">Recorded Offering</span>
+                      <span className="text-[11px] font-bold text-purple-600 dark:text-purple-700 dark:text-purple-400 block">Recorded Offering</span>
                       <span className="text-[10px] text-muted-foreground">Event session collection</span>
                     </div>
-                    <span className="text-xl font-extrabold font-mono text-purple-600 dark:text-purple-400 tracking-tight shrink-0">
+                    <span className="text-xl font-extrabold font-mono text-purple-600 dark:text-purple-700 dark:text-purple-400 tracking-tight shrink-0">
                       ₦{(Number(activeReport.metrics_data?.offering || activeReport.metrics_data?.total_offering || 0)).toLocaleString()}
                     </span>
                   </div>
@@ -1371,7 +1370,7 @@ function SecretariatDashboardContent() {
                       <div className="space-y-2">
                         {narrativeSections.map(s => (
                           <div key={s.label} className="rounded-lg p-3 bg-muted/20 dark:bg-muted/10 border border-border/30">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 block mb-1">{s.label}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-700 dark:text-amber-400 block mb-1">{s.label}</span>
                             <p className="text-xs text-foreground leading-relaxed whitespace-pre-wrap">{s.value}</p>
                           </div>
                         ))}
@@ -1386,7 +1385,7 @@ function SecretariatDashboardContent() {
                 <div className="flex gap-2.5 rounded-lg p-3 bg-amber-500/5 dark:bg-amber-500/8 border border-amber-500/15">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500 flex-shrink-0 mt-0.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   <div className="text-xs space-y-0.5">
-                    <span className="font-bold text-amber-700 dark:text-amber-400 block">Previous Reviewer Feedback</span>
+                    <span className="font-bold text-amber-700 dark:text-amber-700 dark:text-amber-400 block">Previous Reviewer Feedback</span>
                     <p className="text-foreground leading-relaxed">{activeReport.metrics_data.reviewer_feedback.note}</p>
                     {activeReport.metrics_data.reviewer_feedback.reviewer_name && (
                       <span className="text-[10px] text-muted-foreground">
@@ -1488,7 +1487,7 @@ function SecretariatDashboardContent() {
           <div className="max-w-md w-full bg-card border border-border rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-400" />
+                <CheckCircle2 size={18} className="text-emerald-600 dark:text-emerald-700 dark:text-emerald-400" />
                 <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Mark Challenge as Treated</h3>
               </div>
               <button
@@ -1505,7 +1504,7 @@ function SecretariatDashboardContent() {
                 <span>{resolvingItem.deptName} Department</span>
                 <span>Day {resolvingItem.dayNumber}</span>
               </div>
-              <p className="text-red-600 dark:text-red-400 font-sans mt-1">"{resolvingItem.challenges}"</p>
+              <p className="text-red-600 dark:text-red-700 dark:text-red-400 font-sans mt-1">"{resolvingItem.challenges}"</p>
             </div>
 
             <div className="space-y-1.5">
@@ -1524,7 +1523,7 @@ function SecretariatDashboardContent() {
               <Button
                 variant="outline"
                 onClick={() => setResolvingItem(null)}
-                className="text-xs border-slate-700 text-slate-300 hover:bg-slate-800"
+                className="text-xs border-border text-foreground hover:bg-accent"
               >
                 Cancel
               </Button>

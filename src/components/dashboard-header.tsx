@@ -251,7 +251,7 @@ export function DashboardHeader() {
             <NotificationBell userId={user?.id || profile?.id || (isMock ? 'mock-admin' : undefined)} />
 
             {/* Role badge (Desktop) */}
-            <span className={`hidden lg:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize tracking-wide ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
+            <span className={`hidden lg:inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold capitalize tracking-wide whitespace-nowrap shrink-0 ${ROLE_COLORS[role] || ROLE_COLORS.assistant}`}>
               {role === 'assistant' && hasNoDepartment ? 'Coord. Assistant' : (role === 'national_coordinator' && isGeneralSecretary(profile) ? 'Gen. Secretary' : (ROLE_LABELS[role] || role))}
             </span>
 
