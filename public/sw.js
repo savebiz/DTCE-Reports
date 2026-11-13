@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtce-reports-shell-v17';
+const CACHE_NAME = 'dtce-reports-shell-v18';
 
 // Core routes and static assets that constitute the app shell
 const APP_SHELL = [
@@ -63,8 +63,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 2. Navigation Requests (HTML pages): Network-First with Cache Fallback
-  if (event.request.mode === 'navigate') {
+  // 2. Navigation & Next.js RSC Requests: Network-First with Cache Fallback
+  if (event.request.mode === 'navigate' || url.searchParams.has('_rsc')) {
     event.respondWith(
       fetch(event.request)
         .then(networkResponse => {
@@ -120,15 +120,13 @@ self.addEventListener('fetch', event => {
 
   // 3. Static Assets: Cache-First, Network-Fallback with Cache Update
   const isStaticAsset =
-    url.pathname.startsWith('/_next/') ||
+    url.pathname.startsWith('/_next/static/') ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.jpg') ||
     url.pathname.endsWith('.jpeg') ||
     url.pathname.endsWith('.svg') ||
     url.pathname.endsWith('.css') ||
-    url.pathname.endsWith('.js') ||
-    url.pathname.endsWith('.json') ||
-    APP_SHELL.includes(url.pathname);
+    url.pathname.endsWith('.js');
 
   if (isStaticAsset) {
     event.respondWith(

@@ -81,9 +81,23 @@ export default function RootLayout({
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/sw.js').then(reg => {
-                    console.log('SW registered successfully:', reg.scope);
+                  let refreshing = false;
+                  navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (refreshing) return;
+                    refreshing = true;
+                    window.location.reload();
+                  });
+
+                  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(reg => {
                     reg.update().catch(() => {});
+                    document.addEventListener('visibilitychange', () => {
+                      if (document.visibilityState === 'visible') {
+                        reg.update().catch(() => {});
+                      }
+                    });
+                    setInterval(() => {
+                      reg.update().catch(() => {});
+                    }, 5 * 60 * 1000);
                   }).catch(err => {
                     console.error('SW registration failed:', err);
                   });

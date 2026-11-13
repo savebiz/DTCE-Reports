@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   // 1. If not logged in and trying to access restricted routes, redirect to /login
-  if (!user && (path.startsWith('/dashboard') || path.startsWith('/my-department') || path === '/' || path === '/reset-password')) {
+  if (!user && (path.startsWith('/dashboard') || path.startsWith('/my-department') || path === '/reset-password')) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
