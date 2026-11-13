@@ -1,15 +1,7 @@
-const CACHE_NAME = 'dtce-reports-shell-v18';
+const CACHE_NAME = 'dtce-reports-shell-v19';
 
-// Core routes and static assets that constitute the app shell
+// Core static assets only (never pre-cache auth-gated or redirecting HTML routes)
 const APP_SHELL = [
-  '/',
-  '/login',
-  '/dashboard',
-  '/my-department',
-  '/my-department/daily-log',
-  '/dashboard/reports',
-  '/dashboard/store-requisitions',
-  '/dashboard/manual-entry',
   '/icon-192.png',
   '/icon-192-maskable.png',
   '/icon-512.png',
@@ -17,7 +9,6 @@ const APP_SHELL = [
   '/apple-touch-icon.png',
   '/dtce-logo.png',
   '/dtce-logo-white-bg.png',
-  '/manifest.json'
 ];
 
 // Install Event — Pre-cache App Shell
@@ -63,12 +54,12 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 2. Navigation & Next.js RSC Requests: Network-First with Cache Fallback
-  if (event.request.mode === 'navigate' || url.searchParams.has('_rsc')) {
+  // 2. Navigation Requests (HTML pages): Network-First bypassing HTTP cache
+  if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-store' })
         .then(networkResponse => {
-          if (networkResponse && networkResponse.status === 200) {
+          if (networkResponse && networkResponse.ok && !networkResponse.redirected && networkResponse.type === 'basic') {
             const cacheCopy = networkResponse.clone();
             caches.open(CACHE_NAME).then(cache => {
               cache.put(event.request, cacheCopy);

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock } from '@/utils/supabase'
 import { AuthInput } from '@/components/ui/auth-input'
@@ -234,12 +235,18 @@ export default function LoginPage() {
           </div>
 
           <h1 className="text-3xl font-bold text-white leading-tight">
-            Daily Report<br />
+            Executive Command<br />
             <span className="text-gradient-gold">Portal</span>
           </h1>
-          <p className="mt-3 text-[13px] text-slate-500 leading-relaxed max-w-xs">
-            Secure departmental reporting tools for convention operations.
+          <p className="mt-3 text-[13px] text-slate-400 leading-relaxed max-w-xs">
+            Unified Convention &amp; Congress Operations — sign in with your provisioned credentials.
           </p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 mt-4 text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors"
+          >
+            ← Back to Portal Overview
+          </Link>
         </div>
 
         {/* Convention Schedule */}
@@ -274,22 +281,29 @@ export default function LoginPage() {
           }}
         >
           <div className="flex items-center gap-2.5">
-            <div
-              className="flex-shrink-0 h-9 w-9 rounded-xl overflow-hidden"
-              style={{ background: '#fff', boxShadow: '0 0 0 1px rgba(245,158,11,0.2)' }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/dtce-logo.png"
-                alt="DTCE Junior Church Global"
-                width={36}
-                height={36}
-                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              />
-            </div>
-            <span className="text-sm font-bold text-white">DTCE Reporting</span>
+            <Link href="/" className="flex items-center gap-2.5 min-w-0">
+              <div
+                className="flex-shrink-0 h-9 w-9 rounded-xl overflow-hidden"
+                style={{ background: '#fff', boxShadow: '0 0 0 1px rgba(245,158,11,0.2)' }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/dtce-logo.png"
+                  alt="DTCE Junior Church Global"
+                  width={36}
+                  height={36}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              </div>
+              <span className="text-sm font-bold text-white truncate">DTCE Command Portal</span>
+            </Link>
           </div>
-          <ThemeToggle compact />
+          <div className="flex items-center gap-2 shrink-0">
+            <Link href="/" className="text-xs font-semibold text-amber-400 hover:text-amber-300 px-2 py-1">
+              Overview
+            </Link>
+            <ThemeToggle compact />
+          </div>
         </div>
 
         {/* Mobile schedule chip rail */}
