@@ -43,21 +43,33 @@ export function OfflineSyncIndicator() {
     try {
       // 1. Daily log pending payloads are flushed by useOfflineDraft on the Daily Log page
 
-      // 2. Sync pending store requests
+      // 2. Sync pending store requests (keep any that fail for next retry)
       const rawReqs = localStorage.getItem('dtce_pending_store_requests')
       if (rawReqs) {
         const reqs = JSON.parse(rawReqs)
         if (Array.isArray(reqs) && reqs.length > 0) {
+          const remaining: any[] = []
           for (const item of reqs) {
             try {
-              await fetch('/api/inventory/submit-request', {
+              const res = await fetch('/api/inventory/submit-request', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(item),
+                body: JSON.stringify({
+                  departmentId: item.departmentId,
+                  requestType: item.requestType,
+                  items: item.items,
+                }),
               })
-            } catch (_) {}
+              if (!res.ok) remaining.push(item)
+            } catch (_) {
+              remaining.push(item)
+            }
           }
-          localStorage.removeItem('dtce_pending_store_requests')
+          if (remaining.length > 0) {
+            localStorage.setItem('dtce_pending_store_requests', JSON.stringify(remaining))
+          } else {
+            localStorage.removeItem('dtce_pending_store_requests')
+          }
         }
       }
 

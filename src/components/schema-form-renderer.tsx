@@ -224,6 +224,36 @@ export function SchemaFormRenderer({ fields, value, onChange, readOnly = false, 
                 />
               ))}
             </div>
+
+            {groupValues.length > 0 && (() => {
+              const numericCols = (field.schema || []).filter(
+                (sub) => sub.type === 'number' || sub.type === 'computed'
+              )
+              if (numericCols.length === 0) return null
+              return (
+                <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-3 space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 block">
+                    Live {field.label} Totals ({groupValues.length} {groupValues.length === 1 ? 'Row' : 'Rows'})
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {numericCols.map((sub) => {
+                      const colSum = groupValues.reduce((acc, r) => acc + (Number(r?.[sub.name]) || 0), 0)
+                      return (
+                        <div
+                          key={sub.name}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-card border border-border px-2.5 py-1 text-xs"
+                        >
+                          <span className="text-muted-foreground">{sub.label}:</span>
+                          <span className="font-mono font-bold text-foreground">
+                            {sub.name.includes('offering') || sub.name.includes('amount') || sub.label.includes('₦') ? `₦${colSum.toLocaleString()}` : colSum.toLocaleString()}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
           </div>
         )
 

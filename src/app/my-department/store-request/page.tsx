@@ -359,6 +359,31 @@ function StoreRequestContent() {
     }
   }
 
+  useEffect(() => {
+    if (!profile?.department_id) return
+    try {
+      const saved = localStorage.getItem(`dtce_store_req_draft_${profile.department_id}`)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed?.items) && parsed.items.length > 0 && items.length === 0) {
+          setItems(parsed.items)
+        }
+      }
+    } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile?.department_id])
+
+  useEffect(() => {
+    if (!profile?.department_id) return
+    try {
+      if (items.length > 0) {
+        localStorage.setItem(`dtce_store_req_draft_${profile.department_id}`, JSON.stringify({ items, requestType }))
+      } else {
+        localStorage.removeItem(`dtce_store_req_draft_${profile.department_id}`)
+      }
+    } catch {}
+  }, [items, requestType, profile?.department_id])
+
   const handleRemoveItem = (index: number) => {
     setItems(prev => prev.filter((_, i) => i !== index))
   }
@@ -413,6 +438,35 @@ function StoreRequestContent() {
       return
     }
 
+    const queueOfflineRequest = () => {
+      try {
+        const existingRaw = localStorage.getItem('dtce_pending_store_requests')
+        const existing = existingRaw ? JSON.parse(existingRaw) : []
+        const nextQueue = [
+          ...(Array.isArray(existing) ? existing : []),
+          {
+            departmentId: profile.department_id,
+            requestType,
+            items,
+            queuedAt: new Date().toISOString(),
+          },
+        ]
+        localStorage.setItem('dtce_pending_store_requests', JSON.stringify(nextQueue))
+        localStorage.removeItem(`dtce_store_req_draft_${profile.department_id}`)
+        window.dispatchEvent(new Event('online'))
+        setItems([])
+        showToast('No signal — requisition saved locally and will auto-submit when back online.', 'warning')
+      } catch {
+        showToast('Unable to save offline requisition locally.', 'error')
+      }
+    }
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      queueOfflineRequest()
+      setLoading(false)
+      return
+    }
+
     try {
       const res = await fetch('/api/inventory/submit-request', {
         method: 'POST',
@@ -429,6 +483,9 @@ function StoreRequestContent() {
         throw new Error(data.error || 'Failed to submit request')
       }
 
+      try {
+        localStorage.removeItem(`dtce_store_req_draft_${profile.department_id}`)
+      } catch {}
       showToast(
         requestType === 'pre_event'
           ? 'Pre-Event Needs List sent! The General Secretary & National Coordinator will review and approve it for market purchase.'
@@ -438,7 +495,11 @@ function StoreRequestContent() {
       setItems([])
       loadData()
     } catch (err: any) {
-      showToast(`Submission failed: ${err.message}`, 'error')
+      if (typeof navigator !== 'undefined' && (!navigator.onLine || err?.name === 'TypeError')) {
+        queueOfflineRequest()
+      } else {
+        showToast(`Submission failed: ${err.message}`, 'error')
+      }
     } finally {
       setLoading(false)
     }

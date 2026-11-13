@@ -112,6 +112,7 @@ function AdminRequisitionsContent() {
 
   // Review Modal State
   const [selectedReq, setSelectedReq] = useState<StoreRequestTicket | null>(null)
+  const [quickApprovingId, setQuickApprovingId] = useState<string | null>(null)
   const [actionComments, setActionComments] = useState('')
   const [delegateId, setDelegateId] = useState<string>('none')
   const [editableItems, setEditableItems] = useState<EditableItem[]>([])
@@ -370,6 +371,52 @@ function AdminRequisitionsContent() {
     }
     return c
   }, [modeRequests, workflowMode])
+
+  const formatPendingAge = (isoDate: string) => {
+    const ms = Math.max(0, Date.now() - new Date(isoDate).getTime())
+    const mins = Math.floor(ms / 60000)
+    if (mins < 60) return `${mins}m`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ${mins % 60}m`
+    const days = Math.floor(hrs / 24)
+    return `${days}d ${hrs % 24}h`
+  }
+
+  const handleQuickApprove = async (req: StoreRequestTicket) => {
+    const baseItems = Array.isArray(req.items_json)
+      ? req.items_json.map((it: any) => ({
+          ...it,
+          requested_quantity: it.requested_quantity ?? it.quantity ?? 1,
+          approved_quantity: it.requested_quantity ?? it.quantity ?? 1,
+          quantity: it.requested_quantity ?? it.quantity ?? 1,
+        }))
+      : []
+    if (baseItems.length === 0) {
+      showToast('Requisition has no line items to approve.', 'error')
+      return
+    }
+    setQuickApprovingId(req.id)
+    try {
+      const res = await fetch('/api/update-store-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requestId: req.id,
+          status: 'approved',
+          comments: 'Approved as requested',
+          items_json: baseItems,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) throw new Error(data.error || 'Failed to approve requisition')
+      showToast(`Approved ${req.department?.name || 'Department'} requisition as requested.`, 'success')
+      loadData()
+    } catch (err: any) {
+      showToast(`Error: ${err.message}`, 'error')
+    } finally {
+      setQuickApprovingId(null)
+    }
+  }
 
   const handleAction = async (status: ReqStatus) => {
     if (!selectedReq) return
@@ -819,7 +866,7 @@ function AdminRequisitionsContent() {
                           </span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
                             isPre
-                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-700 dark:text-emerald-400 border-emerald-500/25'
+                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/25'
                               : 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/25'
                           }`}>
                             <span className="inline-flex items-center gap-1">{isPre ? <><ShoppingCart className="h-3 w-3" /> For Market Purchase</> : <><Package className="h-3 w-3" /> From Store Stock</>}</span>
@@ -827,6 +874,11 @@ function AdminRequisitionsContent() {
                           <span className="text-xs font-mono text-muted-foreground">
                             #{req.id.substring(0, 8)}
                           </span>
+                          {req.status === 'pending_coordinator' && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25 whitespace-nowrap">
+                              <Clock className="h-3 w-3" /> Pending {formatPendingAge(req.created_at)}
+                            </span>
+                          )}
                         </div>
                         <span className="text-xs text-muted-foreground block mt-0.5">
                           Submitted by: <strong>{req.requester?.full_name || req.requester?.email || 'HOD'}</strong> • {new Date(req.created_at).toLocaleDateString()}
@@ -886,14 +938,24 @@ function AdminRequisitionsContent() {
                     <div className="flex gap-2 justify-end pt-1">
                       {req.status === 'pending_coordinator' ? (
                         (profile?.role !== 'coordinator' || req.assigned_approver_id === profile.id) ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => selectReqForReview(req)}
-                            className="text-xs h-8.5 px-4 cursor-pointer border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 font-bold shadow-xs"
-                          >
-                            <span className="inline-flex items-center gap-1.5">{isPre ? 'Review & Approve for Market Purchase' : 'Review & Edit Quantities'} <ArrowRight className="h-3.5 w-3.5" /></span>
-                          </Button>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleQuickApprove(req)}
+                              disabled={quickApprovingId === req.id}
+                              className="text-xs h-8.5 px-3.5 cursor-pointer bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-xs whitespace-nowrap"
+                            >
+                              <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" /> 1-Click Approve</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => selectReqForReview(req)}
+                              className="text-xs h-8.5 px-4 cursor-pointer border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 font-bold shadow-xs whitespace-nowrap"
+                            >
+                              <span className="inline-flex items-center gap-1.5">{isPre ? 'Review & Edit Market List' : 'Review & Edit Quantities'} <ArrowRight className="h-3.5 w-3.5" /></span>
+                            </Button>
+                          </div>
                         ) : (
                           <span className="text-[10px] font-semibold text-muted-foreground bg-slate-800/40 px-2.5 py-1 rounded-full border border-slate-700/50">
                             Read-Only (Unassigned)

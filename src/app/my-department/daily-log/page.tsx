@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { SchemaFormRenderer } from '@/components/schema-form-renderer'
 import { NumberField } from '@/components/ui/number-field'
 import { CurrencyField } from '@/components/ui/currency-field'
-import { ClipboardList, Wifi, WifiOff, Clock, Globe, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react'
+import { ClipboardList, Wifi, WifiOff, Clock, Globe, ArrowLeft, ArrowRight, AlertTriangle, X, CheckCircle2 } from 'lucide-react'
 import { useOfflineDraft } from '@/hooks/use-offline-draft'
 import { PreEventRegistrationTotalsModal } from '@/components/registration/pre-event-totals-modal'
 import { getCurrentEventId, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
@@ -33,6 +33,7 @@ function DailyLogContent() {
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [department, setDepartment] = useState<Department | null>(null)
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
   const [activeDay, setActiveDay] = useState<any | null>(null)
   const [eventDays, setEventDays] = useState<any[]>([])
   
@@ -709,6 +710,37 @@ function DailyLogContent() {
     setValidationErrors(errors)
   }, [attendanceMorning, attendanceEvening, workforce, offering, department])
 
+  const getMissingRequiredCustomFields = useCallback((): string[] => {
+    const fields = department?.default_metrics_schema?.fields
+    if (!Array.isArray(fields)) return []
+    const missing: string[] = []
+    for (const f of fields) {
+      if (!f.required || f.type === 'computed') continue
+      const val = metricsData?.[f.name]
+      if (f.type === 'repeat-group') {
+        if (!Array.isArray(val) || val.length === 0) missing.push(f.label)
+      } else if (val === undefined || val === null || String(val).trim() === '') {
+        missing.push(f.label)
+      }
+    }
+    return missing
+  }, [department, metricsData])
+
+  const handlePreSubmitCheck = () => {
+    if (!activeDay || !department) return
+    const windowCheck = evaluateDailyReportWindow(activeDay)
+    if (!isSuperAdminActing && !windowCheck.isOpen) {
+      showToast(windowCheck.message, 'warning')
+      return
+    }
+    const missingRequired = getMissingRequiredCustomFields()
+    if (missingRequired.length > 0) {
+      showToast(`Please complete required field(s): ${missingRequired.join(', ')}`, 'error')
+      return
+    }
+    setIsReviewModalOpen(true)
+  }
+
   const handleDayChange = (dayId: string) => {
     if (department) {
       const urlParams = new URLSearchParams(window.location.search)
@@ -1106,9 +1138,14 @@ function DailyLogContent() {
           ) : hasWorkforce && (
             <Card className="glass-card border-none">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
-                  2. Attendee Category Breakdown
-                </CardTitle>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
+                    2. Attendee Category Breakdown
+                  </CardTitle>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/25 whitespace-nowrap">
+                    Total Workforce: {Object.values(workforce).reduce((a, b) => a + b, 0).toLocaleString()}
+                  </span>
+                </div>
                 <CardDescription className="text-xs text-muted-foreground">
                   Break down logged attendee counts by category and gender.
                 </CardDescription>
@@ -1441,7 +1478,7 @@ function DailyLogContent() {
                       {loading ? 'Saving...' : 'Save Draft'}
                     </Button>
                     <Button
-                      onClick={() => handleSubmit(true)}
+                      onClick={handlePreSubmitCheck}
                       disabled={loading || isSubmitLockedByWindow}
                       className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
                     >
@@ -1450,8 +1487,8 @@ function DailyLogContent() {
                         : isSubmitLockedByWindow
                         ? 'Submission Locked Until Event Day'
                         : !isOnline
-                        ? <span className="inline-flex items-center gap-1.5"><WifiOff className="h-3.5 w-3.5" /> Submit (queues offline)</span>
-                        : 'Submit Daily Log'}
+                        ? <span className="inline-flex items-center gap-1.5"><WifiOff className="h-3.5 w-3.5" /> Review & Queue Offline</span>
+                        : 'Review & Submit Daily Log'}
                     </Button>
                   </div>
                 )
@@ -1460,6 +1497,107 @@ function DailyLogContent() {
           </Card>
         </div>
       </div>
+
+      {/* ── PRE-SUBMISSION REVIEW MODAL ── */}
+      {isReviewModalOpen && activeDay && department && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 dark:bg-slate-950/80 backdrop-blur-md animate-fade-in-up"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !loading) setIsReviewModalOpen(false)
+          }}
+        >
+          <Card className="w-full max-w-lg bg-card border border-border text-foreground shadow-2xl max-h-[90dvh] flex flex-col overflow-hidden">
+            <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3 border-b border-border">
+              <div>
+                <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                  Review Daily Log Before Submitting
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                  {department.name} · Day {activeDay.day_number} — Please verify your figures before locking this submission.
+                </CardDescription>
+              </div>
+              <button
+                onClick={() => !loading && setIsReviewModalOpen(false)}
+                aria-label="Close review modal"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-4 flex-1 min-h-0 overflow-y-auto text-xs">
+              <div className="grid grid-cols-2 gap-2.5">
+                {!DEPTS_WITHOUT_ATTENDANCE.includes(department.id) && (
+                  <>
+                    <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Morning Attendance</span>
+                      <span className="text-lg font-mono font-bold text-foreground">{attendanceMorning.toLocaleString()}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Evening Attendance</span>
+                      <span className="text-lg font-mono font-bold text-foreground">{attendanceEvening.toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
+                {hasWorkforce && (
+                  <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Total Workforce</span>
+                    <span className="text-lg font-mono font-bold text-blue-700 dark:text-blue-400">
+                      {Object.values(workforce).reduce((a, b) => a + b, 0).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {(hasOffering || department.name.toLowerCase().includes('ushering')) && (
+                  <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Recorded Offering</span>
+                    <span className="text-lg font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                      ₦{offering.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {validationErrors.length > 0 && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 space-y-1">
+                  <span className="font-bold uppercase tracking-wider text-[10px] inline-flex items-center gap-1.5">
+                    <AlertTriangle className="h-3.5 w-3.5" /> Pre-Submission Warnings
+                  </span>
+                  <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
+                    {validationErrors.map((err, i) => <li key={i}>{err}</li>)}
+                  </ul>
+                </div>
+              )}
+
+              <div className="p-3 rounded-xl bg-muted/40 border border-border space-y-1 text-[11px] text-muted-foreground">
+                <div><strong className="text-foreground">Daily Narrative:</strong> {dailyOverview.trim() ? 'Provided' : 'Not entered'}</div>
+                <div><strong className="text-foreground">Custom Metrics Fields:</strong> {Object.keys(metricsData || {}).length} populated</div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2 pt-3 border-t border-border">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsReviewModalOpen(false)}
+                disabled={loading}
+                className="text-xs h-9 px-4"
+              >
+                Back to Edit
+              </Button>
+              <Button
+                type="button"
+                onClick={async () => {
+                  setIsReviewModalOpen(false)
+                  await handleSubmit(true)
+                }}
+                disabled={loading}
+                className="text-xs h-9 px-5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
+              >
+                {!isOnline ? 'Confirm & Queue Offline' : 'Confirm & Submit Report'}
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      )}
 
       <PreEventRegistrationTotalsModal
         isOpen={isPreTotalsOpen}
