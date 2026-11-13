@@ -196,15 +196,23 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-background text-foreground font-sans antialiased">
       {/* ── Left Panel: Architectural Brand Side (desktop only, theme-aware) ── */}
-      <aside className="relative hidden lg:flex w-5/12 flex-col justify-between overflow-hidden p-12 border-r border-border bg-muted/30 dark:bg-[#090E18]">
-        {/* Ambient glow orbs (subtle in both light & dark) */}
-        <div className="pointer-events-none absolute inset-0 opacity-40 dark:opacity-100">
+      <aside className="relative hidden lg:flex w-5/12 flex-col justify-between overflow-hidden p-12 border-r border-border bg-[#0F2A4A] text-white dark:bg-[#090E18]">
+        {/* Fine dot-matrix texture + subtle ambient glow */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px)',
+            backgroundSize: '20px 20px',
+          }}
+        />
+        <div className="pointer-events-none absolute inset-0">
           <div
-            className="absolute top-[-10%] left-[-10%] h-96 w-96 rounded-full opacity-20"
+            className="absolute top-[-10%] left-[-10%] h-96 w-96 rounded-full opacity-25"
             style={{ background: 'radial-gradient(circle, #1E40AF 0%, transparent 70%)' }}
           />
           <div
-            className="absolute bottom-[-5%] right-[-5%] h-80 w-80 rounded-full opacity-10"
+            className="absolute bottom-[-5%] right-[-5%] h-80 w-80 rounded-full opacity-15"
             style={{ background: 'radial-gradient(circle, #F59E0B 0%, transparent 70%)' }}
           />
         </div>
@@ -212,7 +220,7 @@ export default function LoginPage() {
         {/* Logo & tagline */}
         <div className="relative z-10 space-y-6">
           <Link href="/" className="inline-flex items-center gap-3 group">
-            <div className="flex-shrink-0 h-12 w-12 rounded-2xl overflow-hidden bg-white p-1.5 border border-border shadow-xs">
+            <div className="flex-shrink-0 h-12 w-12 rounded-2xl overflow-hidden bg-white p-1.5 shadow-sm">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/dtce-logo.png"
@@ -223,28 +231,28 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <span className="text-base font-bold tracking-tight text-foreground block">
+              <span className="text-base font-bold tracking-tight text-white block">
                 DTCE Reporting
               </span>
-              <span className="text-xs text-muted-foreground block">
+              <span className="text-xs text-slate-300 block">
                 Departmental Reporting Portal
               </span>
             </div>
           </Link>
 
           <div className="space-y-3 pt-2">
-            <h1 className="text-3xl font-extrabold tracking-tight text-foreground leading-tight">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white leading-tight">
               Sign in to{' '}
-              <span className="text-amber-600 dark:text-amber-400">
+              <span className="text-amber-400">
                 your portal.
               </span>
             </h1>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
+            <p className="text-sm text-slate-300 leading-relaxed max-w-sm">
               Enter your assigned username and password to get started.
             </p>
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 pt-1 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:underline"
+              className="inline-flex items-center gap-1.5 pt-1 text-xs font-semibold text-amber-400 hover:text-amber-300 hover:underline"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Back to Portal Overview
@@ -252,23 +260,23 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Workspace Pillars (replaces static schedule numbers) */}
+        {/* Workspace Pillars */}
         <div className="relative z-10 space-y-3">
           {WORKSPACE_PILLARS.map((pillar) => {
             const Icon = pillar.icon
             return (
               <div
                 key={pillar.title}
-                className="flex items-start gap-3 rounded-xl border border-border/80 bg-card/80 p-3.5"
+                className="flex items-start gap-3 rounded-xl border border-white/12 bg-white/[0.06] backdrop-blur-xs p-3.5"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-400 border border-amber-400/25">
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs font-bold text-foreground block">
+                  <span className="text-xs font-bold text-white block">
                     {pillar.title}
                   </span>
-                  <span className="text-[11px] text-muted-foreground leading-snug block mt-0.5">
+                  <span className="text-[11px] text-slate-300 leading-snug block mt-0.5">
                     {pillar.desc}
                   </span>
                 </div>
@@ -277,15 +285,19 @@ export default function LoginPage() {
           })}
         </div>
 
-        <div className="relative z-10 text-xs text-muted-foreground">
+        <div className="relative z-10 text-xs text-slate-400">
           RCCG Directorate of Teens &amp; Children Education
         </div>
       </aside>
 
       {/* ── Right Panel: Login Form ── */}
-      <main className="flex flex-1 flex-col bg-background">
+      <main className="relative flex flex-1 flex-col bg-background overflow-hidden">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-dot-matrix [mask-image:radial-gradient(ellipse_75%_65%_at_50%_40%,#000_35%,transparent_100%)]"
+        />
         {/* Mobile & Tablet header bar */}
-        <div className="flex lg:hidden items-center justify-between gap-2 px-4 sm:px-6 py-3.5 border-b border-border bg-background/90 backdrop-blur-md">
+        <div className="relative z-10 flex lg:hidden items-center justify-between gap-2 px-4 sm:px-6 py-3.5 border-b border-border bg-background/90 backdrop-blur-md">
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
             <div className="flex-shrink-0 h-9 w-9 rounded-xl overflow-hidden bg-white p-1 border border-border shadow-2xs">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -313,9 +325,7 @@ export default function LoginPage() {
         </div>
 
         {/* Form area */}
-        <div className="flex flex-1 items-center justify-center p-6 lg:p-16"
-          style={{ background: 'var(--background)' }}
-        >
+        <div className="relative z-10 flex flex-1 items-center justify-center p-6 lg:p-16">
           <div className="w-full max-w-sm space-y-5 animate-fade-in-up">
 
             {/* Desktop: theme toggle + heading row */}
@@ -335,7 +345,7 @@ export default function LoginPage() {
 
             {/* Form card (Ramp Elevation System) */}
             <div
-              className="rounded-2xl p-6 sm:p-7 space-y-4 bg-card border border-border/50 shadow-[0_1px_3px_rgba(15,42,74,0.06),0_1px_2px_rgba(15,42,74,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
+              className="rounded-2xl p-6 sm:p-7 space-y-4 bg-card border border-border shadow-[0_1px_2px_rgba(15,42,74,0.05),0_12px_32px_-6px_rgba(15,42,74,0.09)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
             >
               <form onSubmit={handleSubmit} noValidate className="space-y-4">
                 <AuthInput
@@ -367,8 +377,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowForgotMsg(true)}
-                    className="text-[11px] font-medium transition-colors"
-                    style={{ color: '#F59E0B' }}
+                    className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 hover:underline transition-colors cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -377,12 +386,7 @@ export default function LoginPage() {
 
                 {showForgotMsg && (
                   <div
-                    className="rounded-xl p-3 text-[12px]"
-                    style={{
-                      background: 'rgba(245,158,11,0.08)',
-                      border: '1px solid rgba(245,158,11,0.2)',
-                      color: '#FCD34D',
-                    }}
+                    className="rounded-xl p-3 text-[12px] bg-amber-500/10 border border-amber-500/25 text-amber-800 dark:text-amber-300"
                     role="status"
                   >
                     Contact your Department Head or Secretariat Admin to reset your password.
@@ -391,12 +395,11 @@ export default function LoginPage() {
 
                 {formMessage && (
                   <div
-                    className="rounded-xl p-3 text-[12px]"
-                    style={
+                    className={`rounded-xl p-3 text-[12px] border ${
                       formMessage.type === 'success'
-                        ? { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#34D399' }
-                        : { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' }
-                    }
+                        ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-800 dark:text-emerald-300'
+                        : 'bg-red-500/10 border-red-500/25 text-red-700 dark:text-red-300'
+                    }`}
                     role="alert"
                   >
                     {formMessage.text}
@@ -407,12 +410,7 @@ export default function LoginPage() {
                   id="login-submit-btn"
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-xl py-3 text-[14px] font-bold text-white transition-all duration-200"
-                  style={{
-                    background: loading ? 'rgba(30,64,175,0.5)' : 'linear-gradient(135deg, #1E40AF, #3B82F6)',
-                    border: '1px solid rgba(59,130,246,0.3)',
-                    opacity: loading ? 0.7 : 1,
-                  }}
+                  className="w-full rounded-xl py-3 text-[14px] font-bold bg-[#0F2A4A] hover:bg-[#163861] text-white dark:bg-amber-500 dark:hover:bg-amber-400 dark:text-[#06090F] shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-60"
                 >
                   {loading ? 'Authenticating…' : 'Sign In'}
                 </button>
