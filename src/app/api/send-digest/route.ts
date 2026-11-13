@@ -40,10 +40,10 @@ export async function POST(request: Request) {
       dailyReports = reps || []
       const { data: profs } = await supabase.from('profiles').select('*')
       profiles = profs || []
-      const { data: assigns } = await supabase.from('hod_assignments').select('*')
-      // Prefer this event's assignments; fall back to all if none exist yet
-      const eventAssigns = (assigns || []).filter((h: any) => h.event_id === eventId)
-      hodAssignments = eventAssigns.length > 0 ? eventAssigns : (assigns || [])
+      let assignQuery = supabase.from('hod_assignments').select('*')
+      if (eventId) assignQuery = assignQuery.eq('event_id', eventId)
+      const { data: assigns } = await assignQuery
+      hodAssignments = assigns || []
     }
 
     const currentDayObj = activeEventDays.find(d => d.day_number === dayNumber)

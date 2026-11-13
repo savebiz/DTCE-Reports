@@ -172,11 +172,13 @@ function AdminRequisitionsContent() {
 
     if (!ADMIN_ROLES.includes(activeProfile.role)) {
       if (!isMock) {
-        const { data: hasAssigned } = await supabase
+        const evForCheck = await getCurrentEvent(supabase)
+        let assignedQuery = supabase
           .from('store_requests')
           .select('id')
           .eq('assigned_approver_id', activeProfile.id)
-          .limit(1)
+        if (evForCheck?.id) assignedQuery = assignedQuery.eq('event_id', evForCheck.id)
+        const { data: hasAssigned } = await assignedQuery.limit(1)
         if (!hasAssigned || hasAssigned.length === 0) {
           router.push('/dashboard')
           return

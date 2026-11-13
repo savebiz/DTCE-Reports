@@ -226,7 +226,7 @@ export async function GET(request: NextRequest) {
     const eventId = await getCurrentEventId(supabaseAdmin)
 
     if (reportType === 'stock_summary') {
-      const { data, error } = await supabaseAdmin.rpc('get_inventory_stock_summary')
+      const { data, error } = await supabaseAdmin.rpc('get_inventory_stock_summary', { p_event_id: eventId })
       if (error) {
         // Fallback server query
         const { data: rawItems } = await supabaseAdmin.from('inventory_items').select('*').order('name', { ascending: true })
@@ -240,7 +240,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (reportType === 'low_stock') {
-      const { data, error } = await supabaseAdmin.rpc('get_inventory_stock_summary', { p_only_low_stock: true })
+      const { data, error } = await supabaseAdmin.rpc('get_inventory_stock_summary', { p_only_low_stock: true, p_event_id: eventId })
       if (error) {
         const { data: rawItems } = await supabaseAdmin.from('inventory_items').select('*')
         const filtered = (rawItems || []).filter((i: any) => i.current_stock <= i.low_stock_threshold)
@@ -256,7 +256,8 @@ export async function GET(request: NextRequest) {
         p_start_date: startDate,
         p_end_date: endDate,
         p_dept_ids: deptIds.length > 0 ? deptIds : null,
-        p_item_ids: itemIds.length > 0 ? itemIds : null
+        p_item_ids: itemIds.length > 0 ? itemIds : null,
+        p_event_id: eventId
       })
 
       if (error) {

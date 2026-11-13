@@ -195,8 +195,10 @@ function SecretariatDashboardContent() {
     const { data: reps } = await repsQuery
     setReports(reps || [])
 
-    const { data: narrs } = await supabase.from('department_narratives').select('*')
-    setNarratives((narrs || []).filter((n: any) => !currentEventId || !n.event_id || n.event_id === currentEventId))
+    let narrsQuery = supabase.from('department_narratives').select('*')
+    if (currentEventId) narrsQuery = narrsQuery.eq('event_id', currentEventId)
+    const { data: narrs } = await narrsQuery
+    setNarratives(narrs || [])
 
     let reqsQuery = supabase.from('store_requests').select('*')
     if (currentEventId) reqsQuery = reqsQuery.eq('event_id', currentEventId)

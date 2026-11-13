@@ -1,3 +1,4 @@
+import { getCurrentEventId } from '@/lib/events/current-event'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
@@ -31,9 +32,10 @@ export async function GET(request: NextRequest) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabase = (serviceKey && supabaseUrl) ? createSupabaseAdminClient(supabaseUrl, serviceKey) : await createServerClient()
 
-    const { data, error } = await supabase
-      .from('challenge_resolutions')
-      .select('*')
+    const eventId = await getCurrentEventId(supabase)
+    let resQuery = supabase.from('challenge_resolutions').select('*')
+    if (eventId) resQuery = resQuery.eq('event_id', eventId)
+    const { data, error } = await resQuery
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })
@@ -117,7 +119,9 @@ export async function POST(request: NextRequest) {
 
     userName = prof?.full_name || prof?.email || 'Secretariat Staff'
 
+    const eventId = await getCurrentEventId(supabase)
     const payload = {
+      ...(eventId ? { event_id: eventId } : {}),
       challenge_key: challengeKey,
       resolution_status: status,
       resolution_note: status === 'resolved' ? (resolutionNote || null) : null,

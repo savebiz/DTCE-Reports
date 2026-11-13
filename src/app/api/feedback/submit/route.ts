@@ -1,3 +1,4 @@
+import { getCurrentEventId } from '@/lib/events/current-event'
 import { NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { isMock } from '@/utils/supabase'
@@ -80,8 +81,11 @@ export async function POST(request: Request) {
         serviceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       )
 
+      const currentEventId = await getCurrentEventId(supabaseAdmin)
+      const insertPayload = currentEventId ? { ...payload, event_id: currentEventId } : payload
+
       // Insert into platform_feedback using admin client (bypasses RLS mismatch)
-      const { error: insertErr } = await supabaseAdmin.from('platform_feedback').insert(payload)
+      const { error: insertErr } = await supabaseAdmin.from('platform_feedback').insert(insertPayload)
       if (insertErr) {
         console.error('Failed to insert platform_feedback:', insertErr)
         return NextResponse.json({ error: insertErr.message }, { status: 500 })

@@ -49,12 +49,13 @@ export async function POST(request: Request) {
     const auth = await requireAuth()
     if (!auth.ok) return auth.response
     if (!ADMIN_ROLES.includes(auth.ctx.role) && !auth.ctx.isStoresStaff && reqRow.requester_profile_id !== user.id) {
-      const { data: memberships } = await supabaseAdmin
+      let memQuery = supabaseAdmin
         .from('hod_assignments')
         .select('department_id')
         .eq('profile_id', user.id)
         .eq('department_id', reqRow.department_id)
-        .limit(1)
+      if (reqRow.event_id) memQuery = memQuery.eq('event_id', reqRow.event_id)
+      const { data: memberships } = await memQuery.limit(1)
       if (!memberships || memberships.length === 0) {
         return NextResponse.json({ error: 'You can only return items issued to your own department.' }, { status: 403 })
       }

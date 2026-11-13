@@ -140,8 +140,7 @@ export function assignmentMapForEvent(
   const map: Record<string, string> = {}
   for (const row of rows || []) {
     if (!row.profile_id || !row.department_id) continue
-    const isCurrent = !!eventId && row.event_id === eventId
-    if (isCurrent || !(row.profile_id in map)) {
+    if (!eventId || row.event_id === eventId) {
       map[row.profile_id] = row.department_id
     }
   }

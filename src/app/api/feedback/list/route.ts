@@ -1,3 +1,4 @@
+import { getCurrentEventId } from '@/lib/events/current-event'
 import { NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { isMock, mockDepartments } from '@/utils/supabase'
@@ -43,10 +44,13 @@ export async function GET() {
     )
 
     // 3. Fetch all feedback records using admin client (bypasses RLS issues)
-    const { data: dbFeedbacks, error: fbErr } = await supabaseAdmin
+    const currentEventId = await getCurrentEventId(supabaseAdmin)
+    let fbQuery = supabaseAdmin
       .from('platform_feedback')
       .select('*')
       .order('submitted_at', { ascending: false })
+    if (currentEventId) fbQuery = fbQuery.eq('event_id', currentEventId)
+    const { data: dbFeedbacks, error: fbErr } = await fbQuery
 
     if (fbErr) {
       console.error('Error fetching platform_feedback:', fbErr)
@@ -67,7 +71,9 @@ export async function GET() {
     deptsList.forEach((d: any) => { deptMap[d.id] = d.name })
 
     // Also fetch hod_assignments to resolve department_id if missing on profile
-    const { data: dbAssigns } = await supabaseAdmin.from('hod_assignments').select('*')
+    let assignQuery = supabaseAdmin.from('hod_assignments').select('*')
+    if (currentEventId) assignQuery = assignQuery.eq('event_id', currentEventId)
+    const { data: dbAssigns } = await assignQuery
     const assignMap: Record<string, string> = {}
     if (dbAssigns) {
       dbAssigns.forEach((a: any) => {

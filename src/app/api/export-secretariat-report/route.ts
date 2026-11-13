@@ -80,14 +80,11 @@ export async function GET(request: Request) {
       const { data: profs } = await supabase.from('profiles').select('*')
       profiles = profs || []
 
-      let fbsQuery = supabase.from('platform_feedback').select('*')
-      if (event.start_date) fbsQuery = fbsQuery.gte('created_at', event.start_date)
-      if (event.end_date) fbsQuery = fbsQuery.lte('created_at', event.end_date + 'T23:59:59.999Z')
-      const { data: fbs } = await fbsQuery
-      feedbacks = (fbs || []).filter((f: any) => !f.event_id || f.event_id === event.id)
+      const { data: fbs } = await supabase.from('platform_feedback').select('*').eq('event_id', event.id)
+      feedbacks = fbs || []
 
-      const { data: crs } = await supabase.from('challenge_resolutions').select('*')
-      challengeResolutions = (crs || []).filter((c: any) => !c.event_id || c.event_id === event.id)
+      const { data: crs } = await supabase.from('challenge_resolutions').select('*').eq('event_id', event.id)
+      challengeResolutions = crs || []
 
       let nlogsQuery = supabase.from('notification_logs').select('*')
       if (event.start_date) nlogsQuery = nlogsQuery.gte('created_at', event.start_date)

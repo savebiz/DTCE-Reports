@@ -304,8 +304,10 @@ export async function getDepartmentRecipientIds(supabaseAdmin: any, departmentId
 
   if (hodAssigns && hodAssigns.length > 0) {
     const currentEventId = await getCurrentEventId(supabaseAdmin)
-    const currentTeam = hodAssigns.filter((h: any) => currentEventId && h.event_id === currentEventId)
-    ;(currentTeam.length > 0 ? currentTeam : hodAssigns).forEach((h: any) => recipientSet.add(h.profile_id))
+    const currentTeam = currentEventId
+      ? hodAssigns.filter((h: any) => h.event_id === currentEventId)
+      : hodAssigns
+    currentTeam.forEach((h: any) => recipientSet.add(h.profile_id))
   }
 
   return Array.from(recipientSet)

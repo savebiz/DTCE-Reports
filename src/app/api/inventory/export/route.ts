@@ -122,7 +122,8 @@ export async function GET(request: NextRequest) {
         })
       } else {
         const supabaseAdmin = getAdminClient()
-        const { data } = await supabaseAdmin.rpc('get_inventory_stock_summary')
+        const eventId = await getCurrentEventId(supabaseAdmin)
+        const { data } = await supabaseAdmin.rpc('get_inventory_stock_summary', { p_event_id: eventId })
         let res = data || []
         if (itemIds.length > 0) res = res.filter((i: any) => itemIds.includes(i.id))
         return res
@@ -169,11 +170,13 @@ export async function GET(request: NextRequest) {
         return Array.from(map.values()).sort((a, b) => b.total_fulfilled_qty - a.total_fulfilled_qty)
       } else {
         const supabaseAdmin = getAdminClient()
+        const eventId = await getCurrentEventId(supabaseAdmin)
         const { data } = await supabaseAdmin.rpc('get_inventory_department_consumption', {
           p_start_date: startDate || null,
           p_end_date: endDate || null,
           p_dept_ids: deptIds.length > 0 ? deptIds : null,
-          p_item_ids: itemIds.length > 0 ? itemIds : null
+          p_item_ids: itemIds.length > 0 ? itemIds : null,
+          p_event_id: eventId
         })
         return data || []
       }
