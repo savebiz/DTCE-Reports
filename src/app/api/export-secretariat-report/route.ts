@@ -62,8 +62,8 @@ export async function GET(request: Request) {
       const { data: reps } = await supabase.from('daily_reports').select('*').eq('event_id', event.id)
       reports = reps || []
 
-      const { data: narrs } = await supabase.from('department_narratives').select('*')
-      narratives = (narrs || []).filter((n: any) => !n.event_id || n.event_id === event.id)
+      const { data: narrs } = await supabase.from('department_narratives').select('*').eq('event_id', event.id)
+      narratives = narrs || []
 
       const { data: sReqs } = await supabase.from('store_requests').select('*').eq('event_id', event.id)
       storeRequests = sReqs || []
@@ -71,19 +71,28 @@ export async function GET(request: Request) {
       const { data: invItems } = await supabase.from('inventory_items').select('*')
       inventoryItems = invItems || []
 
-      const { data: invTxns } = await supabase.from('inventory_transactions').select('*')
+      let invTxnsQuery = supabase.from('inventory_transactions').select('*')
+      if (event.start_date) invTxnsQuery = invTxnsQuery.gte('created_at', event.start_date)
+      if (event.end_date) invTxnsQuery = invTxnsQuery.lte('created_at', event.end_date + 'T23:59:59.999Z')
+      const { data: invTxns } = await invTxnsQuery
       inventoryTransactions = invTxns || []
 
       const { data: profs } = await supabase.from('profiles').select('*')
       profiles = profs || []
 
-      const { data: fbs } = await supabase.from('platform_feedback').select('*')
-      feedbacks = fbs || []
+      let fbsQuery = supabase.from('platform_feedback').select('*')
+      if (event.start_date) fbsQuery = fbsQuery.gte('created_at', event.start_date)
+      if (event.end_date) fbsQuery = fbsQuery.lte('created_at', event.end_date + 'T23:59:59.999Z')
+      const { data: fbs } = await fbsQuery
+      feedbacks = (fbs || []).filter((f: any) => !f.event_id || f.event_id === event.id)
 
       const { data: crs } = await supabase.from('challenge_resolutions').select('*')
-      challengeResolutions = crs || []
+      challengeResolutions = (crs || []).filter((c: any) => !c.event_id || c.event_id === event.id)
 
-      const { data: nlogs } = await supabase.from('notification_logs').select('*')
+      let nlogsQuery = supabase.from('notification_logs').select('*')
+      if (event.start_date) nlogsQuery = nlogsQuery.gte('created_at', event.start_date)
+      if (event.end_date) nlogsQuery = nlogsQuery.lte('created_at', event.end_date + 'T23:59:59.999Z')
+      const { data: nlogs } = await nlogsQuery
       notificationLogs = nlogs || []
     }
 

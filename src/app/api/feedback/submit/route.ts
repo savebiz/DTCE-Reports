@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
+import { requireAuth } from '@/lib/auth/api-guard'
 import { store } from '@/utils/supabase/mockClient'
 import { getServiceRoleKey } from '@/utils/supabase/admin'
 
@@ -67,14 +67,11 @@ export async function POST(request: Request) {
         }
       }
     } else {
-      const supabaseUserClient = await createServerClient()
-      const { data: { user } } = await supabaseUserClient.auth.getUser()
-      if (!user) {
-        return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
-      }
+      const auth = await requireAuth()
+      if (!auth.ok) return auth.response
 
-      // Feedback is always recorded against the signed-in user
-      const activeProfileId = user.id
+      // Feedback is always recorded against the signed-in active user
+      const activeProfileId = auth.ctx.userId
       payload.profile_id = activeProfileId
 
       const serviceRoleKey = getServiceRoleKey()

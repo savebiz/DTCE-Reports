@@ -622,6 +622,24 @@ function DailyLogContent() {
     loadData()
   }, [deptIdParam, dayIdParam])
 
+  // ── Restore offline draft when switching days or mounting ─────────────────
+  useEffect(() => {
+    if (!dataLoaded || !department?.id || !activeDay?.id) return
+    if (status === 'submitted' || status === 'approved') return
+    const draft = loadDraft()
+    if (draft) {
+      if (draft.attendanceMorning !== undefined) setAttendanceMorning(draft.attendanceMorning)
+      if (draft.attendanceEvening !== undefined) setAttendanceEvening(draft.attendanceEvening)
+      if (draft.workforce) setWorkforce(draft.workforce)
+      if (draft.offering !== undefined) setOffering(draft.offering)
+      if (draft.dailyOverview !== undefined) setDailyOverview(draft.dailyOverview)
+      if (draft.dailyAchievements !== undefined) setDailyAchievements(draft.dailyAchievements)
+      if (draft.dailyChallenges !== undefined) setDailyChallenges(draft.dailyChallenges)
+      if (draft.dailyRecommendations !== undefined) setDailyRecommendations(draft.dailyRecommendations)
+      if (draft.metricsData) setMetricsData(draft.metricsData)
+    }
+  }, [dataLoaded, department?.id, activeDay?.id, status, loadDraft])
+
   // ── Auto-save draft on every form field change ────────────────────────────
   useEffect(() => {
     if (!dataLoaded || !department?.id || !activeDay?.id) return
@@ -702,12 +720,24 @@ function DailyLogContent() {
     const targetStatus = submit ? 'submitted' : 'draft'
     payload.status = targetStatus
 
-    if (reportId) {
+    let targetId = reportId
+    if (!targetId && payload.event_day_id && payload.department_id) {
+      const { data: existing } = await supabase
+        .from('daily_reports')
+        .select('id')
+        .eq('event_day_id', payload.event_day_id)
+        .eq('department_id', payload.department_id)
+        .maybeSingle()
+      if (existing?.id) targetId = existing.id
+    }
+
+    if (targetId) {
       const { error } = await supabase
         .from('daily_reports')
         .update(payload)
-        .eq('id', reportId)
+        .eq('id', targetId)
       if (error) throw error
+      setReportId(targetId)
     } else {
       const { data, error } = await supabase
         .from('daily_reports')

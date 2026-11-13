@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
+import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 
 interface CredentialSlip {
   fullName: string
@@ -65,14 +66,16 @@ export default function HODTeamManagement() {
         router.push('/dashboard')
         return
       }
-      if ((!activeProfile.department_id || activeProfile.department_id.startsWith('dept-')) && !isMock) {
-        const currentEventId = await getCurrentEventId(supabase)
+      const currentEventId = !isMock ? await getCurrentEventId(supabase) : null
+      if (!isMock) {
         const assignment = await getDepartmentAssignment(supabase, activeProfile.id, currentEventId)
-        if (assignment?.department_id) {
-          activeProfile.department_id = assignment.department_id
-        }
+        activeProfile.department_id = assignment?.department_id ?? null
       }
       setProfile(activeProfile)
+
+      if (!isMock && !activeProfile.department_id) {
+        return
+      }
 
       const { data: dbDept } = await supabase
         .from('departments')
@@ -96,11 +99,13 @@ export default function HODTeamManagement() {
           .eq('role', 'assistant')
         assistantsList = allUsers || []
       } else {
-        const { data: assRows } = await supabase
+        let assQuery = supabase
           .from('hod_assignments')
           .select('profile_id, profiles!inner(*)')
           .eq('department_id', activeProfile.department_id)
           .eq('role_in_event', 'assistant')
+        if (currentEventId) assQuery = assQuery.eq('event_id', currentEventId)
+        const { data: assRows } = await assQuery
         // One row per event per person — list each assistant once.
         const seen = new Set<string>()
         assistantsList = (assRows || [])
@@ -242,6 +247,10 @@ export default function HODTeamManagement() {
         <p className="text-sm font-mono animate-pulse text-muted-foreground">Loading Team Dashboard...</p>
       </div>
     )
+  }
+
+  if (!isMock && !profile.department_id && (profile.role === 'hod' || profile.role === 'assistant')) {
+    return <UnassignedDepartmentGate />
   }
 
   return (

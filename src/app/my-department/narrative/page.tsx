@@ -12,7 +12,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import localforage from 'localforage'
 import { extractCustomMetricsSummary, formatCustomMetricsTextLines } from '@/utils/customMetricsSummarizer'
-import { getCurrentEvent, getDepartmentAssignment } from '@/lib/events/current-event'
+import { getCurrentEvent, getDepartmentAssignment, getEventDays } from '@/lib/events/current-event'
+import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 
 // Drafts are kept per event so a Convention draft never shows up during Congress.
 const narrativeDraftKey = (eventId: string | null | undefined, departmentId: string | null | undefined) =>
@@ -129,11 +130,9 @@ export default function DepartmentNarrativePage() {
     const eventId = currentEvent?.id ?? null
 
     if (activeProfile) {
-      if (!activeProfile.department_id && !isMock) {
+      if (!isMock && (activeProfile.role === 'hod' || activeProfile.role === 'assistant')) {
         const assignment = await getDepartmentAssignment(supabase, activeProfile.id, eventId)
-        if (assignment) {
-          activeProfile.department_id = assignment.department_id
-        }
+        activeProfile.department_id = assignment?.department_id ?? null
       }
       setProfile(activeProfile)
       
@@ -170,8 +169,9 @@ export default function DepartmentNarrativePage() {
         totalMorning += r.attendance_morning
         totalEvening += r.attendance_evening
 
-        // Calculate offering if stored inside metrics_data (e.g. registration offline mode amount_collected or services offering)
+        // Calculate offering if stored inside metrics_data (direct offering, registration, or ushering services)
         if (r.metrics_data) {
+          totalOff += Number(r.metrics_data.offering || 0)
           // Registration amount_collected
           if (Array.isArray(r.metrics_data.walkin_registrations)) {
             r.metrics_data.walkin_registrations.forEach((reg: any) => {
@@ -237,13 +237,16 @@ export default function DepartmentNarrativePage() {
             overviewsList.push(`[DEPARTMENT CUSTOM METRICS CUMULATIVE SUMMARY]\n` + customLines.join('\n'))
           }
 
+          const eDays = eventId ? await getEventDays(supabase, eventId) : []
           filteredReps.forEach((r: any, idx: number) => {
             const dn = r.metrics_data?.daily_narrative
+            const matchedDay = eDays.find((d: any) => d.id === r.event_day_id)
+            const dayNum = matchedDay?.day_number ?? (idx + 1)
             if (dn) {
-              if (dn.overview?.trim()) overviewsList.push(`Day ${idx + 1}: ${dn.overview.trim()}`)
-              if (dn.achievements?.trim()) highlightsList.push(`Day ${idx + 1}: ${dn.achievements.trim()}`)
-              if (dn.challenges?.trim()) chList.push({ id: 'ch-d-' + idx, text: `Day ${idx + 1}: ${dn.challenges.trim()}` })
-              if (dn.recommendations?.trim()) recList.push({ id: 'rec-d-' + idx, text: `Day ${idx + 1}: ${dn.recommendations.trim()}` })
+              if (dn.overview?.trim()) overviewsList.push(`Day ${dayNum}: ${dn.overview.trim()}`)
+              if (dn.achievements?.trim()) highlightsList.push(`Day ${dayNum}: ${dn.achievements.trim()}`)
+              if (dn.challenges?.trim()) chList.push({ id: 'ch-d-' + idx, text: `Day ${dayNum}: ${dn.challenges.trim()}` })
+              if (dn.recommendations?.trim()) recList.push({ id: 'rec-d-' + idx, text: `Day ${dayNum}: ${dn.recommendations.trim()}` })
             }
           })
 
@@ -368,6 +371,10 @@ export default function DepartmentNarrativePage() {
   }
 
   const isViewOnly = status === 'submitted' || status === 'approved' || status === 'reviewed'
+
+  if (!isMock && profile && !profile.department_id && (profile.role === 'hod' || profile.role === 'assistant')) {
+    return <UnassignedDepartmentGate />
+  }
 
   return (
     <div className="min-h-screen bg-mesh" style={{ background: 'var(--background)' }}>

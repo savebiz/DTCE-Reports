@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, mockEventDays, Profile, DailyReport, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
@@ -32,13 +32,15 @@ export default function MyDepartmentDashboard() {
   const [approvedRequests, setApprovedRequests] = useState<any[]>([])
   const [actionLoading, setActionLoading] = useState(false)
 
+  const triggerSyncRef = useRef<() => void>(() => {})
+
   // 1. Monitor network state
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setIsOnline(navigator.onLine)
       const handleOnline = () => {
         setIsOnline(true)
-        triggerSync()
+        triggerSyncRef.current()
       }
       const handleOffline = () => setIsOnline(false)
 
@@ -76,7 +78,8 @@ export default function MyDepartmentDashboard() {
             const { data: appReqs } = await appReqsQuery.order('created_at', { ascending: false })
             
             if (appReqs) {
-              const enhanced = await Promise.all(appReqs.map(async (r: any) => {
+              const duringOnly = appReqs.filter((r: any) => (r.request_type || 'during_event') === 'during_event')
+              const enhanced = await Promise.all(duringOnly.map(async (r: any) => {
                 const { data: reqProfile } = await supabase.from('profiles').select('full_name, email').eq('id', r.requester_profile_id).maybeSingle()
                 const { data: requesterDept } = await supabase.from('departments').select('name').eq('id', r.department_id).maybeSingle()
                 return {
@@ -193,7 +196,8 @@ export default function MyDepartmentDashboard() {
           const { data: appReqs } = await appReqsQuery.order('created_at', { ascending: false })
           
           if (appReqs) {
-            const enhanced = await fetchEnhancedStoreRequests(supabase, appReqs)
+            const duringOnly = appReqs.filter((r: any) => (r.request_type || 'during_event') === 'during_event')
+            const enhanced = await fetchEnhancedStoreRequests(supabase, duringOnly)
             setApprovedRequests(enhanced)
           }
         } else {
@@ -256,6 +260,7 @@ export default function MyDepartmentDashboard() {
       setSyncing(false)
     }
   }
+  triggerSyncRef.current = triggerSync
 
   // 4. Update Request Status (Stores Fulfillment)
   const handleUpdateReqStatus = async (reqId: string, newStatus: 'pending_coordinator' | 'approved' | 'in_progress' | 'partially_fulfilled' | 'delivered' | 'declined') => {
@@ -277,12 +282,13 @@ export default function MyDepartmentDashboard() {
     }
 
     try {
-      const { error } = await supabase
-        .from('store_requests')
-        .update({ status: newStatus })
-        .eq('id', reqId)
-
-      if (error) throw error
+      const res = await fetch('/api/update-store-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestId: reqId, status: newStatus }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) throw new Error(data.error || 'Failed to update request')
 
       showToast(`Requisition updated to ${labelMap[newStatus]}!`, 'success')
       loadData()
@@ -318,6 +324,11 @@ export default function MyDepartmentDashboard() {
           </span>
         )
       case 'reviewed':
+        return (
+          <span className="inline-flex items-center rounded-full bg-purple-500/10 text-purple-400 px-2.5 py-0.5 text-xs font-bold border border-purple-500/20 uppercase tracking-wider font-sans">
+            Reviewed
+          </span>
+        )
       case 'approved':
         return (
           <span className="inline-flex items-center rounded-full bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 text-xs font-bold border border-emerald-500/20 uppercase tracking-wider font-sans">
@@ -443,7 +454,7 @@ export default function MyDepartmentDashboard() {
               <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                 {department?.name || 'Department'} Dashboard
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Fill daily reporting metrics for each convention day.</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Fill daily reporting metrics for each event day.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <button
@@ -465,6 +476,13 @@ export default function MyDepartmentDashboard() {
               {isStoresDept ? (
                 <>
                   <button
+                    className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 cursor-pointer shadow-xs"
+                    onClick={() => router.push('/my-department/market-list')}
+                  >
+                    <Package className="w-3.5 h-3.5" />
+                    Pre-Event Market List
+                  </button>
+                  <button
                     className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer shadow-xs"
                     onClick={() => router.push('/my-department/inventory')}
                   >
@@ -476,16 +494,16 @@ export default function MyDepartmentDashboard() {
                     onClick={() => router.push('/my-department/store-fulfillment')}
                   >
                     <Package className="w-3.5 h-3.5" />
-                    Fulfillment Console {approvedRequests.length > 0 && `(${approvedRequests.length})`}
+                    Live Fulfillment {approvedRequests.length > 0 && `(${approvedRequests.length})`}
                   </button>
                 </>
               ) : (
                 <button
-                  className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-border/70 bg-card hover:bg-accent/60 text-foreground cursor-pointer shadow-xs"
+                  className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 cursor-pointer shadow-xs"
                   onClick={() => router.push('/my-department/store-request')}
                 >
                   <Package className="w-3.5 h-3.5" />
-                  Store Request
+                  Needs List &amp; Store Request
                 </button>
               )}
               {profile?.role !== 'assistant' && (
@@ -512,13 +530,13 @@ export default function MyDepartmentDashboard() {
           {/* Day Checklist */}
           <div className="glass-card overflow-hidden">
             <div className="px-5 py-3 border-b border-border/40 bg-card/40 flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Convention Daily Reporting Checklist</span>
+              <span className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Event Daily Reporting Checklist</span>
               <span className="text-xs text-muted-foreground font-mono">{eventDays.length} Days</span>
             </div>
             {eventDays.length === 0 ? (
               <div className="text-center py-12 px-5 space-y-4">
                 <span className="text-3xl block">📅</span>
-                <p className="text-[13px] text-muted-foreground italic">No active event convention days found in the database.</p>
+                <p className="text-[13px] text-muted-foreground italic">No active event days found in the database.</p>
                 <button
                   onClick={() => router.push('/my-department/daily-log')}
                   className="h-9 rounded-xl px-5 text-xs font-bold bg-amber-500 hover:bg-amber-400 text-black cursor-pointer transition-all"
@@ -529,7 +547,6 @@ export default function MyDepartmentDashboard() {
             ) : (
               eventDays.map((day) => {
                 const shortDay = new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'short' })
-                const dayDate = new Date(`${day.date}T00:00:00Z`).toLocaleDateString('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'short' })
                 return (
                   <div
                     key={day.id}

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { createClient as createServerClient } from '@/utils/supabase/server'
 import { isMock } from '@/utils/supabase'
+import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
 import { store } from '@/utils/supabase/mockClient'
 import { getServiceRoleKey } from '@/utils/supabase/admin'
 import { getCurrentEventId } from '@/lib/events/current-event'
@@ -26,15 +26,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, department_id: newDepartmentId })
     }
 
-    // 1. Authenticate calling user
-    const supabaseUserClient = await createServerClient()
-    const { data: { user } } = await supabaseUserClient.auth.getUser()
+    // 1. Authenticate calling user (active admin only)
+    const auth = await requireAuth({ roles: ADMIN_ROLES })
+    if (!auth.ok) return auth.response
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized: Please log in.' }, { status: 401 })
-    }
-
-    // 2. Verify caller is super_admin, coordinator, or national_coordinator
     const serviceRoleKey = getServiceRoleKey()
     if (!serviceRoleKey) {
       return NextResponse.json({ error: 'Server configuration error: Service Role key is missing.' }, { status: 500 })
@@ -44,22 +39,6 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       serviceRoleKey
     )
-
-    const { data: callerProfile } = await supabaseAdmin
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    const isAuthorized = callerProfile && (
-      callerProfile.role === 'super_admin' ||
-      callerProfile.role === 'coordinator' ||
-      callerProfile.role === 'national_coordinator'
-    )
-
-    if (!isAuthorized) {
-      return NextResponse.json({ error: 'Forbidden: Insufficient privileges to update department.' }, { status: 403 })
-    }
 
     // 3. Get target user's current role
     const { data: targetProfile } = await supabaseAdmin

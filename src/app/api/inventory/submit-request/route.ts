@@ -3,13 +3,13 @@ import { getAdminClient } from '@/utils/supabase/admin'
 import { notify, getDepartmentRecipientIds, getAdminRecipientIds } from '@/lib/notifications/dispatch'
 import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
 import { getCurrentEvent } from '@/lib/events/current-event'
+import { evaluateRequisitionWindow } from '@/lib/events/requisition-windows'
 
 /**
  * POST /api/inventory/submit-request
- * Atomic submission endpoint for department store requisitions.
- * Inserts request and dispatches notifications to:
- * 1. National Coordinators & Executive Secretariat
- * 2. All Members (HODs + Assistants) of the requesting department
+ * Atomic submission endpoint for:
+ *  - Pre-Event Departmental Needs Lists (request_type = 'pre_event') — for Market Purchase
+ *  - During-Event Store Requisitions (request_type = 'during_event') — from Stores Stock
  */
 export async function POST(request: NextRequest) {
   try {
@@ -32,12 +32,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No current event is open for requisitions.' }, { status: 400 })
     }
 
-    // Pre-event needs lists can only be sent while the requisition window is open
-    if (requestType === 'pre_event') {
-      const closed = currentEvent?.status === 'closed' || currentEvent?.status === 'archived'
-      const pastDeadline = !!currentEvent?.requisition_closes_at && new Date(currentEvent.requisition_closes_at).getTime() < Date.now()
-      if (closed || pastDeadline) {
-        return NextResponse.json({ error: `The needs list for ${currentEvent?.name || 'this event'} is closed. Please contact the Secretariat.` }, { status: 400 })
+    // Enforce time-window gating for both Pre-Event Needs Lists and Live Event Store Requisitions
+    const windowState = evaluateRequisitionWindow(currentEvent, requestType)
+    if (!windowState.isOpen) {
+      return NextResponse.json({ error: windowState.message }, { status: 403 })
+    }
+
+    // P1 SKU Normalization: Live Event requisitions must reference catalog items in inventory_items
+    if (requestType === 'during_event') {
+      const uncatalogued = items.filter((it: any) => !it?.inventory_item_id)
+      if (uncatalogued.length > 0) {
+        const names = uncatalogued.map((it: any) => it?.name || 'Unknown item').join(', ')
+        return NextResponse.json(
+          {
+            error: `Live Event Store Requisitions require cataloged inventory items. Please select a stocked item from the Stores catalog (or ask Stores to stock it first) for: ${names}`,
+          },
+          { status: 400 }
+        )
       }
     }
 
@@ -51,7 +62,7 @@ export async function POST(request: NextRequest) {
         .eq('event_id', eventId)
         .limit(1)
       if (!memberships || memberships.length === 0) {
-        return NextResponse.json({ error: 'You can only submit requisitions for your own department.' }, { status: 403 })
+        return NextResponse.json({ error: 'You can only submit requests for your own department.' }, { status: 403 })
       }
     }
 
@@ -89,16 +100,18 @@ export async function POST(request: NextRequest) {
     }
 
     const requestId = inserted.id
-    const itemsSummary = items.map((it: any) => `${it.quantity} ${it.name}`).join(', ')
+    const itemsSummary = items.map((it: any) => `${it.quantity} ${it.unit || 'pcs'} ${it.name}`).join(', ')
 
-    // 3. Dispatch Notification to National Coordinators & Executive Secretariat
+    // 3. Dispatch Notification to General Secretary, National Coordinator & Executive Secretariat
     const adminIds = await getAdminRecipientIds(supabaseAdmin)
     for (const adminId of adminIds) {
       await notify({
         recipientId: adminId,
         type: 'requisition_submitted',
-        title: `${requestType === 'pre_event' ? 'New Needs List' : 'New Requisition'}: ${deptName}`,
-        body: `${deptName} has submitted a store requisition for ${itemsSummary}. Pending your review and approval.`,
+        title: requestType === 'pre_event' ? `New Pre-Event Needs List: ${deptName}` : `New Store Requisition: ${deptName}`,
+        body: requestType === 'pre_event'
+          ? `${deptName} submitted their pre-event needs list for market purchase (${itemsSummary}). Pending approval.`
+          : `${deptName} submitted a live store requisition (${itemsSummary}). Pending your review and approval.`,
         relatedEntity: { type: 'requisition', id: requestId }
       })
     }
@@ -109,8 +122,10 @@ export async function POST(request: NextRequest) {
       await notify({
         recipientId: memberId,
         type: 'requisition_submitted',
-        title: `Requisition Submitted: ${deptName}`,
-        body: `A store requisition for ${deptName} (${itemsSummary}) was submitted and sent to the National Coordinator.`,
+        title: requestType === 'pre_event' ? `Needs List Sent: ${deptName}` : `Store Requisition Sent: ${deptName}`,
+        body: requestType === 'pre_event'
+          ? `Your department's pre-event needs list (${itemsSummary}) was sent to the General Secretary & National Coordinator for market purchase approval.`
+          : `A store requisition for ${deptName} (${itemsSummary}) was submitted for approval.`,
         relatedEntity: { type: 'requisition', id: requestId }
       })
     }

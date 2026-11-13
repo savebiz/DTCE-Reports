@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { requireAuth } from '@/lib/auth/api-guard'
+import { getCurrentEventId } from '@/lib/events/current-event'
 
 export async function POST(request: Request) {
   try {
@@ -19,13 +20,16 @@ export async function POST(request: Request) {
     // 2. Admin Service Role Client for Elevated Updates
     const supabaseAdmin = getAdminClient()
 
-    // The HOD's department(s), across events
+    // The HOD's department(s) for the current event
+    const currentEventId = await getCurrentEventId(supabaseAdmin)
     let hodDeptIds: string[] = []
     if (isHOD) {
-      const { data: myAssigns } = await supabaseAdmin
+      let myQuery = supabaseAdmin
         .from('hod_assignments')
         .select('department_id')
         .eq('profile_id', user.id)
+      if (currentEventId) myQuery = myQuery.eq('event_id', currentEventId)
+      const { data: myAssigns } = await myQuery
       hodDeptIds = (myAssigns || []).map((a: any) => a.department_id)
     }
 
@@ -45,10 +49,12 @@ export async function POST(request: Request) {
       if (targetProfile.role !== 'assistant') {
         return NextResponse.json({ error: 'Forbidden: HODs can only change assistant accounts.' }, { status: 403 })
       }
-      const { data: targetAssigns } = await supabaseAdmin
+      let targetQuery = supabaseAdmin
         .from('hod_assignments')
         .select('department_id')
         .eq('profile_id', targetUserId)
+      if (currentEventId) targetQuery = targetQuery.eq('event_id', currentEventId)
+      const { data: targetAssigns } = await targetQuery
       const sameDept = (targetAssigns || []).some((a: any) => hodDeptIds.includes(a.department_id))
       const isCreator = targetProfile.created_by === user.id
 

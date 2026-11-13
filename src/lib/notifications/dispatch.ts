@@ -121,20 +121,6 @@ export async function notify(params: NotifyParams): Promise<DispatchResult> {
         }))
       }
 
-      // Fallback: If no sub found under exact profile_id, include any unassigned / anon-user subscriptions
-      if (pushSubs.length === 0) {
-        const { data: fallbackSubs } = await supabase
-          .from('push_subscriptions')
-          .select('*')
-          .or('profile_id.eq.anon-user,profile_id.is.null')
-
-        if (fallbackSubs && fallbackSubs.length > 0) {
-          pushSubs = fallbackSubs.map((s: any) => ({
-            endpoint: s.endpoint,
-            keys: s.keys
-          }))
-        }
-      }
 
       // 4. Insert Row into notifications Table (In-App)
       const { data: notifData, error: notifErr } = await supabase

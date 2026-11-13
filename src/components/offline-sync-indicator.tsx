@@ -14,10 +14,16 @@ export function OfflineSyncIndicator() {
   const calculateQueue = () => {
     if (typeof window === 'undefined') return 0
     try {
-      const logs = JSON.parse(localStorage.getItem('dtce_pending_logs') || '[]')
+      let pendingDraftCount = 0
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i)
+        if (k && k.startsWith('dtce_pending_') && k !== 'dtce_pending_store_requests') {
+          pendingDraftCount += 1
+        }
+      }
       const reqs = JSON.parse(localStorage.getItem('dtce_pending_store_requests') || '[]')
       const queue = JSON.parse(localStorage.getItem('dtce_offline_queue') || '[]')
-      const count = (Array.isArray(logs) ? logs.length : 0) +
+      const count = pendingDraftCount +
                     (Array.isArray(reqs) ? reqs.length : 0) +
                     (Array.isArray(queue) ? queue.length : 0)
       setQueuedCount(count)
@@ -35,23 +41,7 @@ export function OfflineSyncIndicator() {
     setIsSyncing(true)
 
     try {
-      // 1. Sync pending daily logs
-      const rawLogs = localStorage.getItem('dtce_pending_logs')
-      if (rawLogs) {
-        const logs = JSON.parse(rawLogs)
-        if (Array.isArray(logs) && logs.length > 0) {
-          for (const item of logs) {
-            try {
-              await fetch('/api/daily-log/submit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(item),
-              })
-            } catch (_) {}
-          }
-          localStorage.removeItem('dtce_pending_logs')
-        }
-      }
+      // 1. Daily log pending payloads are flushed by useOfflineDraft on the Daily Log page
 
       // 2. Sync pending store requests
       const rawReqs = localStorage.getItem('dtce_pending_store_requests')

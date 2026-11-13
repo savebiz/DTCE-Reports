@@ -437,7 +437,7 @@ export function compileSecretariatMetrics(data: {
   // ── ASSEMBLE ───────────────────────────────────────────────────────
 
   return {
-    eventName: event?.name || 'RCCG DTCE 2026 Annual Convention',
+    eventName: event?.name || 'RCCG DTCE Event',
     eventStartDate: event?.start_date || '2026-08-03',
     eventEndDate: event?.end_date || '2026-08-08',
     totalDays,
