@@ -16,10 +16,10 @@ import {
 } from 'lucide-react'
 
 const WORKFLOW_ROWS = [
-  { name: 'Medical & First Aid', stage: 'Daily Log', status: 'Submitted', tone: 'emerald' },
-  { name: 'Registration', stage: 'Live Telemetry', status: 'Reviewed', tone: 'blue' },
-  { name: 'Ushering & Protocol', stage: 'Daily Log', status: 'Submitted', tone: 'emerald' },
-  { name: 'Central Stores', stage: 'Fulfillment', status: 'Active', tone: 'amber' },
+  { name: 'Medical', stage: 'Daily Log', status: 'Submitted', tone: 'emerald' },
+  { name: 'Registration', stage: 'Delegate Check-In', status: 'Reviewed', tone: 'blue' },
+  { name: 'Ushering', stage: 'Daily Log', status: 'Submitted', tone: 'emerald' },
+  { name: 'Stores', stage: 'Fulfillment', status: 'Active', tone: 'amber' },
 ] as const
 
 const CAPABILITIES = [
@@ -277,7 +277,7 @@ export default function RootLandingPage() {
                 Core Platform Modules
               </p>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                Built for speed on the ground and clarity at the Board table.
+                Built for speed on the ground and clarity across every team.
               </h2>
             </div>
 
