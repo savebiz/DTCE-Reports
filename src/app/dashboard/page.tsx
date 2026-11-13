@@ -391,7 +391,7 @@ function SecretariatDashboardContent() {
       offeringSum += parseOfferingAmount(rawVal)
     })
 
-    let selectedDaysLabel = 'All Convention Days'
+    let selectedDaysLabel = 'All Event Days'
     if (!isAll) {
       if (selectedFocusDays.length === 1) {
         if (selectedFocusDays[0] === 'days-1-3') selectedDaysLabel = 'Days 1 – 3'
@@ -638,7 +638,7 @@ function SecretariatDashboardContent() {
                   }}
                   className="h-8 rounded-lg px-3 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none focus:ring-1 focus:ring-purple-500"
                 >
-                  <option value="all" className="bg-card text-foreground">All Convention Days (Total)</option>
+                  <option value="all" className="bg-card text-foreground">All Event Days (Total)</option>
                   <option value="days-1-3" className="bg-card text-foreground">Days 1 – 3 (First Half)</option>
                   <option value="days-4-6" className="bg-card text-foreground">Days 4 – 6 (Second Half)</option>
                   {eventDays.map(d => (
@@ -1297,7 +1297,7 @@ function SecretariatDashboardContent() {
                   <div className="rounded-lg p-3.5 bg-purple-500/5 dark:bg-purple-500/10 border border-purple-500/15 flex items-center justify-between gap-3">
                     <div>
                       <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 block">Recorded Offering</span>
-                      <span className="text-[10px] text-muted-foreground">Convention session collection</span>
+                      <span className="text-[10px] text-muted-foreground">Event session collection</span>
                     </div>
                     <span className="text-xl font-extrabold font-mono text-purple-600 dark:text-purple-400 tracking-tight shrink-0">
                       ₦{(Number(activeReport.metrics_data?.offering || activeReport.metrics_data?.total_offering || 0)).toLocaleString()}

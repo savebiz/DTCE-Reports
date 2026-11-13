@@ -215,7 +215,7 @@ export async function generateSecretariatDocx(
   }))
   children.push(new Paragraph({
     alignment: AlignmentType.CENTER, spacing: spacing(40, 40),
-    children: [new TextRun({ text: 'OF CONVENTION OPERATIONS REPORTING', font: 'Calibri', size: 24, bold: true, color: SLATE_DARK })]
+    children: [new TextRun({ text: 'OF EVENT OPERATIONS REPORTING', font: 'Calibri', size: 24, bold: true, color: SLATE_DARK })]
   }))
 
   children.push(new Paragraph({
@@ -250,13 +250,13 @@ export async function generateSecretariatDocx(
   ))
 
   children.push(bodyText(
-    `The platform — a purpose-built digital reporting and convention operations management system — was developed to address the persistent operational inefficiencies that have characterised the manual report collation process in previous convention cycles. The system served ${m.totalDepartments} departments across ${m.totalDays} convention days, processing ${m.totalActualSubmissions} daily report submissions, ${m.totalRequisitions} store requisition tickets, and ${m.totalNotifications} automated notification dispatches.`
+    `The platform — a purpose-built digital reporting and event operations management system — was developed to address the persistent operational inefficiencies that have characterised the manual report collation process in previous event cycles. The system served ${m.totalDepartments} departments across ${m.totalDays} event days, processing ${m.totalActualSubmissions} daily report submissions, ${m.totalRequisitions} store requisition tickets, and ${m.totalNotifications} automated notification dispatches.`
   ))
 
   children.push(bodyText('Key findings from this inaugural digital deployment include:'))
 
   children.push(bulletPoint(
-    `An overall reporting compliance rate of ${m.overallComplianceRate}%, representing ${m.totalActualSubmissions} reports submitted out of ${m.totalExpectedSubmissions} expected across all departments and convention days.`
+    `An overall reporting compliance rate of ${m.overallComplianceRate}%, representing ${m.totalActualSubmissions} reports submitted out of ${m.totalExpectedSubmissions} expected across all departments and event days.`
   ))
   children.push(bulletPoint(
     `A store requisition fulfilment rate of ${m.fulfillmentRate}%, with ${m.totalRequisitions} requisition tickets processed through a fully digital approval workflow encompassing submission, review, approval, fulfilment, and delivery confirmation.`
@@ -272,7 +272,7 @@ export async function generateSecretariatDocx(
   }
 
   children.push(bodyText(
-    'This report provides a comprehensive analysis of platform performance, departmental compliance data, stakeholder feedback, challenges encountered, and strategic recommendations for future convention cycles.'
+    'This report provides a comprehensive analysis of platform performance, departmental compliance data, stakeholder feedback, challenges encountered, and strategic recommendations for future event cycles.'
   ))
 
   // ══════════════════════════════════════════════════════════════════════
@@ -283,7 +283,7 @@ export async function generateSecretariatDocx(
   children.push(heading('2. BACKGROUND & INSTITUTIONAL MANDATE'))
 
   children.push(bodyText(
-    'For successive convention cycles, the Secretariat Department has been charged with the collation, verification, and compilation of operational reports from all participating departments of the DTCE Junior Church. This function is foundational to institutional accountability, evidence-based decision-making, and the preparation of the annual convention report presented to the Board of Trustees and the National Leadership.'
+    'For successive event cycles, the Secretariat Department has been charged with the collation, verification, and compilation of operational reports from all participating departments of the DTCE Junior Church. This function is foundational to institutional accountability, evidence-based decision-making, and the preparation of the annual event report presented to the Board of Trustees and the National Leadership.'
   ))
 
   children.push(bodyText(
@@ -291,11 +291,11 @@ export async function generateSecretariatDocx(
   ))
 
   children.push(bulletPoint('Departments submitted daily reports via paper forms, WhatsApp messages, and verbal briefings, resulting in data inconsistency, lost records, and duplication of effort.'))
-  children.push(bulletPoint('Secretariat personnel were required to manually transcribe all departmental data into consolidated spreadsheets — a process that routinely delayed the final convention report by one to three weeks post-event.'))
+  children.push(bulletPoint('Secretariat personnel were required to manually transcribe all departmental data into consolidated spreadsheets — a process that routinely delayed the final event report by one to three weeks post-event.'))
   children.push(bulletPoint('No standardised reporting template existed across departments, with each unit employing different formats and metrics, rendering cross-departmental aggregation exceedingly difficult.'))
   children.push(bulletPoint('No mechanism existed for real-time compliance tracking, meaning missing reports were typically discovered only during the final collation exercise, long after corrective action could be taken.'))
   children.push(bulletPoint('Store requisitions were processed via paper request forms with no status tracking, approval workflow, or inventory visibility, leading to over-ordering, stockouts, and unaccounted material distribution.'))
-  children.push(bulletPoint('No structured system existed for tracking challenges across departments, year-over-year issue recurrence, or post-convention feedback from departmental leadership.'))
+  children.push(bulletPoint('No structured system existed for tracking challenges across departments, year-over-year issue recurrence, or post-event feedback from departmental leadership.'))
 
   children.push(bodyText(
     `In recognition of these persistent and well-documented operational challenges, the Secretariat Department leadership commissioned the development of a bespoke digital platform to modernise the event reporting workflow. The resulting system — the DTCE Reporting Platform — was designed, developed, and deployed for ${metrics.eventName}, achieving full operational readiness prior to the commencement of proceedings.`
@@ -317,7 +317,7 @@ export async function generateSecretariatDocx(
   const roleRows = [
     new TableRow({ children: [headerCell('Role', 2400), headerCell('Access Level', 4200), headerCell('Users', 1400)] }),
     new TableRow({ children: [dataCell('Super Admin', { bold: true }), dataCell('Full platform access: all departments, reports, user management, report generation, store requisition approval'), dataCell(String(m.usersByRole.super_admin), { align: AlignmentType.CENTER })] }),
-    new TableRow({ children: [dataCell('Coordinator', { bold: true }), dataCell('Convention operations coordination with full oversight'), dataCell(String(m.usersByRole.coordinator), { align: AlignmentType.CENTER })] }),
+    new TableRow({ children: [dataCell('Coordinator', { bold: true }), dataCell('Event operations coordination with full oversight'), dataCell(String(m.usersByRole.coordinator), { align: AlignmentType.CENTER })] }),
     new TableRow({ children: [dataCell('National Coordinator', { bold: true }), dataCell('Executive oversight dashboard with read access across all departments'), dataCell(String(m.usersByRole.national_coordinator), { align: AlignmentType.CENTER })] }),
     new TableRow({ children: [dataCell('Head of Department', { bold: true }), dataCell('Submit daily reports, request store materials, view own department data'), dataCell(String(m.usersByRole.hod), { align: AlignmentType.CENTER })] }),
     new TableRow({ children: [dataCell('Assistant', { bold: true }), dataCell('Delegated HOD functions — submit reports and handle assigned requisitions'), dataCell(String(m.usersByRole.assistant), { align: AlignmentType.CENTER })] }),
@@ -334,25 +334,25 @@ export async function generateSecretariatDocx(
     'Three-channel notification engine (in-app bell, Web Push, email) with automated missing-report reminders',
     'One-click executive Word document report generation with branded formatting',
     'Year-over-Year carry-over issue tracking using keyword-matching algorithms',
-    'Post-convention structured feedback collection with NPS scoring and satisfaction analytics',
+    'Post-event structured feedback collection with NPS scoring and satisfaction analytics',
     'Offline-capable Progressive Web App (PWA) with queued submission and auto-sync',
     'Comprehensive security with role-based route guards, forced password reset, audit logging, and report version history',
   ]
   capabilities.forEach(c => children.push(bulletPoint(c)))
 
   // ══════════════════════════════════════════════════════════════════════
-  // 4. CONVENTION OPERATIONS PERFORMANCE
+  // 4. EVENT OPERATIONS PERFORMANCE
   // ══════════════════════════════════════════════════════════════════════
 
   children.push(new Paragraph({ children: [new PageBreak()] }))
-  children.push(heading('4. CONVENTION OPERATIONS PERFORMANCE'))
+  children.push(heading('4. EVENT OPERATIONS PERFORMANCE'))
 
   // 4.1 Reporting Compliance
   children.push(subSubHeading('4.1 Reporting Compliance Analysis'))
 
   children.push(richParagraph([
     { text: 'Across the ', },
-    { text: `${m.totalDays}-day convention period`, bold: true },
+    { text: `${m.totalDays}-day event period`, bold: true },
     { text: `, ${m.totalDepartments} departments were expected to submit daily operational reports, yielding a total expectation of ` },
     { text: `${m.totalExpectedSubmissions} report submissions`, bold: true },
     { text: `. Of this number, ` },
@@ -365,7 +365,7 @@ export async function generateSecretariatDocx(
   // Daily breakdown table
   if (m.submissionsByDay.length > 0) {
     const dayRows = [
-      new TableRow({ children: [headerCell('Convention Day'), headerCell('Date'), headerCell('Reports Submitted'), headerCell('Expected'), headerCell('Compliance Rate')] }),
+      new TableRow({ children: [headerCell('Event Day'), headerCell('Date'), headerCell('Reports Submitted'), headerCell('Expected'), headerCell('Compliance Rate')] }),
       ...m.submissionsByDay.map(d => new TableRow({
         children: [
           dataCell(`Day ${d.dayNumber}`, { bold: true, align: AlignmentType.CENTER }),
@@ -422,7 +422,7 @@ export async function generateSecretariatDocx(
   if (m.topPerformers.length > 0) {
     children.push(richParagraph([
       { text: `${m.topPerformers.length} department${m.topPerformers.length > 1 ? 's' : ''}`, bold: true, color: EMERALD },
-      { text: ` achieved a perfect 100% compliance rate, submitting reports for all ${m.totalDays} convention days. ` },
+      { text: ` achieved a perfect 100% compliance rate, submitting reports for all ${m.totalDays} event days. ` },
       { text: m.nonCompliantDepartments.length > 0
         ? `${m.nonCompliantDepartments.length} department${m.nonCompliantDepartments.length > 1 ? 's' : ''} recorded incomplete submissions.`
         : 'All departments achieved full compliance.'
@@ -457,7 +457,7 @@ export async function generateSecretariatDocx(
   children.push(heading('5. STORE REQUISITIONS & MATERIALS MANAGEMENT'))
 
   children.push(bodyText(
-    `The platform introduced a fully digital store requisition workflow, replacing the previous paper-based request system. A total of ${m.totalRequisitions} requisition tickets were processed during the convention period, encompassing ${m.totalItemsRequested} individual item units requested across all departments.`
+    `The platform introduced a fully digital store requisition workflow, replacing the previous paper-based request system. A total of ${m.totalRequisitions} requisition tickets were processed during the event period, encompassing ${m.totalItemsRequested} individual item units requested across all departments.`
   ))
 
   // KPI summary table
@@ -523,7 +523,7 @@ export async function generateSecretariatDocx(
     ))
   } else {
     children.push(bodyText(
-      `Following the conclusion of the convention, a structured feedback survey was administered to all HODs and departmental personnel who utilised the platform. A total of ${m.feedbackCount} responses were received. The findings are presented below.`
+      `Following the conclusion of the event, a structured feedback survey was administered to all HODs and departmental personnel who utilised the platform. A total of ${m.feedbackCount} responses were received. The findings are presented below.`
     ))
 
     // 6.1 Satisfaction Scores
@@ -572,7 +572,7 @@ export async function generateSecretariatDocx(
     children.push(subSubHeading('6.3 Digital vs Manual Process Assessment'))
 
     children.push(bodyText(
-      'Respondents were asked to compare their experience using the digital platform against the traditional paper-based reporting process used in previous conventions:'
+      'Respondents were asked to compare their experience using the digital platform against the traditional paper-based reporting process used in previous events:'
     ))
 
     const vpRows = [
@@ -650,7 +650,7 @@ export async function generateSecretariatDocx(
   children.push(richParagraph([
     { text: `A total of ` },
     { text: `${m.totalChallenges} operational challenges`, bold: true },
-    { text: ` were reported across all departments during the convention period. Of these, ` },
+    { text: ` were reported across all departments during the event period. Of these, ` },
     { text: `${m.resolvedChallenges} (${m.resolutionRate}%)`, bold: true, color: EMERALD },
     { text: ` were marked as resolved or treated by the Secretariat, while ` },
     { text: `${m.openChallenges}`, bold: true, color: m.openChallenges > 0 ? RED_SOFT : EMERALD },
@@ -674,10 +674,10 @@ export async function generateSecretariatDocx(
 
   // End-of-event narratives
   if (m.endOfEventNarratives.length > 0) {
-    children.push(subSubHeading('7.2 Department End-of-Convention Summaries'))
+    children.push(subSubHeading('7.2 Department End-of-Event Summaries'))
 
     children.push(bodyText(
-      'The following department-level summaries were submitted by HODs at the conclusion of the convention, capturing key achievements, challenges, and recommendations:'
+      'The following department-level summaries were submitted by HODs at the conclusion of the event, capturing key achievements, challenges, and recommendations:'
     ))
 
     m.endOfEventNarratives.forEach(narr => {
@@ -711,12 +711,12 @@ export async function generateSecretariatDocx(
     children.push(richParagraph([
       { text: 'A cumulative offering of ' },
       { text: formatCurrency(m.totalOffering), bold: true, color: EMERALD },
-      { text: ` was collected across all departments during the ${m.totalDays}-day convention period. The daily distribution is as follows:` },
+      { text: ` was collected across all departments during the ${m.totalDays}-day event period. The daily distribution is as follows:` },
     ]))
 
     if (m.offeringByDay.length > 0) {
       const offRows = [
-        new TableRow({ children: [headerCell('Convention Day', 4000), headerCell('Offering Collected', 4000)] }),
+        new TableRow({ children: [headerCell('Event Day', 4000), headerCell('Offering Collected', 4000)] }),
         ...m.offeringByDay.map(d => new TableRow({
           children: [
             dataCell(`Day ${d.dayNumber}`, { bold: true, align: AlignmentType.CENTER }),
@@ -744,7 +744,7 @@ export async function generateSecretariatDocx(
   children.push(heading(`${impactSection}. IMPACT ASSESSMENT — BEFORE vs AFTER`))
 
   children.push(bodyText(
-    'The following table presents a comparative assessment of convention operations under the legacy manual system versus the new digital platform:'
+    'The following table presents a comparative assessment of event operations under the legacy manual system versus the new digital platform:'
   ))
 
   const impactData = [
@@ -787,14 +787,14 @@ export async function generateSecretariatDocx(
   ))
 
   const recommendations = [
-    'Mandate 100% Digital Reporting — Formally adopt the DTCE Reporting Platform as the sole channel for convention report submission, eliminating all paper-based and informal reporting channels. This will ensure data consistency and enable real-time compliance enforcement.',
+    'Mandate 100% Digital Reporting — Formally adopt the DTCE Reporting Platform as the sole channel for event report submission, eliminating all paper-based and informal reporting channels. This will ensure data consistency and enable real-time compliance enforcement.',
     'Enforce Daily Cutoff Deadlines — Establish and communicate mandatory daily submission cutoff times (recommended: 6:00 PM), with automated escalation notifications dispatched to departmental leadership and the Secretariat for any non-compliant departments.',
-    'Conduct Pre-Convention Digital Literacy Training — Organise a mandatory 30-minute onboarding session for all HODs and Assistants at least one week before the convention, covering platform navigation, report submission, and requisition procedures.',
-    'Pre-Load Inventory Catalogue — Ensure the complete convention inventory is catalogued in the platform before the event commences, enabling real-time stock tracking, automated low-stock alerts, and precise post-convention reconciliation.',
+    'Conduct Pre-Event Digital Literacy Training — Organise a mandatory 30-minute onboarding session for all HODs and Assistants at least one week before the event, covering platform navigation, report submission, and requisition procedures.',
+    'Pre-Load Inventory Catalogue — Ensure the complete event inventory is catalogued in the platform before the event commences, enabling real-time stock tracking, automated low-stock alerts, and precise post-event reconciliation.',
     'Integrate Financial Reporting Module — Extend the platform to support structured financial data capture, including income and expenditure tracking, offering reconciliation, and budgetary reporting directly linked to departmental activities.',
-    'Implement Data Visualisation Dashboards — Add interactive charts and trend graphs to the Secretariat Command Centre, enabling real-time visual analysis of attendance patterns, submission trends, and resource consumption during the convention.',
-    'Establish Departmental Performance Recognition — Institute a formal recognition mechanism for departments achieving 100% compliance, incentivising timely and complete reporting across all convention days.',
-    'Archive and Benchmark — Preserve the 2026 convention dataset as the institutional baseline for Year-over-Year comparison in subsequent conventions, enabling evidence-based tracking of improvements, recurring issues, and resource allocation efficiency.',
+    'Implement Data Visualisation Dashboards — Add interactive charts and trend graphs to the Secretariat Command Centre, enabling real-time visual analysis of attendance patterns, submission trends, and resource consumption during the event.',
+    'Establish Departmental Performance Recognition — Institute a formal recognition mechanism for departments achieving 100% compliance, incentivising timely and complete reporting across all event days.',
+    'Archive and Benchmark — Preserve the 2026 event dataset as the institutional baseline for Year-over-Year comparison in subsequent events, enabling evidence-based tracking of improvements, recurring issues, and resource allocation efficiency.',
   ]
 
   recommendations.forEach((r, i) => children.push(numberedItem(i + 1, r)))
@@ -827,7 +827,7 @@ export async function generateSecretariatDocx(
   }
 
   children.push(bodyText(
-    'The Secretariat Department recommends the continued development, enhancement, and deployment of this platform for all future convention cycles, with the strategic improvements outlined in the Recommendations section implemented to maximise operational impact and institutional value.'
+    'The Secretariat Department recommends the continued development, enhancement, and deployment of this platform for all future event cycles, with the strategic improvements outlined in the Recommendations section implemented to maximise operational impact and institutional value.'
   ))
 
   children.push(new Paragraph({ spacing: spacing(300, 60), children: [] }))
@@ -886,7 +886,7 @@ export async function generateSecretariatDocx(
   const doc = new Document({
     creator: 'DTCE Reporting Platform',
     title: `${m.eventName} — Secretariat Strategic Board Report`,
-    description: 'Strategic report on the digital transformation of convention operations reporting',
+    description: 'Strategic report on the digital transformation of event operations reporting',
     sections: [{
       properties: {
         page: { margin: { top: 1200, right: 1200, bottom: 1200, left: 1200 } }

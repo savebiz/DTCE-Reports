@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { showToast } from '@/components/ui/toast'
-import { Calendar, Clock, Lock, Unlock, CheckCircle2, AlertTriangle } from 'lucide-react'
-import type { PlatformEvent, EventStatus, WindowOverride } from '@/lib/events/current-event'
+import { Calendar, Clock, Lock, Unlock, CheckCircle2, AlertTriangle, Plus, Globe2, CalendarCheck2 } from 'lucide-react'
+import type { PlatformEvent, EventStatus, EventType, WindowOverride } from '@/lib/events/current-event'
 import {
   evaluateRequisitionWindow,
   formatWatDateTime,
@@ -34,7 +34,16 @@ export function EventWindowsPanel() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
-  const loadEvents = async () => {
+  // New event creator state
+  const [showCreate, setShowCreate] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [newType, setNewType] = useState<EventType>('congress')
+  const [newStart, setNewStart] = useState('')
+  const [newEnd, setNewEnd] = useState('')
+  const [newMakeActive, setNewMakeActive] = useState(true)
+
+  const loadEvents = async (preferId?: string) => {
     setLoading(true)
     try {
       const res = await fetch('/api/admin/events')
@@ -42,9 +51,12 @@ export function EventWindowsPanel() {
       if (!res.ok) throw new Error(data.error || 'Failed to load events')
       const list: PlatformEvent[] = data.events || []
       setEvents(list)
-      const current = list.find(e => e.is_current) || list[0]
-      if (current) {
-        selectEvent(current)
+      const target =
+        (preferId && list.find(e => e.id === preferId)) ||
+        list.find(e => e.is_current) ||
+        list[0]
+      if (target) {
+        selectEvent(target)
       }
     } catch (err: any) {
       showToast(err.message || 'Failed to load events', 'error')
@@ -71,6 +83,7 @@ export function EventWindowsPanel() {
     loadEvents()
   }, [])
 
+  const activePlatformEvent = events.find(e => e.is_current) || null
   const selectedEvent = events.find(e => e.id === selectedId) || null
 
   const previewEvent: PlatformEvent | null =
@@ -117,10 +130,10 @@ export function EventWindowsPanel() {
       showToast(
         makeCurrent
           ? `${selectedEvent.name} is now the active platform event.`
-          : `Saved window configuration for ${selectedEvent.name}.`,
+          : `Saved configuration for ${selectedEvent.name}.`,
         'success'
       )
-      await loadEvents()
+      await loadEvents(selectedEvent.id)
     } catch (err: any) {
       showToast(err.message || 'Save failed', 'error')
     } finally {
@@ -128,25 +141,183 @@ export function EventWindowsPanel() {
     }
   }
 
+  const handleCreateEvent = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newName.trim()) {
+      showToast('Please enter an event name.', 'warning')
+      return
+    }
+    setCreating(true)
+    try {
+      const res = await fetch('/api/admin/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newName.trim(),
+          event_type: newType,
+          start_date: newStart || null,
+          end_date: newEnd || null,
+          set_as_current: newMakeActive,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to create event')
+      showToast(`Created event "${data.event?.name || newName}"`, 'success')
+      setNewName('')
+      setNewStart('')
+      setNewEnd('')
+      setShowCreate(false)
+      await loadEvents(data.event?.id)
+    } catch (err: any) {
+      showToast(err.message || 'Failed to create event', 'error')
+    } finally {
+      setCreating(false)
+    }
+  }
+
   if (loading) {
     return (
       <Card className="glass-card border-none">
-        <CardContent className="p-6 text-xs text-muted-foreground">Loading event configurations...</CardContent>
+        <CardContent className="p-6 text-xs text-muted-foreground">Loading platform event configurations...</CardContent>
       </Card>
     )
   }
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      {/* ── CARD 1: ACTIVE PLATFORM EVENT SELECTOR ── */}
+      <Card className="glass-card border-none">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+              <Globe2 className="w-4 h-4 text-emerald-500" />
+              Active Platform Event
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Choose which event all Daily Logs, Dashboards, Store Requisitions, and Exports are currently operating on.
+            </p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setShowCreate(v => !v)}
+            className="text-xs h-9 font-bold shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            {showCreate ? 'Close' : 'New Event'}
+          </Button>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {activePlatformEvent ? (
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+              <div className="space-y-0.5">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Currently Active Across Platform
+                </span>
+                <p className="text-sm font-bold text-foreground">{activePlatformEvent.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {activePlatformEvent.start_date && activePlatformEvent.end_date
+                    ? `${activePlatformEvent.start_date.slice(0, 10)} → ${activePlatformEvent.end_date.slice(0, 10)}`
+                    : 'Dates not yet configured'}{' '}
+                  · Status: <span className="font-semibold capitalize">{activePlatformEvent.status || 'planning'}</span>
+                </p>
+              </div>
+              {events.length > 1 && (
+                <div className="flex flex-col sm:items-end gap-1.5">
+                  <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Switch / Configure Event</Label>
+                  <select
+                    value={selectedId}
+                    onChange={(e) => {
+                      const found = events.find(ev => ev.id === e.target.value)
+                      if (found) selectEvent(found)
+                    }}
+                    className="h-9 rounded-lg border border-border bg-background px-3 text-xs font-bold text-foreground"
+                  >
+                    {events.map(ev => (
+                      <option key={ev.id} value={ev.id}>
+                        {ev.name} {ev.is_current ? '(Active)' : `(${ev.status || 'planning'})`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-xs text-amber-700 dark:text-amber-300">
+              No active event is currently flagged. Select or create an event below and click &ldquo;Save &amp; Set as Active Event&rdquo;.
+            </div>
+          )}
+
+          {/* Create New Event Inline Form */}
+          {showCreate && (
+            <form onSubmit={handleCreateEvent} className="rounded-xl border border-border bg-muted/30 p-4 space-y-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-foreground">Create New Platform Event</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-xs">Event Name</Label>
+                  <Input
+                    value={newName}
+                    onChange={e => setNewName(e.target.value)}
+                    placeholder="e.g. Holy Ghost Congress 2026"
+                    className="h-9 text-xs"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Event Type</Label>
+                  <select
+                    value={newType}
+                    onChange={e => setNewType(e.target.value as EventType)}
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs font-semibold text-foreground"
+                  >
+                    <option value="congress">Congress</option>
+                    <option value="convention">Convention</option>
+                    <option value="other">Special Event</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Start Date</Label>
+                  <Input type="date" value={newStart} onChange={e => setNewStart(e.target.value)} className="h-9 text-xs" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">End Date</Label>
+                  <Input type="date" value={newEnd} onChange={e => setNewEnd(e.target.value)} className="h-9 text-xs" />
+                </div>
+                <div className="flex items-end sm:col-span-2">
+                  <label className="inline-flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer h-9">
+                    <input
+                      type="checkbox"
+                      checked={newMakeActive}
+                      onChange={e => setNewMakeActive(e.target.checked)}
+                      className="rounded border-border"
+                    />
+                    Set as active platform event immediately
+                  </label>
+                </div>
+                <div className="flex items-end justify-end">
+                  <Button type="submit" size="sm" disabled={creating} className="h-9 text-xs font-bold">
+                    {creating ? 'Creating...' : 'Create Event'}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── CARD 2: PLATFORM LIFECYCLE, DAILY REPORTING & STORES WINDOWS ── */}
       <Card className="glass-card border-none">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
               <Calendar className="w-4 h-4 text-amber-500" />
-              Event Lifecycle &amp; Store Requisition Windows
+              Platform Event &amp; Operations Windows
             </CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Control when HODs can submit Pre-Event Needs Lists (for market purchase) and when Live Event Store Requisitions unlock (defaults to 1 day before event start, WAT / UTC+1).
+              Configure event dates, Daily Log submission gating, Pre-Event Needs Lists, and Live Store Requisitions (WAT / UTC+1).
             </p>
           </div>
           {events.length > 0 && (
@@ -160,7 +331,7 @@ export function EventWindowsPanel() {
             >
               {events.map(ev => (
                 <option key={ev.id} value={ev.id}>
-                  {ev.name} {ev.is_current ? '(Active)' : `(${ev.status})`}
+                  {ev.name} {ev.is_current ? '(Active)' : `(${ev.status || 'planning'})`}
                 </option>
               ))}
             </select>
@@ -170,7 +341,22 @@ export function EventWindowsPanel() {
         {selectedEvent && draft && (
           <CardContent className="space-y-6">
             {/* Live Preview Status Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl border border-blue-500/30 bg-blue-500/5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Daily Reporting
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 dark:text-blue-400">
+                    <CalendarCheck2 className="w-3 h-3" />
+                    Day-Gated
+                  </span>
+                </div>
+                <p className="text-xs text-foreground font-medium">
+                  Each event day opens for final submission 6 hours before midnight (18:00 WAT the evening before). Drafts remain available anytime.
+                </p>
+              </div>
+
               <div className={`p-4 rounded-xl border ${preEventWindow.isOpen ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-amber-500/30 bg-amber-500/5'}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -187,7 +373,7 @@ export function EventWindowsPanel() {
               <div className={`p-4 rounded-xl border ${liveWindow.isOpen ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-slate-500/30 bg-muted/20'}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Phase 2: Live Event Store Requisition
+                    Phase 2: Live Store Requisition
                   </span>
                   <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${liveWindow.isOpen ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-500/20 text-muted-foreground'}`}>
                     {liveWindow.isOpen ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}

@@ -219,7 +219,7 @@ function FeedbackAnalyticsContent() {
     const encodedUri = encodeURI(csvContent)
     const link = document.createElement('a')
     link.setAttribute('href', encodedUri)
-    link.setAttribute('download', `dtce_convention_feedback_export_${new Date().toISOString().slice(0, 10)}.csv`)
+    link.setAttribute('download', `dtce_event_feedback_export_${new Date().toISOString().slice(0, 10)}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -231,7 +231,7 @@ function FeedbackAnalyticsContent() {
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
-          <p className="text-sm font-semibold text-muted-foreground animate-pulse">Loading Convention Feedback Analytics...</p>
+          <p className="text-sm font-semibold text-muted-foreground animate-pulse">Loading Event Feedback Analytics...</p>
         </div>
       </div>
     )
@@ -249,7 +249,7 @@ function FeedbackAnalyticsContent() {
                 <MessageSquare className="w-5 h-5" />
               </div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
-                End-of-Convention Feedback
+                End-of-Event Feedback
               </h1>
               <span className="bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">
                 Super Admin Only
@@ -428,7 +428,7 @@ function FeedbackAnalyticsContent() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {bugPercentage}% of respondents encountered minor issues or UI bugs during convention reporting.
+                    {bugPercentage}% of respondents encountered minor issues or UI bugs during event reporting.
                   </p>
                 </div>
 
@@ -597,7 +597,7 @@ export default function FeedbackAnalyticsPage() {
         <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
           <div className="flex flex-col items-center gap-3">
             <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
-            <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading Convention Feedback Analytics...</p>
+            <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading Event Feedback Analytics...</p>
           </div>
         </div>
       }

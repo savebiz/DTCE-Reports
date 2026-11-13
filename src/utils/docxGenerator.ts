@@ -275,7 +275,7 @@ export async function generateDTCEConventionDocx({
       spacing: { before: 1440, after: 120 },
       children: [
         new TextRun({
-          text: event?.name || 'CONVENTION REPORT',
+          text: event?.name || 'EVENT REPORT',
           size: 40,
           bold: true,
           color: NAVY,
@@ -337,7 +337,7 @@ export async function generateDTCEConventionDocx({
       spacing: spacing(120, 180),
       children: [
         new TextRun({
-          text: `This consolidated report presents the administrative, attendance, and operational metrics of the Junior Church Global Secretariat during the ${event?.name || 'Annual Convention'}. It compiles metrics from all ${sortedDepts.length} departments tasked with delegate management, welfare, medical care, and logistics. Through diligent data collation and real-time offline-first form synchronization, the Secretariat maintained comprehensive reporting standards to ensure the spiritual and physical well-being of all attendees.`,
+          text: `This consolidated report presents the administrative, attendance, and operational metrics of the Junior Church Global Secretariat during the ${event?.name || 'Annual Event'}. It compiles metrics from all ${sortedDepts.length} departments tasked with delegate management, welfare, medical care, and logistics. Through diligent data collation and real-time offline-first form synchronization, the Secretariat maintained comprehensive reporting standards to ensure the spiritual and physical well-being of all attendees.`,
           size: 22,
           font: 'Outfit'
         })
@@ -383,7 +383,7 @@ export async function generateDTCEConventionDocx({
 
     const summaryHeaderRow = new TableRow({
       children: [
-        new TableCell({ shading: { fill: NAVY }, width: { size: 2000, type: WidthType.DXA }, children: [new Paragraph({ children: [new TextRun({ text: 'Convention Day', color: 'FFFFFF', bold: true, size: 18, font: 'Outfit' })] })] }),
+        new TableCell({ shading: { fill: NAVY }, width: { size: 2000, type: WidthType.DXA }, children: [new Paragraph({ children: [new TextRun({ text: 'Event Day', color: 'FFFFFF', bold: true, size: 18, font: 'Outfit' })] })] }),
         new TableCell({ shading: { fill: NAVY }, width: { size: 2500, type: WidthType.DXA }, children: [new Paragraph({ children: [new TextRun({ text: 'Total Morning Attendance', color: 'FFFFFF', bold: true, size: 18, font: 'Outfit' })] })] }),
         new TableCell({ shading: { fill: NAVY }, width: { size: 2500, type: WidthType.DXA }, children: [new Paragraph({ children: [new TextRun({ text: 'Total Evening Attendance', color: 'FFFFFF', bold: true, size: 18, font: 'Outfit' })] })] }),
         new TableCell({ shading: { fill: NAVY }, width: { size: 2000, type: WidthType.DXA }, children: [new Paragraph({ children: [new TextRun({ text: 'Depts Reporting', color: 'FFFFFF', bold: true, size: 18, font: 'Outfit' })] })] }),
@@ -411,7 +411,7 @@ export async function generateDTCEConventionDocx({
     )
 
     const submittedDays = realDaySummary.length
-    mainChildren.push(createFreshnessLine(`${submittedDays} of ${totalExpectedDays} convention days have at least one department submission.`))
+    mainChildren.push(createFreshnessLine(`${submittedDays} of ${totalExpectedDays} event days have at least one department submission.`))
   } else {
     mainChildren.push(
       new Paragraph({
@@ -1231,7 +1231,7 @@ export async function generateDTCEConventionDocx({
       spacing: spacing(60, 120),
       children: [
         new TextRun({
-          text: 'The following financial summary consolidates worship offerings and registration fees collected across all departments during the convention. Registration administrative fees are reported separately from worship offerings for transparency.',
+          text: 'The following financial summary consolidates worship offerings and registration fees collected across all departments during the event. Registration administrative fees are reported separately from worship offerings for transparency.',
           size: 20,
           font: 'Outfit'
         })
@@ -1302,7 +1302,7 @@ export async function generateDTCEConventionDocx({
       spacing: spacing(120, 240),
       children: [
         new TextRun({
-          text: 'We express our profound gratitude to the National Coordinators, HODs, and the Secretariat volunteers whose tireless execution kept convention reporting running seamlessly under challenging offline settings.',
+          text: 'We express our profound gratitude to the National Coordinators, HODs, and the Secretariat volunteers whose tireless execution kept event reporting running seamlessly under challenging offline settings.',
           size: 20,
           font: 'Outfit'
         })

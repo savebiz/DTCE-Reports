@@ -81,7 +81,7 @@ export async function generateStoresMaterialsDocx({
       alignment: AlignmentType.RIGHT,
       children: [
         new TextRun({
-          text: `DTCE STORES REQUISITION & MATERIALS FLOW AUDIT — ${event?.name || 'CONVENTION'}`,
+          text: `DTCE STORES REQUISITION & MATERIALS FLOW AUDIT — ${event?.name || 'EVENT'}`,
           size: 14,
           font: 'Outfit',
           color: '94A3B8',
@@ -150,7 +150,7 @@ export async function generateStoresMaterialsDocx({
             new Paragraph({
               children: [
                 new TextRun({ text: 'Event: ', bold: true, font: 'Outfit', size: 16 }),
-                new TextRun({ text: `${event?.name || 'Convention'}`, font: 'Outfit', size: 16 }),
+                new TextRun({ text: `${event?.name || 'Event'}`, font: 'Outfit', size: 16 }),
                 new TextRun({ text: '   |   Export Label: ', bold: true, font: 'Outfit', size: 16 }),
                 new TextRun({ text: `${exportLabel || 'Official Audit'}`, font: 'Outfit', size: 16, color: TEAL }),
                 new TextRun({ text: '   |   Generated: ', bold: true, font: 'Outfit', size: 16 }),
@@ -171,7 +171,7 @@ export async function generateStoresMaterialsDocx({
     spacing: spacing(60, 120),
     children: [
       new TextRun({
-        text: `This report provides an independent, highly strategic audit of material requisitions, stores distribution velocity, inventory movement, and departmental consumption for ${event?.name || 'the convention'}. Out of ${summary.kpis.totalRequisitions} total submitted store requisitions across ${summary.kpis.totalDepartmentsRequesting} departments, ${summary.kpis.deliveredCount + summary.kpis.approvedCount} were approved/fulfilled, yielding an overall fulfillment rate of ${summary.kpis.fulfillmentRate}%.`,
+        text: `This report provides an independent, highly strategic audit of material requisitions, stores distribution velocity, inventory movement, and departmental consumption for ${event?.name || 'the event'}. Out of ${summary.kpis.totalRequisitions} total submitted store requisitions across ${summary.kpis.totalDepartmentsRequesting} departments, ${summary.kpis.deliveredCount + summary.kpis.approvedCount} were approved/fulfilled, yielding an overall fulfillment rate of ${summary.kpis.fulfillmentRate}%.`,
         font: 'Outfit',
         size: 18,
         color: SLATE_DARK

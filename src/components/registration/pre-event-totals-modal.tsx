@@ -157,7 +157,7 @@ export function PreEventRegistrationTotalsModal({
               Pre-Event Online Registration Totals
             </CardTitle>
             <p className="text-xs text-slate-400 mt-0.5">
-              Enter total online registered delegates prior to convention start for pickup rate analysis.
+              Enter total online registered delegates prior to event start for pickup rate analysis.
             </p>
           </div>
           <button

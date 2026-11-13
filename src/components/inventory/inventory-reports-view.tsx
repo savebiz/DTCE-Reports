@@ -347,7 +347,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                 <SelectItem value="all">All Time History</SelectItem>
                 <SelectItem value="today">Today Only</SelectItem>
                 <SelectItem value="week">Past 7 Days</SelectItem>
-                <SelectItem value="convention">Convention Period</SelectItem>
+                <SelectItem value="convention">Event Period</SelectItem>
                 <SelectItem value="custom">Custom Range</SelectItem>
               </SelectContent>
             </Select>
@@ -543,7 +543,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
                     2. Department Consumption &amp; Distribution Equity Report
                   </h3>
                   <p className="text-[11px] text-muted-foreground">
-                    Fairness &amp; equitable distribution oversight — department requisition share across convention materials.
+                    Fairness &amp; equitable distribution oversight — department requisition share across event materials.
                   </p>
                 </div>
               </div>
