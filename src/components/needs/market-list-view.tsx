@@ -65,6 +65,7 @@ interface MarketAnalytics {
 interface MarketListData {
   event: { id: string; name: string; status: string | null; requisitionClosesAt: string | null }
   canEdit: boolean
+  isFinanceView?: boolean
   canApprove?: boolean
   analytics?: MarketAnalytics
   items: MarketItem[]
@@ -299,6 +300,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
   }
 
   const canEdit = !!data?.canEdit
+  const isFinanceView = !!data?.isFinanceView
   const submissionRate = analytics.totalDepartments > 0
     ? Math.round((analytics.departmentsSubmitted / analytics.totalDepartments) * 100)
     : 0
@@ -332,13 +334,15 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                 <span className="inline-flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> {stockingAll ? 'Stocking Inventory…' : `Stock Received Items into Store (${unstockedReceivedItems.length})`}</span>
               </Button>
             )}
-            <Button
+            {!isFinanceView && (
+              <Button
               variant="outline"
               onClick={() => router.push('/dashboard/store-requisitions?mode=pre_event')}
               className="h-10 px-4 text-xs font-semibold cursor-pointer"
             >
               <span className="inline-flex items-center gap-1.5"><ClipboardList className="h-3.5 w-3.5" /> Review Department Lists {analytics.departmentsPendingApproval > 0 ? `(${analytics.departmentsPendingApproval} Pending)` : ''}</span>
             </Button>
+            )}
             <Button variant="outline" onClick={() => window.print()} className="h-10 px-3.5 text-xs cursor-pointer flex items-center gap-1.5">
               <Printer className="w-3.5 h-3.5" /> Print
             </Button>
@@ -385,6 +389,13 @@ export function MarketListView({ backHref }: { backHref: string }) {
 
         {data && !loading && (
           <>
+            {isFinanceView && (
+              <div className="flex items-center gap-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                <span>Finance Oversight — Approved Requests Only (Read-Only). Only requests approved by the NEC Chair / National Coordinator are visible here.</span>
+              </div>
+            )}
+
             {/* At-a-Glance Pre-Event Analytics KPI Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
               <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
@@ -475,16 +486,22 @@ export function MarketListView({ backHref }: { backHref: string }) {
                     Department Pre-Event Needs Submission Tracker ({analytics.departmentsSubmitted} of {analytics.totalDepartments} Sent)
                   </CardTitle>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Click any submitted department to review or adjust their pre-event needs list.
+                    {isFinanceView ? 'Showing only departments with NEC-approved pre-event requests.' : 'Click any submitted department to review or adjust their pre-event needs list.'}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-1.5 print:hidden">
-                  {([
-                    ['all', `All (${data.departments.length})`],
-                    ['pending', `Awaiting Approval (${analytics.departmentsPendingApproval})`],
-                    ['approved', `Approved (${analytics.departmentsApproved})`],
-                    ['not_sent', `Not Sent Yet (${analytics.departmentsNotSubmitted})`],
-                  ] as const).map(([key, label]) => (
+                  {(isFinanceView
+                    ? ([
+                        ['all', `All (${data.departments.length})`],
+                        ['approved', `Approved (${analytics.departmentsApproved})`],
+                      ] as const)
+                    : ([
+                        ['all', `All (${data.departments.length})`],
+                        ['pending', `Awaiting Approval (${analytics.departmentsPendingApproval})`],
+                        ['approved', `Approved (${analytics.departmentsApproved})`],
+                        ['not_sent', `Not Sent Yet (${analytics.departmentsNotSubmitted})`],
+                      ] as const)
+                  ).map(([key, label]) => (
                     <button
                       key={key}
                       onClick={() => setDeptFilter(key)}
@@ -519,7 +536,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                           <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap shrink-0 ${st.className}`}>
                             {st.label}
                           </span>
-                          {d.latestRequestId && (
+                          {!isFinanceView && d.latestRequestId && (
                             <button
                               onClick={() => router.push(`/dashboard/store-requisitions?mode=pre_event&id=${d.latestRequestId}`)}
                               className="text-xs font-bold text-blue-500 hover:text-blue-400 underline cursor-pointer print:hidden"

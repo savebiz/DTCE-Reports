@@ -69,6 +69,8 @@ export default function MyDepartmentDashboard() {
 
         const isStores = profile.department_id === 'dept-29' ||
                          department?.name?.toLowerCase().includes('store')
+
+  const isFinanceDept = department?.name?.toLowerCase().includes('finance')
         if (isStores) {
           if (!isMock) {
             let appReqsQuery = supabase
@@ -386,6 +388,8 @@ export default function MyDepartmentDashboard() {
   const isSecretariatDept = profile.department_id === 'dept-25' ||
                             department?.name?.toLowerCase().includes('secretariat')
 
+  const isFinanceDept = department?.name?.toLowerCase().includes('finance')
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
 
@@ -505,6 +509,15 @@ export default function MyDepartmentDashboard() {
                 >
                   <Package className="w-3.5 h-3.5" />
                   Needs List &amp; Store Request
+                </button>
+              )}
+              {isFinanceDept && !isStoresDept && (
+                <button
+                  className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer shadow-xs"
+                  onClick={() => router.push('/my-department/market-list')}
+                >
+                  <Package className="w-3.5 h-3.5" />
+                  Approved Market List
                 </button>
               )}
               {profile?.role !== 'assistant' && (

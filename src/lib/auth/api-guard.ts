@@ -32,6 +32,7 @@ export interface AuthContext {
   fullName: string | null
   username: string | null
   isStoresStaff: boolean
+  isFinanceStaff: boolean
 }
 
 type GuardResult = { ok: true; ctx: AuthContext } | { ok: false; response: NextResponse }
@@ -61,6 +62,21 @@ export async function checkStoresStaff(profileId: string, username?: string | nu
   })
 }
 
+export async function checkFinanceStaff(profileId: string): Promise<boolean> {
+  const admin = getAdminClient()
+  const eventId = await getCurrentEventId(admin)
+  let query = admin
+    .from('hod_assignments')
+    .select('department_id, departments!inner(name)')
+    .eq('profile_id', profileId)
+  if (eventId) query = query.eq('event_id', eventId)
+  const { data } = await query
+  return (data || []).some((row: any) => {
+    const dept = Array.isArray(row.departments) ? row.departments[0] : row.departments
+    return typeof dept?.name === 'string' && dept.name.toLowerCase().includes('finance')
+  })
+}
+
 /** Resolve the signed-in caller from the request cookies. Null if signed out or deactivated. */
 export async function getAuthContext(): Promise<AuthContext | null> {
   // Local mock mode (no Supabase env vars at all): use the mock session user.
@@ -74,6 +90,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       fullName: u?.full_name || null,
       username: u?.username || null,
       isStoresStaff: u?.department_id === 'dept-29',
+      isFinanceStaff: false,
     }
   }
 
@@ -98,6 +115,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     fullName: profile.full_name ?? null,
     username: profile.username ?? null,
     isStoresStaff: await checkStoresStaff(user.id, profile.username, profile.role),
+    isFinanceStaff: await checkFinanceStaff(user.id),
   }
 }
 
@@ -105,14 +123,15 @@ export async function getAuthContext(): Promise<AuthContext | null> {
  * Require a signed-in, active caller. Optionally restrict to `roles`, or allow
  * Stores staff in addition to those roles.
  */
-export async function requireAuth(options: { roles?: PlatformRole[]; allowStoresStaff?: boolean } = {}): Promise<GuardResult> {
+export async function requireAuth(options: { roles?: PlatformRole[]; allowStoresStaff?: boolean; allowFinanceStaff?: boolean } = {}): Promise<GuardResult> {
   const ctx = await getAuthContext()
   if (!ctx) return { ok: false, response: unauthorized() }
 
-  const { roles, allowStoresStaff } = options
+  const { roles, allowStoresStaff, allowFinanceStaff } = options
   if (!roles) return { ok: true, ctx }
   if (roles.includes(ctx.role)) return { ok: true, ctx }
   if (allowStoresStaff && ctx.isStoresStaff) return { ok: true, ctx }
+  if (allowFinanceStaff && ctx.isFinanceStaff) return { ok: true, ctx }
 
   return { ok: false, response: forbidden() }
 }

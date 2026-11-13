@@ -49,8 +49,9 @@ function itemKey(it: ReqItem): string {
 }
 
 export async function GET(request: NextRequest) {
-  const auth = await requireAuth({ roles: ADMIN_ROLES, allowStoresStaff: true })
+  const auth = await requireAuth({ roles: ADMIN_ROLES, allowStoresStaff: true, allowFinanceStaff: true })
   if (!auth.ok) return auth.response
+  const isFinanceView = auth.ctx.isFinanceStaff && !ADMIN_ROLES.includes(auth.ctx.role) && !auth.ctx.isStoresStaff
 
   const type = request.nextUrl.searchParams.get('type') || 'pre_event'
   const admin = getAdminClient()
@@ -61,6 +62,9 @@ export async function GET(request: NextRequest) {
     .from('store_requests')
     .select('id, department_id, status, items_json, created_at, request_type, reviewer_comments')
     .eq('event_id', event.id)
+  if (isFinanceView) {
+    reqQuery = reqQuery.in('status', APPROVED_STATUSES)
+  }
   if (type === 'pre_event' || type === 'during_event') {
     reqQuery = reqQuery.eq('request_type', type)
   }
@@ -230,7 +234,7 @@ export async function GET(request: NextRequest) {
     .sort((a, b) => a.name.localeCompare(b.name))
 
   const visibleDepts = (departments || []).filter((d: { id: string }) =>
-    deptsWithTeam.size === 0 || deptsWithTeam.has(d.id) || !!deptSummary[d.id])
+    isFinanceView ? !!deptSummary[d.id] : (deptsWithTeam.size === 0 || deptsWithTeam.has(d.id) || !!deptSummary[d.id]))
   const deptRows = visibleDepts.map((d: { id: string; name: string }) => ({
     id: d.id,
     name: d.name,
@@ -271,6 +275,7 @@ export async function GET(request: NextRequest) {
       status: event.status ?? null,
       requisitionClosesAt: event.requisition_closes_at ?? null,
     },
+    isFinanceView,
     canEdit: auth.ctx.role === 'super_admin' || auth.ctx.isStoresStaff,
     canApprove: auth.ctx.role === 'super_admin' || auth.ctx.role === 'national_coordinator',
     analytics,

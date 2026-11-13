@@ -468,9 +468,11 @@ export function DashboardHeader() {
                   DEPT_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
                     if (hasNoDepartment && href !== '/my-department') return null;
                     const isStoresDept = activeDeptName.toLowerCase().includes('store')
+                    const isFinanceDept = activeDeptName.toLowerCase().includes('finance')
                     const isSecretariatDept = activeDeptName.toLowerCase().includes('secretariat')
                     // Hide fulfillment console and inventory catalog for non-stores departments
-                    if ((label === 'Fulfillment Console' || label === 'Market List') && !isStoresDept) return null;
+                    if (label === 'Fulfillment Console' && !isStoresDept) return null;
+                    if (label === 'Market List' && !isStoresDept && !isFinanceDept) return null;
                     if (label === 'Inventory Catalog' && !isStoresDept) return null;
                     if (label === 'Manual Paper Entry' && !isSecretariatDept) return null;
                     const active = pathname === href || (href !== '/my-department' && pathname?.startsWith(href))
