@@ -492,7 +492,7 @@ function AdminRequisitionsContent() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       {/* Top Breadcrumb */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-2.5 border-b border-border/40 bg-background/50 backdrop-blur-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 md:px-6 py-2.5 border-b border-border/40 bg-background/50 backdrop-blur-xs">
         <button
           onClick={() => router.push('/dashboard')}
           className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
@@ -588,12 +588,12 @@ function AdminRequisitionsContent() {
                 : 'border-border bg-card hover:bg-muted/40'
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2 text-base font-extrabold text-foreground">
-                <ClipboardList className={`w-5 h-5 ${workflowMode === 'pre_event' ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-foreground leading-snug">
+                <ClipboardList className={`w-5 h-5 shrink-0 ${workflowMode === 'pre_event' ? 'text-emerald-500' : 'text-muted-foreground'}`} />
                 1. Pre-Event Needs Lists (Market Purchase)
               </span>
-              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 whitespace-nowrap shrink-0">
                 {preEventRequests.length} Lists · {preEventAnalytics.pendingListsCount} Pending
               </span>
             </div>
@@ -612,12 +612,12 @@ function AdminRequisitionsContent() {
                 : 'border-border bg-card hover:bg-muted/40'
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2 text-base font-extrabold text-foreground">
-                <Package className={`w-5 h-5 ${workflowMode === 'during_event' ? 'text-blue-500' : 'text-muted-foreground'}`} />
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-foreground leading-snug">
+                <Package className={`w-5 h-5 shrink-0 ${workflowMode === 'during_event' ? 'text-blue-500' : 'text-muted-foreground'}`} />
                 2. Live Event Store Requisitions (From Store)
               </span>
-              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-500 border border-blue-500/30">
+              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-500 border border-blue-500/30 whitespace-nowrap shrink-0">
                 {duringEventRequests.length} Requests
               </span>
             </div>
@@ -755,14 +755,14 @@ function AdminRequisitionsContent() {
 
         {/* Filter Tabs & Search */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card p-2 rounded-2xl border border-border/50">
-          <div className="flex flex-wrap items-center gap-1 p-1 bg-muted/40 dark:bg-slate-800/40 rounded-xl border border-border/30">
+          <div className="flex overflow-x-auto sm:flex-wrap items-center gap-1 p-1 bg-muted/40 dark:bg-slate-800/40 rounded-xl border border-border/30">
             {(workflowMode === 'pre_event' ? PRE_EVENT_FILTER_TABS : DURING_EVENT_FILTER_TABS).map(tab => {
               const count = counts[tab.key] || 0
               return (
                 <button
                   key={tab.key}
                   onClick={() => setActiveFilter(tab.key)}
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
+                  className={`text-xs font-semibold px-3 py-1.5 min-h-[36px] rounded-lg transition-all duration-150 cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                     activeFilter === tab.key
                       ? 'bg-background text-foreground shadow-xs border border-border/50 font-bold'
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
@@ -927,13 +927,13 @@ function AdminRequisitionsContent() {
         {/* Review Modal Overlay */}
         {selectedReq && (
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in-up"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in-up"
             onClick={(e) => {
               if (e.target === e.currentTarget) setSelectedReq(null)
             }}
           >
-            <Card className="w-full max-w-xl bg-[#0A1826] border border-blue-500/40 text-slate-100 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-              <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-slate-800">
+            <Card className="w-full max-w-xl bg-[#0A1826] border border-blue-500/40 text-slate-100 shadow-2xl max-h-[92dvh] flex flex-col overflow-hidden">
+              <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3 border-b border-slate-800">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
@@ -953,13 +953,13 @@ function AdminRequisitionsContent() {
                 </div>
                 <button
                   onClick={() => setSelectedReq(null)}
-                  className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="h-9 w-9 flex items-center justify-center shrink-0 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
                   title="Close modal"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </CardHeader>
-              <CardContent className="space-y-4 p-5 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <CardContent className="space-y-4 p-4 sm:p-5 flex-1 min-h-0 overflow-y-auto">
                 {selectedReq.status !== 'pending_coordinator' ? (
                   <div className="space-y-4 pt-2">
                     <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3">
@@ -971,7 +971,7 @@ function AdminRequisitionsContent() {
                       </div>
                       <div className="space-y-2">
                         {Array.isArray(selectedReq.items_json) && selectedReq.items_json.map((it: any, idx: number) => (
-                          <div key={idx} className="flex justify-between items-center p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs">
+                          <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-xs">
                             <div>
                               <span className="font-semibold text-white block">{it.name}</span>
                               <span className="text-[10px] text-slate-400 uppercase">{it.unit || 'pcs'} · {it.category || 'consumable'}</span>
@@ -1024,8 +1024,8 @@ function AdminRequisitionsContent() {
 
                           return (
                             <div key={idx} className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-2 text-xs">
-                              <div className="flex justify-between items-center">
-                                <div>
+                              <div className="flex flex-wrap justify-between items-center gap-2">
+                                <div className="min-w-0">
                                   <span className="font-bold text-white block">{item.name}</span>
                                   <span className="text-[10px] text-slate-400 uppercase">{item.unit || 'pcs'} · {item.category || 'consumable'}</span>
                                 </div>
@@ -1071,9 +1071,9 @@ function AdminRequisitionsContent() {
                               )}
 
                               {/* Approval Quantity Input */}
-                              <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-800">
+                              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
                                 <div className="flex items-center gap-2">
-                                  <Label className="text-[10px] font-semibold text-slate-400 uppercase">
+                                  <Label className="text-[10px] font-semibold text-slate-400 uppercase whitespace-nowrap">
                                     {isSelectedPreEvent ? 'Approve to Buy:' : 'Grant Qty:'}
                                   </Label>
                                   <Input
@@ -1084,7 +1084,7 @@ function AdminRequisitionsContent() {
                                       const val = parseInt(e.target.value) || 0
                                       setEditableItems(prev => prev.map((it, i) => i === idx ? { ...it, approved_quantity: val } : it))
                                     }}
-                                    className="w-20 h-7 text-xs font-mono bg-slate-950 border-slate-700 text-white"
+                                    className="w-20 h-9 text-xs font-mono bg-slate-950 border-slate-700 text-white"
                                   />
                                   <span className="text-[11px] text-slate-400 font-mono">{item.unit || 'pcs'}</span>
                                 </div>
@@ -1102,7 +1102,7 @@ function AdminRequisitionsContent() {
                                 <button
                                   type="button"
                                   onClick={() => setEditableItems(prev => prev.filter((_, i) => i !== idx))}
-                                  className="ml-auto text-red-400 hover:text-red-300 font-bold px-1.5 py-0.5 rounded text-xs hover:bg-red-500/10"
+                                  className="ml-auto h-9 w-9 flex items-center justify-center shrink-0 text-red-400 hover:text-red-300 font-bold rounded-lg text-xs hover:bg-red-500/10"
                                   title="Remove item"
                                 >
                                   ✕
@@ -1118,12 +1118,12 @@ function AdminRequisitionsContent() {
                     {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
                       <div className="space-y-2 pb-4 border-b border-slate-800">
                         <Label htmlFor="del-user" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Approval Task</Label>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <select
                             id="del-user"
                             value={delegateId}
                             onChange={(e) => setDelegateId(e.target.value)}
-                            className="h-9 rounded-xl px-3 text-xs font-medium text-slate-100 bg-slate-900 border border-slate-700 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer flex-1"
+                            className="w-full min-w-0 h-10 sm:h-9 rounded-xl px-3 text-xs font-medium text-slate-100 bg-slate-900 border border-slate-700 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer sm:flex-1"
                           >
                             <option value="none" className="bg-slate-900 text-slate-100">none</option>
                             {approvers
@@ -1134,7 +1134,7 @@ function AdminRequisitionsContent() {
                                 </option>
                               ))}
                           </select>
-                          <Button onClick={handleDelegate} disabled={loading} size="sm" className="h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-xs">
+                          <Button onClick={handleDelegate} disabled={loading} size="sm" className="w-full sm:w-auto h-10 sm:h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-xs shrink-0">
                             Assign
                           </Button>
                         </div>
@@ -1154,11 +1154,11 @@ function AdminRequisitionsContent() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 pt-2">
-                      <Button onClick={() => handleAction('declined')} disabled={loading} variant="destructive" className="w-full text-xs font-bold py-2.5 cursor-pointer">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-2 pt-2">
+                      <Button onClick={() => handleAction('declined')} disabled={loading} variant="destructive" className="w-full min-h-[40px] text-xs font-bold py-2.5 cursor-pointer">
                         Decline
                       </Button>
-                      <Button onClick={() => handleAction('approved')} disabled={loading} className="w-full text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 shadow-xs cursor-pointer">
+                      <Button onClick={() => handleAction('approved')} disabled={loading} className="w-full min-h-[40px] text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 shadow-xs cursor-pointer">
                         {isSelectedPreEvent ? '✓ Approve for Market List' : '✓ Approve Store Request'}
                       </Button>
                     </div>

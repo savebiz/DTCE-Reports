@@ -392,9 +392,9 @@ export default function DepartmentNarrativePage() {
             </p>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
             <span
-              className="text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full"
+              className="text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full whitespace-nowrap"
               style={
                 status === 'draft' ? { background: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' } :
                 status === 'submitted' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
@@ -405,7 +405,7 @@ export default function DepartmentNarrativePage() {
             </span>
             <button
               onClick={() => router.push('/my-department')}
-              className="flex items-center gap-1.5 h-8 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer"
+              className="flex items-center gap-1.5 h-10 sm:h-9 rounded-lg px-4 text-[12px] font-semibold transition-all duration-200 text-foreground border border-border bg-card hover:bg-slate-500/5 cursor-pointer"
             >
               ← Back to Dashboard
             </button>
@@ -418,7 +418,7 @@ export default function DepartmentNarrativePage() {
           
           {/* Left Column: Aggregated Reference Cards (Prose Helper) */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="sticky top-20 space-y-6">
+            <div className="lg:sticky lg:top-20 space-y-6">
               <div>
                 <h3 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1.5">
                   Event Aggregated Data
@@ -474,7 +474,7 @@ export default function DepartmentNarrativePage() {
                         </span>
                         <div className="space-y-1 text-xs">
                           {group.items.map((item, idx) => (
-                            <div key={idx} className="flex justify-between items-center text-[11px]">
+                            <div key={idx} className="flex flex-wrap justify-between items-center gap-2 text-[11px]">
                               <span className="text-muted-foreground font-medium">{item.categoryOrName} ({item.metricLabel}):</span>
                               <span className="font-mono font-bold text-foreground">{item.value.toLocaleString()}</span>
                             </div>
@@ -578,7 +578,7 @@ export default function DepartmentNarrativePage() {
                       {!isViewOnly && (
                         <button
                           type="button"
-                          className="h-8 w-8 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
+                          className="h-10 w-10 sm:h-8 sm:w-8 shrink-0 flex items-center justify-center rounded-lg text-muted-foreground hover:text-red-500 transition-colors"
                           onClick={() => handleRemoveChallenge(c.id)}
                         >
                           ✕
@@ -639,8 +639,8 @@ export default function DepartmentNarrativePage() {
                       />
 
                       {/* Linked challenge dropdown */}
-                      <div className="flex items-center gap-2 pt-1">
-                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Linked Challenge:</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-1">
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider shrink-0">Linked Challenge:</span>
                         {isViewOnly ? (
                           <span className="text-[12px] font-semibold text-foreground">
                             {r.linked_challenge_id
@@ -651,7 +651,7 @@ export default function DepartmentNarrativePage() {
                           <select
                             value={r.linked_challenge_id || 'none'}
                             onChange={(e) => handleLinkChallenge(r.id as string, e.target.value)}
-                            className="h-8 rounded-lg px-2.5 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
+                            className="w-full sm:w-auto h-10 sm:h-8 rounded-lg px-2.5 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
                           >
                             <option value="none">None</option>
                             {challenges.map((c, cIdx) => (
@@ -681,7 +681,7 @@ export default function DepartmentNarrativePage() {
               )}
 
               {/* Footer actions inside editor card */}
-              <div className="flex justify-end gap-2 pt-5 border-t border-border">
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 sm:gap-2 pt-5 border-t border-border">
                 {!isViewOnly ? (
                   <>
                     <button

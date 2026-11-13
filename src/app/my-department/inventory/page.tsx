@@ -793,7 +793,54 @@ export default function StoresInventoryPage() {
               </span>
             </div>
 
-            <div className="overflow-x-auto text-xs">
+            <div className="md:hidden divide-y divide-border/60">
+              {transactions.length === 0 ? (
+                <p className="p-8 text-center text-xs text-muted-foreground italic">
+                  No inventory transactions recorded yet.
+                </p>
+              ) : (
+                transactions
+                  .slice((ledgerPage - 1) * ledgerPageSize, ledgerPage * ledgerPageSize)
+                  .map((t: any) => {
+                  const itemMatch = items.find(i => i.id === t.inventory_item_id)
+                  const itemName = itemMatch?.name || t.item?.name || 'Inventory Item'
+                  const itemCode = itemMatch?.item_code || t.item?.item_code
+                  const unit = itemMatch?.unit || t.item?.unit || 'units'
+                  const isRestock = t.transaction_type === 'restock'
+                  return (
+                    <div key={t.id} className="p-3.5 space-y-2 text-xs">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-bold text-foreground">{itemName}</div>
+                          <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                            {new Date(t.created_at).toLocaleString()} {itemCode ? `· ${itemCode}` : ''}
+                          </div>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                          isRestock ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                        }`}>
+                          {t.transaction_type.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted/30 p-2 font-mono">
+                        <div>
+                          <span className="text-[10px] text-muted-foreground font-sans block">Change</span>
+                          <span className={`font-bold ${isRestock ? 'text-emerald-400' : 'text-amber-400'}`}>
+                            {t.quantity_change > 0 ? `+${t.quantity_change}` : t.quantity_change} {unit}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-muted-foreground font-sans block">Resulting Stock</span>
+                          <span className="font-bold text-foreground">{t.resulting_stock_level} {unit}</span>
+                        </div>
+                      </div>
+                      {t.note && <p className="text-[11px] text-muted-foreground leading-snug">{t.note}</p>}
+                    </div>
+                  )
+                })
+              )}
+            </div>
+            <div className="hidden md:block overflow-x-auto text-xs">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border bg-muted/40 text-muted-foreground font-semibold uppercase text-[10px] tracking-wider">
@@ -875,7 +922,87 @@ export default function StoresInventoryPage() {
         ) : (
           /* Catalog Items Table */
           <div className="glass-card overflow-hidden rounded-xl border border-border bg-card">
-            <div className="overflow-x-auto text-xs">
+            <div className="md:hidden divide-y divide-border/60">
+              {filteredItems.length === 0 ? (
+                <p className="p-8 text-center text-xs text-muted-foreground italic">
+                  No inventory catalog items match your search criteria.
+                </p>
+              ) : (
+                filteredItems
+                  .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                  .map(item => {
+                  const reserved = Number((item as any).reserved_stock) || 0
+                  const quarantined = Number((item as any).quarantine_stock) || 0
+                  const available = Math.max(0, (item.current_stock || 0) - reserved)
+                  const isLowStock = available <= item.low_stock_threshold
+                  return (
+                    <div key={item.id} className="p-3.5 space-y-3 text-xs">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm text-foreground">{item.name}</div>
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            {item.item_code && (
+                              <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                {item.item_code}
+                              </span>
+                            )}
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${item.category === 'durable' ? 'bg-blue-500/10 text-blue-400' : 'bg-purple-500/10 text-purple-400'}`}>
+                              {item.category} · {item.unit}
+                            </span>
+                          </div>
+                        </div>
+                        {isLowStock ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20 uppercase whitespace-nowrap shrink-0">
+                            ⚠️ Low Stock
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 uppercase whitespace-nowrap shrink-0">
+                            ✓ Optimal
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-4 gap-1.5 rounded-lg bg-muted/30 p-2 font-mono text-center">
+                        <div>
+                          <span className="text-[9px] text-muted-foreground font-sans block">Stock</span>
+                          <span className="font-bold text-foreground">{item.current_stock}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-muted-foreground font-sans block">Reserved</span>
+                          <span className="font-bold text-amber-400">{reserved}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-muted-foreground font-sans block">Avail</span>
+                          <span className="font-bold text-emerald-400">{available}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-muted-foreground font-sans block">Quar.</span>
+                          <span className="font-bold text-orange-400">{quarantined}</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setSelectedRestockItem(item); setIsRestockOpen(true) }}
+                          className="h-9 text-xs font-semibold cursor-pointer border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                        >
+                          + Restock
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setSelectedAdjustItem(item); setAdjustCount(item.current_stock || 0); setAdjustReason(''); setIsAdjustOpen(true) }}
+                          className="h-9 text-xs font-semibold cursor-pointer border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                        >
+                          Adjust
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+            <div className="hidden md:block overflow-x-auto text-xs">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border bg-muted/40 text-muted-foreground font-semibold uppercase text-[10px] tracking-wider">
@@ -1007,7 +1134,7 @@ export default function StoresInventoryPage() {
 
         {/* 6. Add Catalog Item Modal */}
         <Dialog open={isAddItemOpen} onOpenChange={setIsAddItemOpen}>
-          <DialogContent className="bg-card border-border text-foreground max-w-md">
+          <DialogContent className="bg-card border-border text-foreground sm:max-w-md max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground">
                 Add Single Catalog Item
@@ -1092,7 +1219,7 @@ export default function StoresInventoryPage() {
               </div>
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogFooter>
               <Button variant="outline" size="sm" onClick={() => setIsAddItemOpen(false)} className="text-xs">
                 Cancel
               </Button>
@@ -1105,7 +1232,7 @@ export default function StoresInventoryPage() {
 
         {/* 7. Restock Action Modal */}
         <Dialog open={isRestockOpen} onOpenChange={setIsRestockOpen}>
-          <DialogContent className="bg-card border-border text-foreground max-w-md">
+          <DialogContent className="bg-card border-border text-foreground sm:max-w-md max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground">
                 Single Item Stock Restock
@@ -1176,7 +1303,7 @@ export default function StoresInventoryPage() {
               </div>
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogFooter>
               <Button variant="outline" size="sm" onClick={() => setIsRestockOpen(false)} className="text-xs">
                 Cancel
               </Button>
@@ -1189,7 +1316,7 @@ export default function StoresInventoryPage() {
 
         {/* 7b. Cycle Count / Stock-Take Adjustment Modal */}
         <Dialog open={isAdjustOpen} onOpenChange={setIsAdjustOpen}>
-          <DialogContent className="bg-card border-border text-foreground max-w-md">
+          <DialogContent className="bg-card border-border text-foreground sm:max-w-md max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground">
                 Cycle Count / Stock-Take Adjustment
@@ -1238,7 +1365,7 @@ export default function StoresInventoryPage() {
               </div>
             )}
 
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogFooter>
               <Button variant="outline" size="sm" onClick={() => setIsAdjustOpen(false)} className="text-xs">
                 Cancel
               </Button>
@@ -1251,7 +1378,7 @@ export default function StoresInventoryPage() {
 
         {/* 8. BULK ADD TO CATALOG MODAL */}
         <Dialog open={isBulkCatalogOpen} onOpenChange={setIsBulkCatalogOpen}>
-          <DialogContent className="bg-card border-border text-foreground max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-card border-border text-foreground sm:max-w-3xl max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
               <div className="flex items-center justify-between pr-6">
                 <div>
@@ -1363,7 +1490,7 @@ export default function StoresInventoryPage() {
               )}
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogFooter>
               <Button variant="outline" size="sm" onClick={() => setIsBulkCatalogOpen(false)} className="text-xs">
                 Cancel
               </Button>
@@ -1381,7 +1508,7 @@ export default function StoresInventoryPage() {
 
         {/* 9. BULK RESTOCK MODAL */}
         <Dialog open={isBulkRestockOpen} onOpenChange={setIsBulkRestockOpen}>
-          <DialogContent className="bg-card border-border text-foreground max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="bg-card border-border text-foreground sm:max-w-3xl max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
               <div className="flex items-center justify-between pr-6">
                 <div>
@@ -1497,7 +1624,7 @@ export default function StoresInventoryPage() {
               )}
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogFooter>
               <Button variant="outline" size="sm" onClick={() => setIsBulkRestockOpen(false)} className="text-xs">
                 Cancel
               </Button>

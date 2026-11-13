@@ -304,7 +304,7 @@ export default function MyDepartmentDashboard() {
     const report = reports.find(r => r.event_day_id === dayId)
     if (!report) {
       return (
-        <span className="inline-flex items-center rounded-full bg-red-500/10 text-red-400 px-2.5 py-0.5 text-xs font-bold border border-red-500/20 uppercase tracking-wider font-sans">
+        <span className="inline-flex items-center whitespace-nowrap rounded-full bg-red-500/10 text-red-400 px-2.5 py-0.5 text-xs font-bold border border-red-500/20 uppercase tracking-wider font-sans">
           Missing
         </span>
       )
@@ -313,25 +313,25 @@ export default function MyDepartmentDashboard() {
     switch (report.status) {
       case 'draft':
         return (
-          <span className="inline-flex items-center rounded-full bg-amber-500/10 text-amber-400 px-2.5 py-0.5 text-xs font-bold border border-amber-500/20 uppercase tracking-wider font-sans">
+          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-amber-500/10 text-amber-400 px-2.5 py-0.5 text-xs font-bold border border-amber-500/20 uppercase tracking-wider font-sans">
             Draft
           </span>
         )
       case 'submitted':
         return (
-          <span className="inline-flex items-center rounded-full bg-blue-500/10 text-blue-400 px-2.5 py-0.5 text-xs font-bold border border-blue-500/20 uppercase tracking-wider font-sans">
+          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-blue-500/10 text-blue-400 px-2.5 py-0.5 text-xs font-bold border border-blue-500/20 uppercase tracking-wider font-sans">
             Submitted
           </span>
         )
       case 'reviewed':
         return (
-          <span className="inline-flex items-center rounded-full bg-purple-500/10 text-purple-400 px-2.5 py-0.5 text-xs font-bold border border-purple-500/20 uppercase tracking-wider font-sans">
+          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-purple-500/10 text-purple-400 px-2.5 py-0.5 text-xs font-bold border border-purple-500/20 uppercase tracking-wider font-sans">
             Reviewed
           </span>
         )
       case 'approved':
         return (
-          <span className="inline-flex items-center rounded-full bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 text-xs font-bold border border-emerald-500/20 uppercase tracking-wider font-sans">
+          <span className="inline-flex items-center whitespace-nowrap rounded-full bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 text-xs font-bold border border-emerald-500/20 uppercase tracking-wider font-sans">
             Approved
           </span>
         )
@@ -389,7 +389,7 @@ export default function MyDepartmentDashboard() {
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
 
       {/* Connectivity Status Bar */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-2.5 border-b border-border/40 bg-background/50 backdrop-blur-xs text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 md:px-6 py-2.5 border-b border-border/40 bg-background/50 backdrop-blur-xs text-xs">
         <div className="flex items-center gap-2">
           <span
             className="h-2 w-2 rounded-full"
@@ -407,7 +407,7 @@ export default function MyDepartmentDashboard() {
             <span className="text-amber-500 font-semibold">{pendingSyncCount} pending upload(s)</span>
             {isOnline && (
               <button
-                className="h-6 rounded-lg px-3 text-[11px] font-semibold text-white transition-all bg-amber-500 shadow-xs"
+                className="min-h-[34px] rounded-lg px-3 py-1 text-[11px] font-semibold text-white transition-all bg-amber-500 shadow-xs"
                 onClick={triggerSync}
                 disabled={syncing}
               >
@@ -425,7 +425,7 @@ export default function MyDepartmentDashboard() {
         <div className="space-y-6 animate-fade-in-up">
           {/* Department Switcher for Admin/Coordinators */}
           {(profile.role === 'super_admin' || profile.role === 'coordinator') && allDepartments.length > 0 && (
-            <div className="flex items-center gap-3 bg-card border border-border/50 p-4 rounded-xl shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 bg-card border border-border/50 p-4 rounded-xl shadow-xs">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Act on behalf of:</span>
               <select
                 value={profile.department_id || ''}
@@ -435,7 +435,7 @@ export default function MyDepartmentDashboard() {
                   const d = allDepartments.find(ad => ad.id === newDeptId)
                   if (d) setDepartment(d)
                 }}
-                className="bg-background border border-border/60 rounded-lg text-xs font-semibold px-3 py-1.5 text-foreground h-9"
+                className="w-full sm:w-auto bg-background border border-border/60 rounded-lg text-xs font-semibold px-3 py-1.5 text-foreground h-10 sm:h-9"
               >
                 {allDepartments.map(d => (
                   <option key={d.id} value={d.id}>{d.name}</option>
@@ -566,7 +566,7 @@ export default function MyDepartmentDashboard() {
                       <div className="ml-auto shrink-0">
                         <button
                           onClick={() => openEntryForm(day)}
-                          className="h-7 rounded-lg px-3 text-[11px] font-bold whitespace-nowrap cursor-pointer border border-border bg-card hover:bg-blue-600 hover:text-white hover:border-blue-500 text-foreground transition-all duration-150 flex items-center gap-1"
+                          className="min-h-[38px] rounded-lg px-3.5 text-[11px] font-bold whitespace-nowrap cursor-pointer border border-border bg-card hover:bg-blue-600 hover:text-white hover:border-blue-500 text-foreground transition-all duration-150 flex items-center gap-1"
                         >
                           {getButtonText(day.id)} ›
                         </button>

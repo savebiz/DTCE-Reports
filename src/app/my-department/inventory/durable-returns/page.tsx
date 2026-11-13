@@ -483,7 +483,51 @@ export default function DurableReturnsTrackerPage() {
                   </span>
                 </div>
 
-                <div className="overflow-x-auto text-xs">
+                <div className="md:hidden divide-y divide-border/60">
+                  {items.map((it, idx) => (
+                    <div key={`${it.requestId}_${idx}`} className="p-3.5 space-y-2.5 text-xs">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm text-foreground">{it.itemName}</div>
+                          <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                            {it.itemCode || 'Unassigned'} · Delivered {new Date(it.deliveredAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase whitespace-nowrap shrink-0 bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                          {it.returnStatus.replace('_', ' ')}
+                        </span>
+                      </div>
+                      {it.conditionNote && <p className="text-[11px] text-muted-foreground italic">Note: {it.conditionNote}</p>}
+                      <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/30 p-2 font-mono text-center">
+                        <div>
+                          <span className="text-[9px] text-muted-foreground font-sans block">Issued</span>
+                          <span className="font-bold text-foreground">{it.quantityIssued}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-muted-foreground font-sans block">Returned</span>
+                          <span className="font-bold text-emerald-400">{it.quantityReturned}</span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] text-muted-foreground font-sans block">Outstanding</span>
+                          <span className="font-bold text-amber-400">{it.outstandingQty}</span>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        disabled={it.outstandingQty <= 0}
+                        onClick={() => {
+                          setSelectedItem(it)
+                          setReturnQty(it.outstandingQty || 1)
+                          setIsLogReturnOpen(true)
+                        }}
+                        className="w-full h-9 text-xs font-bold cursor-pointer bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-40"
+                      >
+                        Log Return
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="hidden md:block overflow-x-auto text-xs">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-border bg-muted/40 text-muted-foreground font-semibold uppercase text-[10px] tracking-wider">
@@ -568,7 +612,7 @@ export default function DurableReturnsTrackerPage() {
 
         {/* 6. LOG RETURN CONFIRMATION MODAL */}
         <Dialog open={isLogReturnOpen} onOpenChange={setIsLogReturnOpen}>
-          <DialogContent className="bg-card border-border text-foreground max-w-md">
+          <DialogContent className="bg-card border-border text-foreground sm:max-w-md max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                 <PackageCheck className="h-4 w-4 text-emerald-400" /> Log Authoritative Durable Return
@@ -632,7 +676,7 @@ export default function DurableReturnsTrackerPage() {
               </div>
             )}
 
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogFooter>
               <Button variant="outline" size="sm" onClick={() => setIsLogReturnOpen(false)} className="text-xs">
                 Cancel
               </Button>
@@ -645,7 +689,7 @@ export default function DurableReturnsTrackerPage() {
 
         {/* 7. EVENT CLOSE REMINDER TRIGGER MODAL */}
         <Dialog open={isCloseEventOpen} onOpenChange={setIsCloseEventOpen}>
-          <DialogContent className="bg-card border-border text-foreground max-w-md">
+          <DialogContent className="bg-card border-border text-foreground sm:max-w-md max-h-[90dvh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
                 <Send className="h-4 w-4 text-amber-400" /> Event Close Return Reminders
@@ -666,7 +710,7 @@ export default function DurableReturnsTrackerPage() {
               </div>
             </div>
 
-            <DialogFooter className="gap-2 sm:gap-0">
+            <DialogFooter>
               <Button variant="outline" size="sm" onClick={() => setIsCloseEventOpen(false)} className="text-xs">
                 Cancel
               </Button>

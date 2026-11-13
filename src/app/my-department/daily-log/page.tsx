@@ -961,7 +961,7 @@ function DailyLogContent() {
 
       {/* On behalf warning */}
       {isSuperAdminActing && (
-        <div className="rounded-xl p-4 flex items-center justify-between border" style={{ background: 'rgba(245,158,11,0.06)', borderColor: 'rgba(245,158,11,0.25)' }}>
+        <div className="rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border" style={{ background: 'rgba(245,158,11,0.06)', borderColor: 'rgba(245,158,11,0.25)' }}>
           <div className="flex items-center gap-2.5">
             <span className="text-base">⚠️</span>
             <div>
@@ -971,7 +971,7 @@ function DailyLogContent() {
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => router.push('/dashboard')} className="text-xs h-7">
+          <Button variant="outline" size="sm" onClick={() => router.push('/dashboard')} className="text-xs h-9 shrink-0 w-full sm:w-auto">
             Cancel Secretariat Mode
           </Button>
         </div>
@@ -979,7 +979,7 @@ function DailyLogContent() {
 
       {/* Admin Department Switcher */}
       {isSuperAdminActing && allDepartments.length > 0 && (
-        <div className="flex items-center gap-3 bg-card border border-border p-4 rounded-xl">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 bg-card border border-border p-4 rounded-xl">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Switch Department Form:</span>
           <select
             value={department?.id || ''}
@@ -989,7 +989,7 @@ function DailyLogContent() {
               urlParams.set('deptId', newDeptId)
               router.push(`/my-department/daily-log?${urlParams.toString()}`)
             }}
-            className="bg-background border border-border rounded-lg text-xs font-semibold px-3 py-1.5 text-foreground h-9"
+            className="w-full sm:w-auto bg-background border border-border rounded-lg text-xs font-semibold px-3 py-1.5 text-foreground h-10 sm:h-9"
           >
             {allDepartments.map(d => (
               <option key={d.id} value={d.id}>{d.name}</option>
@@ -1114,13 +1114,13 @@ function DailyLogContent() {
                     value={workforce.teachersMale}
                     onChange={(val) => setWorkforce(w => ({ ...w, teachersMale: val }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground h-9"
+                    className="input-dark font-mono text-center text-foreground h-10 sm:h-9"
                   />
                   <NumberField
                     value={workforce.teachersFemale}
                     onChange={(val) => setWorkforce(w => ({ ...w, teachersFemale: val }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground h-9"
+                    className="input-dark font-mono text-center text-foreground h-10 sm:h-9"
                   />
                 </div>
 
@@ -1131,13 +1131,13 @@ function DailyLogContent() {
                     value={workforce.teenagersMale}
                     onChange={(val) => setWorkforce(w => ({ ...w, teenagersMale: val }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground h-9"
+                    className="input-dark font-mono text-center text-foreground h-10 sm:h-9"
                   />
                   <NumberField
                     value={workforce.teenagersFemale}
                     onChange={(val) => setWorkforce(w => ({ ...w, teenagersFemale: val }))}
                     disabled={isReadOnly}
-                    className="input-dark font-mono text-center text-foreground h-9"
+                    className="input-dark font-mono text-center text-foreground h-10 sm:h-9"
                   />
                 </div>
               </CardContent>
@@ -1312,7 +1312,7 @@ function DailyLogContent() {
                     size="sm"
                     variant="outline"
                     onClick={() => setIsPreTotalsOpen(true)}
-                    className="text-[11px] h-7 px-2.5 border-teal-500/40 text-teal-400 hover:bg-teal-500/10 font-bold"
+                    className="text-[11px] h-9 sm:h-8 px-3 border-teal-500/40 text-teal-400 hover:bg-teal-500/10 font-bold shrink-0"
                   >
                     <Globe className="w-3 h-3 mr-1" />
                     Online Pre-Totals
@@ -1331,18 +1331,18 @@ function DailyLogContent() {
                 {!isReadOnly && department.name.toLowerCase().includes('medical') && (
                   <div className="mt-6 pt-6 border-t border-border/60 space-y-2">
                     <Label htmlFor="add-diag-opt" className="text-xs font-bold text-foreground uppercase tracking-widest block">Add Custom Diagnosis Option</Label>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Input
                         id="add-diag-opt"
                         placeholder="e.g. CHOLERA"
                         value={newDiagText}
                         onChange={(e) => setNewDiagText(e.target.value)}
-                        className="input-dark h-9 text-xs flex-1 text-foreground"
+                        className="input-dark h-10 sm:h-9 text-xs flex-1 text-foreground"
                       />
                       <Button
                         onClick={handleAddDiagnosisInline}
                         size="sm"
-                        className="h-9 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4"
+                        className="h-10 sm:h-9 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 shrink-0"
                       >
                         Add option
                       </Button>

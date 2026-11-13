@@ -628,7 +628,7 @@ export default function SecretariatTeamManagement() {
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 text-[12px] pt-3" style={{ borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px] pt-3" style={{ borderTop: '1px dashed rgba(255,255,255,0.06)' }}>
                       <div>
                         <span className="text-slate-500 block text-[9px] uppercase font-mono">Department</span>
                         <span className="font-semibold text-slate-300">{slip.departmentName}</span>
@@ -639,7 +639,7 @@ export default function SecretariatTeamManagement() {
                       </div>
                     </div>
 
-                    <div className="rounded-xl p-3.5 grid grid-cols-2 gap-3 text-[12px] font-mono" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div className="rounded-xl p-3.5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px] font-mono" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
                       <div>
                         <span className="text-slate-500 block text-[8px] uppercase">Username</span>
                         <span className="font-bold text-slate-200 select-all">{slip.username}</span>
@@ -816,8 +816,8 @@ export default function SecretariatTeamManagement() {
               )}
 
               {/* Table list */}
-              <div className="overflow-y-auto flex-1 scrollbar-hide">
-                <table className="w-full text-left border-collapse text-[12px]">
+              <div className="overflow-y-auto overflow-x-auto flex-1 scrollbar-hide">
+                <table className="w-full min-w-[680px] text-left border-collapse text-[12px]">
                   <thead>
                     <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.01)' }}>
                       <th className="p-3 w-1/4 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Department</th>
@@ -1118,7 +1118,7 @@ export default function SecretariatTeamManagement() {
         {/* Confirmation Modal for Reset Password */}
         {resetModalTarget && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90dvh] overflow-y-auto">
               <div className="flex items-center gap-3 text-amber-400">
                 <span className="text-xl">🔑</span>
                 <h3 className="text-sm font-bold uppercase tracking-wider">Confirm Password Reset</h3>

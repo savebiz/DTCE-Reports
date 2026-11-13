@@ -652,7 +652,7 @@ function SecretariatDashboardContent() {
                 </select>
               </div>
 
-              <Button size="sm" variant="outline" onClick={() => router.push('/dashboard/store-requisitions')} className="text-xs h-8">
+              <Button size="sm" variant="outline" onClick={() => router.push('/dashboard/store-requisitions')} className="text-xs h-9">
                 Store Requisitions Console ({kpis.pendingReqs} Pending)
               </Button>
             </div>
@@ -662,7 +662,7 @@ function SecretariatDashboardContent() {
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mr-1">Filter Days:</span>
               <button
                 onClick={() => setSelectedFocusDays(['all'])}
-                className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer border ${
+                className={`px-3 py-1.5 min-h-[32px] rounded-md text-[10px] font-bold transition-all cursor-pointer border ${
                   selectedFocusDays.includes('all')
                     ? 'bg-purple-600 text-white border-purple-500 shadow-xs'
                     : 'bg-muted/40 text-muted-foreground border-border/40 hover:bg-muted'
@@ -687,7 +687,7 @@ function SecretariatDashboardContent() {
                         }
                       }
                     }}
-                    className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold transition-all cursor-pointer border ${
+                    className={`px-3 py-1.5 min-h-[32px] rounded-md text-[10px] font-bold transition-all cursor-pointer border ${
                       isSel
                         ? 'bg-purple-600 text-white border-purple-500 shadow-xs'
                         : 'bg-muted/40 text-muted-foreground border-border/40 hover:bg-muted'
@@ -702,7 +702,7 @@ function SecretariatDashboardContent() {
         </div>
 
         {/* Tab Switcher (Linear Cohesive Track) */}
-        <div className="p-1 bg-muted/40 dark:bg-slate-800/40 rounded-xl border border-border/30 flex flex-wrap items-center gap-1">
+        <div className="p-1 bg-muted/40 dark:bg-slate-800/40 rounded-xl border border-border/30 flex overflow-x-auto sm:flex-wrap items-center gap-1">
           {[
             { key: 'overview', label: 'Overview & Matrix' },
             { key: 'store-requisitions', label: `Store Requisitions (${kpis.pendingReqs})` },
@@ -711,7 +711,7 @@ function SecretariatDashboardContent() {
             <button
               key={t.key}
               onClick={() => setActiveTab(t.key as any)}
-              className={`text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all duration-150 cursor-pointer ${
+              className={`text-xs font-semibold px-3.5 py-1.5 min-h-[36px] rounded-lg transition-all duration-150 cursor-pointer whitespace-nowrap shrink-0 ${
                 activeTab === t.key
                   ? 'bg-background text-foreground shadow-xs border border-border/50 font-bold'
                   : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
@@ -776,12 +776,12 @@ function SecretariatDashboardContent() {
             )}
 
             <div className="glass-card overflow-hidden animate-fade-in-up-delay-2">
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 sm:px-5 py-3.5 border-b border-border">
                 <div className="flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-muted-foreground" strokeWidth="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                   <span className="text-[12px] font-semibold text-muted-foreground uppercase tracking-wide">Department Submission Matrix</span>
                 </div>
-                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                   <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(16,185,129,0.4)' }} />Approved</span>
                   <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(59,130,246,0.4)' }} />Reviewed</span>
                   <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm" style={{ background: 'rgba(245,158,11,0.4)' }} />Submitted</span>
@@ -792,7 +792,7 @@ function SecretariatDashboardContent() {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b border-border bg-muted/30">
-                      <th className="py-2.5 px-4 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground w-56 border-r border-border">
+                      <th className="py-2.5 px-3 sm:px-4 text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground min-w-[140px] sm:w-56 border-r border-border sticky left-0 z-10 bg-card">
                         Department
                       </th>
                       {eventDays.map((day) => (
@@ -808,7 +808,7 @@ function SecretariatDashboardContent() {
                   <tbody>
                     {departments.slice((matrixPage - 1) * matrixPageSize, matrixPage * matrixPageSize).map((dept) => (
                       <tr key={dept.id} className="border-b border-border/50 hover:bg-muted/10 transition-colors">
-                        <td className="py-2 px-4 text-[13px] font-medium text-foreground border-r border-border">
+                        <td className="py-2 px-3 sm:px-4 text-xs sm:text-[13px] font-medium text-foreground border-r border-border sticky left-0 z-10 bg-card">
                           {dept.name}
                         </td>
                         {eventDays.map((day) => (
@@ -1170,7 +1170,7 @@ function SecretariatDashboardContent() {
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="sm:max-w-[540px] overflow-y-auto w-full bg-card border-l border-border/40">
           {/* ── Header ─────────────────────────────────── */}
-          <SheetHeader className="px-6 pt-6 pb-5 border-b border-border/40 space-y-3">
+          <SheetHeader className="px-5 sm:px-6 pr-12 pt-6 pb-5 border-b border-border/40 space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20">
@@ -1253,7 +1253,7 @@ function SecretariatDashboardContent() {
                       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
                       Workforce Breakdown
                     </h3>
-                    <div className="rounded-lg border border-border/40 overflow-hidden">
+                    <div className="rounded-lg border border-border/40 overflow-x-auto">
                       <table className="w-full text-xs">
                         <thead>
                           <tr className="bg-muted/30 dark:bg-muted/10 border-b border-border/30">
@@ -1413,7 +1413,7 @@ function SecretariatDashboardContent() {
                   />
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                   <Button
                     size="sm"
                     variant="outline"
@@ -1484,7 +1484,7 @@ function SecretariatDashboardContent() {
       {/* ── RESOLUTION CONFIRMATION MODAL ── */}
       {resolvingItem && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div className="max-w-md w-full bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl space-y-4">
+          <div className="max-w-md w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={18} className="text-emerald-400" />

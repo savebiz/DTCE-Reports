@@ -496,17 +496,17 @@ function StoreRequestContent() {
                 : 'border-border bg-card hover:bg-muted/40'
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2 text-base font-extrabold text-foreground">
-                <ClipboardList className={`w-5 h-5 ${requestType === 'pre_event' ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-foreground leading-snug">
+                <ClipboardList className={`w-5 h-5 shrink-0 ${requestType === 'pre_event' ? 'text-emerald-500' : 'text-muted-foreground'}`} />
                 1. Pre-Event Needs List (Market Purchase)
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${preEventWindow.isOpen ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30' : 'bg-amber-500/15 text-amber-500 border border-amber-500/30'}`}>
                   {preEventWindow.isOpen ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                   {preEventWindow.isOpen ? 'Open' : 'Locked'}
                 </span>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 whitespace-nowrap">
                   {preEventLists.length} Sent
                 </span>
               </div>
@@ -526,17 +526,17 @@ function StoreRequestContent() {
                 : 'border-border bg-card hover:bg-muted/40'
             }`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2 text-base font-extrabold text-foreground">
-                <Package className={`w-5 h-5 ${requestType === 'during_event' ? 'text-blue-500' : 'text-muted-foreground'}`} />
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-sm sm:text-base font-extrabold text-foreground leading-snug">
+                <Package className={`w-5 h-5 shrink-0 ${requestType === 'during_event' ? 'text-blue-500' : 'text-muted-foreground'}`} />
                 2. Live Event Store Requisition (From Store)
               </span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${liveWindow.isOpen ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30' : 'bg-slate-500/15 text-muted-foreground border border-border'}`}>
                   {liveWindow.isOpen ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
                   {liveWindow.isOpen ? 'Open' : 'Locked'}
                 </span>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-500 border border-blue-500/30">
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-500 border border-blue-500/30 whitespace-nowrap">
                   {duringEventRequisitions.length} Sent
                 </span>
               </div>
@@ -696,7 +696,7 @@ function StoreRequestContent() {
                               <button
                                 onClick={() => handleRemoveItem(idx)}
                                 aria-label={`Remove ${it.name}`}
-                                className="w-8 h-9 rounded-lg text-red-500 hover:bg-red-500/10 font-bold text-base cursor-pointer"
+                                className="w-10 h-10 shrink-0 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-500/10 font-bold text-base cursor-pointer"
                               >
                                 ×
                               </button>
@@ -754,9 +754,9 @@ function StoreRequestContent() {
                     <div className="space-y-4">
                       {preEventLists.map((req) => (
                         <div key={req.id} className="border border-emerald-500/25 rounded-xl p-4 space-y-3 bg-background/25">
-                          <div className="flex justify-between items-start gap-4">
-                            <div>
-                              <div className="flex items-center gap-2">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2.5 sm:gap-4">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="text-sm font-bold text-foreground">
                                   Pre-Event Market Needs List
                                 </span>
@@ -769,7 +769,7 @@ function StoreRequestContent() {
                               </span>
                             </div>
                             <span
-                              className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0"
+                              className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full w-fit max-w-full leading-tight"
                               style={
                                 req.status === 'pending_coordinator'
                                   ? { background: 'rgba(245,158,11,0.12)', color: '#D97706', border: '1px solid rgba(245,158,11,0.3)' }
@@ -797,7 +797,7 @@ function StoreRequestContent() {
                                 const isAdjusted = req.status !== 'pending_coordinator' && reqQty !== undefined && appQty !== undefined && reqQty !== appQty
 
   return (
-                                  <div key={itIdx} className="flex justify-between items-center p-2 rounded-lg bg-background/60 border border-border/50">
+                                  <div key={itIdx} className="flex flex-wrap justify-between items-center gap-2 p-2.5 rounded-lg bg-background/60 border border-border/50">
                                     <div>
                                       <span className="text-foreground font-semibold block">{it.name}</span>
                                       <span className="text-[10px] text-muted-foreground uppercase">{it.unit || 'pcs'} · {it.category || 'consumable'}</span>
@@ -830,13 +830,13 @@ function StoreRequestContent() {
                           )}
 
                           {req.status !== 'pending_coordinator' && req.status !== 'declined' && (
-                            <div className="flex items-center justify-between pt-1">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pt-1">
                               <span className="text-[11px] text-emerald-500 font-medium">
                                 ✓ Consolidated into Stores Market List for purchase.
                               </span>
                               <button
                                 onClick={() => handleLoadFromPreEventList(req.items_json)}
-                                className="text-xs font-bold text-blue-500 hover:text-blue-400 underline cursor-pointer"
+                                className="text-xs font-bold text-blue-500 hover:text-blue-400 underline cursor-pointer text-left sm:text-right py-1"
                               >
                                 Request these items from Store during event →
                               </button>
@@ -998,7 +998,7 @@ function StoreRequestContent() {
                               <button
                                 onClick={() => handleRemoveItem(idx)}
                                 aria-label={`Remove ${it.name}`}
-                                className="w-8 h-9 rounded-lg text-red-500 hover:bg-red-500/10 font-bold text-base cursor-pointer"
+                                className="w-10 h-10 shrink-0 flex items-center justify-center rounded-lg text-red-500 hover:bg-red-500/10 font-bold text-base cursor-pointer"
                               >
                                 ×
                               </button>
@@ -1044,8 +1044,8 @@ function StoreRequestContent() {
                     <div className="space-y-4">
                       {duringEventRequisitions.map((req) => (
                         <div key={req.id} className="border border-border rounded-xl p-4 space-y-3 bg-background/25">
-                          <div className="flex justify-between items-start gap-4">
-                            <div>
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2.5 sm:gap-4">
+                            <div className="min-w-0">
                               <span className="text-sm font-bold text-foreground block">
                                 Store Counter Requisition
                               </span>
@@ -1054,7 +1054,7 @@ function StoreRequestContent() {
                               </span>
                             </div>
                             <span
-                              className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full"
+                              className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full w-fit max-w-full leading-tight"
                               style={
                                 req.status === 'pending_coordinator' ? { background: 'rgba(245,158,11,0.1)', color: '#D97706', border: '1px solid rgba(245,158,11,0.2)' } :
                                 req.status === 'approved' ? { background: 'rgba(59,130,246,0.1)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.2)' } :
@@ -1087,7 +1087,7 @@ function StoreRequestContent() {
 
   return (
                                   <div key={itIdx} className="flex flex-col gap-1.5 p-2 rounded-lg bg-background/60 border border-border/50">
-                                    <div className="flex justify-between items-center">
+                                    <div className="flex flex-wrap justify-between items-center gap-2">
                                       <span className="text-foreground font-semibold">{it.name}</span>
                                       <div className="flex items-center gap-2">
                                         {isAdjusted ? (
@@ -1130,7 +1130,7 @@ function StoreRequestContent() {
                                                 showToast(`Failed: ${err.message}`, 'error')
                                               }
                                             }}
-                                            className="font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-0.5 rounded border border-amber-500/30 cursor-pointer transition-colors flex items-center gap-1"
+                                            className="font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 min-h-[34px] rounded border border-amber-500/30 cursor-pointer transition-colors flex items-center gap-1"
                                           >
                                             <RefreshCw className="w-3 h-3" /> Initiate Return
                                           </button>

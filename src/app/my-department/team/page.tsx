@@ -374,6 +374,43 @@ export default function HODTeamManagement() {
                     No assistant HOD logins provisioned yet for your department.
                   </p>
                 ) : (
+                  <>
+                  <div className="md:hidden divide-y divide-border p-3 space-y-2.5">
+                    {assistants.map(asst => (
+                      <div key={asst.id} className="pt-2.5 first:pt-0 flex flex-col gap-2.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <span className="font-bold text-sm text-foreground block truncate">{asst.full_name}</span>
+                            <span className="font-mono text-xs text-muted-foreground block truncate">{asst.username}</span>
+                          </div>
+                          <div className="flex flex-wrap justify-end gap-1.5 shrink-0">
+                            {asst.must_change_password ? (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 whitespace-nowrap">Pending Reset</span>
+                            ) : (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 whitespace-nowrap">Logged In</span>
+                            )}
+                            {asst.is_active !== false ? (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 whitespace-nowrap">Active</span>
+                            ) : (
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 whitespace-nowrap">Deactivated</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => toggleAssistantActive(asst.id, asst.is_active !== false)}
+                          className="w-full min-h-[38px] rounded-lg px-3 text-xs font-semibold transition-all duration-150 cursor-pointer"
+                          style={
+                            asst.is_active !== false
+                              ? { background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#DC2626' }
+                              : { background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)', color: '#059669' }
+                          }
+                        >
+                          {asst.is_active !== false ? 'Deactivate Assistant' : 'Reactivate Assistant'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left border-collapse text-[12px]">
                     <thead>
                       <tr className="border-b border-border bg-muted/10">
@@ -424,6 +461,8 @@ export default function HODTeamManagement() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
+                  </>
                 )}
               </div>
             </div>

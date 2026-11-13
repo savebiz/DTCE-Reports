@@ -370,7 +370,7 @@ function StoreFulfillmentContent() {
 
         {/* Segmented Filter Control */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card p-2 rounded-2xl border border-border/50">
-          <div className="flex flex-wrap items-center gap-1 p-1 bg-muted/40 dark:bg-slate-800/40 rounded-xl border border-border/30">
+          <div className="flex overflow-x-auto sm:flex-wrap items-center gap-1 p-1 bg-muted/40 dark:bg-slate-800/40 rounded-xl border border-border/30">
             {[
               { id: 'all', label: 'All', count: requisitions.length },
               { id: 'pending', label: 'Pending', count: pendingCount },
@@ -383,7 +383,7 @@ function StoreFulfillmentContent() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
+                className={`text-xs font-semibold px-3 py-1.5 min-h-[36px] rounded-lg transition-all duration-150 cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                   activeTab === tab.id
                     ? 'bg-background text-foreground shadow-xs border border-border/50 font-bold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-background/40'
@@ -452,7 +452,7 @@ function StoreFulfillmentContent() {
 
                     <div className="flex items-center gap-2">
                       <span
-                        className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full"
+                        className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full whitespace-nowrap w-fit"
                         style={
                           req.status === 'pending_coordinator' ? { background: 'rgba(245,158,11,0.12)', color: '#D97706', border: '1px solid rgba(245,158,11,0.3)' } :
                           req.status === 'approved' ? { background: 'rgba(59,130,246,0.12)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.3)' } :
@@ -576,7 +576,7 @@ function StoreFulfillmentContent() {
                           size="sm"
                           disabled={actionLoading}
                           onClick={() => handleUpdateStatus(req.id, 'in_progress')}
-                          className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs h-8 shadow-xs cursor-pointer"
+                          className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs min-h-[38px] sm:h-9 shadow-xs cursor-pointer"
                         >
                           Start Processing
                         </Button>
@@ -588,7 +588,7 @@ function StoreFulfillmentContent() {
                             size="sm"
                             disabled={actionLoading}
                             onClick={() => handleUpdateStatus(req.id, 'ready_for_collection')}
-                            className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs h-8 shadow-xs cursor-pointer"
+                            className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs min-h-[38px] sm:h-9 shadow-xs cursor-pointer"
                           >
                             Mark Ready for Collection
                           </Button>
@@ -596,7 +596,7 @@ function StoreFulfillmentContent() {
                             size="sm"
                             disabled={actionLoading}
                             onClick={() => handleUpdateStatus(req.id, 'partially_fulfilled')}
-                            className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs h-8 shadow-xs cursor-pointer"
+                            className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs min-h-[38px] sm:h-9 shadow-xs cursor-pointer"
                           >
                             Partial Delivery
                           </Button>
@@ -604,7 +604,7 @@ function StoreFulfillmentContent() {
                             size="sm"
                             disabled={actionLoading}
                             onClick={() => handleUpdateStatus(req.id, 'delivered')}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8 shadow-xs cursor-pointer"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs min-h-[38px] sm:h-9 shadow-xs cursor-pointer"
                           >
                             Mark Delivered
                           </Button>
@@ -617,7 +617,7 @@ function StoreFulfillmentContent() {
                             size="sm"
                             disabled={actionLoading}
                             onClick={() => handleUpdateStatus(req.id, 'delivered')}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8 shadow-xs cursor-pointer"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs min-h-[38px] sm:h-9 shadow-xs cursor-pointer"
                           >
                             Mark Handed Over / Delivered
                           </Button>
@@ -625,7 +625,7 @@ function StoreFulfillmentContent() {
                             size="sm"
                             disabled={actionLoading}
                             onClick={() => handleUpdateStatus(req.id, 'partially_fulfilled')}
-                            className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs h-8 shadow-xs cursor-pointer"
+                            className="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs min-h-[38px] sm:h-9 shadow-xs cursor-pointer"
                           >
                             Partial Handover
                           </Button>
@@ -638,7 +638,7 @@ function StoreFulfillmentContent() {
                             size="sm"
                             disabled={actionLoading}
                             onClick={() => handleUpdateStatus(req.id, 'ready_for_collection')}
-                            className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs h-8 shadow-xs cursor-pointer"
+                            className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs min-h-[38px] sm:h-9 shadow-xs cursor-pointer"
                           >
                             Mark Ready for Collection
                           </Button>
@@ -646,7 +646,7 @@ function StoreFulfillmentContent() {
                             size="sm"
                             disabled={actionLoading}
                             onClick={() => handleUpdateStatus(req.id, 'delivered')}
-                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs h-8 shadow-xs cursor-pointer"
+                            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs min-h-[38px] sm:h-9 shadow-xs cursor-pointer"
                           >
                             Mark Fully Delivered
                           </Button>

@@ -208,7 +208,7 @@ export function DashboardHeader() {
         <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-3 md:px-6 w-full">
 
           {/* Left — Logo + Department Badge */}
-          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <button
               onClick={() => router.push(showNav ? '/dashboard' : '/my-department')}
               className="flex items-center gap-2 group cursor-pointer"
@@ -307,7 +307,7 @@ export function DashboardHeader() {
 
             {/* Mobile / Tablet Hamburger Trigger (Visible on Mobile & Tablet ONLY, hidden on Desktop & Laptop) */}
             <button
-              className="flex lg:hidden items-center justify-center rounded-lg p-1.5 text-slate-400 transition-colors hover:text-white cursor-pointer"
+              className="flex lg:hidden h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:text-white cursor-pointer"
               style={{ border: '1px solid rgba(255,255,255,0.08)' }}
               onClick={() => setOpen(o => !o)}
               aria-label="Toggle Mobile Navigation Drawer"
@@ -395,7 +395,7 @@ export function DashboardHeader() {
 
           {/* Right Sliding Drawer Panel */}
           <aside
-            className="fixed inset-y-0 right-0 z-[100] w-[75vw] sm:w-[50%] max-w-[320px] h-full shadow-2xl lg:hidden flex flex-col justify-between overflow-y-auto animate-fade-in-up"
+            className="fixed inset-y-0 right-0 z-[100] w-[85vw] sm:w-[320px] max-w-[320px] h-full shadow-2xl lg:hidden flex flex-col justify-between overflow-y-auto animate-fade-in-up"
             style={{
               background:     'rgba(10, 24, 38, 0.98)',
               backdropFilter: 'blur(24px)',
@@ -420,7 +420,8 @@ export function DashboardHeader() {
 
                 <button
                   onClick={() => setOpen(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+                  aria-label="Close Navigation Drawer"
+                  className="h-10 w-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -450,7 +451,7 @@ export function DashboardHeader() {
                       <button
                         key={href}
                         onClick={() => { router.push(href); setOpen(false) }}
-                        className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold transition-all cursor-pointer"
+                        className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 min-h-[44px] text-left text-xs font-semibold transition-all cursor-pointer"
                         style={{
                           color:      active ? '#F1F5F9' : '#94A3B8',
                           background: active ? 'rgba(59,130,246,0.14)' : 'transparent',
@@ -477,7 +478,7 @@ export function DashboardHeader() {
                       <button
                         key={href}
                         onClick={() => { router.push(href); setOpen(false) }}
-                        className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-xs font-semibold transition-all cursor-pointer"
+                        className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 min-h-[44px] text-left text-xs font-semibold transition-all cursor-pointer"
                         style={{
                           color:      active ? '#F1F5F9' : '#94A3B8',
                           background: active ? 'rgba(59,130,246,0.14)' : 'transparent',

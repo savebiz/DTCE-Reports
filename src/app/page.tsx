@@ -1,210 +1,283 @@
-'use client'
-
 import React from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { PwaInstallButton } from '@/components/pwa-install-button'
+import {
+  ArrowRight,
+  CheckCircle2,
+  ClipboardCheck,
+  FileSpreadsheet,
+  Lock,
+  PackageCheck,
+  ShieldCheck,
+  WifiOff,
+} from 'lucide-react'
+
+const PREVIEW_DEPTS = [
+  { name: 'Medical & First Aid', status: 'Submitted', tone: 'emerald' },
+  { name: 'Registration', status: 'Reviewed', tone: 'blue' },
+  { name: 'Ushering & Protocol', status: 'Submitted', tone: 'emerald' },
+  { name: 'Central Stores', status: 'Active', tone: 'amber' },
+] as const
 
 export default function RootLandingPage() {
-  const days = [
-    { label: 'Mon', num: 13, active: false, status: 'Submitted' },
-    { label: 'Tue', num: 14, active: false, status: 'Submitted' },
-    { label: 'Wed', num: 15, active: true, status: 'Today' },
-    { label: 'Thu', num: 16, active: false, status: 'Upcoming' },
-    { label: 'Fri', num: 17, active: false, status: 'Upcoming' },
-    { label: 'Sat', num: 18, active: false, status: 'Upcoming' }
-  ]
-
   return (
-    <div className="min-h-screen flex flex-col bg-paper text-charcoal font-sans">
-      {/* Hero Split-Screen Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[90vh]">
-        {/* Left Panel: Ink-navy with the signature Day Rail */}
-        <div className="lg:col-span-5 bg-ink-navy text-white p-8 lg:p-16 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-hairline">
-          <div>
-            <div className="flex items-center space-x-2">
-              <span className="h-3 w-3 bg-convention-gold rounded-full animate-pulse"></span>
-              <span className="text-xs font-mono uppercase tracking-wider text-slate-400">Live Convention Tracker</span>
-            </div>
-            <h2 className="text-3xl font-display font-semibold mt-4 text-white">
-              Annual Convention Week
-            </h2>
-            <p className="text-sm text-slate-400 mt-2 font-sans">
-              Dynamic tracking rail maps active submissions in real-time.
-            </p>
-          </div>
+    <div className="min-h-screen flex flex-col bg-[#06090F] text-slate-100 font-sans selection:bg-amber-500/30">
+      {/* Subtle radial atmosphere */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-x-0 top-0 h-[520px] opacity-60"
+        style={{
+          background:
+            'radial-gradient(ellipse 75% 60% at 50% -10%, rgba(15, 42, 74, 0.85), transparent 75%)',
+        }}
+      />
 
-          {/* Signature Day Rail Element */}
-          <div className="my-12 space-y-3 max-w-sm">
-            <span className="text-[10px] uppercase font-mono tracking-widest text-slate-400 block mb-2">Signature Day Rail</span>
-            {days.map((day) => (
-              <div
-                key={day.num}
-                className={`flex items-center justify-between p-3.5 rounded border transition-all duration-300 ${
-                  day.active
-                    ? 'bg-convention-gold border-convention-gold text-ink-navy font-bold shadow-md scale-102'
-                    : 'bg-ink-navy/40 border-slate-800 text-slate-300 hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center space-x-4">
-                  <span className="font-mono text-base font-bold">
-                    {day.num.toString().padStart(2, '0')}
-                  </span>
-                  <span className="text-sm font-semibold tracking-wide uppercase">{day.label}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded ${
-                    day.active 
-                      ? 'bg-ink-navy/20 text-ink-navy' 
-                      : day.status === 'Submitted' 
-                        ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/40' 
-                        : 'bg-slate-900 text-slate-500'
-                  }`}>
-                    {day.status}
-                  </span>
-                </div>
+      {/* Sticky Top Command Bar */}
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#06090F]/85 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-9 w-9 shrink-0 rounded-xl bg-white p-1 shadow-[0_0_0_1px_rgba(245,158,11,0.3)]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/dtce-logo.png"
+                alt="RCCG DTCE Crest"
+                width={36}
+                height={36}
+                className="h-full w-full object-contain"
+              />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold tracking-tight text-white truncate">
+                  DTCE Reporting
+                </span>
+                <span className="hidden sm:inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider text-amber-300">
+                  RCCG DTCE
+                </span>
               </div>
-            ))}
-          </div>
-
-          {/* Live Progress Box */}
-          <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-md space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Collation Progress Today</span>
-            <div className="flex items-baseline space-x-2">
-              <span className="text-4xl font-extrabold font-mono text-convention-gold">32</span>
-              <span className="text-slate-500 font-mono">/</span>
-              <span className="text-2xl font-bold font-mono text-slate-300">40</span>
-              <span className="text-sm text-slate-400 font-sans ml-1">departments reported today</span>
-            </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-3">
-              <div className="bg-convention-gold h-full rounded-full" style={{ width: '80%' }}></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Panel: Paper background with branding and CTAs */}
-        <div className="lg:col-span-7 bg-paper p-8 lg:p-20 flex flex-col justify-between">
-          <div className="flex justify-between items-center pb-8 border-b border-hairline">
-            <div className="font-display text-xl font-bold tracking-tight text-ink-navy flex items-center space-x-2">
-              <span>⛪</span>
-              <span>DTCE Reporting</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <PwaInstallButton variant="compact" />
-              <Link href="/login">
-                <Button variant="outline" className="border-ink-navy text-ink-navy hover:bg-ink-navy/5 font-semibold text-xs h-9">
-                  Sign In ➔
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          <div className="max-w-2xl my-auto py-12 space-y-6">
-            <h1 className="text-4xl lg:text-5xl font-display font-semibold text-ink-navy leading-tight">
-              Forty departments. One report. Built while convention week runs — not after it ends.
-            </h1>
-            <p className="text-base text-slate-600 leading-relaxed font-sans max-w-xl">
-              DTCE Reporting replaces the week of retyping forty department write-ups into a single document. Submit daily, review as you go, compile in minutes.
-            </p>
-
-            <div className="pt-4 flex flex-wrap items-center gap-3">
-              <Link href="/login">
-                <Button className="bg-ink-navy text-white hover:bg-ink-navy/95 font-semibold h-11 px-8 shadow-sm">
-                  Sign In to Dashboard
-                </Button>
-              </Link>
-              <PwaInstallButton variant="hero" />
-            </div>
-            <p className="text-xs text-slate-400 font-sans mt-2">
-              ⚠️ Issued a login by your Secretariat? Use it here. Self-registration is disabled.
-            </p>
-          </div>
-
-          <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest pt-8 border-t border-hairline">
-            RCCG Directorate of Teens and Children Education
-          </div>
-        </div>
-      </div>
-
-      {/* Section 2: Two-column Plain Comparison */}
-      <div className="bg-white border-t border-b border-hairline py-16 px-8 lg:px-16">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
-          <div className="space-y-4">
-            <span className="text-[10px] uppercase font-mono tracking-widest text-slate-400">Past Flow</span>
-            <h3 className="text-xl font-display font-semibold text-ink-navy">The old way</h3>
-            <p className="text-sm text-slate-600 leading-relaxed font-sans">
-              Each department sends a written report by the end of the week. The Secretariat retypes attendance figures, offering totals, and meal counts into tables by hand, then assembles forty write-ups into one document — usually finished days after the convention ends.
-            </p>
-          </div>
-
-          <div className="space-y-4 border-l border-hairline pl-8 lg:pl-16">
-            <span className="text-[10px] uppercase font-mono tracking-widest text-convention-gold font-bold">Optimized Flow</span>
-            <h3 className="text-xl font-display font-semibold text-ink-navy">With DTCE Reporting</h3>
-            <p className="text-sm text-slate-600 leading-relaxed font-sans">
-              Each department enters figures daily, from a phone, even offline. The Secretariat reviews as submissions come in. The final report compiles automatically, formatted and ready, before the closing session.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Section 3: Numbered Workflow Sequence */}
-      <div className="py-20 px-8 lg:px-16 bg-paper">
-        <div className="max-w-6xl mx-auto">
-          <span className="text-[10px] uppercase font-mono tracking-widest text-slate-400 block mb-2">Operational Pipeline</span>
-          <h2 className="text-2xl lg:text-3xl font-display font-semibold text-ink-navy mb-12">
-            How the System Works
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white border border-hairline p-6 rounded-md space-y-4">
-              <span className="text-3xl font-mono font-bold text-slate-300">01</span>
-              <h4 className="text-base font-display font-bold text-ink-navy">Submit</h4>
-              <p className="text-xs text-slate-600 leading-relaxed font-sans">
-                HODs log daily numbers and end-of-event write-ups from their phone. Built-in PWA offline caching preserves drafts if connectivity is drop-prone.
-              </p>
-            </div>
-
-            <div className="bg-white border border-hairline p-6 rounded-md space-y-4">
-              <span className="text-3xl font-mono font-bold text-slate-300">02</span>
-              <h4 className="text-base font-display font-bold text-ink-navy">Review</h4>
-              <p className="text-xs text-slate-600 leading-relaxed font-sans">
-                The Secretariat sees every department's status at a glance on the oversight matrix, reviewing and locking sections as soon as they hit the server.
-              </p>
-            </div>
-
-            <div className="bg-white border border-hairline p-6 rounded-md space-y-4">
-              <span className="text-3xl font-mono font-bold text-slate-300">03</span>
-              <h4 className="text-base font-display font-bold text-ink-navy">Compile</h4>
-              <p className="text-xs text-slate-600 leading-relaxed font-sans">
-                One branded docx report generates automatically, containing Executive Summary, day-by-day activities, metrics, challenges, recommendations, and appendices.
+              <p className="text-[11px] text-slate-400 truncate hidden sm:block">
+                Convention &amp; Congress Operations Command
               </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Section 4: Built for the Directorate */}
-      <div className="bg-white border-t border-hairline py-12 px-8 text-center text-xs text-slate-500 font-sans">
-        <div className="max-w-3xl mx-auto space-y-2">
-          <p className="font-semibold text-ink-navy uppercase tracking-wider text-[10px]">Administrative Platform</p>
-          <p>
-            Built for the Directorate of Teens and Children Education, Redeemed Christian Church of God — for the Annual Convention and Holy Ghost Congress.
-          </p>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-ink-navy text-slate-400 py-8 px-8 border-t border-slate-800 text-xs">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-          <div className="font-display font-semibold text-white tracking-wider flex items-center space-x-1">
-            <span>⛪</span>
-            <span>DTCE Reporting System</span>
-          </div>
-          <div className="flex space-x-6 font-mono text-[10px] uppercase">
-            <Link href="/login" className="hover:text-white transition-colors">
-              Sign In
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <PwaInstallButton variant="compact" />
+            <Link href="/login">
+              <Button
+                size="sm"
+                className="h-10 sm:h-9 px-4 bg-amber-500 hover:bg-amber-400 text-[#06090F] font-bold text-xs cursor-pointer shadow-sm"
+              >
+                Sign In
+              </Button>
             </Link>
           </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="relative z-10 flex-1">
+        {/* Hero Section — Mobile-first: Headline & CTA appear immediately above the fold */}
+        <section className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10 pt-10 pb-12 sm:pt-14 sm:pb-16 lg:pt-20 lg:pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            {/* Left Column: Command Hero & Primary CTAs */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="inline-flex flex-wrap items-center gap-2 rounded-full border border-white/10 bg-[#0F2A4A]/60 px-3 py-1.5 text-[11px] font-mono uppercase tracking-wider text-slate-300">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>RCCG DTCE · Convention &amp; Congress · Offline-Ready PWA</span>
+              </div>
+
+              <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-bold tracking-tight text-white leading-[1.08]">
+                Unified Convention &amp; Congress{' '}
+                <span className="text-amber-400">Operations.</span>
+              </h1>
+
+              <p className="text-sm sm:text-base lg:text-lg text-slate-300/90 max-w-2xl leading-relaxed">
+                Real-time daily reporting, pre-event market procurement, central stores
+                fulfillment, and one-click Secretariat Board DOCX compilation across{' '}
+                <span className="font-semibold text-white">43+ departments</span>.
+              </p>
+
+              {/* Primary & Secondary CTAs — full-width on mobile, inline on sm+ */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
+                <Link href="/login" className="w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto h-12 px-6 bg-amber-500 hover:bg-amber-400 text-[#06090F] font-bold text-sm cursor-pointer shadow-lg shadow-amber-500/10 flex items-center justify-center gap-2"
+                  >
+                    <span>Sign In to Command</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <div className="w-full sm:w-auto [&>button]:w-full sm:[&>button]:w-auto [&>button]:h-12">
+                  <PwaInstallButton />
+                </div>
+              </div>
+
+              {/* Trust / Access Clarification Strip */}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-2 text-xs text-slate-400">
+                <span className="inline-flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  Secretariat-issued credentials required
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <WifiOff className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  Offline draft &amp; auto-sync enabled
+                </span>
+              </div>
+            </div>
+
+            {/* Right Column: Framed Oversight Matrix Preview Card */}
+            <div className="lg:col-span-5">
+              <div className="rounded-2xl border border-white/10 bg-[#0B1220]/90 p-5 sm:p-6 shadow-2xl">
+                <div className="flex items-center justify-between gap-2 pb-4 border-b border-white/10">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 block">
+                      Oversight Matrix Preview
+                    </span>
+                    <h2 className="text-sm font-bold text-white mt-0.5">
+                      Secretariat Command Telemetry
+                    </h2>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-mono font-semibold text-emerald-300 shrink-0">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    PWA Ready
+                  </span>
+                </div>
+
+                {/* 3 Tabular KPI Tiles */}
+                <div className="grid grid-cols-3 gap-2.5 my-4">
+                  <div className="rounded-xl border border-white/10 bg-[#0F172A]/80 p-3">
+                    <span className="text-[10px] font-mono uppercase text-slate-400 block">
+                      Departments
+                    </span>
+                    <span className="text-lg sm:text-xl font-bold font-mono text-white mt-1 block">
+                      43+
+                    </span>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-[#0F172A]/80 p-3">
+                    <span className="text-[10px] font-mono uppercase text-slate-400 block">
+                      Stores Flow
+                    </span>
+                    <span className="text-lg sm:text-xl font-bold font-mono text-amber-400 mt-1 block">
+                      2-Stage
+                    </span>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-[#0F172A]/80 p-3">
+                    <span className="text-[10px] font-mono uppercase text-slate-400 block">
+                      Board Pack
+                    </span>
+                    <span className="text-lg sm:text-xl font-bold font-mono text-emerald-400 mt-1 block">
+                      DOCX
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sample Department Status Rows */}
+                <div className="space-y-2">
+                  {PREVIEW_DEPTS.map((dept) => (
+                    <div
+                      key={dept.name}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-white/10 bg-[#070B14] px-3.5 py-2.5 text-xs"
+                    >
+                      <span className="font-medium text-slate-200 truncate">
+                        {dept.name}
+                      </span>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-mono font-semibold uppercase shrink-0 ${
+                          dept.tone === 'emerald'
+                            ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
+                            : dept.tone === 'blue'
+                              ? 'bg-blue-500/10 text-blue-300 border border-blue-500/30'
+                              : 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                        }`}
+                      >
+                        <CheckCircle2 className="w-3 h-3" />
+                        {dept.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="mt-4 text-[11px] text-slate-400 leading-relaxed">
+                  Live compliance matrix, challenge tracking, and approved allocations unlock
+                  immediately after sign-in.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 3-Column Bento Capability Strip */}
+        <section className="border-t border-white/10 bg-[#090E18]/80">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10 py-12 sm:py-16">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8">
+              <div>
+                <span className="text-[11px] font-mono uppercase tracking-widest text-amber-400 block mb-1.5">
+                  Operational Architecture
+                </span>
+                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                  Built for Convention &amp; Congress Ground Conditions
+                </h2>
+              </div>
+              <span className="text-xs text-slate-400">
+                HODs · Assistants · Central Stores · Secretariat · Leadership
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              <div className="rounded-2xl border border-white/10 bg-[#0D1422] p-6 space-y-3">
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                  <ClipboardCheck className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-white">
+                  Field Entry &amp; Offline Drafts
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                  HODs and Assistants submit daily attendance, offerings, and department-specific
+                  metrics even when convention-ground connectivity drops—auto-syncing when online.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-[#0D1422] p-6 space-y-3">
+                <div className="h-10 w-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-white">
+                  Secretariat Oversight &amp; Locking
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                  Real-time compliance matrix across all 43+ departments with instant review,
+                  approval locking, challenge escalation tracking, and event-window controls.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-[#0D1422] p-6 space-y-3">
+                <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                  <PackageCheck className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-white">
+                  Stores &amp; Executive DOCX
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                  Two-stage procurement (Pre-Event Market Lists → Live Counter Fulfillment &amp;
+                  Durable Returns) plus one-click compiled DOCX Board &amp; Stores reports.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-white/10 bg-[#06090F]">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
+            <span>RCCG DTCE Secretariat · Digital Operations &amp; Reporting Platform</span>
+          </div>
+          <span>Audit-Ready · Role-Based Access · Multi-Event</span>
         </div>
       </footer>
     </div>

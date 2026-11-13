@@ -578,7 +578,144 @@ export function MarketListView({ backHref }: { backHref: string }) {
                     <p className="text-xs text-muted-foreground">Once HODs submit their Pre-Event Needs Lists, their items will consolidate here automatically.</p>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
+                  <>
+                  <div className="md:hidden space-y-3">
+                    {items.map(item => {
+                      const dirty = !!drafts[item.key]
+                      const received = Number(value(item, 'qtyReceived')) || 0
+                      const short = item.approved > 0 && received < item.approved
+                      const unstockedDelta = Math.max(0, item.qtyReceived - (item.stockedFromMarket || 0))
+                      return (
+                        <div key={item.key} className="rounded-xl border border-border bg-background/40 p-3.5 space-y-3 text-xs">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <button
+                                onClick={() => setOpenKey(openKey === item.key ? null : item.key)}
+                                className="text-left font-bold text-sm text-foreground hover:underline cursor-pointer"
+                                aria-expanded={openKey === item.key}
+                              >
+                                {item.name} {openKey === item.key ? '▾' : '▸'}
+                              </button>
+                              <span className="block text-[11px] text-muted-foreground mt-0.5">
+                                {item.unit} · {item.category} · {item.departments.length} dept{item.departments.length === 1 ? '' : 's'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2 rounded-lg bg-muted/30 p-2 font-mono text-center">
+                            <div>
+                              <span className="text-[9px] text-muted-foreground font-sans block">Approved</span>
+                              <span className="font-extrabold text-emerald-500 text-sm">{item.approved}</span>
+                            </div>
+                            <div>
+                              <span className="text-[9px] text-muted-foreground font-sans block">Waiting</span>
+                              <span className="font-semibold text-amber-500 text-sm">{item.awaiting > 0 ? item.awaiting : '–'}</span>
+                            </div>
+                            <div>
+                              <span className="text-[9px] text-muted-foreground font-sans block">In Store</span>
+                              <span className="font-semibold text-foreground text-sm">{item.currentStoreStock || 0}</span>
+                            </div>
+                          </div>
+                          {unstockedDelta > 0 && (
+                            <span className="block text-[11px] text-amber-500 font-semibold">
+                              {unstockedDelta} received ready to stock
+                            </span>
+                          )}
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <span className="text-[10px] text-muted-foreground block mb-1">Trip</span>
+                              {canEdit ? (
+                                <select
+                                  aria-label={`Market trip for ${item.name}`}
+                                  value={value(item, 'batch') ?? ''}
+                                  onChange={e => setDraft(item.key, { batch: e.target.value ? Number(e.target.value) : null })}
+                                  className="h-9 w-full rounded-lg border border-border bg-background px-1.5 text-xs"
+                                >
+                                  <option value="">Not set</option>
+                                  <option value="1">Trip 1</option>
+                                  <option value="2">Trip 2</option>
+                                  <option value="3">Trip 3</option>
+                                  <option value="4">Trip 4</option>
+                                </select>
+                              ) : <span className="font-semibold">{item.batch ? `Trip ${item.batch}` : '–'}</span>}
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-muted-foreground block mb-1">Bought</span>
+                              {canEdit ? (
+                                <input
+                                  type="number" min={0} inputMode="numeric"
+                                  aria-label={`Quantity bought for ${item.name}`}
+                                  value={value(item, 'qtyBought')}
+                                  onChange={e => setDraft(item.key, { qtyBought: Math.max(0, Number(e.target.value) || 0) })}
+                                  className="h-9 w-full rounded-lg border border-border bg-background px-2 text-xs font-mono"
+                                />
+                              ) : <span className="font-mono font-bold">{item.qtyBought}</span>}
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-muted-foreground block mb-1">Received</span>
+                              {canEdit ? (
+                                <input
+                                  type="number" min={0} inputMode="numeric"
+                                  aria-label={`Quantity received for ${item.name}`}
+                                  value={value(item, 'qtyReceived')}
+                                  onChange={e => setDraft(item.key, { qtyReceived: Math.max(0, Number(e.target.value) || 0) })}
+                                  className="h-9 w-full rounded-lg border border-border bg-background px-2 text-xs font-mono"
+                                />
+                              ) : <span className="font-mono font-bold">{item.qtyReceived}</span>}
+                            </div>
+                          </div>
+                          {short && received > 0 && (
+                            <span className="block text-[11px] text-amber-600 dark:text-amber-400 font-semibold">
+                              {item.approved - received} short
+                            </span>
+                          )}
+                          {openKey === item.key && (
+                            <div className="pt-2 border-t border-border/60 space-y-2">
+                              <div className="flex flex-wrap gap-1.5">
+                                {item.departments.map(d => (
+                                  <span key={d.id} className="text-[11px] rounded-md border border-border px-2 py-1 bg-muted/20">
+                                    {d.name}: <strong className="font-mono">{d.qty} {item.unit}</strong>
+                                  </span>
+                                ))}
+                              </div>
+                              {canEdit && (
+                                <div className="grid grid-cols-1 gap-2">
+                                  <input
+                                    type="number" min={0} step="0.01" placeholder="Unit Cost (₦)"
+                                    value={value(item, 'unitCost') ?? ''}
+                                    onChange={e => setDraft(item.key, { unitCost: e.target.value === '' ? null : Math.max(0, Number(e.target.value) || 0) })}
+                                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-xs font-mono"
+                                  />
+                                  <input
+                                    placeholder="Supplier / Vendor Name"
+                                    value={value(item, 'supplierName') || ''}
+                                    onChange={e => setDraft(item.key, { supplierName: e.target.value })}
+                                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-xs"
+                                  />
+                                  <input
+                                    placeholder="Market note"
+                                    value={value(item, 'note') || ''}
+                                    onChange={e => setDraft(item.key, { note: e.target.value })}
+                                    className="h-9 w-full rounded-lg border border-border bg-background px-3 text-xs"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {canEdit && (
+                            <Button
+                              onClick={() => save(item)}
+                              disabled={!dirty || savingKey === item.key}
+                              size="sm"
+                              className="w-full h-9 text-xs font-bold cursor-pointer"
+                            >
+                              {savingKey === item.key ? 'Saving…' : 'Save Item Updates'}
+                            </Button>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-border">
@@ -771,6 +908,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                       </tbody>
                     </table>
                   </div>
+                  </>
                 )}
               </CardContent>
             </Card>

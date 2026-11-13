@@ -505,8 +505,8 @@ export default function ReportsExportPage() {
                 <div className="space-y-4">
                   <h3 className="text-[15px] font-bold text-foreground font-sans pb-1.5 border-b border-border">2. General Report of Activities</h3>
                   <p className="text-[12px] italic text-muted-foreground font-sans">Day-by-Day general attendance logged across all department sections:</p>
-                  <div className="border border-border rounded-xl overflow-hidden font-sans text-[13px] bg-background">
-                    <table className="w-full text-left border-collapse">
+                  <div className="border border-border rounded-xl overflow-x-auto font-sans text-[13px] bg-background">
+                    <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="text-foreground font-bold bg-muted/40 border-b border-border">
                           <th className="p-3 border-r border-border">Convention Day</th>
@@ -534,7 +534,7 @@ export default function ReportsExportPage() {
                           })
                         )}
                       </tbody>
-                    </table>
+                    </table></div>
                   </div>
                 </div>
 
@@ -612,8 +612,8 @@ export default function ReportsExportPage() {
                         {deptReps.length > 0 && (
                           <div className="space-y-3 my-3">
                             <h5 className="text-[12px] font-bold text-muted-foreground font-sans uppercase tracking-wider">Attendance Statistics</h5>
-                            <div className="border border-border rounded-xl overflow-hidden font-sans text-[11px] w-full max-w-md bg-background">
-                              <table className="w-full text-left border-collapse">
+                            <div className="border border-border rounded-xl overflow-x-auto font-sans text-[11px] w-full max-w-md bg-background">
+                              <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
                                   <tr className="font-bold border-b border-border text-muted-foreground bg-muted/30">
                                     <th className="p-2 border-r border-border">Day</th>
@@ -642,7 +642,7 @@ export default function ReportsExportPage() {
                                       )
                                     })}
                                 </tbody>
-                              </table>
+                              </table></div>
                             </div>
                           </div>
                         )}
@@ -655,11 +655,11 @@ export default function ReportsExportPage() {
                             <h5 className="text-[12px] font-bold text-teal-400 uppercase tracking-wider">Registration — Two-Channel Analysis</h5>
                             
                             {/* Section A */}
-                            <div className="border border-teal-500/30 rounded-xl overflow-hidden bg-background">
+                            <div className="border border-teal-500/30 rounded-xl overflow-x-auto bg-background">
                               <div className="bg-teal-950/40 px-3 py-1.5 border-b border-teal-500/30 font-bold text-teal-300 text-[11px]">
                                 SECTION A — Online Manual Pickups
                               </div>
-                              <table className="w-full text-left border-collapse">
+                              <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
                                   <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                     <th className="p-2 border-r border-border">Category</th>
@@ -674,15 +674,15 @@ export default function ReportsExportPage() {
                                     </tr>
                                   ))}
                                 </tbody>
-                              </table>
+                              </table></div>
                             </div>
 
                             {/* Section B */}
-                            <div className="border border-teal-500/30 rounded-xl overflow-hidden bg-background">
+                            <div className="border border-teal-500/30 rounded-xl overflow-x-auto bg-background">
                               <div className="bg-teal-950/40 px-3 py-1.5 border-b border-teal-500/30 font-bold text-teal-300 text-[11px]">
                                 SECTION B — Offline / Walk-in Registrations
                               </div>
-                              <table className="w-full text-left border-collapse">
+                              <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
                                   <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                     <th className="p-2 border-r border-border">Category</th>
@@ -701,7 +701,7 @@ export default function ReportsExportPage() {
                                     </tr>
                                   ))}
                                 </tbody>
-                              </table>
+                              </table></div>
                             </div>
                           </div>
                         )}
@@ -711,12 +711,12 @@ export default function ReportsExportPage() {
                           <div className="space-y-3 my-4 font-sans text-[12px]">
                             <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Ushering — Granular Five-Section Daily Attendance &amp; Offering Breakdown</h5>
                             {usheringSummary.map((sec, idx) => (
-                              <div key={idx} className="border border-amber-500/30 rounded-xl overflow-hidden bg-background space-y-1">
+                              <div key={idx} className="border border-amber-500/30 rounded-xl overflow-x-auto bg-background space-y-1">
                                 <div className="bg-amber-950/40 px-3 py-1.5 border-b border-amber-500/30 font-bold text-amber-300 text-[11px] flex justify-between">
                                   <span>{sec.sectionTitle}</span>
                                   <span>Total Offering: ₦{sec.totals.offering.toLocaleString()}</span>
                                 </div>
-                                <table className="w-full text-left border-collapse">
+                                <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                   <thead>
                                     <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                       <th className="p-2 border-r border-border">Day</th>
@@ -741,7 +741,7 @@ export default function ReportsExportPage() {
                                       </tr>
                                     ))}
                                   </tbody>
-                                </table>
+                                </table></div>
                               </div>
                             ))}
                           </div>
@@ -752,11 +752,11 @@ export default function ReportsExportPage() {
                           <div className="space-y-3 my-4 font-sans text-[12px]">
                             <h5 className="text-[12px] font-bold text-emerald-400 uppercase tracking-wider">Medical — Granular Daily Consultations &amp; Clinical Case Index</h5>
                             {medSummary.demographics.length > 0 && (
-                              <div className="border border-emerald-500/30 rounded-xl overflow-hidden bg-background">
+                              <div className="border border-emerald-500/30 rounded-xl overflow-x-auto bg-background">
                                 <div className="bg-emerald-950/40 px-3 py-1.5 border-b border-emerald-500/30 font-bold text-emerald-300 text-[11px]">
                                   Patient Demographics (Daily Figures)
                                 </div>
-                                <table className="w-full text-left border-collapse">
+                                <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                   <thead>
                                     <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                       <th className="p-2 border-r border-border">Day</th>
@@ -781,15 +781,15 @@ export default function ReportsExportPage() {
                                       <td className="p-2 text-right font-mono font-bold">{medSummary.totals.patients.toLocaleString()}</td>
                                     </tr>
                                   </tfoot>
-                                </table>
+                                </table></div>
                               </div>
                             )}
                             {medSummary.diagnoses.length > 0 && (
-                              <div className="border border-emerald-500/30 rounded-xl overflow-hidden bg-background">
+                              <div className="border border-emerald-500/30 rounded-xl overflow-x-auto bg-background">
                                 <div className="bg-emerald-950/40 px-3 py-1.5 border-b border-emerald-500/30 font-bold text-emerald-300 text-[11px]">
                                   Diagnoses &amp; Cases Treated (Daily Figures)
                                 </div>
-                                <table className="w-full text-left border-collapse">
+                                <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                   <thead>
                                     <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                       <th className="p-2 border-r border-border">Day</th>
@@ -812,7 +812,7 @@ export default function ReportsExportPage() {
                                       <td className="p-2 text-right font-mono font-bold">{medSummary.totals.cases.toLocaleString()}</td>
                                     </tr>
                                   </tfoot>
-                                </table>
+                                </table></div>
                               </div>
                             )}
                           </div>
@@ -822,8 +822,8 @@ export default function ReportsExportPage() {
                         {isWelfare && welfareSummary.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
                             <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Welfare (Kitchen / Serving) — Meal Allocations</h5>
-                            <div className="border border-amber-500/30 rounded-xl overflow-hidden bg-background">
-                              <table className="w-full text-left border-collapse">
+                            <div className="border border-amber-500/30 rounded-xl overflow-x-auto bg-background">
+                              <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
                                   <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                     <th className="p-2 border-r border-border">Meal Type</th>
@@ -840,7 +840,7 @@ export default function ReportsExportPage() {
                                     </tr>
                                   ))}
                                 </tbody>
-                              </table>
+                              </table></div>
                             </div>
                           </div>
                         )}
@@ -850,9 +850,9 @@ export default function ReportsExportPage() {
                           <div className="space-y-3 my-4 font-sans text-[12px]">
                             <h5 className="text-[12px] font-bold text-blue-400 uppercase tracking-wider">Stores — Inventory Tracking &amp; Requisitions</h5>
                             {storesSummary.durables.length > 0 && (
-                              <div className="border border-blue-500/30 rounded-xl overflow-hidden bg-background">
+                              <div className="border border-blue-500/30 rounded-xl overflow-x-auto bg-background">
                                 <div className="bg-blue-950/40 px-3 py-1.5 border-b border-blue-500/30 font-bold text-blue-300 text-[11px]">Durables Log</div>
-                                <table className="w-full text-left border-collapse">
+                                <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                   <thead>
                                     <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                       <th className="p-2 border-r border-border">Item Name</th>
@@ -871,13 +871,13 @@ export default function ReportsExportPage() {
                                       </tr>
                                     ))}
                                   </tbody>
-                                </table>
+                                </table></div>
                               </div>
                             )}
                             {storesSummary.consumables.length > 0 && (
-                              <div className="border border-blue-500/30 rounded-xl overflow-hidden bg-background">
+                              <div className="border border-blue-500/30 rounded-xl overflow-x-auto bg-background">
                                 <div className="bg-blue-950/40 px-3 py-1.5 border-b border-blue-500/30 font-bold text-blue-300 text-[11px]">Consumables Log</div>
-                                <table className="w-full text-left border-collapse">
+                                <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                   <thead>
                                     <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                       <th className="p-2 border-r border-border">Item Name</th>
@@ -894,7 +894,7 @@ export default function ReportsExportPage() {
                                       </tr>
                                     ))}
                                   </tbody>
-                                </table>
+                                </table></div>
                               </div>
                             )}
                           </div>
@@ -904,8 +904,8 @@ export default function ReportsExportPage() {
                         {isSepu && sepuSummary.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
                             <h5 className="text-[12px] font-bold text-red-400 uppercase tracking-wider">SEPU — Daily Incident Index</h5>
-                            <div className="border border-red-500/30 rounded-xl overflow-hidden bg-background">
-                              <table className="w-full text-left border-collapse">
+                            <div className="border border-red-500/30 rounded-xl overflow-x-auto bg-background">
+                              <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
                                   <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                     <th className="p-2 border-r border-border">Incident Description</th>
@@ -922,7 +922,7 @@ export default function ReportsExportPage() {
                                     </tr>
                                   ))}
                                 </tbody>
-                              </table>
+                              </table></div>
                             </div>
                           </div>
                         )}
@@ -931,8 +931,8 @@ export default function ReportsExportPage() {
                         {isBibleStudy && bibleStudySummary.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
                             <h5 className="text-[12px] font-bold text-purple-400 uppercase tracking-wider">Bible Study — Tribal Attendance Breakdown</h5>
-                            <div className="border border-purple-500/30 rounded-xl overflow-hidden bg-background">
-                              <table className="w-full text-left border-collapse">
+                            <div className="border border-purple-500/30 rounded-xl overflow-x-auto bg-background">
+                              <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
                                   <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                     <th className="p-2 border-r border-border">Tribe / Category</th>
@@ -951,7 +951,7 @@ export default function ReportsExportPage() {
                                     </tr>
                                   ))}
                                 </tbody>
-                              </table>
+                              </table></div>
                             </div>
                           </div>
                         )}
@@ -960,8 +960,8 @@ export default function ReportsExportPage() {
                         {isTeensProgram && teensSummary.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
                             <h5 className="text-[12px] font-bold text-indigo-400 uppercase tracking-wider">Programs (Teens) — Service Statistics</h5>
-                            <div className="border border-indigo-500/30 rounded-xl overflow-hidden bg-background">
-                              <table className="w-full text-left border-collapse">
+                            <div className="border border-indigo-500/30 rounded-xl overflow-x-auto bg-background">
+                              <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
                                   <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                     <th className="p-2 border-r border-border">Session Name</th>
@@ -978,7 +978,7 @@ export default function ReportsExportPage() {
                                     </tr>
                                   ))}
                                 </tbody>
-                              </table>
+                              </table></div>
                             </div>
                           </div>
                         )}
@@ -987,8 +987,8 @@ export default function ReportsExportPage() {
                         {!isRegistration && !isUshering && !isMedical && !isWelfare && !isStores && !isSepu && !isBibleStudy && !isTeensProgram && customGroups.length > 0 && (
                           <div className="space-y-3 my-4 font-sans text-[12px]">
                             <h5 className="text-[12px] font-bold text-amber-400 uppercase tracking-wider">Operational Metrics Summary</h5>
-                            <div className="border border-amber-500/30 rounded-xl overflow-hidden bg-background">
-                              <table className="w-full text-left border-collapse">
+                            <div className="border border-amber-500/30 rounded-xl overflow-x-auto bg-background">
+                              <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                                 <thead>
                                   <tr className="border-b border-border text-muted-foreground bg-muted/20 font-bold text-[10px]">
                                     <th className="p-2 border-r border-border">Category / Metric</th>
@@ -1005,7 +1005,7 @@ export default function ReportsExportPage() {
                                     </tr>
                                   )))}
                                 </tbody>
-                              </table>
+                              </table></div>
                             </div>
                           </div>
                         )}
@@ -1070,8 +1070,8 @@ export default function ReportsExportPage() {
                     Financial breakdown of worship offerings and registration fees collected across reporting departments.
                   </p>
                   {offeringBreakdown.length > 0 ? (
-                    <div className="border border-border rounded-xl overflow-hidden font-sans text-[12px] bg-background">
-                      <table className="w-full text-left border-collapse">
+                    <div className="border border-border rounded-xl overflow-x-auto font-sans text-[12px] bg-background">
+                      <div className="overflow-x-auto"><table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="font-bold border-b border-border text-foreground bg-muted/40">
                             <th className="p-2.5 border-r border-border">Department</th>
@@ -1090,7 +1090,7 @@ export default function ReportsExportPage() {
                             </tr>
                           ))}
                         </tbody>
-                      </table>
+                      </table></div>
                     </div>
                   ) : (
                     <p className="text-[12px] italic text-muted-foreground">No financial data recorded yet.</p>
@@ -1103,7 +1103,7 @@ export default function ReportsExportPage() {
                   <p className="text-[13px] text-muted-foreground font-light">
                     We express our profound gratitude to the National Coordinators, HODs, and Secretariat volunteers whose tireless execution kept convention reporting running seamlessly under offline settings.
                   </p>
-                  <div className="grid grid-cols-2 gap-4 pt-4 text-[12px] font-semibold text-foreground">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 text-[12px] font-semibold text-foreground">
                     <div>Secretariat General Approval: ___________________</div>
                     <div>National Competitions Rep: ___________________</div>
                   </div>
@@ -1121,10 +1121,10 @@ export default function ReportsExportPage() {
         const storesReport = compileStrategicStoresReport(storeRequests, reports, departments, eventDays)
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-fade-in">
-            <div className="bg-card border border-amber-500/40 rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="bg-card border border-amber-500/40 rounded-2xl w-full max-w-5xl max-h-[92dvh] flex flex-col shadow-2xl overflow-hidden">
               
               {/* Modal Header */}
-              <div className="p-4 md:p-6 border-b border-border bg-amber-500/10 flex items-center justify-between">
+              <div className="p-4 md:p-6 border-b border-border bg-amber-500/10 flex items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
                     <ShoppingBag className="w-5 h-5" />
@@ -1140,7 +1140,7 @@ export default function ReportsExportPage() {
                 </div>
                 <button
                   onClick={() => setShowStoresModal(false)}
-                  className="h-8 w-8 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer"
+                  className="h-9 w-9 shrink-0 rounded-lg bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1176,7 +1176,7 @@ export default function ReportsExportPage() {
                 {/* 2. Department Demand Ranking */}
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider">1. Departmental Material Demand Ranking</h3>
-                  <div className="border border-border rounded-xl overflow-hidden bg-background">
+                  <div className="border border-border rounded-xl overflow-x-auto bg-background">
                     <table className="w-full text-left border-collapse text-[11px]">
                       <thead>
                         <tr className="border-b border-border bg-muted/40 font-bold text-muted-foreground">
@@ -1205,7 +1205,7 @@ export default function ReportsExportPage() {
                 {/* 3. Item Velocity & Consumption Index */}
                 <div className="space-y-2">
                   <h3 className="text-xs font-bold text-teal-400 uppercase tracking-wider">2. Material Velocity &amp; Item-Level Consumption Index</h3>
-                  <div className="border border-border rounded-xl overflow-hidden bg-background">
+                  <div className="border border-border rounded-xl overflow-x-auto bg-background">
                     <table className="w-full text-left border-collapse text-[11px]">
                       <thead>
                         <tr className="border-b border-border bg-muted/40 font-bold text-muted-foreground">

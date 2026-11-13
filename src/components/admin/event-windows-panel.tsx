@@ -242,7 +242,7 @@ export function EventWindowsPanel() {
                   Phase 1: Pre-Event Needs List Window (WAT / UTC+1)
                 </h3>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Opens At (WAT)</Label>
                   <Input
@@ -286,7 +286,7 @@ export function EventWindowsPanel() {
                   Phase 2: Live Event Store Requisition Window (WAT / UTC+1)
                 </h3>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs">Custom Unlock Time (Optional — WAT)</Label>
                   <Input

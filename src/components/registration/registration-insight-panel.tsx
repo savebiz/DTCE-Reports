@@ -346,7 +346,7 @@ export function RegistrationInsightPanel({ userRole }: RegistrationInsightPanelP
           <Button
             size="sm"
             onClick={() => setIsModalOpen(true)}
-            className="text-xs h-8 bg-teal-600 hover:bg-teal-500 text-white font-semibold cursor-pointer shadow-xs border border-teal-400/30"
+            className="text-xs h-9 bg-teal-600 hover:bg-teal-500 text-white font-semibold cursor-pointer shadow-xs border border-teal-400/30"
           >
             <Edit3 className="w-3.5 h-3.5 mr-1.5" />
             Set Pre-Event Online Totals

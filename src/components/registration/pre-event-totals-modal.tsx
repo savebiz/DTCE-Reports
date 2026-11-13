@@ -149,8 +149,8 @@ export function PreEventRegistrationTotalsModal({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <Card className="w-full max-w-lg bg-[#0A1826] border border-blue-500/40 text-slate-100 shadow-2xl overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-slate-800">
+      <Card className="w-full max-w-lg bg-[#0A1826] border border-blue-500/40 text-slate-100 shadow-2xl max-h-[90dvh] flex flex-col overflow-hidden">
+        <CardHeader className="flex flex-row items-start justify-between gap-2 pb-3 border-b border-slate-800">
           <div>
             <CardTitle className="text-base font-bold text-slate-100 flex items-center gap-2">
               <Globe className="w-5 h-5 text-blue-400" />
@@ -162,12 +162,12 @@ export function PreEventRegistrationTotalsModal({
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white font-bold p-1 text-lg rounded-md hover:bg-slate-800/60"
+            className="h-9 w-9 flex items-center justify-center shrink-0 text-slate-400 hover:text-white font-bold text-lg rounded-md hover:bg-slate-800/60"
           >
             ✕
           </button>
         </CardHeader>
-        <CardContent className="space-y-4 pt-4">
+        <CardContent className="space-y-4 pt-4 flex-1 min-h-0 overflow-y-auto">
           {loading ? (
             <p className="text-xs font-mono text-slate-400 animate-pulse py-4 text-center">
               Loading pre-event online totals...

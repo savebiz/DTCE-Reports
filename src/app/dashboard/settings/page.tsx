@@ -704,7 +704,7 @@ function SettingsContent() {
                       tribes.map(t => (
                         <div key={t.id} className="flex justify-between items-center bg-background/25 border border-border p-3 rounded-xl text-sm text-foreground">
                           <span className="font-semibold">{t.name}</span>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={() => handleRemoveTribe(t.id, t.name)}>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 text-red-500 shrink-0" onClick={() => handleRemoveTribe(t.id, t.name)}>
                             ✕
                           </Button>
                         </div>
@@ -713,7 +713,7 @@ function SettingsContent() {
                       diagnoses.map(d => (
                         <div key={d.id} className="flex justify-between items-center bg-background/25 border border-border p-3 rounded-xl text-sm text-foreground">
                           <span className="font-semibold">{d.name}</span>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={() => handleRemoveDiagnosis(d.id, d.name)}>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 text-red-500 shrink-0" onClick={() => handleRemoveDiagnosis(d.id, d.name)}>
                             ✕
                           </Button>
                         </div>
