@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { after, NextResponse, type NextRequest } from 'next/server'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { notify, getDepartmentRecipientIds, getAdminRecipientIds } from '@/lib/notifications/dispatch'
 import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
@@ -102,33 +102,48 @@ export async function POST(request: NextRequest) {
     const requestId = inserted.id
     const itemsSummary = items.map((it: any) => `${it.quantity} ${it.unit || 'pcs'} ${it.name}`).join(', ')
 
-    // 3. Dispatch Notification to General Secretary, National Coordinator & Executive Secretariat
-    const adminIds = await getAdminRecipientIds(supabaseAdmin)
-    for (const adminId of adminIds) {
-      await notify({
-        recipientId: adminId,
-        type: 'requisition_submitted',
-        title: requestType === 'pre_event' ? `New Pre-Event Needs List: ${deptName}` : `New Store Requisition: ${deptName}`,
-        body: requestType === 'pre_event'
-          ? `${deptName} submitted their pre-event needs list for market purchase (${itemsSummary}). Pending approval.`
-          : `${deptName} submitted a live store requisition (${itemsSummary}). Pending your review and approval.`,
-        relatedEntity: { type: 'requisition', id: requestId }
-      })
-    }
+    // 3 & 4. Dispatch notifications in the background after returning the response so HODs don't wait
+    after(async () => {
+      try {
+        const [adminIds, deptMemberIds] = await Promise.all([
+          getAdminRecipientIds(supabaseAdmin),
+          getDepartmentRecipientIds(supabaseAdmin, departmentId),
+        ])
 
-    // 4. Dispatch Notification to ALL members of the requesting department
-    const deptMemberIds = await getDepartmentRecipientIds(supabaseAdmin, departmentId)
-    for (const memberId of deptMemberIds) {
-      await notify({
-        recipientId: memberId,
-        type: 'requisition_submitted',
-        title: requestType === 'pre_event' ? `Needs List Sent: ${deptName}` : `Store Requisition Sent: ${deptName}`,
-        body: requestType === 'pre_event'
+        const adminTitle = requestType === 'pre_event' ? `New Pre-Event Needs List: ${deptName}` : `New Store Requisition: ${deptName}`
+        const adminBody = requestType === 'pre_event'
+          ? `${deptName} submitted their pre-event needs list for market purchase (${itemsSummary}). Pending approval.`
+          : `${deptName} submitted a live store requisition (${itemsSummary}). Pending your review and approval.`
+
+        const memberTitle = requestType === 'pre_event' ? `Needs List Sent: ${deptName}` : `Store Requisition Sent: ${deptName}`
+        const memberBody = requestType === 'pre_event'
           ? `Your department's pre-event needs list (${itemsSummary}) was sent to the General Secretary & National Coordinator for market purchase approval.`
-          : `A store requisition for ${deptName} (${itemsSummary}) was submitted for approval.`,
-        relatedEntity: { type: 'requisition', id: requestId }
-      })
-    }
+          : `A store requisition for ${deptName} (${itemsSummary}) was submitted for approval.`
+
+        await Promise.allSettled([
+          ...adminIds.map((adminId) =>
+            notify({
+              recipientId: adminId,
+              type: 'requisition_submitted',
+              title: adminTitle,
+              body: adminBody,
+              relatedEntity: { type: 'requisition', id: requestId },
+            })
+          ),
+          ...deptMemberIds.map((memberId) =>
+            notify({
+              recipientId: memberId,
+              type: 'requisition_submitted',
+              title: memberTitle,
+              body: memberBody,
+              relatedEntity: { type: 'requisition', id: requestId },
+            })
+          ),
+        ])
+      } catch (notifyErr) {
+        console.error('[submit-request] background notification dispatch failed:', notifyErr)
+      }
+    })
 
     return NextResponse.json({ success: true, request: inserted })
   } catch (err: any) {

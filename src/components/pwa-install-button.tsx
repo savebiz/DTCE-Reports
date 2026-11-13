@@ -71,13 +71,9 @@ export function PwaInstallButton({ variant = 'default' }: { variant?: 'default' 
     }
   }
 
+  // Already installed / running as standalone PWA — no need to clutter the header
   if (isStandalone) {
-    return (
-      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold">
-        <Check size={13} />
-        <span>App Installed</span>
-      </div>
-    )
+    return null
   }
 
   // Only render if WebAPK prompt is available or on iOS Safari
@@ -85,27 +81,33 @@ export function PwaInstallButton({ variant = 'default' }: { variant?: 'default' 
     return null
   }
 
+  if (installedSuccess && variant !== 'hero') {
+    return null
+  }
+
   return (
     <>
       {/* ── INSTALL BUTTON UI ── */}
       {installedSuccess ? (
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold animate-fade-in">
+        <div className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold animate-fade-in">
           <Check size={14} />
           <span>App Installed Successfully</span>
         </div>
       ) : (
         <button
           onClick={handleInstallClick}
-          className={`inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-all duration-200 cursor-pointer ${
+          className={`inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-all duration-200 cursor-pointer shrink-0 ${
             variant === 'hero'
               ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 px-6 py-3 text-xs shadow-lg shadow-amber-500/20 active:scale-98'
               : variant === 'compact'
-              ? 'bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 px-3 py-1.5 text-xs'
-              : 'border border-slate-700 hover:border-slate-500 bg-slate-900/80 hover:bg-slate-800 text-slate-100 px-4 py-2 text-xs'
+              ? 'border border-border bg-card hover:bg-accent text-foreground px-2.5 sm:px-3 py-1.5 text-xs'
+              : 'border border-border bg-card hover:bg-accent text-foreground px-3 sm:px-4 py-2 text-xs'
           }`}
         >
-          <Download size={14} className={variant === 'hero' ? 'text-slate-950' : 'text-amber-400'} />
-          <span>{variant === 'hero' ? 'Install App (WebAPK)' : 'Install App'}</span>
+          <Download size={14} className={variant === 'hero' ? 'text-slate-950' : 'text-amber-600 dark:text-amber-400'} />
+          <span className={variant === 'compact' ? 'hidden sm:inline' : ''}>
+            {variant === 'hero' ? 'Install App (WebAPK)' : 'Install App'}
+          </span>
         </button>
       )}
 
