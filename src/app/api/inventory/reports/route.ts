@@ -223,6 +223,7 @@ export async function GET(request: NextRequest) {
 
     // --- Production Live Supabase Execution via Server-Side RPC Functions ---
     const supabaseAdmin = getAdminClient()
+    const eventId = await getCurrentEventId(supabaseAdmin)
 
     if (reportType === 'stock_summary') {
       const { data, error } = await supabaseAdmin.rpc('get_inventory_stock_summary')
@@ -260,7 +261,7 @@ export async function GET(request: NextRequest) {
 
       if (error) {
         // Fallback join query
-        const { data: rawTrans } = await supabaseAdmin
+        let consQuery = supabaseAdmin
           .from('inventory_transactions')
           .select(`
             id, quantity_change, created_at, inventory_item_id,
@@ -268,6 +269,10 @@ export async function GET(request: NextRequest) {
             requisition:store_requests(department:departments(id, name))
           `)
           .eq('transaction_type', 'fulfillment_deduction')
+        if (eventId) consQuery = consQuery.eq('event_id', eventId)
+        const { data: rawTrans } = await consQuery
+        // Scope to current event if resolved
+        
 
         return NextResponse.json({ reportType, data: rawTrans || [] })
       }
@@ -290,6 +295,7 @@ export async function GET(request: NextRequest) {
         `)
         .order('created_at', { ascending: false })
 
+      if (eventId) query = query.eq('event_id', eventId)
       if (startDate) query = query.gte('created_at', startDate)
       if (endDate) query = query.lte('created_at', endDate)
 

@@ -6,6 +6,7 @@ import { isMock } from '@/utils/supabase'
 import fs from 'fs'
 import path from 'path'
 import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
+import { getCurrentEventId } from '@/lib/events/current-event'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
@@ -212,6 +213,7 @@ export async function GET(request: NextRequest) {
         return history
       } else {
         const supabaseAdmin = getAdminClient()
+        const eventId = await getCurrentEventId(supabaseAdmin)
         let query = supabaseAdmin
           .from('inventory_transactions')
           .select(`
@@ -220,6 +222,7 @@ export async function GET(request: NextRequest) {
             requisition:store_requests(department:departments(id, name))
           `)
           .order('created_at', { ascending: false })
+        if (eventId) query = query.eq('event_id', eventId)
         if (startDate) query = query.gte('created_at', startDate)
         if (endDate) query = query.lte('created_at', endDate)
         const { data: rawTrans } = await query

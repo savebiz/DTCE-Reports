@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
+import { getCurrentEventId } from '@/lib/events/current-event'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
@@ -25,7 +26,9 @@ export async function GET() {
       }
     )
 
-    const { data: transactions, error } = await supabase
+    const eventId = await getCurrentEventId(supabase)
+
+    let txnQuery = supabase
       .from('inventory_transactions')
       .select(`
         *,
@@ -33,14 +36,18 @@ export async function GET() {
         performer:profiles!inventory_transactions_performed_by_fkey(full_name, email)
       `)
       .order('created_at', { ascending: false })
+    if (eventId) txnQuery = txnQuery.eq('event_id', eventId)
+    const { data: transactions, error } = await txnQuery
 
     if (error) {
       // Fallback query if foreign key join is missing or strict
       const supabaseAdmin = getAdminClient()
-      const { data: rawTrans } = await supabaseAdmin
+      let rawQuery = supabaseAdmin
         .from('inventory_transactions')
         .select('*')
         .order('created_at', { ascending: false })
+      if (eventId) rawQuery = rawQuery.eq('event_id', eventId)
+      const { data: rawTrans } = await rawQuery
 
       return NextResponse.json({ transactions: rawTrans || [] })
     }

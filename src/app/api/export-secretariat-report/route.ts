@@ -71,7 +71,7 @@ export async function GET(request: Request) {
       const { data: invItems } = await supabase.from('inventory_items').select('*')
       inventoryItems = invItems || []
 
-      let invTxnsQuery = supabase.from('inventory_transactions').select('*')
+      let invTxnsQuery = supabase.from('inventory_transactions').select('*').eq('event_id', event.id)
       if (event.start_date) invTxnsQuery = invTxnsQuery.gte('created_at', event.start_date)
       if (event.end_date) invTxnsQuery = invTxnsQuery.lte('created_at', event.end_date + 'T23:59:59.999Z')
       const { data: invTxns } = await invTxnsQuery
