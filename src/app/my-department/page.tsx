@@ -13,6 +13,7 @@ import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { KPIGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
 import { Calendar, Layers, Package, FileEdit } from 'lucide-react'
 import { getCurrentEvent, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 export default function MyDepartmentDashboard() {
   const router = useRouter()
@@ -427,7 +428,7 @@ export default function MyDepartmentDashboard() {
           {(profile.role === 'super_admin' || profile.role === 'coordinator') && allDepartments.length > 0 && (
             <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 bg-card border border-border/50 p-4 rounded-xl shadow-xs">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Act on behalf of:</span>
-              <select
+              <ModernSelect
                 value={profile.department_id || ''}
                 onChange={(e) => {
                   const newDeptId = e.target.value
@@ -440,7 +441,7 @@ export default function MyDepartmentDashboard() {
                 {allDepartments.map(d => (
                   <option key={d.id} value={d.id}>{d.name}</option>
                 ))}
-              </select>
+              </ModernSelect>
             </div>
           )}
 

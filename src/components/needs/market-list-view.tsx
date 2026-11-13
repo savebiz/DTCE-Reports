@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { showToast } from '@/components/ui/toast'
 import { isMock } from '@/utils/supabase'
 import { PackageCheck, ShoppingBag, CheckCircle2, Clock, AlertCircle, Printer, Download } from 'lucide-react'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 interface MarketItem {
   key: string
@@ -624,7 +625,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                             <div>
                               <span className="text-[10px] text-muted-foreground block mb-1">Trip</span>
                               {canEdit ? (
-                                <select
+                                <ModernSelect
                                   aria-label={`Market trip for ${item.name}`}
                                   value={value(item, 'batch') ?? ''}
                                   onChange={e => setDraft(item.key, { batch: e.target.value ? Number(e.target.value) : null })}
@@ -635,7 +636,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                   <option value="2">Trip 2</option>
                                   <option value="3">Trip 3</option>
                                   <option value="4">Trip 4</option>
-                                </select>
+                                </ModernSelect>
                               ) : <span className="font-semibold">{item.batch ? `Trip ${item.batch}` : '–'}</span>}
                             </div>
                             <div>
@@ -771,7 +772,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                 </td>
                                 <td className="py-3 pr-3">
                                   {canEdit ? (
-                                    <select
+                                    <ModernSelect
                                       aria-label={`Market trip for ${item.name}`}
                                       value={value(item, 'batch') ?? ''}
                                       onChange={e => setDraft(item.key, { batch: e.target.value ? Number(e.target.value) : null })}
@@ -782,7 +783,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                       <option value="2">Trip 2</option>
                                       <option value="3">Trip 3</option>
                                       <option value="4">Trip 4</option>
-                                    </select>
+                                    </ModernSelect>
                                   ) : (
                                     <span>{item.batch ? `Trip ${item.batch}` : '–'}</span>
                                   )}

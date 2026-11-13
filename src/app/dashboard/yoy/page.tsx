@@ -7,6 +7,7 @@ import { getCurrentEventId } from '@/lib/events/current-event'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 interface CarryOverIssue {
   departmentName: string
@@ -185,24 +186,24 @@ export default function YoYComparisonPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-center text-[12px]">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-muted-foreground">Compare Base Year:</span>
-              <select
+              <ModernSelect
                 value={eventA}
                 onChange={(e) => setEventA(e.target.value)}
                 className="h-8 rounded-lg px-3 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
               >
                 <option value="event-2025" className="bg-card text-foreground">DTCE 2025 Annual Convention</option>
-              </select>
+              </ModernSelect>
             </div>
             <div className="text-muted-foreground font-bold uppercase tracking-wider">VS</div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-muted-foreground">Compare Target Year:</span>
-              <select
+              <ModernSelect
                 value={eventB}
                 onChange={(e) => setEventB(e.target.value)}
                 className="h-8 rounded-lg px-3 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
               >
                 <option value="event-1" className="bg-card text-foreground">DTCE 2026 Annual Convention (Active)</option>
-              </select>
+              </ModernSelect>
             </div>
           </div>
         </div>

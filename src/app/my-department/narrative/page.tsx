@@ -14,6 +14,7 @@ import localforage from 'localforage'
 import { extractCustomMetricsSummary, formatCustomMetricsTextLines } from '@/utils/customMetricsSummarizer'
 import { getCurrentEvent, getDepartmentAssignment, getEventDays } from '@/lib/events/current-event'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 // Drafts are kept per event so a Convention draft never shows up during Congress.
 const narrativeDraftKey = (eventId: string | null | undefined, departmentId: string | null | undefined) =>
@@ -648,7 +649,7 @@ export default function DepartmentNarrativePage() {
                               : 'None'}
                           </span>
                         ) : (
-                          <select
+                          <ModernSelect
                             value={r.linked_challenge_id || 'none'}
                             onChange={(e) => handleLinkChallenge(r.id as string, e.target.value)}
                             className="w-full sm:w-auto h-10 sm:h-8 rounded-lg px-2.5 text-[12px] font-medium text-foreground bg-card border border-border cursor-pointer outline-none"
@@ -659,7 +660,7 @@ export default function DepartmentNarrativePage() {
                                 C{cIdx + 1}: {c.text.substring(0, 30)}...
                               </option>
                             ))}
-                          </select>
+                          </ModernSelect>
                         )}
                       </div>
                     </div>

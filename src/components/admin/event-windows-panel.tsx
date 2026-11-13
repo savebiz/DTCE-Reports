@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { showToast } from '@/components/ui/toast'
+import { Switch } from '@/components/ui/switch'
 import { Calendar, Clock, Lock, Unlock, CheckCircle2, AlertTriangle, Plus, Globe2, CalendarCheck2 } from 'lucide-react'
 import type { PlatformEvent, EventStatus, EventType, WindowOverride } from '@/lib/events/current-event'
 import {
@@ -15,6 +16,7 @@ import {
   getDefaultLiveRequisitionOpensAt,
   toWatInputValue,
 } from '@/lib/events/requisition-windows'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 interface DraftEventState {
   start_date: string
@@ -228,7 +230,7 @@ export function EventWindowsPanel() {
               {events.length > 1 && (
                 <div className="flex flex-col sm:items-end gap-1.5">
                   <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Switch / Configure Event</Label>
-                  <select
+                  <ModernSelect
                     value={selectedId}
                     onChange={(e) => {
                       const found = events.find(ev => ev.id === e.target.value)
@@ -241,7 +243,7 @@ export function EventWindowsPanel() {
                         {ev.name} {ev.is_current ? '(Active)' : `(${ev.status || 'planning'})`}
                       </option>
                     ))}
-                  </select>
+                  </ModernSelect>
                 </div>
               )}
             </div>
@@ -268,7 +270,7 @@ export function EventWindowsPanel() {
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Event Type</Label>
-                  <select
+                  <ModernSelect
                     value={newType}
                     onChange={e => setNewType(e.target.value as EventType)}
                     className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs font-semibold text-foreground"
@@ -276,7 +278,7 @@ export function EventWindowsPanel() {
                     <option value="congress">Congress</option>
                     <option value="convention">Convention</option>
                     <option value="other">Special Event</option>
-                  </select>
+                  </ModernSelect>
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Start Date</Label>
@@ -287,15 +289,17 @@ export function EventWindowsPanel() {
                   <Input type="date" value={newEnd} onChange={e => setNewEnd(e.target.value)} className="h-9 text-xs" />
                 </div>
                 <div className="flex items-end sm:col-span-2">
-                  <label className="inline-flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer h-9">
-                    <input
-                      type="checkbox"
+                  <div className="inline-flex items-center gap-2.5 text-xs font-medium text-foreground h-9">
+                    <Switch
+                      id="new-make-active"
                       checked={newMakeActive}
-                      onChange={e => setNewMakeActive(e.target.checked)}
-                      className="rounded border-border"
+                      onCheckedChange={setNewMakeActive}
+                      aria-label="Set as active platform event immediately"
                     />
-                    Set as active platform event immediately
-                  </label>
+                    <label htmlFor="new-make-active" className="cursor-pointer select-none">
+                      Set as active platform event immediately
+                    </label>
+                  </div>
                 </div>
                 <div className="flex items-end justify-end">
                   <Button type="submit" size="sm" disabled={creating} className="h-9 text-xs font-bold">
@@ -321,7 +325,7 @@ export function EventWindowsPanel() {
             </p>
           </div>
           {events.length > 0 && (
-            <select
+            <ModernSelect
               value={selectedId}
               onChange={(e) => {
                 const found = events.find(ev => ev.id === e.target.value)
@@ -334,7 +338,7 @@ export function EventWindowsPanel() {
                   {ev.name} {ev.is_current ? '(Active)' : `(${ev.status || 'planning'})`}
                 </option>
               ))}
-            </select>
+            </ModernSelect>
           )}
         </CardHeader>
 
@@ -406,7 +410,7 @@ export function EventWindowsPanel() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-bold">Event Lifecycle Status</Label>
-                <select
+                <ModernSelect
                   value={draft.status}
                   onChange={e => setDraft({ ...draft, status: e.target.value as EventStatus })}
                   className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs font-semibold text-foreground"
@@ -416,7 +420,7 @@ export function EventWindowsPanel() {
                   <option value="live">Live Event</option>
                   <option value="closed">Closed</option>
                   <option value="archived">Archived</option>
-                </select>
+                </ModernSelect>
               </div>
             </div>
 
@@ -451,7 +455,7 @@ export function EventWindowsPanel() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Manual Override</Label>
-                  <select
+                  <ModernSelect
                     value={draft.pre_event_override}
                     onChange={e => setDraft({ ...draft, pre_event_override: e.target.value as WindowOverride })}
                     className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs font-semibold text-foreground"
@@ -459,7 +463,7 @@ export function EventWindowsPanel() {
                     <option value="auto">Auto (Follow Schedule)</option>
                     <option value="force_open">Force Open (Override)</option>
                     <option value="force_closed">Force Closed (Lock)</option>
-                  </select>
+                  </ModernSelect>
                 </div>
               </div>
             </div>
@@ -487,7 +491,7 @@ export function EventWindowsPanel() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">Manual Override</Label>
-                  <select
+                  <ModernSelect
                     value={draft.live_requisition_override}
                     onChange={e => setDraft({ ...draft, live_requisition_override: e.target.value as WindowOverride })}
                     className="w-full h-9 rounded-md border border-input bg-background px-3 text-xs font-semibold text-foreground"
@@ -495,7 +499,7 @@ export function EventWindowsPanel() {
                     <option value="auto">Auto (Unlock 1 Day Before Event)</option>
                     <option value="force_open">Force Open (Testing / Early Access)</option>
                     <option value="force_closed">Force Closed (Lock)</option>
-                  </select>
+                  </ModernSelect>
                 </div>
               </div>
             </div>

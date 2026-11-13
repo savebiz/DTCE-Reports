@@ -92,6 +92,7 @@
 
 /* ── Light Theme (default) ── */
 :root {
+  color-scheme: light;
   /* ── Chrome Layer Tokens (Theme-invariant, fixed dark — Top Navigation Bar only) ── */
   --chrome-bg:             #0A1826;
   --chrome-surface:        #0F2A4A;
@@ -136,6 +137,7 @@
 
 /* ── Dark Theme ── */
 .dark {
+  color-scheme: dark;
   --background:            #06090F;
   --foreground:            #F1F5F9;
   --card:                  #0C1220;

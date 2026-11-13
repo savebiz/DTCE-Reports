@@ -15,6 +15,7 @@ import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { AlertTriangle, X, ClipboardList, Package, CheckCircle2, Clock, AlertCircle, ShoppingBag } from 'lucide-react'
 import { getCurrentEvent } from '@/lib/events/current-event'
 import { isGeneralSecretary } from '@/lib/auth/titles'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 interface RequestItem {
   inventory_item_id?: string | null
@@ -1119,7 +1120,7 @@ function AdminRequisitionsContent() {
                       <div className="space-y-2 pb-4 border-b border-slate-800">
                         <Label htmlFor="del-user" className="text-xs font-bold text-slate-300 uppercase tracking-widest">Delegate Approval Task</Label>
                         <div className="flex flex-col sm:flex-row gap-2">
-                          <select
+                          <ModernSelect
                             id="del-user"
                             value={delegateId}
                             onChange={(e) => setDelegateId(e.target.value)}
@@ -1133,7 +1134,7 @@ function AdminRequisitionsContent() {
                                   {a.full_name || a.username || a.email} (Coordinator)
                                 </option>
                               ))}
-                          </select>
+                          </ModernSelect>
                           <Button onClick={handleDelegate} disabled={loading} size="sm" className="w-full sm:w-auto h-10 sm:h-9 px-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-xs shrink-0">
                             Assign
                           </Button>

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 interface DataTablePaginationProps {
   currentPage: number
@@ -57,7 +58,7 @@ export function DataTablePagination({
         {onPageSizeChange && (
           <div className="hidden md:flex items-center gap-1.5 ml-2 pl-2 border-l border-border/60">
             <span className="text-[11px]">Rows:</span>
-            <select
+            <ModernSelect
               value={pageSize}
               onChange={(e) => onPageSizeChange(Number(e.target.value))}
               className="h-6 rounded bg-card border border-border px-1 text-[11px] font-medium text-foreground cursor-pointer outline-none"
@@ -65,7 +66,7 @@ export function DataTablePagination({
               {pageSizeOptions.map(sz => (
                 <option key={sz} value={sz}>{sz}</option>
               ))}
-            </select>
+            </ModernSelect>
           </div>
         )}
       </div>

@@ -22,6 +22,7 @@ import { compileStrategicStoresReport, StrategicStoresSummary } from '@/utils/st
 import Link from 'next/link'
 import { Bell, ShoppingBag, FileSpreadsheet, Layers, BarChart3, X, Download, Award } from 'lucide-react'
 import { getCurrentEvent, getEventDays } from '@/lib/events/current-event'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 export default function ReportsExportPage() {
   const router = useRouter()
@@ -408,7 +409,7 @@ export default function ReportsExportPage() {
             <div className="space-y-4">
               <div className="space-y-1.5">
                 <label htmlFor="digest-day" className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Target Day</label>
-                <select
+                <ModernSelect
                   id="digest-day"
                   value={digestDay}
                   onChange={(e) => setDigestDay(e.target.value)}
@@ -417,7 +418,7 @@ export default function ReportsExportPage() {
                   {(eventDays.length > 0 ? eventDays : mockEventDays).map((ed) => (
                     <option key={ed.id} value={String(ed.day_number)} className="bg-card text-foreground">Day {ed.day_number}</option>
                   ))}
-                </select>
+                </ModernSelect>
               </div>
 
               <div className="space-y-1.5">

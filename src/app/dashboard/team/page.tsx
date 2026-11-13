@@ -8,6 +8,7 @@ import { showToast } from '@/components/ui/toast'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import Link from 'next/link'
 import { getCurrentEventId, assignmentMapForEvent } from '@/lib/events/current-event'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 interface CredentialSlip {
   fullName: string
@@ -694,7 +695,7 @@ export default function SecretariatTeamManagement() {
                 {!(singleRole === 'super_admin' || singleRole === 'coordinator' || singleRole === 'national_coordinator') && (
                   <div className="space-y-1.5">
                     <label htmlFor="single-dept" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Target Department</label>
-                    <select
+                    <ModernSelect
                       id="single-dept"
                       value={singleDeptId}
                       onChange={(e) => handleSingleDeptSelectChange(e.target.value)}
@@ -708,7 +709,7 @@ export default function SecretariatTeamManagement() {
                       {deptOptions.map(d => (
                         <option key={d.id} value={d.id} style={{ background: '#111827' }}>{d.name}</option>
                       ))}
-                    </select>
+                    </ModernSelect>
                   </div>
                 )}
 
@@ -737,7 +738,7 @@ export default function SecretariatTeamManagement() {
 
                 <div className="space-y-1.5">
                   <label htmlFor="single-role" className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">System Role</label>
-                  <select
+                  <ModernSelect
                     id="single-role"
                     value={singleRole}
                     onChange={(e: any) => setSingleRole(e.target.value)}
@@ -761,7 +762,7 @@ export default function SecretariatTeamManagement() {
                     {profile?.role === 'super_admin' && (
                       <option value="super_admin" style={{ background: '#111827' }}>Super Admin</option>
                     )}
-                  </select>
+                  </ModernSelect>
                 </div>
 
                 <button
@@ -945,7 +946,7 @@ export default function SecretariatTeamManagement() {
                       <td className="p-3 text-slate-500">{u.email}</td>
                       <td className="p-3 font-medium">
                         {canEditDept ? (
-                          <select
+                          <ModernSelect
                             value={effectiveDeptId || ''}
                             onChange={async (e) => {
                               const newDeptId = e.target.value
@@ -983,14 +984,14 @@ export default function SecretariatTeamManagement() {
                                 {d.name}
                               </option>
                             ))}
-                          </select>
+                          </ModernSelect>
                         ) : (
                           <span className="text-slate-400">{deptName}</span>
                         )}
                       </td>
                       <td className="p-3">
                         {profile?.role === 'super_admin' && u.id !== profile?.id ? (
-                          <select
+                          <ModernSelect
                             value={u.role}
                             onChange={async (e) => {
                               const newRole = e.target.value
@@ -1027,7 +1028,7 @@ export default function SecretariatTeamManagement() {
                             <option value="coordinator" style={{ background: '#111827' }}>COORDINATOR</option>
                             <option value="national_coordinator" style={{ background: '#111827' }}>NATIONAL_COORDINATOR</option>
                             <option value="super_admin" style={{ background: '#111827' }}>SUPER_ADMIN</option>
-                          </select>
+                          </ModernSelect>
                         ) : (
                           <span
                             className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full"

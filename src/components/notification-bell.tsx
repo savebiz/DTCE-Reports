@@ -191,7 +191,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
       >
         <Bell size={18} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-extrabold text-white animate-pulse">
+          <span className="absolute -top-1 -right-1 flex h-4 min-w-4 px-1 items-center justify-center rounded-full bg-red-500 text-[10px] font-extrabold text-white shadow-xs">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -200,21 +200,16 @@ export function NotificationBell({ userId }: { userId?: string }) {
       {/* Notification Dropdown Panel */}
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border shadow-2xl backdrop-blur-2xl z-[999] overflow-hidden animate-fade-in-up"
-          style={{
-            background: 'rgba(15, 26, 46, 0.96)',
-            borderColor: 'rgba(255, 255, 255, 0.12)',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(59,130,246,0.1)',
-          }}
+          className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl backdrop-blur-xl z-[120] overflow-hidden animate-fade-in-up"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-slate-950/40">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/40">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              <span className="text-xs font-bold uppercase tracking-wider text-foreground">
                 Notifications
               </span>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/25">
                   {unreadCount} new
                 </span>
               )}
@@ -222,7 +217,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="flex items-center gap-1 text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                className="flex items-center gap-1 text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline transition-colors cursor-pointer"
               >
                 <CheckCheck size={13} />
                 Mark all read
@@ -231,35 +226,35 @@ export function NotificationBell({ userId }: { userId?: string }) {
           </div>
 
           {/* Notification Items List */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-white/5 scrollbar-thin">
+          <div className="max-h-80 overflow-y-auto divide-y divide-border/60 scrollbar-thin">
             {loading && notifications.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400">Loading notifications...</div>
+              <div className="py-8 text-center text-xs text-muted-foreground">Loading notifications...</div>
             ) : notifications.length === 0 ? (
               <div className="py-10 text-center space-y-1 px-4">
-                <Bell size={24} className="mx-auto text-slate-500 opacity-40" />
-                <p className="text-xs font-medium text-slate-400">No notifications yet</p>
-                <p className="text-[11px] text-slate-500">You're all caught up with your operational alerts.</p>
+                <Bell size={24} className="mx-auto text-muted-foreground opacity-40" />
+                <p className="text-xs font-medium text-foreground">No notifications yet</p>
+                <p className="text-[11px] text-muted-foreground">You're all caught up with your operational alerts.</p>
               </div>
             ) : (
               notifications.map(n => (
                 <div
                   key={n.id}
                   onClick={() => markAsRead(n)}
-                  className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer hover:bg-white/5 ${
-                    !n.read ? 'bg-blue-500/5' : 'bg-transparent'
+                  className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer hover:bg-accent/50 ${
+                    !n.read ? 'bg-blue-500/[0.06]' : 'bg-transparent'
                   }`}
                 >
                   <div className="mt-0.5 shrink-0">
                     {n.type.includes('requisition') ? (
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/12 text-amber-700 dark:text-amber-400 border border-amber-500/25">
                         <Package size={14} />
                       </span>
                     ) : n.type.includes('stale') ? (
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/10 text-red-400 border border-red-500/20">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-500/12 text-red-700 dark:text-red-400 border border-red-500/25">
                         <AlertTriangle size={14} />
                       </span>
                     ) : (
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/12 text-blue-700 dark:text-blue-400 border border-blue-500/25">
                         <FileText size={14} />
                       </span>
                     )}
@@ -267,14 +262,14 @@ export function NotificationBell({ userId }: { userId?: string }) {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <h5 className={`text-xs truncate ${!n.read ? 'font-bold text-slate-100' : 'font-semibold text-slate-300'}`}>
+                      <h5 className={`text-xs truncate ${!n.read ? 'font-bold text-foreground' : 'font-semibold text-foreground/80'}`}>
                         {n.title}
                       </h5>
-                      <span className="text-[10px] text-slate-500 shrink-0 font-mono">
+                      <span className="text-[10px] text-muted-foreground shrink-0 font-mono">
                         {formatRelativeTime(n.created_at)}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-snug">
+                    <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2 leading-snug">
                       {n.body}
                     </p>
                   </div>

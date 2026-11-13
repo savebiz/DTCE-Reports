@@ -20,6 +20,7 @@ import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { RegistrationInsightPanel } from '@/components/registration/registration-insight-panel'
 import { getCurrentEventId, getEventDays } from '@/lib/events/current-event'
 import { isGeneralSecretary } from '@/lib/auth/titles'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 const SchemaFormRenderer = dynamic(() => import('@/components/schema-form-renderer').then(mod => mod.SchemaFormRenderer), { ssr: false })
 
@@ -627,7 +628,7 @@ function SecretariatDashboardContent() {
               <div className="flex items-center gap-2">
                 <Calendar className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
                 <span className="text-[12px] font-semibold text-muted-foreground">Focus Day:</span>
-                <select
+                <ModernSelect
                   value={selectedFocusDays.length === 1 ? selectedFocusDays[0] : selectedFocusDays.includes('all') ? 'all' : 'custom'}
                   onChange={(e) => {
                     const val = e.target.value
@@ -649,7 +650,7 @@ function SecretariatDashboardContent() {
                   {selectedFocusDays.length > 1 && !selectedFocusDays.includes('all') && !selectedFocusDays.includes('days-1-3') && !selectedFocusDays.includes('days-4-6') && (
                     <option value="custom" className="bg-card text-foreground">Custom ({selectedFocusDays.length} Days Selected)</option>
                   )}
-                </select>
+                </ModernSelect>
               </div>
 
               <Button size="sm" variant="outline" onClick={() => router.push('/dashboard/store-requisitions')} className="text-xs h-9">

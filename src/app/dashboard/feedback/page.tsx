@@ -19,6 +19,7 @@ import {
   Smartphone,
   Check
 } from 'lucide-react'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 interface FeedbackEntry {
   id: string
@@ -484,7 +485,7 @@ function FeedbackAnalyticsContent() {
 
               {/* Department Filter Dropdown */}
               <div className="relative">
-                <select
+                <ModernSelect
                   value={selectedDeptFilter}
                   onChange={(e) => setSelectedDeptFilter(e.target.value)}
                   className="pl-3 pr-8 py-1.5 rounded-xl bg-card border border-border text-foreground text-xs font-semibold outline-none cursor-pointer"
@@ -495,7 +496,7 @@ function FeedbackAnalyticsContent() {
                       {d.name}
                     </option>
                   ))}
-                </select>
+                </ModernSelect>
               </div>
             </div>
           </div>

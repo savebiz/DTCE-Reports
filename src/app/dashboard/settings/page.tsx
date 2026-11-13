@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Bell, Mail, Smartphone, ShieldCheck, Check, AlertCircle, Share, PlusSquare, Info, Calendar } from 'lucide-react'
 import { getVapidPublicKey } from '@/lib/notifications/vapid-public'
 import { EventWindowsPanel } from '@/components/admin/event-windows-panel'
+import { Switch } from '@/components/ui/switch'
 import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 
@@ -663,15 +664,11 @@ function SettingsContent() {
                             <Smartphone size={14} className="text-purple-400" />
                             <span className="text-xs font-semibold text-foreground">Web Push</span>
                           </div>
-                          <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={cat.pushEnabled}
-                              onChange={(e) => handleTogglePreference(cat.categoryKey, 'push', e.target.checked)}
-                              className="sr-only peer"
-                            />
-                            <div className="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-purple-600"></div>
-                          </label>
+                          <Switch
+                            checked={cat.pushEnabled}
+                            onCheckedChange={(checked) => handleTogglePreference(cat.categoryKey, 'push', checked)}
+                            aria-label={`Toggle Web Push for ${cat.title}`}
+                          />
                         </div>
                       </div>
                     </div>

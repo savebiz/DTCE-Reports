@@ -17,6 +17,7 @@ import { useOfflineDraft } from '@/hooks/use-offline-draft'
 import { PreEventRegistrationTotalsModal } from '@/components/registration/pre-event-totals-modal'
 import { getCurrentEventId, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
 import { evaluateDailyReportWindow } from '@/lib/events/reporting-windows'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 // Departments without workforce attendance breakdown
 const DEPTS_WITHOUT_ATTENDANCE = ['dept-6', 'dept-9', 'dept-13', 'dept-19', 'dept-20', 'dept-25', 'dept-26', 'dept-29', 'dept-30', 'dept-39']
@@ -987,7 +988,7 @@ function DailyLogContent() {
       {isSuperAdminActing && allDepartments.length > 0 && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 bg-card border border-border p-4 rounded-xl">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Switch Department Form:</span>
-          <select
+          <ModernSelect
             value={department?.id || ''}
             onChange={(e) => {
               const newDeptId = e.target.value
@@ -1000,7 +1001,7 @@ function DailyLogContent() {
             {allDepartments.map(d => (
               <option key={d.id} value={d.id}>{d.name}</option>
             ))}
-          </select>
+          </ModernSelect>
         </div>
       )}
       {behalfAdminName && (

@@ -15,6 +15,7 @@ import { Truck, RefreshCw, ClipboardList, Package, Copy, ArrowRight, Lock, Unloc
 import { getCurrentEvent, getDepartmentAssignment } from '@/lib/events/current-event'
 import { evaluateRequisitionWindow } from '@/lib/events/requisition-windows'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
+import { ModernSelect } from '@/components/ui/modern-select'
 
 interface RequestItem {
   inventory_item_id?: string | null
@@ -615,7 +616,7 @@ function StoreRequestContent() {
                       <Label htmlFor="pre-item-unit" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                         Unit
                       </Label>
-                      <select
+                      <ModernSelect
                         id="pre-item-unit"
                         value={itemUnit}
                         onChange={e => setItemUnit(e.target.value)}
@@ -624,14 +625,14 @@ function StoreRequestContent() {
                         {COMMON_UNITS.map(u => (
                           <option key={u} value={u}>{u}</option>
                         ))}
-                      </select>
+                      </ModernSelect>
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="pre-item-cat" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                         Item Type
                       </Label>
-                      <select
+                      <ModernSelect
                         id="pre-item-cat"
                         value={itemCategory}
                         onChange={e => setItemCategory(e.target.value as 'consumable' | 'durable')}
@@ -639,7 +640,7 @@ function StoreRequestContent() {
                       >
                         <option value="consumable">Consumable (Used up)</option>
                         <option value="durable">Durable / Equipment</option>
-                      </select>
+                      </ModernSelect>
                     </div>
                   </div>
 
