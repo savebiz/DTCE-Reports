@@ -1,5 +1,7 @@
 'use client'
 
+import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
+
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, mockEventDays, Profile, DailyReport, Department } from '@/utils/supabase'
@@ -358,14 +360,7 @@ export default function MyDepartmentDashboard() {
   }
 
   if (!profile) {
-    return (
-      <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-        <main className="max-w-[1200px] mx-auto px-4 md:px-6 py-8 space-y-6">
-          <KPIGridSkeleton count={3} />
-          <TableSkeleton rows={4} cols={4} />
-        </main>
-      </div>
-    )
+    return <DtceWorkspaceLoader title="Department Portal" steps={['Verifying department roster…', 'Loading event schedule…', 'Preparing department desk…']} />
   }
 
   // HODs and assistants who are not on the current event's team (e.g. a former

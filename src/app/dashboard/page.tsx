@@ -592,14 +592,7 @@ function SecretariatDashboardContent() {
   }
 
   if (!profile) {
-    return (
-      <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-        <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
-          <KPIGridSkeleton count={4} />
-          <MatrixGridSkeleton />
-        </main>
-      </div>
-    )
+    return <DtceWorkspaceLoader title="Executive Desk" steps={['Verifying executive session…', 'Loading event telemetry…', 'Synchronizing reports…']} />
   }
 
   return (

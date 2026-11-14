@@ -1,5 +1,7 @@
 'use client'
 
+import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
+
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, Profile } from '@/utils/supabase'
@@ -149,11 +151,7 @@ export default function ResetPasswordPage() {
   }
 
   if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center font-sans bg-background text-foreground">
-        <p className="text-sm font-mono animate-pulse text-muted-foreground">Checking credentials...</p>
-      </div>
-    )
+    return <DtceWorkspaceLoader title="Security Verification" steps={['Checking credentials…', 'Verifying session…', 'Securing account…']} />
   }
 
   return (

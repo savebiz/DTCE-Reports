@@ -1,4 +1,6 @@
 'use client'
+
+import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
 import { isUsheringDept, isAttendanceDept, computeUsheringAttendance } from '@/lib/events/department-archetypes'
 
 import React, { useEffect, useState, Suspense } from 'react'
@@ -739,7 +741,7 @@ function ManualEntryContent() {
 
 export default function ManualEntryPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs text-muted-foreground">Loading Manual Entry Hub...</div>}>
+    <Suspense fallback={<DtceWorkspaceLoader title="Manual Entry Hub" steps={['Loading department registry…', 'Preparing schema entries…', 'Initializing digitizer…']} />}>
       <ManualEntryContent />
     </Suspense>
   )

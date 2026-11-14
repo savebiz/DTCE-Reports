@@ -1,5 +1,7 @@
 'use client'
 
+import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
+
 import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments } from '@/utils/supabase'
@@ -230,14 +232,7 @@ function FeedbackAnalyticsContent() {
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
-          <p className="text-sm font-semibold text-muted-foreground animate-pulse">Loading Event Feedback Analytics...</p>
-        </div>
-      </div>
-    )
+    return <DtceWorkspaceLoader title="Feedback Analytics" steps={['Aggregating survey responses…', 'Computing sentiment & metrics…', 'Rendering analytics…']} />
   }
 
   return (
@@ -595,16 +590,7 @@ function FeedbackAnalyticsContent() {
 
 export default function FeedbackAnalyticsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
-          <div className="flex flex-col items-center gap-3">
-            <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
-            <p className="text-xs font-semibold text-muted-foreground animate-pulse">Loading Event Feedback Analytics...</p>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<DtceWorkspaceLoader title="Feedback Analytics" steps={['Aggregating survey responses…', 'Computing sentiment & metrics…', 'Rendering analytics…']} />}>
       <FeedbackAnalyticsContent />
     </Suspense>
   )
