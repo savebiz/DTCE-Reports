@@ -530,6 +530,22 @@
     background: linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.08) 40px, rgba(255,255,255,0.03) 80px);
   }
 
+  /* Subtle diagonal optical sheen for DTCE logo medallion */
+  @keyframes dtce-sheen {
+    0%   { transform: translateX(-160%) skewX(-20deg); }
+    45%, 100% { transform: translateX(240%) skewX(-20deg); }
+  }
+
+  .dtce-sheen {
+    animation: dtce-sheen 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dtce-sheen, .shimmer, .pulse-dot {
+      animation: none !important;
+    }
+  }
+
   /* Pulse dot */
   @keyframes pulse-dot {
     0%, 100% { opacity: 1; transform: scale(1); }

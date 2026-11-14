@@ -1,5 +1,7 @@
 'use client'
 
+import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
+
 import React, { useEffect, useState, useMemo, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient, isMock, mockDepartments, Profile } from '@/utils/supabase'
@@ -1248,11 +1250,7 @@ function AdminRequisitionsContent() {
 
 export default function AdminRequisitionsPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
-        <p className="text-sm font-mono animate-pulse text-muted-foreground">Loading requisitions console...</p>
-      </div>
-    }>
+    <Suspense fallback={<DtceWorkspaceLoader title="Store Requisitions Console" subtitle="Loading market lists & requisitions..." />}>
       <AdminRequisitionsContent />
     </Suspense>
   )
