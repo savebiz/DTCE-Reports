@@ -243,16 +243,16 @@ function StoreRequestContent() {
         showToast('Please enter the item name your department needs', 'error')
         return
       }
-      const matchedCatalog = catalogItems.find(
-        c => String(c.name || '').trim().toLowerCase() === name.toLowerCase()
-      )
+      const matchedCatalog = itemNeedType === 'store_supply'
+        ? catalogItems.find(c => String(c.name || '').trim().toLowerCase() === name.toLowerCase())
+        : null
       const newItem: RequestItem = {
-        inventory_item_id: itemNeedType === 'store_supply' ? (matchedCatalog?.id || null) : null,
-        name: itemNeedType === 'store_supply' ? (matchedCatalog?.name || name) : name,
-        category: matchedCatalog?.category || itemCategory,
+        inventory_item_id: matchedCatalog?.id || null,
+        name: matchedCatalog?.name || name,
+        category: itemNeedType === 'store_supply' ? (matchedCatalog?.category || itemCategory) : 'durable',
         need_type: itemNeedType,
-        unit: matchedCatalog?.unit || itemUnit || 'pcs',
-        quantity: Math.max(1, itemQty),
+        unit: itemNeedType === 'venue_facility' ? 'request' : (matchedCatalog?.unit || itemUnit || 'units'),
+        quantity: itemNeedType === 'venue_facility' ? 1 : Math.max(1, itemQty),
       }
       setItems(prev => [...prev, newItem])
       setItemName('')
@@ -657,7 +657,23 @@ function StoreRequestContent() {
                     <ModernSelect
                       id="pre-need-type"
                       value={itemNeedType}
-                      onChange={(e) => setItemNeedType(e.target.value as NeedType)}
+                      onChange={(e) => {
+                        const next = e.target.value as NeedType
+                        setItemNeedType(next)
+                        if (next === 'store_supply') {
+                          setItemUnit('pcs')
+                          setItemCategory('consumable')
+                        } else if (next === 'equipment_servicing') {
+                          setItemUnit('units')
+                          setItemCategory('durable')
+                        } else if (next === 'furniture_logistics') {
+                          setItemUnit('sets')
+                          setItemCategory('durable')
+                        } else if (next === 'venue_facility') {
+                          setItemUnit('request')
+                          setItemCategory('durable')
+                        }
+                      }}
                       className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground"
                     >
                       {NEED_TYPE_OPTIONS.map((opt) => (
@@ -673,79 +689,134 @@ function StoreRequestContent() {
 
                   <div className="space-y-2">
                     <Label htmlFor="pre-item-name" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                      Item Name / Description
+                      {itemNeedType === 'store_supply'
+                        ? 'Item Name / Description'
+                        : itemNeedType === 'equipment_servicing'
+                        ? 'Equipment / Servicing Request'
+                        : itemNeedType === 'furniture_logistics'
+                        ? 'Furniture / Logistics Request'
+                        : 'Venue / Facility or Repair Request'}
                     </Label>
                     <Input
                       id="pre-item-name"
-                      list="common-market-items"
+                      list={itemNeedType === 'store_supply' ? 'common-market-items' : undefined}
                       value={itemName}
                       onChange={(e) => {
                         const val = e.target.value
                         setItemName(val)
-                        const match = catalogItems.find(c => String(c.name || '').toLowerCase() === val.trim().toLowerCase())
-                        if (match) {
-                          if (match.unit) setItemUnit(match.unit)
-                          if (match.category === 'durable' || match.category === 'consumable') setItemCategory(match.category)
+                        if (itemNeedType === 'store_supply') {
+                          const match = catalogItems.find(c => String(c.name || '').trim().toLowerCase() === val.trim().toLowerCase())
+                          if (match) {
+                            if (match.unit) setItemUnit(match.unit)
+                            if (match.category === 'durable' || match.category === 'consumable') setItemCategory(match.category)
+                          }
                         }
                       }}
-                      placeholder="e.g. A4 Paper, Whiteboard Markers, Tissue Packs..."
+                      placeholder={
+                        itemNeedType === 'store_supply'
+                          ? 'e.g. A4 Paper, Whiteboard Markers, Tissue Packs...'
+                          : itemNeedType === 'equipment_servicing'
+                          ? "e.g. Colour Printer (1 unit), Service Photocopier in Nat. Coordinator's Office..."
+                          : itemNeedType === 'furniture_logistics'
+                          ? 'e.g. Tables & Chairs (min 3 sets), Canopy, Transport...'
+                          : 'e.g. Bigger office space with A/C (current door is bad)...'
+                      }
                       className="input-dark text-foreground h-10 text-sm"
                     />
-                    <datalist id="common-market-items">
-                      {catalogItems.map((cat: any) => (
-                        <option key={cat.id} value={cat.name} />
-                      ))}
-                    </datalist>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="pre-item-unit" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                        Unit
-                      </Label>
-                      <ModernSelect
-                        id="pre-item-unit"
-                        value={itemUnit}
-                        onChange={e => setItemUnit(e.target.value)}
-                        className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground"
-                      >
-                        {COMMON_UNITS.map(u => (
-                          <option key={u} value={u}>{u}</option>
+                    {itemNeedType === 'store_supply' && (
+                      <datalist id="common-market-items">
+                        {catalogItems.map((cat: any) => (
+                          <option key={cat.id} value={cat.name} />
                         ))}
-                      </ModernSelect>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="pre-item-cat" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                        Item Type
-                      </Label>
-                      <ModernSelect
-                        id="pre-item-cat"
-                        value={itemCategory}
-                        onChange={e => setItemCategory(e.target.value as 'consumable' | 'durable')}
-                        className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground"
-                      >
-                        <option value="consumable">Consumable (Used up)</option>
-                        <option value="durable">Durable / Equipment</option>
-                      </ModernSelect>
-                    </div>
+                      </datalist>
+                    )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="pre-item-qty" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                      Quantity Needed for Event
-                    </Label>
-                    <NumberField
-                      id="pre-item-qty"
-                      value={itemQty}
-                      onChange={setItemQty}
-                      min={1}
-                      className="input-dark text-foreground font-mono"
-                    />
-                  </div>
+                  {itemNeedType === 'store_supply' && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="pre-item-unit" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                            Unit
+                          </Label>
+                          <ModernSelect
+                            id="pre-item-unit"
+                            value={itemUnit}
+                            onChange={e => setItemUnit(e.target.value)}
+                            className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground"
+                          >
+                            {COMMON_UNITS.map(u => (
+                              <option key={u} value={u}>{u}</option>
+                            ))}
+                          </ModernSelect>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="pre-item-cat" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                            Item Type
+                          </Label>
+                          <ModernSelect
+                            id="pre-item-cat"
+                            value={itemCategory}
+                            onChange={e => setItemCategory(e.target.value as 'consumable' | 'durable')}
+                            className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground"
+                          >
+                            <option value="consumable">Consumable (Used up)</option>
+                            <option value="durable">Durable / Equipment</option>
+                          </ModernSelect>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="pre-item-qty" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                          Quantity Needed for Event
+                        </Label>
+                        <NumberField
+                          id="pre-item-qty"
+                          value={itemQty}
+                          onChange={setItemQty}
+                          min={1}
+                          className="input-dark text-foreground font-mono"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {(itemNeedType === 'equipment_servicing' || itemNeedType === 'furniture_logistics') && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="pre-item-unit" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                          Unit
+                        </Label>
+                        <ModernSelect
+                          id="pre-item-unit"
+                          value={itemUnit}
+                          onChange={e => setItemUnit(e.target.value)}
+                          className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground"
+                        >
+                          {['units', 'sets', 'pcs', 'pairs'].map(u => (
+                            <option key={u} value={u}>{u}</option>
+                          ))}
+                        </ModernSelect>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="pre-item-qty" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                          Quantity Needed
+                        </Label>
+                        <NumberField
+                          id="pre-item-qty"
+                          value={itemQty}
+                          onChange={setItemQty}
+                          min={1}
+                          className="input-dark text-foreground font-mono"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <Button onClick={handleAddItem} className="w-full h-11 text-xs font-bold cursor-pointer" variant="outline">
-                    + Add Item to Needs List
+                    {isStoreSupply(itemNeedType) ? '+ Add Item to Needs List' : '+ Add Non-Store Request to List'}
                   </Button>
 
                   {/* Added Pre-Event Items */}
