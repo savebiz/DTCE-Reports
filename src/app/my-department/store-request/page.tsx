@@ -16,6 +16,7 @@ import { getCurrentEvent, getDepartmentAssignment } from '@/lib/events/current-e
 import { evaluateRequisitionWindow } from '@/lib/events/requisition-windows'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 import { ModernSelect } from '@/components/ui/modern-select'
+import { NEED_TYPE_OPTIONS, NeedType, getNeedTypeMeta, isStoreSupply } from '@/lib/needs/need-types'
 
 interface RequestItem {
   inventory_item_id?: string | null
@@ -24,6 +25,7 @@ interface RequestItem {
   requested_quantity?: number
   approved_quantity?: number
   category?: string
+  need_type?: NeedType
   unit?: string
   return_status?: string
   returned_quantity?: number
@@ -63,6 +65,7 @@ function StoreRequestContent() {
   const [itemName, setItemName] = useState('')
   const [itemUnit, setItemUnit] = useState('pcs')
   const [itemCategory, setItemCategory] = useState<'consumable' | 'durable'>('consumable')
+  const [itemNeedType, setItemNeedType] = useState<NeedType>('store_supply')
   const [itemQty, setItemQty] = useState(1)
   const [copying, setCopying] = useState(false)
 
@@ -244,15 +247,17 @@ function StoreRequestContent() {
         c => String(c.name || '').trim().toLowerCase() === name.toLowerCase()
       )
       const newItem: RequestItem = {
-        inventory_item_id: matchedCatalog?.id || null,
-        name: matchedCatalog?.name || name,
+        inventory_item_id: itemNeedType === 'store_supply' ? (matchedCatalog?.id || null) : null,
+        name: itemNeedType === 'store_supply' ? (matchedCatalog?.name || name) : name,
         category: matchedCatalog?.category || itemCategory,
+        need_type: itemNeedType,
         unit: matchedCatalog?.unit || itemUnit || 'pcs',
         quantity: Math.max(1, itemQty),
       }
       setItems(prev => [...prev, newItem])
       setItemName('')
       setItemQty(1)
+      setItemNeedType('store_supply')
       return
     }
 
@@ -646,6 +651,27 @@ function StoreRequestContent() {
                   </Button>
 
                   <div className="space-y-2">
+                    <Label htmlFor="pre-need-type" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                      Need Category / Routing
+                    </Label>
+                    <ModernSelect
+                      id="pre-need-type"
+                      value={itemNeedType}
+                      onChange={(e) => setItemNeedType(e.target.value as NeedType)}
+                      className="w-full h-10 rounded-xl border border-border bg-background px-3 text-xs font-semibold text-foreground"
+                    >
+                      {NEED_TYPE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </ModernSelect>
+                    <p className="text-[11px] text-muted-foreground">
+                      {isStoreSupply(itemNeedType)
+                        ? 'Routed to Stores Consolidated Market List after approval.'
+                        : 'Non-store request — routed to National Coordinator / Gen Sec Non-Store Action Tracker (excluded from Stores Market List).'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="pre-item-name" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                       Item Name / Description
                     </Label>
@@ -742,7 +768,7 @@ function StoreRequestContent() {
                             <div className="min-w-0">
                               <span className="font-bold text-foreground block truncate">{it.name}</span>
                               <span className="text-[10px] text-muted-foreground uppercase">
-                                {it.unit || 'pcs'} · {it.category === 'durable' ? 'Durable Equipment' : 'Consumable'}
+                                {it.unit || 'pcs'} · {getNeedTypeMeta(it.need_type).shortLabel}
                               </span>
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0">

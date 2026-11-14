@@ -1527,7 +1527,7 @@ function DailyLogContent() {
         </div>
 
         {/* Right side: Schema metrics & save panel */}
-        <div className="lg:col-span-1 space-y-6">
+        <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-20 lg:self-start">
           {/* Submission panel */}
           <Card className="glass-card border-none">
             <CardContent className="pt-6 space-y-4">
@@ -1697,12 +1697,46 @@ function DailyLogContent() {
               )}
 
               <div className="p-3 rounded-xl bg-muted/40 border border-border space-y-1 text-[11px] text-muted-foreground">
-                <div><strong className="text-foreground">Daily Narrative:</strong> {dailyOverview.trim() ? 'Provided' : 'Not entered'}</div>
                 <div>
-                  <strong className="text-foreground">Department Metrics Logged:</strong>{' '}
-                  {customMetricsSummary.length > 0
-                    ? customMetricsSummary.map((m) => `${m.label} (${m.count})`).join(' · ')
-                    : 'None yet'}
+                  <strong className="text-foreground block mb-0.5">Department Metrics Logged:</strong>
+                  <span>
+                    {customMetricsSummary.length > 0
+                      ? customMetricsSummary.map((m) => `${m.label} (${m.count})`).join(' · ')
+                      : 'None yet'}
+                  </span>
+                </div>
+                <div className="pt-2 border-t border-border/60 space-y-1.5">
+                  <strong className="text-foreground block">Daily Narrative:</strong>
+                  {!dailyOverview.trim() && !dailyAchievements.trim() && !dailyChallenges.trim() && !dailyRecommendations.trim() ? (
+                    <span>Not entered</span>
+                  ) : (
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1 text-foreground/90">
+                      {dailyOverview.trim() && (
+                        <div>
+                          <span className="font-semibold text-muted-foreground">Overview: </span>
+                          <span className="whitespace-pre-wrap">{dailyOverview.trim()}</span>
+                        </div>
+                      )}
+                      {dailyAchievements.trim() && (
+                        <div>
+                          <span className="font-semibold text-muted-foreground">Achievements: </span>
+                          <span className="whitespace-pre-wrap">{dailyAchievements.trim()}</span>
+                        </div>
+                      )}
+                      {dailyChallenges.trim() && (
+                        <div>
+                          <span className="font-semibold text-muted-foreground">Challenges: </span>
+                          <span className="whitespace-pre-wrap">{dailyChallenges.trim()}</span>
+                        </div>
+                      )}
+                      {dailyRecommendations.trim() && (
+                        <div>
+                          <span className="font-semibold text-muted-foreground">Recommendations: </span>
+                          <span className="whitespace-pre-wrap">{dailyRecommendations.trim()}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>

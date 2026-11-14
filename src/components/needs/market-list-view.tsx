@@ -60,6 +60,7 @@ interface MarketAnalytics {
   totalUnitsReceived: number
   totalUnitsStocked: number
   totalActualSpend?: number
+  nonStoreItemsCount?: number
 }
 
 interface MarketListData {
@@ -365,6 +366,15 @@ export function MarketListView({ backHref }: { backHref: string }) {
             >
               <span className="inline-flex items-center gap-1.5"><ClipboardList className="h-3.5 w-3.5" /> Review Department Lists {analytics.departmentsPendingApproval > 0 ? `(${analytics.departmentsPendingApproval} Pending)` : ''}</span>
             </Button>
+            )}
+            {!isFinanceView && (analytics.nonStoreItemsCount ?? 0) > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => router.push('/dashboard/non-store-needs')}
+                className="h-10 px-4 text-xs font-semibold border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer"
+              >
+                Non-Store Action Tracker ({analytics.nonStoreItemsCount})
+              </Button>
             )}
             <Button variant="outline" onClick={() => window.print()} className="h-10 px-3.5 text-xs cursor-pointer flex items-center gap-1.5">
               <Printer className="w-3.5 h-3.5" /> Print

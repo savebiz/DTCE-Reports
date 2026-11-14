@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
 import { getCurrentEvent } from '@/lib/events/current-event'
+import { isStoreSupply } from '@/lib/needs/need-types'
 
 /**
  * GET  /api/needs/market-list
@@ -26,6 +27,7 @@ interface ReqItem {
   name?: string
   unit?: string
   category?: string
+  need_type?: string
   quantity?: number
   requested_quantity?: number
   approved_quantity?: number
@@ -126,6 +128,7 @@ export async function GET(request: NextRequest) {
 
   // Consolidate quantities and build per-department analytics
   const items: Record<string, ConsolidatedItem> = {}
+  let nonStoreItemsCount = 0
   const deptSummary: Record<string, {
     submitted: number
     pending: number
@@ -162,6 +165,10 @@ export async function GET(request: NextRequest) {
 
     if (r.status === 'declined') continue
     for (const it of (r.items_json || []) as ReqItem[]) {
+      if (!isStoreSupply(it.need_type)) {
+        nonStoreItemsCount += 1
+        continue
+      }
       const matchedInv = (it.inventory_item_id && invById[it.inventory_item_id]) || invByName[String(it.name || '').trim().toLowerCase()] || null
       const key = matchedInv ? matchedInv.id : itemKey(it)
       const row = (items[key] ||= {
@@ -266,6 +273,7 @@ export async function GET(request: NextRequest) {
     totalUnitsReceived: rows.reduce((sum, r) => sum + r.qtyReceived, 0),
     totalUnitsStocked: rows.reduce((sum, r) => sum + r.stockedFromMarket, 0),
     totalActualSpend: rows.reduce((sum, r) => sum + (r.unitCost ? r.unitCost * r.qtyBought : 0), 0),
+    nonStoreItemsCount,
   }
 
   return NextResponse.json({
@@ -304,6 +312,7 @@ export async function POST(request: NextRequest) {
       name: string
       unit?: string
       category?: string
+  need_type?: string
       qtyReceived: number
     }> = Array.isArray(body.items) ? body.items : []
 

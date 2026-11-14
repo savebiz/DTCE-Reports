@@ -7,7 +7,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="relative flex flex-col min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="relative flex flex-col min-h-screen bg-background text-foreground overflow-x-clip">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-dot-matrix [mask-image:radial-gradient(ellipse_85%_65%_at_50%_10%,#000_35%,transparent_100%)]"

@@ -593,6 +593,14 @@ function AdminRequisitionsContent() {
             <Button
               size="sm"
               variant="outline"
+              onClick={() => router.push('/dashboard/non-store-needs')}
+              className="text-xs h-9 font-bold border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer flex items-center gap-1.5"
+            >
+              Non-Store Tracker
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
               onClick={async () => {
                 try {
                   showToast('Generating Strategic Stores Audit Report (DOCX)...', 'info')
