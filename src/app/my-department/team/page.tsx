@@ -1,5 +1,7 @@
 'use client'
 
+import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
+
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, Profile } from '@/utils/supabase'
@@ -243,11 +245,7 @@ export default function HODTeamManagement() {
   }
 
   if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center font-sans bg-background">
-        <p className="text-sm font-mono animate-pulse text-muted-foreground">Loading Team Dashboard...</p>
-      </div>
-    )
+    return <DtceWorkspaceLoader title="Department Team" steps={['Loading department roster…', 'Verifying roles…', 'Preparing view…']} />
   }
 
   if (!isMock && !profile.department_id && (profile.role === 'hod' || profile.role === 'assistant')) {

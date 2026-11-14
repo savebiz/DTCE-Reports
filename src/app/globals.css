@@ -530,6 +530,42 @@
     background: linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.08) 40px, rgba(255,255,255,0.03) 80px);
   }
 
+  /* Option 4: Kinetic Glass Card & Status Roll */
+  @keyframes dtce-glass-tilt {
+    0%, 100% { transform: perspective(700px) rotateY(-3deg) rotateX(1.5deg); }
+    50% { transform: perspective(700px) rotateY(3deg) rotateX(-1.5deg); }
+  }
+
+  @keyframes dtce-edge-glint {
+    0% { transform: translateX(-160%) skewX(-22deg); }
+    50%, 100% { transform: translateX(260%) skewX(-22deg); }
+  }
+
+  @keyframes dtce-status-roll {
+    0%, 28% { transform: translateY(0%); }
+    33%, 61% { transform: translateY(-33.333%); }
+    66%, 95% { transform: translateY(-66.666%); }
+    100% { transform: translateY(0%); }
+  }
+
+  .dtce-glass-card {
+    animation: dtce-glass-tilt 5.2s ease-in-out infinite;
+  }
+
+  .dtce-edge-glint {
+    animation: dtce-edge-glint 3.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  .dtce-status-roll {
+    animation: dtce-status-roll 5.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dtce-glass-card, .dtce-edge-glint, .dtce-status-roll, .shimmer, .pulse-dot {
+      animation: none !important;
+    }
+  }
+
   /* Pulse dot */
   @keyframes pulse-dot {
     0%, 100% { opacity: 1; transform: scale(1); }
