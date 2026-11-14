@@ -1,5 +1,5 @@
-import { isUsheringDept, isAttendanceDept, computeUsheringAttendance } from '@/lib/events/department-archetypes'
 'use client'
+import { isUsheringDept, isAttendanceDept, computeUsheringAttendance } from '@/lib/events/department-archetypes'
 
 import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
