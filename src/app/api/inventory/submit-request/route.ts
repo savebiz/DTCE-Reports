@@ -52,17 +52,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Non-admins may only request for a department they are on the current event's team for
+    // Assistants cannot raise store requisitions or pre-event needs lists (HODs only)
+    if (auth.ctx.role === 'assistant') {
+      return NextResponse.json(
+        { error: 'Only Heads of Department (HODs) can raise store requisitions and pre-event needs lists.' },
+        { status: 403 }
+      )
+    }
+
+    // Non-admins may only request for a department they lead as HOD on the current event's team
     if (!ADMIN_ROLES.includes(auth.ctx.role)) {
       const { data: memberships } = await supabaseAdmin
         .from('hod_assignments')
-        .select('department_id')
+        .select('department_id, role_in_event')
         .eq('profile_id', user.id)
         .eq('department_id', departmentId)
         .eq('event_id', eventId)
         .limit(1)
       if (!memberships || memberships.length === 0) {
         return NextResponse.json({ error: 'You can only submit requests for your own department.' }, { status: 403 })
+      }
+      if (memberships[0].role_in_event !== 'hod') {
+        return NextResponse.json(
+          { error: 'Only Heads of Department (HODs) can raise store requisitions and pre-event needs lists.' },
+          { status: 403 }
+        )
       }
     }
 

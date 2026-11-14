@@ -516,7 +516,7 @@ export default function MyDepartmentDashboard() {
                 </>
               ) : (
                 <button
-                  className="flex items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-700 dark:text-blue-400 cursor-pointer shadow-xs"
+                  className={`${profile?.role === 'assistant' ? 'hidden' : 'flex'} items-center gap-1.5 h-9 rounded-lg px-3.5 text-xs font-semibold transition-all border border-blue-500/40 bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-700 dark:text-blue-400 cursor-pointer shadow-xs`}
                   onClick={() => router.push('/my-department/store-request')}
                 >
                   <Package className="w-3.5 h-3.5" />

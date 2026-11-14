@@ -342,6 +342,7 @@ export function DashboardHeader() {
               if (label === 'Event Feedback' && role !== 'super_admin') return null;
               if (role === 'coordinator' && ['Inventory Oversight', 'Team', 'Reports', 'Manual Entry', 'YoY Analytics'].includes(label)) return null;
               if (role === 'national_coordinator' && ['Team', 'Reports', 'Manual Entry'].includes(label)) return null;
+              if (role === 'assistant' && label === 'Store Requests') return null;
               const active = isNavItemActive(href)
 
               return (
@@ -446,6 +447,7 @@ export function DashboardHeader() {
                     if (label === 'Event Feedback' && role !== 'super_admin') return null;
                     if (role === 'coordinator' && ['Inventory Oversight', 'Team', 'Reports', 'Manual Entry', 'YoY Analytics'].includes(label)) return null;
                     if (role === 'national_coordinator' && ['Team', 'Reports', 'Manual Entry'].includes(label)) return null;
+              if (role === 'assistant' && label === 'Store Requests') return null;
                     const active = isNavItemActive(href)
                     return (
                       <button
@@ -474,6 +476,7 @@ export function DashboardHeader() {
                     if (label === 'Fulfillment Console' && !isStoresDept) return null;
                     if (label === 'Market List' && !isStoresDept && !isFinanceDept) return null;
                     if (label === 'Inventory Catalog' && !isStoresDept) return null;
+                    if (role === 'assistant' && label === 'Store Requests') return null;
                     if (label === 'Manual Paper Entry' && !isSecretariatDept) return null;
                     const active = pathname === href || (href !== '/my-department' && pathname?.startsWith(href))
                     return (

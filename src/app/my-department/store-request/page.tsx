@@ -518,6 +518,27 @@ function StoreRequestContent() {
     return <UnassignedDepartmentGate />
   }
 
+  if (profile?.role === 'assistant') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--background)' }}>
+        <Card className="glass-card border-none max-w-md w-full p-6 text-center space-y-4">
+          <div className="mx-auto h-12 w-12 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+            <Lock className="h-6 w-6" />
+          </div>
+          <div className="space-y-1.5">
+            <h1 className="text-lg font-extrabold text-foreground">HOD-Only Portal</h1>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Only Heads of Department (HODs) can raise store requisitions and pre-event needs lists. Please contact your HOD to submit requests for {deptName || 'your department'}.
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => router.push('/my-department')} className="w-full h-10 text-xs font-semibold cursor-pointer">
+            <ArrowLeft className="h-3.5 w-3.5 mr-1.5" /> Back to Department Home
+          </Button>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
