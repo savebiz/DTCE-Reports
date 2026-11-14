@@ -1,3 +1,4 @@
+import { isUsheringDept, isAttendanceDept, computeUsheringAttendance } from '@/lib/events/department-archetypes'
 'use client'
 
 import React, { useEffect, useState, Suspense } from 'react'
@@ -420,68 +421,54 @@ function ManualEntryContent() {
       ) : selectedDept && selectedDay ? (
         <div className="space-y-6">
 
-          {/* Section 1: Attendance */}
-          <Card className="glass-card border-border/50 shadow-xs">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground">
-                1. Core Daily Attendance
-              </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">
-                Enter total attendees logged on the paper report for morning and evening sessions.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="m-att" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Morning Session</Label>
-                <NumberField
-                  id="m-att"
-                  value={attendanceMorning}
-                  onChange={setAttendanceMorning}
-                  className="h-10 font-mono text-base text-center"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="e-att" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Evening Session</Label>
-                <NumberField
-                  id="e-att"
-                  value={attendanceEvening}
-                  onChange={setAttendanceEvening}
-                  className="h-10 font-mono text-base text-center"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Section 2: Workforce Breakdown vs Ushering 5-Section Repeat Groups */}
-          {selectedDept?.name?.toLowerCase().includes('ushering') && (metricsData.teachers_meeting || metricsData.toddlers_section || metricsData.junior_section || metricsData.pre_teens_section || metricsData.teenagers_section || !reportId) ? (
+          {/* Section 1: Attendance (Only for Attendance Departments) */}
+          {isAttendanceDept(selectedDept.name) && !isUsheringDept(selectedDept.name) && (
             <Card className="glass-card border-border/50 shadow-xs">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground">
-                  2. Ushering Operational Meetings &amp; Sections
+                  1. Core Daily Attendance
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Transcribe Teachers' Meeting and the 4 section tables (Toddlers, Junior, Pre-Teens, Teenagers) from paper report.
+                  Enter total attendees logged on the paper report for morning and evening sessions.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {selectedDept.default_metrics_schema?.fields && (
-                  <SchemaFormRenderer
-                    fields={selectedDept.default_metrics_schema.fields}
-                    value={metricsData}
-                    onChange={setMetricsData}
-                    readOnly={false}
+              <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="m-att" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Morning Session</Label>
+                  <NumberField
+                    id="m-att"
+                    value={attendanceMorning}
+                    onChange={setAttendanceMorning}
+                    className="h-10 font-mono text-base text-center"
                   />
-                )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="e-att" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Evening Session</Label>
+                  <NumberField
+                    id="e-att"
+                    value={attendanceEvening}
+                    onChange={setAttendanceEvening}
+                    className="h-10 font-mono text-base text-center"
+                  />
+                </div>
               </CardContent>
             </Card>
-          ) : hasWorkforce && (
+          )}
+          {isUsheringDept(selectedDept.name) && (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+              Ushering Service Attendance is auto-derived from the section tables below (Morning: {computeUsheringAttendance(metricsData).morning.toLocaleString()} · Evening: {computeUsheringAttendance(metricsData).evening.toLocaleString()}).
+            </div>
+          )}
+
+          {/* Section 2: Universal Department Workforce on Duty */}
+          {true && (
             <Card className="glass-card border-border/50 shadow-xs">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground">
-                  2. Attendee Category Breakdown
+                  Department Workforce on Duty Today
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Transcribe gender breakdown by age category from the paper report.
+                  Transcribe on-duty workers (Teachers M/F, Teenagers M/F) from the paper report.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -623,7 +610,7 @@ function ManualEntryContent() {
           </Card>
 
           {/* Section 4: Department Specific Fields (non-Ushering only) */}
-          {!selectedDept?.name?.toLowerCase().includes('ushering') && selectedDept.default_metrics_schema?.fields && selectedDept.default_metrics_schema.fields.length > 0 && (
+          {selectedDept.default_metrics_schema?.fields && selectedDept.default_metrics_schema.fields.length > 0 && (
             <Card className="glass-card border-border/50 shadow-xs">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground">

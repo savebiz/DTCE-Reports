@@ -1,3 +1,4 @@
+import { isAttendanceDept } from '@/lib/events/department-archetypes'
 import {
   Document,
   Packer,
@@ -358,6 +359,8 @@ export async function generateDTCEConventionDocx({
   // Build real day-by-day attendance aggregation
   const dayAgg: Record<number, { totalMorning: number; totalEvening: number; deptCount: number }> = {}
   reports.forEach(r => {
+    const deptName = sortedDepts.find(d => d.id === r.department_id)?.name || ''
+    if (!isAttendanceDept(deptName)) return
     const dayNum = dayMap[r.event_day_id] || 0
     if (dayNum === 0) return
     if (!dayAgg[dayNum]) dayAgg[dayNum] = { totalMorning: 0, totalEvening: 0, deptCount: 0 }

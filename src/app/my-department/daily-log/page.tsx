@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, Suspense } from 'react'
+import React, { useEffect, useState, useCallback, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient, isMock, mockDepartments, mockEventDays, Profile, DailyReport, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
@@ -17,6 +17,7 @@ import { useOfflineDraft } from '@/hooks/use-offline-draft'
 import { PreEventRegistrationTotalsModal } from '@/components/registration/pre-event-totals-modal'
 import { getCurrentEvent, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
 import { evaluateDailyReportWindow } from '@/lib/events/reporting-windows'
+import { isUsheringDept, isAttendanceDept, computeUsheringAttendance, computeDerivedOffering, summarizeCustomMetrics, totalWorkforceCount } from '@/lib/events/department-archetypes'
 import { ModernSelect } from '@/components/ui/modern-select'
 
 // Departments without workforce attendance breakdown
@@ -769,21 +770,27 @@ function DailyLogContent() {
   // Run validation checks on fields
   useEffect(() => {
     const errors: string[] = []
-    if (attendanceMorning === 0 && attendanceEvening === 0) {
+    const isAtt = isAttendanceDept(department?.name)
+    const isUsh = isUsheringDept(department?.name)
+    const ushAtt = isUsh ? computeUsheringAttendance(metricsData) : { morning: 0, evening: 0, total: 0 }
+    const effMorning = isUsh ? ushAtt.morning : attendanceMorning
+    const effEvening = isUsh ? ushAtt.evening : attendanceEvening
+
+    if (isAtt && effMorning === 0 && effEvening === 0) {
       errors.push('Both Morning and Evening attendance figures are currently zero.')
     }
-    
-    if (department && !DEPTS_WITHOUT_ATTENDANCE.includes(department.id)) {
-      const totalWorkforce = Object.values(workforce).reduce((a, b) => a + b, 0)
+
+    if (department) {
+      const totalWorkforce = totalWorkforceCount(workforce)
       if (totalWorkforce === 0) {
-        errors.push('Workforce breakdown counts are currently empty / zero.')
+        errors.push('Department workforce counts on duty are currently empty / zero.')
       }
     }
 
 
 
     setValidationErrors(errors)
-  }, [attendanceMorning, attendanceEvening, workforce, offering, department])
+  }, [attendanceMorning, attendanceEvening, workforce, offering, department, metricsData])
 
   const getMissingRequiredCustomFields = useCallback((): string[] => {
     const fields = department?.default_metrics_schema?.fields
@@ -895,19 +902,20 @@ function DailyLogContent() {
     }
     setLoading(true)
 
-    let finalOffering = offering
-    if (department.name.toLowerCase().includes('ushering') && (metricsData.teachers_meeting || metricsData.toddlers_section || metricsData.junior_section || metricsData.pre_teens_section || metricsData.teenagers_section || !reportId)) {
-      const sumArr = (arr: any[]) => Array.isArray(arr) ? arr.reduce((sum, r) => sum + (Number(r?.offering) || 0), 0) : 0
-      finalOffering = sumArr(metricsData.teachers_meeting) + sumArr(metricsData.toddlers_section) + sumArr(metricsData.junior_section) + sumArr(metricsData.pre_teens_section) + sumArr(metricsData.teenagers_section)
-    }
+    const finalOffering = computeDerivedOffering(department.name, metricsData, offering)
+    const isAttDept = isAttendanceDept(department.name)
+    const isUsh = isUsheringDept(department.name)
+    const derivedAtt = isUsh ? computeUsheringAttendance(metricsData) : { morning: attendanceMorning, evening: attendanceEvening }
+    const finalMorning = isAttDept ? derivedAtt.morning : 0
+    const finalEvening = isAttDept ? derivedAtt.evening : 0
 
     const payload = {
       event_id: activeDay.event_id,
       event_day_id: activeDay.id,
       department_id: department.id,
       submitted_by: profile.id,
-      attendance_morning: attendanceMorning,
-      attendance_evening: attendanceEvening,
+      attendance_morning: finalMorning,
+      attendance_evening: finalEvening,
       status: submit ? 'submitted' : 'draft',
       submitted_on_behalf_by: isSuperAdminActing ? profile.id : null,
       metrics_data: {
@@ -1050,7 +1058,14 @@ function DailyLogContent() {
     )
   }
 
-  const hasWorkforce = !DEPTS_WITHOUT_ATTENDANCE.includes(department.id)
+  const hasWorkforce = true
+  const isUshering = isUsheringDept(department.name)
+  const showCoreAttendance = isAttendanceDept(department.name) && !isUshering
+  const derivedUsheringAtt = computeUsheringAttendance(metricsData)
+  const effectiveMorning = isUshering ? derivedUsheringAtt.morning : showCoreAttendance ? attendanceMorning : 0
+  const effectiveEvening = isUshering ? derivedUsheringAtt.evening : showCoreAttendance ? attendanceEvening : 0
+  const computedOffering = computeDerivedOffering(department.name, metricsData, offering)
+  const customMetricsSummary = summarizeCustomMetrics(metricsData)
   const hasOffering = true
   const isReadOnly = (status === 'submitted' || status === 'approved') &&
                      (profile?.role !== 'super_admin' && profile?.role !== 'coordinator')
@@ -1176,74 +1191,64 @@ function DailyLogContent() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Core numbers form */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="glass-card border-none">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
-                1. Core Daily Attendance
-              </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">
-                Enter total attendees logged for morning and evening services.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3.5">
-              <div className="space-y-1.5">
-                <Label htmlFor="m-att" className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest block truncate">Morning Session</Label>
-                <NumberField
-                  id="m-att"
-                  value={attendanceMorning}
-                  onChange={setAttendanceMorning}
-                  disabled={isReadOnly || loading}
-                  className="input-dark font-mono text-base sm:text-lg text-center text-foreground h-10"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="e-att" className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest block truncate">Evening Session</Label>
-                <NumberField
-                  id="e-att"
-                  value={attendanceEvening}
-                  onChange={setAttendanceEvening}
-                  disabled={isReadOnly || loading}
-                  className="input-dark font-mono text-base sm:text-lg text-center text-foreground h-10"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Workforce breakdown section vs Ushering 5-Section Repeat Groups */}
-          {department?.name?.toLowerCase().includes('ushering') && (metricsData.teachers_meeting || metricsData.toddlers_section || metricsData.junior_section || metricsData.pre_teens_section || metricsData.teenagers_section || !reportId) ? (
+          {showCoreAttendance ? (
             <Card className="glass-card border-none">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
-                  2. Ushering Operational Meetings &amp; Sections
+                  Section Attendance
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Record attendance, leaders/preachers, and offerings across Teachers' Meeting and the 4 section tables (Toddlers, Junior, Pre-Teens, Teenagers).
+                  Enter total attendees logged for morning and evening sessions.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {department.default_metrics_schema?.fields && (
-                  <SchemaFormRenderer
-                    fields={department.default_metrics_schema.fields}
-                    value={metricsData}
-                    onChange={setMetricsData}
-                    readOnly={isReadOnly}
+              <CardContent className="grid grid-cols-2 gap-3.5">
+                <div className="space-y-1.5">
+                  <Label htmlFor="m-att" className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest block truncate">Morning Session</Label>
+                  <NumberField
+                    id="m-att"
+                    value={attendanceMorning}
+                    onChange={setAttendanceMorning}
+                    disabled={isReadOnly || loading}
+                    className="input-dark font-mono text-base sm:text-lg text-center text-foreground h-10"
                   />
-                )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="e-att" className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-widest block truncate">Evening Session</Label>
+                  <NumberField
+                    id="e-att"
+                    value={attendanceEvening}
+                    onChange={setAttendanceEvening}
+                    disabled={isReadOnly || loading}
+                    className="input-dark font-mono text-base sm:text-lg text-center text-foreground h-10"
+                  />
+                </div>
               </CardContent>
             </Card>
-          ) : hasWorkforce && (
+          ) : isUshering ? (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="font-semibold text-emerald-800 dark:text-emerald-300">
+                Auto-Derived Service Attendance (from Section Tables below)
+              </div>
+              <div className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                Morning: {derivedUsheringAtt.morning.toLocaleString()} · Evening: {derivedUsheringAtt.evening.toLocaleString()} · Total: {derivedUsheringAtt.total.toLocaleString()}
+              </div>
+            </div>
+          ) : null}
+
+          {/* Universal Department Workforce on Duty Card (ALL Departments) */}
+          {hasWorkforce && (
             <Card className="glass-card border-none">
               <CardHeader className="pb-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
-                    2. Attendee Category Breakdown
+                    Department Workforce on Duty Today
                   </CardTitle>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-500/25 whitespace-nowrap">
-                    Total Workforce: {Object.values(workforce).reduce((a, b) => a + b, 0).toLocaleString()}
+                    Total Workers: {totalWorkforceCount(workforce).toLocaleString()}
                   </span>
                 </div>
                 <CardDescription className="text-xs text-muted-foreground">
-                  Break down logged attendee counts by category and gender.
+                  Enter the number of adult teachers/leaders and teenagers deployed on duty in {department.name} today (not service attendees).
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -1286,6 +1291,30 @@ function DailyLogContent() {
                     className="input-dark font-mono text-center text-foreground h-10 sm:h-9"
                   />
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Ushering 5-Section Repeat Groups (Independent of Workforce Card) */}
+          {isUshering && (
+            <Card className="glass-card border-none">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-bold text-foreground uppercase tracking-wider">
+                  Ushering Operational Meetings &amp; Sections
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground">
+                  Record attendance, leaders/preachers, and offerings across Teachers&apos; Meeting and the 4 section tables (Toddlers, Junior, Pre-Teens, Teenagers).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {department.default_metrics_schema?.fields && (
+                  <SchemaFormRenderer
+                    fields={department.default_metrics_schema.fields}
+                    value={metricsData}
+                    onChange={setMetricsData}
+                    readOnly={isReadOnly}
+                  />
+                )}
               </CardContent>
             </Card>
           )}
@@ -1623,15 +1652,15 @@ function DailyLogContent() {
             </CardHeader>
             <CardContent className="space-y-4 pt-4 flex-1 min-h-0 overflow-y-auto text-xs">
               <div className="grid grid-cols-2 gap-2.5">
-                {!DEPTS_WITHOUT_ATTENDANCE.includes(department.id) && (
+                {isAttendanceDept(department.name) && (
                   <>
                     <div className="p-3 rounded-xl bg-muted/50 border border-border">
                       <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Morning Attendance</span>
-                      <span className="text-lg font-mono font-bold text-foreground">{attendanceMorning.toLocaleString()}</span>
+                      <span className="text-lg font-mono font-bold text-foreground">{effectiveMorning.toLocaleString()}</span>
                     </div>
                     <div className="p-3 rounded-xl bg-muted/50 border border-border">
                       <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Evening Attendance</span>
-                      <span className="text-lg font-mono font-bold text-foreground">{attendanceEvening.toLocaleString()}</span>
+                      <span className="text-lg font-mono font-bold text-foreground">{effectiveEvening.toLocaleString()}</span>
                     </div>
                   </>
                 )}
@@ -1639,7 +1668,10 @@ function DailyLogContent() {
                   <div className="p-3 rounded-xl bg-muted/50 border border-border">
                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Total Workforce</span>
                     <span className="text-lg font-mono font-bold text-blue-700 dark:text-blue-400">
-                      {Object.values(workforce).reduce((a, b) => a + b, 0).toLocaleString()}
+                      {totalWorkforceCount(workforce).toLocaleString()}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground block mt-0.5">
+                      Teachers: {workforce.teachersMale}M/{workforce.teachersFemale}F · Teens: {workforce.teenagersMale}M/{workforce.teenagersFemale}F
                     </span>
                   </div>
                 )}
@@ -1647,7 +1679,7 @@ function DailyLogContent() {
                   <div className="p-3 rounded-xl bg-muted/50 border border-border">
                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Recorded Offering</span>
                     <span className="text-lg font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                      ₦{offering.toLocaleString()}
+                      ₦{computedOffering.toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -1666,7 +1698,12 @@ function DailyLogContent() {
 
               <div className="p-3 rounded-xl bg-muted/40 border border-border space-y-1 text-[11px] text-muted-foreground">
                 <div><strong className="text-foreground">Daily Narrative:</strong> {dailyOverview.trim() ? 'Provided' : 'Not entered'}</div>
-                <div><strong className="text-foreground">Custom Metrics Fields:</strong> {Object.keys(metricsData || {}).length} populated</div>
+                <div>
+                  <strong className="text-foreground">Department Metrics Logged:</strong>{' '}
+                  {customMetricsSummary.length > 0
+                    ? customMetricsSummary.map((m) => `${m.label} (${m.count})`).join(' · ')
+                    : 'None yet'}
+                </div>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end gap-2 pt-3 border-t border-border">
@@ -1704,8 +1741,10 @@ function DailyLogContent() {
               Day {activeDay?.day_number || 1} Summary
             </div>
             <div className="text-xs font-mono font-bold text-foreground truncate">
-              {(attendanceMorning + attendanceEvening).toLocaleString()} Att.
-              {hasOffering ? ` · ₦${offering.toLocaleString()}` : ''}
+              {isAttendanceDept(department.name)
+                ? `${(effectiveMorning + effectiveEvening).toLocaleString()} Att.`
+                : `${totalWorkforceCount(workforce).toLocaleString()} Workers`}
+              {computedOffering > 0 ? ` · ₦${computedOffering.toLocaleString()}` : ''}
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
