@@ -22,11 +22,12 @@ export function isAttendanceDept(deptName?: string | null): boolean {
 
 export function computeUsheringAttendance(metricsData: any): {
   morning: number
+  afternoon: number
   evening: number
   total: number
 } {
   if (!metricsData || typeof metricsData !== 'object') {
-    return { morning: 0, evening: 0, total: 0 }
+    return { morning: 0, afternoon: 0, evening: 0, total: 0 }
   }
   const sections = [
     metricsData.toddlers_section,
@@ -35,6 +36,7 @@ export function computeUsheringAttendance(metricsData: any): {
     metricsData.teenagers_section,
   ]
   let morning = 0
+  let afternoon = 0
   let evening = 0
   let total = 0
 
@@ -43,16 +45,19 @@ export function computeUsheringAttendance(metricsData: any): {
     for (const row of sec) {
       const rowTotal = (Number(row?.male) || 0) + (Number(row?.female) || 0)
       total += rowTotal
+      const period = String(row?.session_period || '').toLowerCase()
       const ev = String(row?.event || '').toLowerCase()
-      if (ev.includes('evening') || ev.includes('revival')) {
+      if (period === 'evening' || (!period && (ev.includes('evening') || ev.includes('revival')))) {
         evening += rowTotal
+      } else if (period === 'afternoon' || (!period && ev.includes('afternoon'))) {
+        afternoon += rowTotal
       } else {
         morning += rowTotal
       }
     }
   }
 
-  return { morning, evening, total }
+  return { morning, afternoon, evening, total }
 }
 
 export function computeDerivedOffering(

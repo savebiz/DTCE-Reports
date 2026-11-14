@@ -429,6 +429,7 @@ function DailyLogContent() {
                 schema: [
                   { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
                   { name: 'event', type: 'text', label: 'Event / Session', required: false },
+                  { name: 'session_period', type: 'select', label: 'Session Time', options: ['Morning', 'Afternoon', 'Evening'], required: false },
                   { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
                   { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
                   { name: 'male', type: 'number', label: 'Male Attendance', required: false },
@@ -446,6 +447,7 @@ function DailyLogContent() {
                 schema: [
                   { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
                   { name: 'event', type: 'text', label: 'Event / Session', required: false },
+                  { name: 'session_period', type: 'select', label: 'Session Time', options: ['Morning', 'Afternoon', 'Evening'], required: false },
                   { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
                   { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
                   { name: 'male', type: 'number', label: 'Male Attendance', required: false },
@@ -463,6 +465,7 @@ function DailyLogContent() {
                 schema: [
                   { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
                   { name: 'event', type: 'text', label: 'Event / Session', required: false },
+                  { name: 'session_period', type: 'select', label: 'Session Time', options: ['Morning', 'Afternoon', 'Evening'], required: false },
                   { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
                   { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
                   { name: 'male', type: 'number', label: 'Male Attendance', required: false },
@@ -480,6 +483,7 @@ function DailyLogContent() {
                 schema: [
                   { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
                   { name: 'event', type: 'text', label: 'Event / Session', required: false },
+                  { name: 'session_period', type: 'select', label: 'Session Time', options: ['Morning', 'Afternoon', 'Evening'], required: false },
                   { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
                   { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
                   { name: 'male', type: 'number', label: 'Male Attendance', required: false },
@@ -534,6 +538,7 @@ function DailyLogContent() {
                 schema: [
                   { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
                   { name: 'event', type: 'text', label: 'Event / Session', required: false },
+                  { name: 'session_period', type: 'select', label: 'Session Time', options: ['Morning', 'Afternoon', 'Evening'], required: false },
                   { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
                   { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
                   { name: 'male', type: 'number', label: 'Male Attendance', required: false },
@@ -551,6 +556,7 @@ function DailyLogContent() {
                 schema: [
                   { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
                   { name: 'event', type: 'text', label: 'Event / Session', required: false },
+                  { name: 'session_period', type: 'select', label: 'Session Time', options: ['Morning', 'Afternoon', 'Evening'], required: false },
                   { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
                   { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
                   { name: 'male', type: 'number', label: 'Male Attendance', required: false },
@@ -568,6 +574,7 @@ function DailyLogContent() {
                 schema: [
                   { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
                   { name: 'event', type: 'text', label: 'Event / Session', required: false },
+                  { name: 'session_period', type: 'select', label: 'Session Time', options: ['Morning', 'Afternoon', 'Evening'], required: false },
                   { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
                   { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
                   { name: 'male', type: 'number', label: 'Male Attendance', required: false },
@@ -585,6 +592,7 @@ function DailyLogContent() {
                 schema: [
                   { name: 's_n', type: 'computed', label: 'S/N', computeFormula: 'row_index' },
                   { name: 'event', type: 'text', label: 'Event / Session', required: false },
+                  { name: 'session_period', type: 'select', label: 'Session Time', options: ['Morning', 'Afternoon', 'Evening'], required: false },
                   { name: 'preacher_or_invited_guest', type: 'text', label: 'Preacher / Invited Guest', required: false },
                   { name: 'title_and_bible_text', type: 'text', label: 'Title & Bible Text', required: false },
                   { name: 'male', type: 'number', label: 'Male Attendance', required: false },
@@ -1063,7 +1071,7 @@ function DailyLogContent() {
   const showCoreAttendance = isAttendanceDept(department.name) && !isUshering
   const derivedUsheringAtt = computeUsheringAttendance(metricsData)
   const effectiveMorning = isUshering ? derivedUsheringAtt.morning : showCoreAttendance ? attendanceMorning : 0
-  const effectiveEvening = isUshering ? derivedUsheringAtt.evening : showCoreAttendance ? attendanceEvening : 0
+  const effectiveEvening = isUshering ? (derivedUsheringAtt.afternoon + derivedUsheringAtt.evening) : showCoreAttendance ? attendanceEvening : 0
   const computedOffering = computeDerivedOffering(department.name, metricsData, offering)
   const customMetricsSummary = summarizeCustomMetrics(metricsData)
   const hasOffering = true
@@ -1230,7 +1238,7 @@ function DailyLogContent() {
                 Auto-Derived Service Attendance (from Section Tables below)
               </div>
               <div className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                Morning: {derivedUsheringAtt.morning.toLocaleString()} · Evening: {derivedUsheringAtt.evening.toLocaleString()} · Total: {derivedUsheringAtt.total.toLocaleString()}
+                Morning: {derivedUsheringAtt.morning.toLocaleString()} · Afternoon: {derivedUsheringAtt.afternoon.toLocaleString()} · Evening: {derivedUsheringAtt.evening.toLocaleString()} · Total: {derivedUsheringAtt.total.toLocaleString()}
               </div>
             </div>
           ) : null}
@@ -1652,7 +1660,22 @@ function DailyLogContent() {
             </CardHeader>
             <CardContent className="space-y-4 pt-4 flex-1 min-h-0 overflow-y-auto text-xs">
               <div className="grid grid-cols-2 gap-2.5">
-                {isAttendanceDept(department.name) && (
+                {isUshering ? (
+                  <>
+                    <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Morning Attendance</span>
+                      <span className="text-lg font-mono font-bold text-foreground">{derivedUsheringAtt.morning.toLocaleString()}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Afternoon Attendance</span>
+                      <span className="text-lg font-mono font-bold text-foreground">{derivedUsheringAtt.afternoon.toLocaleString()}</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-muted/50 border border-border">
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Evening Attendance</span>
+                      <span className="text-lg font-mono font-bold text-foreground">{derivedUsheringAtt.evening.toLocaleString()}</span>
+                    </div>
+                  </>
+                ) : isAttendanceDept(department.name) ? (
                   <>
                     <div className="p-3 rounded-xl bg-muted/50 border border-border">
                       <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Morning Attendance</span>
@@ -1663,7 +1686,7 @@ function DailyLogContent() {
                       <span className="text-lg font-mono font-bold text-foreground">{effectiveEvening.toLocaleString()}</span>
                     </div>
                   </>
-                )}
+                ) : null}
                 {hasWorkforce && (
                   <div className="p-3 rounded-xl bg-muted/50 border border-border">
                     <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block">Total Workforce</span>
