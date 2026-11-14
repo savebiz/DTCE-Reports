@@ -186,7 +186,7 @@
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow-x: clip;
     padding-right: 0px !important;
     margin-right: 0px !important;
   }
@@ -197,7 +197,7 @@
     font-family: 'Inter', system-ui, sans-serif;
     line-height: 1.6;
     max-width: 100vw;
-    overflow-x: hidden;
+    overflow-x: clip;
     padding-right: 0px !important;
     margin-right: 0px !important;
   }
@@ -206,7 +206,7 @@
   [data-radix-scroll-lock-disabled] {
     padding-right: 0px !important;
     margin-right: 0px !important;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
   }
 }
 
@@ -579,7 +579,16 @@
     margin: 12mm 10mm 12mm 10mm;
   }
 
-  html, body {
+  :root, .dark, html, body {
+    --background: #ffffff !important;
+    --foreground: #0f172a !important;
+    --card: #ffffff !important;
+    --card-foreground: #0f172a !important;
+    --popover: #ffffff !important;
+    --popover-foreground: #0f172a !important;
+    --muted: #f1f5f9 !important;
+    --muted-foreground: #334155 !important;
+    --border: #cbd5e1 !important;
     background: #ffffff !important;
     color: #0f172a !important;
     font-size: 10.5pt !important;
@@ -588,6 +597,14 @@
     max-width: 100% !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  .text-foreground {
+    color: #0f172a !important;
+  }
+
+  .text-muted-foreground {
+    color: #334155 !important;
   }
 
   header,

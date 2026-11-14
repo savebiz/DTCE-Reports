@@ -512,7 +512,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
             </div>
 
             {/* Department Submission & Approval Tracker */}
-            <Card className="glass-card border-none print:shadow-none">
+            <Card className="glass-card border-none print:hidden">
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
                 <div>
                   <CardTitle className="text-base font-bold text-foreground">
@@ -593,7 +593,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                     <CardTitle className="text-lg font-bold text-foreground">
                       Consolidated Market Purchase List ({items.length} Distinct Items)
                     </CardTitle>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5 print:hidden">
                       Aggregated across all department pre-event needs lists. Click an item name to see which departments requested it.
                     </p>
                   </div>
@@ -776,7 +776,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                           <th className="py-3 pr-3 font-semibold">Market Trip</th>
                           <th className="py-3 pr-3 font-semibold">Bought</th>
                           <th className="py-3 pr-3 font-semibold">Received</th>
-                          <th className="hidden print:table-cell py-3 pr-3 font-semibold text-center">Market Check / Price</th>
+                          <th className="hidden print:table-cell py-3 pr-3 font-semibold text-center">Market Price (₦)</th>
                           {canEdit && <th className="py-3 font-semibold print:hidden">Action</th>}
                         </tr>
                       </thead>
@@ -865,7 +865,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                     </span>
                                   )}
                                 </td>
-                                <td className="hidden print:table-cell py-3 pr-3 text-center font-mono text-xs text-slate-500">[ &nbsp; ] &nbsp; ₦________</td>
+                                <td className="hidden print:table-cell py-3 pr-3 text-center font-mono text-xs text-slate-700">₦____________</td>
                                 {canEdit && (
                                   <td className="py-3 print:hidden">
                                     <Button
