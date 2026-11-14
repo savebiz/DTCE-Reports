@@ -65,6 +65,8 @@ function DailyLogContent() {
   const [loading, setLoading] = useState(false)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [isSuperAdminActing, setIsSuperAdminActing] = useState(false)
+  const isQaTester = Boolean(profile?.username?.toLowerCase().startsWith('qa.'))
+  const canBypassDailyWindow = isSuperAdminActing || isQaTester
   const [behalfAdminName, setBehalfAdminName] = useState<string>('')
   
   // Custom lookup inline inputs
@@ -802,7 +804,7 @@ function DailyLogContent() {
   const handlePreSubmitCheck = () => {
     if (!activeDay || !department) return
     const windowCheck = evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent)
-    if (!isSuperAdminActing && !windowCheck.isOpen) {
+    if (!canBypassDailyWindow && !windowCheck.isOpen) {
       showToast(windowCheck.message, 'warning')
       return
     }
@@ -869,7 +871,7 @@ function DailyLogContent() {
   // ── Auto-flush when connection returns with a pending offline payload ──────
   const handleOfflineFlush = useCallback(async (pendingPayload: any) => {
     const windowCheck = evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent)
-    if (!isSuperAdminActing && !windowCheck.isOpen) {
+    if (!canBypassDailyWindow && !windowCheck.isOpen) {
       showToast(windowCheck.message, 'warning')
       return
     }
@@ -887,7 +889,7 @@ function DailyLogContent() {
   const handleSubmit = async (submit = false) => {
     if (!profile || !department || !activeDay) return
     const windowCheck = evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent)
-    if (submit && !isSuperAdminActing && !windowCheck.isOpen) {
+    if (submit && !canBypassDailyWindow && !windowCheck.isOpen) {
       showToast(windowCheck.message, 'warning')
       return
     }
@@ -1150,7 +1152,7 @@ function DailyLogContent() {
         </div>
       </div>
 
-      {!isSuperAdminActing && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen && (
+      {!canBypassDailyWindow && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen && (
         <div className="rounded-xl border border-amber-500/35 bg-amber-500/10 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-start gap-2.5 text-amber-800 dark:text-amber-300">
             <Lock className="h-4 w-4 shrink-0 mt-0.5" />
@@ -1554,7 +1556,7 @@ function DailyLogContent() {
                 </p>
               ) : (() => {
                 const reportWindow = evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent)
-                const isSubmitLockedByWindow = !isSuperAdminActing && !reportWindow.isOpen
+                const isSubmitLockedByWindow = !canBypassDailyWindow && !reportWindow.isOpen
                 return (
                   <div className="flex flex-col gap-2">
                     {isSubmitLockedByWindow && (
@@ -1565,7 +1567,7 @@ function DailyLogContent() {
                     )}
                     <Button
                       onClick={() => handleSubmit(false)}
-              disabled={loading || hasPendingSync || (!isSuperAdminActing && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen)}
+              disabled={loading || hasPendingSync || (!canBypassDailyWindow && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen)}
                       variant="outline"
                       className="w-full text-xs font-semibold"
                     >
@@ -1712,7 +1714,7 @@ function DailyLogContent() {
               size="sm"
               variant="outline"
               onClick={() => handleSubmit(false)}
-              disabled={loading || hasPendingSync || (!isSuperAdminActing && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen)}
+              disabled={loading || hasPendingSync || (!canBypassDailyWindow && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen)}
               className="h-9 px-3 text-xs font-semibold"
             >
               {loading ? 'Saving...' : 'Draft'}
@@ -1721,7 +1723,7 @@ function DailyLogContent() {
               type="button"
               size="sm"
               onClick={handlePreSubmitCheck}
-              disabled={loading || (!isSuperAdminActing && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen)}
+              disabled={loading || (!canBypassDailyWindow && !evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).isOpen)}
               className="h-9 px-3.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
             >
               {!isOnline ? 'Queue' : 'Submit'}
