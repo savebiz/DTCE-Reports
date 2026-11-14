@@ -277,7 +277,7 @@ export async function GET(request: NextRequest) {
     },
     isFinanceView,
     canEdit: auth.ctx.role === 'super_admin' || auth.ctx.isStoresStaff,
-    canApprove: auth.ctx.role === 'super_admin' || auth.ctx.role === 'national_coordinator',
+    canApprove: auth.ctx.role === 'super_admin' || auth.ctx.role === 'national_coordinator' || auth.ctx.role === 'coordinator',
     analytics,
     items: rows,
     departments: deptRows,

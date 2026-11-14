@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
 
         const memberTitle = requestType === 'pre_event' ? `Needs List Sent: ${deptName}` : `Store Requisition Sent: ${deptName}`
         const memberBody = requestType === 'pre_event'
-          ? `Your department's pre-event needs list (${itemsSummary}) was sent to the General Secretary & National Coordinator for market purchase approval.`
+          ? `Your department's pre-event needs list (${itemsSummary}) was sent to the National Coordinator or General Secretary for market purchase approval.`
           : `A store requisition for ${deptName} (${itemsSummary}) was submitted for approval.`
 
         await Promise.allSettled([

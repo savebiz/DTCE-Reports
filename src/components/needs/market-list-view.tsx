@@ -367,7 +367,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
           <div className="flex items-start gap-3 p-2.5 rounded-xl bg-background/60 border border-border/40">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold text-xs">2</span>
             <div>
-              <p className="text-xs font-bold text-foreground">Gen Sec &amp; Nat. Coordinator Approve</p>
+              <p className="text-xs font-bold text-foreground">Nat. Coordinator or Gen Sec Approves</p>
               <p className="text-[11px] text-muted-foreground">Approved lists automatically consolidate here per item so Stores can go to the market.</p>
             </div>
           </div>

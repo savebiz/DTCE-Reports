@@ -488,7 +488,7 @@ function StoreRequestContent() {
       } catch {}
       showToast(
         requestType === 'pre_event'
-          ? 'Pre-Event Needs List sent! The General Secretary & National Coordinator will review and approve it for market purchase.'
+          ? 'Pre-Event Needs List sent! The National Coordinator or General Secretary will review and approve it for market purchase.'
           : 'Live Store Requisition sent for approval and Stores collection!',
         'success'
       )
@@ -574,7 +574,7 @@ function StoreRequestContent() {
               </div>
             </div>
             <span className="block text-xs text-muted-foreground mt-1.5 leading-relaxed">
-              <strong>Before the event:</strong> Send your department&apos;s full list of required items to the Gen Sec &amp; National Coordinator so Stores can go to the market and buy them.
+              <strong>Before the event:</strong> Send your department&apos;s full list of required items to the National Coordinator or Gen Sec so Stores can go to the market and buy them.
             </span>
           </button>
 
@@ -789,7 +789,7 @@ function StoreRequestContent() {
                       Submitted Pre-Event Needs Lists ({preEventLists.length})
                     </CardTitle>
                     <CardDescription className="text-xs text-muted-foreground">
-                      Lists sent to the General Secretary &amp; National Coordinator for market purchase before the event.
+                      Lists sent to the National Coordinator or General Secretary for market purchase before the event.
                     </CardDescription>
                   </div>
                   {approvedPreEventItems.length > 0 && (
@@ -841,7 +841,7 @@ function StoreRequestContent() {
                               }
                             >
                               {req.status === 'pending_coordinator'
-                                ? 'Awaiting Gen Sec / Nat. Coordinator Approval'
+                                ? 'Awaiting Nat. Coordinator or Gen Sec Approval'
                                 : req.status === 'declined'
                                 ? 'Declined'
                                 : 'Approved for Market Purchase'}

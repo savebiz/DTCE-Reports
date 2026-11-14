@@ -553,7 +553,7 @@ function AdminRequisitionsContent() {
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-700 dark:text-emerald-400">
-            {profile?.role === 'national_coordinator' && isGeneralSecretary(profile)
+            {(profile?.role === 'national_coordinator' || profile?.role === 'coordinator') && isGeneralSecretary(profile)
               ? 'General Secretary Approval Console'
               : 'National Materials & Requisitions Oversight'}
           </span>
@@ -577,7 +577,7 @@ function AdminRequisitionsContent() {
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
               {workflowMode === 'pre_event'
-                ? 'Digitised pre-event department needs lists for Gen Sec & National Coordinator approval before Stores goes to the market.'
+                ? 'Digitised pre-event department needs lists for National Coordinator or Gen Sec approval before Stores goes to the market.'
                 : 'Review and approve live store requests from departments collecting items from Central Stores during the event.'}
             </p>
           </div>
@@ -939,7 +939,7 @@ function AdminRequisitionsContent() {
                     {/* Action trigger button */}
                     <div className="flex gap-2 justify-end pt-1">
                       {req.status === 'pending_coordinator' ? (
-                        (profile?.role !== 'coordinator' || req.assigned_approver_id === profile.id) ? (
+                        (profile?.role !== 'coordinator' || req.assigned_approver_id === profile.id || isPre || isGeneralSecretary(profile)) ? (
                           <div className="flex flex-wrap items-center gap-2">
                             <Button
                               size="sm"

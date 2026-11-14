@@ -74,10 +74,10 @@ export async function POST(request: NextRequest) {
     const FULFILMENT_STATUSES = ['in_progress', 'partially_fulfilled', 'ready_for_collection', 'delivered']
 
     if (APPROVAL_STATUSES.includes(status)) {
-      const canApprove = userRole === 'super_admin' || userRole === 'national_coordinator' || isAssignedApprover
+      const canApprove = userRole === 'super_admin' || userRole === 'national_coordinator' || userRole === 'coordinator' || isAssignedApprover
       if (!canApprove) {
         return NextResponse.json(
-          { error: 'Forbidden: only the General Secretary, National Coordinator, a Super Admin, or the delegated approver can approve or decline.' },
+          { error: 'Forbidden: only the National Coordinator, General Secretary, a Super Admin, or the delegated approver can approve or decline.' },
           { status: 403 }
         )
       }

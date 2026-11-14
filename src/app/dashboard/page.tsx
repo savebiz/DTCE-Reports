@@ -774,7 +774,7 @@ function SecretariatDashboardContent() {
             </div>
 
             {/* Registration Two-Channel & Pre-Event Fulfillment Analytics (Super Admin & National Coordinator ONLY) */}
-            {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
+            {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator' || profile?.role === 'coordinator') && (
               <RegistrationInsightPanel userRole={profile?.role} />
             )}
 
@@ -1121,7 +1121,7 @@ function SecretariatDashboardContent() {
                         )}
 
                         {/* Footer Actions (Super Admin & National Coordinator ONLY) */}
-                        {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator') && (
+                        {(profile?.role === 'super_admin' || profile?.role === 'national_coordinator' || profile?.role === 'coordinator') && (
                           <div className="flex justify-end pt-1">
                             {isResolved ? (
                               <Button
