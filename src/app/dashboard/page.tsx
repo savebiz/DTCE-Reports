@@ -20,7 +20,6 @@ import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { RegistrationInsightPanel } from '@/components/registration/registration-insight-panel'
 import { getCurrentEventId, getEventDays } from '@/lib/events/current-event'
 import { isGeneralSecretary } from '@/lib/auth/titles'
-import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
 import { ModernSelect } from '@/components/ui/modern-select'
 
 const SchemaFormRenderer = dynamic(() => import('@/components/schema-form-renderer').then(mod => mod.SchemaFormRenderer), { ssr: false })
@@ -1547,7 +1546,11 @@ function SecretariatDashboardContent() {
 
 export default function SecretariatDashboard() {
   return (
-    <Suspense fallback={<DtceWorkspaceLoader title="Executive Operations Desk" subtitle="Loading event telemetry & submissions..." />}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
+        <p className="text-sm font-mono animate-pulse text-muted-foreground">Loading Executive Operations Desk...</p>
+      </div>
+    }>
       <SecretariatDashboardContent />
     </Suspense>
   )

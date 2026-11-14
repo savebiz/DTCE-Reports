@@ -1,7 +1,5 @@
 'use client'
 
-import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
-
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, mockDepartments, Profile, Department } from '@/utils/supabase'
@@ -545,7 +543,11 @@ export default function SecretariatTeamManagement() {
   }
 
   if (!profile) {
-    return <DtceWorkspaceLoader title="Account Center" subtitle="Loading user directory & assignments..." />
+    return (
+      <div className="min-h-screen flex items-center justify-center font-sans" style={{ background: 'var(--background)' }}>
+        <p className="text-sm font-mono animate-pulse text-slate-500">Loading Account Center...</p>
+      </div>
+    )
   }
 
   return (

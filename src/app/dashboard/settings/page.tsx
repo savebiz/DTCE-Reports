@@ -1,7 +1,5 @@
 'use client'
 
-import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
-
 import React, { useEffect, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, Profile } from '@/utils/supabase'
@@ -783,7 +781,11 @@ function SettingsContent() {
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={<DtceWorkspaceLoader title="Settings Console" subtitle="Loading event configuration & preferences..." />}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
+        <p className="text-sm font-mono animate-pulse text-muted-foreground">Loading settings console...</p>
+      </div>
+    }>
       <SettingsContent />
     </Suspense>
   )

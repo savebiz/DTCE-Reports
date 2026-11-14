@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react'
+import React, { useEffect, useState, useCallback, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient, isMock, mockDepartments, mockEventDays, Profile, DailyReport, Department } from '@/utils/supabase'
 import { showToast } from '@/components/ui/toast'
@@ -19,7 +19,6 @@ import { getCurrentEvent, getEventDays, getDepartmentAssignment } from '@/lib/ev
 import { evaluateDailyReportWindow } from '@/lib/events/reporting-windows'
 import { isUsheringDept, isAttendanceDept, computeUsheringAttendance, computeDerivedOffering, summarizeCustomMetrics, totalWorkforceCount } from '@/lib/events/department-archetypes'
 import { ModernSelect } from '@/components/ui/modern-select'
-import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
 
 // Departments without workforce attendance breakdown
 const DEPTS_WITHOUT_ATTENDANCE = ['dept-6', 'dept-9', 'dept-13', 'dept-19', 'dept-20', 'dept-25', 'dept-26', 'dept-29', 'dept-30', 'dept-39']
@@ -32,7 +31,6 @@ function DailyLogContent() {
   const searchParams = useSearchParams()
   const deptIdParam = searchParams?.get('deptId')
   const dayIdParam = searchParams?.get('dayId')
-  const hasLoadedOnceRef = useRef(false)
 
   const [profile, setProfile] = useState<Profile | null>(null)
   const [department, setDepartment] = useState<Department | null>(null)
@@ -95,9 +93,7 @@ function DailyLogContent() {
 
   // 1. Fetch User profile and Event Days
   const loadData = async () => {
-    if (!hasLoadedOnceRef.current) {
-      setDataLoaded(false)
-    }
+    setDataLoaded(false)
     const supabase = getClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
@@ -105,10 +101,11 @@ function DailyLogContent() {
       return
     }
 
-    const [{ data: prof }, ev] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
-      getCurrentEvent(supabase),
-    ])
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
     
     let activeProfile = prof
     if (!activeProfile && user) {
@@ -125,6 +122,7 @@ function DailyLogContent() {
       }
     }
 
+    const ev = await getCurrentEvent(supabase)
     setCurrentEvent(ev)
     const currentEventId = ev?.id ?? null
 
@@ -636,10 +634,8 @@ function DailyLogContent() {
       if (selectedDay && activeDeptId) {
         await loadReportForDay(selectedDay.id, activeDeptId)
       }
-      hasLoadedOnceRef.current = true
       setDataLoaded(true)
     } else {
-      hasLoadedOnceRef.current = true
       setDataLoaded(true)
     }
   }
@@ -1040,10 +1036,9 @@ function DailyLogContent() {
 
   if (!dataLoaded) {
     return (
-      <DtceWorkspaceLoader
-        title="Daily Reporting Workspace"
-        subtitle="Loading event schedule & department form..."
-      />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
+        <p className="text-sm font-mono animate-pulse text-slate-500">Loading Daily Reporting Workspace...</p>
+      </div>
     )
   }
 
@@ -1845,10 +1840,9 @@ function DailyLogContent() {
 export default function DailyLogPage() {
   return (
     <Suspense fallback={
-      <DtceWorkspaceLoader
-        title="Daily Reporting Workspace"
-        subtitle="Initializing reporting session..."
-      />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}>
+        <p className="text-sm font-mono animate-pulse text-slate-500">Loading Suspense Guard...</p>
+      </div>
     }>
       <DailyLogContent />
     </Suspense>

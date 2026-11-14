@@ -1,7 +1,5 @@
 'use client'
 
-import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
-
 import React, { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient, isMock, Profile } from '@/utils/supabase'
@@ -679,7 +677,7 @@ function StoreFulfillmentContent() {
 
 export default function StoreFulfillmentPage() {
   return (
-    <Suspense fallback={<DtceWorkspaceLoader title="Stores Fulfillment" subtitle="Loading inventory & pending dispatches..." />}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm font-mono text-muted-foreground">Loading Stores Fulfillment...</div>}>
       <StoreFulfillmentContent />
     </Suspense>
   )
