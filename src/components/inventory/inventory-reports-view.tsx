@@ -272,7 +272,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
           <Button
             onClick={() => loadReportData(true)}
             variant="outline"
@@ -316,7 +316,7 @@ export function InventoryReportsView({ readOnly = false }: InventoryReportsViewP
       </div>
 
       {/* 2. Combinable Multi-Select Filter Toolbar */}
-      <Card className="glass-card bg-card border-border p-4 space-y-4">
+      <Card className="glass-card bg-card border-border p-4 space-y-4 print:hidden">
         <div className="flex items-center justify-between border-b border-border/50 pb-2">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-amber-500" />

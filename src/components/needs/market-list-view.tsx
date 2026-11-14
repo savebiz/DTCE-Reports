@@ -307,7 +307,30 @@ export function MarketListView({ backHref }: { backHref: string }) {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
-      <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6">
+      <main className="max-w-[1400px] mx-auto px-4 md:px-6 py-8 space-y-6 print:py-0 print:px-0">
+        {/* Dedicated Print-Only Header */}
+        <div className="hidden print:block mb-4 border-b-2 border-slate-900 pb-3">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                Directorate of Teens &amp; Children Education (DTCE)
+              </p>
+              <h1 className="text-lg font-black text-slate-900 tracking-tight">
+                {data?.event.name || 'Current Event'} — Consolidated Market Purchase List
+              </h1>
+              <p className="text-[11px] text-slate-600 mt-0.5">
+                Scope: {batchFilter === 'all' ? 'All Market Trips' : batchFilter === 'none' ? 'Unassigned Trip Items' : `Market Trip ${batchFilter}`}
+                {searchQuery ? ` · Search: "${searchQuery}"` : ''}
+                {` · Generated ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
+              </p>
+            </div>
+            <div className="text-right shrink-0">
+              <span className="inline-block text-[10px] font-bold uppercase tracking-wider border border-slate-800 px-2.5 py-1 rounded text-slate-900">
+                Procurement Sheet
+              </span>
+            </div>
+          </div>
+        </div>
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-4 border-b border-border print:hidden">
           <div>
@@ -397,7 +420,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
             )}
 
             {/* At-a-Glance Pre-Event Analytics KPI Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 print:hidden">
               <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Depts Submitted</span>
@@ -479,8 +502,8 @@ export function MarketListView({ backHref }: { backHref: string }) {
             </div>
 
             {/* Department Submission & Approval Tracker */}
-            <Card className="glass-card border-none">
-              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <Card className="glass-card border-none print:shadow-none">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 print:hidden">
                 <div>
                   <CardTitle className="text-base font-bold text-foreground">
                     Department Pre-Event Needs Submission Tracker ({analytics.departmentsSubmitted} of {analytics.totalDepartments} Sent)
@@ -517,7 +540,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 print:hidden">
                   {filteredDepartments.map(d => {
                     const st = deptStatus(d)
                     return (
@@ -553,7 +576,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
             </Card>
 
             {/* Consolidated Market Purchase Table */}
-            <Card className="glass-card border-none">
+            <Card className="glass-card border-none print:shadow-none">
               <CardHeader className="space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
@@ -596,7 +619,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                   </div>
                 ) : (
                   <>
-                  <div className="md:hidden space-y-3">
+                  <div className="md:hidden space-y-3 print:hidden">
                     {items.map(item => {
                       const dirty = !!drafts[item.key]
                       const received = Number(value(item, 'qtyReceived')) || 0
@@ -732,7 +755,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                       )
                     })}
                   </div>
-                  <div className="hidden md:block overflow-x-auto">
+                  <div className="hidden md:block print:block overflow-x-auto print:overflow-visible">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground border-b border-border">
@@ -743,6 +766,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                           <th className="py-3 pr-3 font-semibold">Market Trip</th>
                           <th className="py-3 pr-3 font-semibold">Bought</th>
                           <th className="py-3 pr-3 font-semibold">Received</th>
+                          <th className="hidden print:table-cell py-3 pr-3 font-semibold text-center">Market Check / Price</th>
                           {canEdit && <th className="py-3 font-semibold print:hidden">Action</th>}
                         </tr>
                       </thead>
@@ -792,7 +816,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                       aria-label={`Market trip for ${item.name}`}
                                       value={value(item, 'batch') ?? ''}
                                       onChange={e => setDraft(item.key, { batch: e.target.value ? Number(e.target.value) : null })}
-                                      className="h-9 rounded-lg border border-border bg-background px-2 text-xs"
+                                      className="h-9 rounded-lg border border-border bg-background px-2 text-xs print:hidden"
                                     >
                                       <option value="">Not set</option>
                                       <option value="1">Trip 1</option>
@@ -811,7 +835,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                       aria-label={`Quantity bought for ${item.name}`}
                                       value={value(item, 'qtyBought')}
                                       onChange={e => setDraft(item.key, { qtyBought: Math.max(0, Number(e.target.value) || 0) })}
-                                      className="h-9 w-20 rounded-lg border border-border bg-background px-2 text-xs font-mono"
+                                      className="h-9 w-20 rounded-lg border border-border bg-background px-2 text-xs font-mono print:hidden"
                                     />
                                   ) : <span className="font-mono">{item.qtyBought}</span>}
                                 </td>
@@ -822,7 +846,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                       aria-label={`Quantity received for ${item.name}`}
                                       value={value(item, 'qtyReceived')}
                                       onChange={e => setDraft(item.key, { qtyReceived: Math.max(0, Number(e.target.value) || 0) })}
-                                      className="h-9 w-20 rounded-lg border border-border bg-background px-2 text-xs font-mono"
+                                      className="h-9 w-20 rounded-lg border border-border bg-background px-2 text-xs font-mono print:hidden"
                                     />
                                   ) : <span className="font-mono">{item.qtyReceived}</span>}
                                   {short && received > 0 && (
@@ -831,6 +855,7 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                     </span>
                                   )}
                                 </td>
+                                <td className="hidden print:table-cell py-3 pr-3 text-center font-mono text-xs text-slate-500">[ &nbsp; ] &nbsp; ₦________</td>
                                 {canEdit && (
                                   <td className="py-3 print:hidden">
                                     <Button
@@ -871,7 +896,8 @@ export function MarketListView({ backHref }: { backHref: string }) {
                                         ))
                                       )}
                                     </div>
-                                    {canEdit && (
+
+                                {canEdit && (
                                       <div className="mt-3 space-y-2">
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                           <input
@@ -924,6 +950,20 @@ export function MarketListView({ backHref }: { backHref: string }) {
                         })}
                       </tbody>
                     </table>
+                    <div className="hidden print:grid grid-cols-3 gap-6 pt-8 mt-6 border-t border-slate-300 text-[11px] text-slate-700 break-inside-avoid">
+                      <div>
+                        <span className="block font-bold">Purchased By (Name &amp; Signature):</span>
+                        <div className="mt-7 border-b border-slate-400" />
+                      </div>
+                      <div>
+                        <span className="block font-bold">Received in Stores By:</span>
+                        <div className="mt-7 border-b border-slate-400" />
+                      </div>
+                      <div>
+                        <span className="block font-bold">National Coordinator / Gen. Sec Approval:</span>
+                        <div className="mt-7 border-b border-slate-400" />
+                      </div>
+                    </div>
                   </div>
                   </>
                 )}

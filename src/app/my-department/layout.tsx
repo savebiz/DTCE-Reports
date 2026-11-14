@@ -31,7 +31,7 @@ export default function MyDepartmentLayout({
       <Suspense fallback={<div className="h-14 bg-card border-b border-border" />}>
         <DashboardHeader />
       </Suspense>
-      <div className="relative z-10 flex-1 pt-14 lg:pl-14 transition-all duration-300">
+      <div className="relative z-10 flex-1 pt-14 lg:pl-14 transition-all duration-300 print:pt-0 print:pl-0">
         {children}
       </div>
     </div>

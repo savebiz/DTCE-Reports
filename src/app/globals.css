@@ -571,3 +571,79 @@
     font-feature-settings: "tnum";
   }
 }
+
+/* ── Platform-Wide Dedicated A4 Print & PDF Styles ── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm 12mm 10mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 10.5pt !important;
+    line-height: 1.4 !important;
+    overflow: visible !important;
+    max-width: 100% !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  header,
+  aside,
+  nav,
+  [data-radix-popper-content-wrapper],
+  #glowing-toast-container,
+  .bg-mesh,
+  .bg-dot-matrix,
+  .bg-grid {
+    display: none !important;
+  }
+
+  main, [role="main"], .min-h-screen {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+  }
+
+  .glass-card, .glass-card-flat, .bg-card {
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  th, td {
+    padding: 6px 8px !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    background: transparent !important;
+  }
+
+  th {
+    border-bottom: 2px solid #0f172a !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    font-size: 8.5pt !important;
+  }
+
+  .overflow-x-auto, .overflow-hidden, .overflow-x-hidden {
+    overflow: visible !important;
+  }
+}

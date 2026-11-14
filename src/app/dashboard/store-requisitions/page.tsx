@@ -804,7 +804,7 @@ function AdminRequisitionsContent() {
         )}
 
         {/* Filter Tabs & Search */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card p-2 rounded-2xl border border-border/50">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-card p-2 rounded-2xl border border-border/50 print:hidden">
           <div className="flex overflow-x-auto sm:flex-wrap items-center gap-1 p-1 bg-muted/40 dark:bg-slate-800/40 rounded-xl border border-border/30">
             {(workflowMode === 'pre_event' ? PRE_EVENT_FILTER_TABS : DURING_EVENT_FILTER_TABS).map(tab => {
               const count = counts[tab.key] || 0

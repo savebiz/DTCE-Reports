@@ -196,7 +196,7 @@ export function DashboardHeader() {
     <>
       {/* ── FIXED FLOATING GLASSMORPHISM TOP NAVIGATION BAR ── */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 w-full overflow-x-clip"
+        className="fixed top-0 left-0 right-0 z-50 w-full overflow-x-clip print:hidden"
         style={{
           background:           'rgba(10, 24, 38, 0.82)',
           backdropFilter:       'blur(16px)',
@@ -323,7 +323,7 @@ export function DashboardHeader() {
         <aside
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className={`hidden lg:flex fixed left-0 top-14 bottom-0 z-40 flex-col justify-between transition-all duration-300 ease-out border-r ${
+          className={`hidden lg:flex fixed left-0 top-14 bottom-0 z-40 flex-col justify-between transition-all duration-300 ease-out border-r print:hidden ${
             isHovered ? 'w-56 shadow-2xl' : 'w-14'
           }`}
           style={{
@@ -389,13 +389,13 @@ export function DashboardHeader() {
         <>
           {/* Blurred Translucent Overlay */}
           <div
-            className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-md lg:hidden animate-fade-in-up"
+            className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-md lg:hidden animate-fade-in-up print:hidden"
             onClick={() => setOpen(false)}
           />
 
           {/* Right Sliding Drawer Panel */}
           <aside
-            className="fixed inset-y-0 right-0 z-[100] w-[85vw] sm:w-[320px] max-w-[320px] h-full shadow-2xl lg:hidden flex flex-col justify-between overflow-y-auto animate-fade-in-up"
+            className="fixed inset-y-0 right-0 z-[100] w-[85vw] sm:w-[320px] max-w-[320px] h-full shadow-2xl lg:hidden flex flex-col justify-between overflow-y-auto animate-fade-in-up print:hidden"
             style={{
               background:     'rgba(10, 24, 38, 0.98)',
               backdropFilter: 'blur(24px)',

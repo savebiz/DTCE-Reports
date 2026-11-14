@@ -11,7 +11,7 @@ export default function InventoryReportsPage() {
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       {/* 1. Integrated Navigation Strip */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-2.5 border-b border-border/40 bg-background/50 backdrop-blur-xs">
+      <div className="flex items-center justify-between px-4 md:px-6 py-2.5 border-b border-border/40 bg-background/50 backdrop-blur-xs print:hidden">
         <button
           onClick={() => router.push('/my-department/inventory')}
           className="flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
