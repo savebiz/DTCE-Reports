@@ -14,7 +14,7 @@ import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { TableSkeleton } from '@/components/ui/skeleton-loader'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { CheckCircle2, Package, ClipboardList, ArrowLeft, ArrowRight, ShoppingCart, RefreshCw } from 'lucide-react'
-import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
+import { getCurrentEvent, getDepartmentAssignment, isPreEventNeedsEnabled } from '@/lib/events/current-event'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 
 interface RequestItem {
@@ -55,6 +55,7 @@ function StoreFulfillmentContent() {
   const [inventoryStockMap, setInventoryStockMap] = useState<Record<string, { current_stock: number; reserved_stock: number }>>({})
   const [requisitions, setRequisitions] = useState<RequisitionTicket[]>([])
   const [preEventListsCount, setPreEventListsCount] = useState(0)
+  const [preEventNeedsEnabled, setPreEventNeedsEnabled] = useState(false)
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'processing' | 'partially_fulfilled' | 'ready' | 'delivered'>('all')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -93,7 +94,9 @@ function StoreFulfillmentContent() {
       }
     }
 
-    const currentEventId = await getCurrentEventId(supabase)
+    const currentEvent = await getCurrentEvent(supabase)
+    const currentEventId = currentEvent?.id ?? null
+    setPreEventNeedsEnabled(isPreEventNeedsEnabled(currentEvent))
 
     if (!isMock && (activeProfile.role === 'hod' || activeProfile.role === 'assistant')) {
       const assignment = await getDepartmentAssignment(supabase, activeProfile.id, currentEventId)
@@ -279,7 +282,7 @@ function StoreFulfillmentContent() {
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
           <span className="text-[11px] font-bold uppercase tracking-widest text-blue-700 dark:text-blue-700 dark:text-blue-400">
-            Phase 2 · Live Event Store Counter Fulfillment
+            {preEventNeedsEnabled ? 'Phase 2 · Live Event Store Counter Fulfillment' : 'Live Event Store Counter Fulfillment'}
           </span>
         </div>
       </div>
@@ -301,13 +304,15 @@ function StoreFulfillmentContent() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              onClick={() => router.push('/my-department/market-list')}
-              className="text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
-            >
-              <ClipboardList className="w-3.5 h-3.5" />
-              <span className="inline-flex items-center gap-1.5"><ShoppingCart className="h-3.5 w-3.5" /> Pre-Event Market List ({preEventListsCount} Dept Lists)</span>
-            </Button>
+            {preEventNeedsEnabled && (
+              <Button
+                onClick={() => router.push('/my-department/market-list')}
+                className="text-xs font-bold h-9 bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
+              >
+                <ClipboardList className="w-3.5 h-3.5" />
+                <span className="inline-flex items-center gap-1.5"><ShoppingCart className="h-3.5 w-3.5" /> Pre-Event Market List ({preEventListsCount} Dept Lists)</span>
+              </Button>
+            )}
             <Button
               onClick={() => router.push('/my-department/inventory')}
               variant="outline"
@@ -327,7 +332,7 @@ function StoreFulfillmentContent() {
         </div>
 
         {/* Helpful separation notice if pre-event lists exist */}
-        {preEventListsCount > 0 && requisitions.length === 0 && (
+        {preEventNeedsEnabled && preEventListsCount > 0 && requisitions.length === 0 && (
           <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="text-sm font-bold text-foreground">

@@ -7,6 +7,7 @@ export interface Event {
     primary: string
     secondary: string
   }
+  pre_event_needs_enabled?: boolean
 }
 
 export interface EventDay {

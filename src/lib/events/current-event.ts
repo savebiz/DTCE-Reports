@@ -31,6 +31,7 @@ export interface PlatformEvent {
   live_requisition_opens_at?: string | null
   pre_event_override?: WindowOverride | null
   live_requisition_override?: WindowOverride | null
+  pre_event_needs_enabled?: boolean | null
   created_at?: string
 }
 
@@ -80,6 +81,10 @@ export async function getCurrentEvent(supabase: QueryClient): Promise<PlatformEv
   // Postgres sorts NULL start dates first in DESC order; skip those if possible.
   const dated = (events as PlatformEvent[]).find(e => !!e.start_date)
   return dated || (events[0] as PlatformEvent)
+}
+
+export function isPreEventNeedsEnabled(event: PlatformEvent | null | undefined): boolean {
+  return event?.pre_event_needs_enabled === true
 }
 
 export async function getCurrentEventId(supabase: QueryClient): Promise<string | null> {

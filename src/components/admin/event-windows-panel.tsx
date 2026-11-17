@@ -27,6 +27,7 @@ interface DraftEventState {
   live_requisition_opens_at: string
   pre_event_override: WindowOverride
   live_requisition_override: WindowOverride
+  pre_event_needs_enabled: boolean
 }
 
 export function EventWindowsPanel() {
@@ -44,6 +45,7 @@ export function EventWindowsPanel() {
   const [newStart, setNewStart] = useState('')
   const [newEnd, setNewEnd] = useState('')
   const [newMakeActive, setNewMakeActive] = useState(true)
+  const [newPreEventEnabled, setNewPreEventEnabled] = useState(false)
 
   const loadEvents = async (preferId?: string) => {
     setLoading(true)
@@ -78,6 +80,7 @@ export function EventWindowsPanel() {
       live_requisition_opens_at: toWatInputValue(ev.live_requisition_opens_at),
       pre_event_override: (ev.pre_event_override || 'auto') as WindowOverride,
       live_requisition_override: (ev.live_requisition_override || 'auto') as WindowOverride,
+      pre_event_needs_enabled: ev.pre_event_needs_enabled === true,
     })
   }
 
@@ -100,6 +103,7 @@ export function EventWindowsPanel() {
           live_requisition_opens_at: fromWatInputValue(draft.live_requisition_opens_at),
           pre_event_override: draft.pre_event_override,
           live_requisition_override: draft.live_requisition_override,
+          pre_event_needs_enabled: draft.pre_event_needs_enabled,
         }
       : null
 
@@ -124,6 +128,7 @@ export function EventWindowsPanel() {
           live_requisition_opens_at: fromWatInputValue(draft.live_requisition_opens_at),
           pre_event_override: draft.pre_event_override,
           live_requisition_override: draft.live_requisition_override,
+          pre_event_needs_enabled: draft.pre_event_needs_enabled,
           set_as_current: makeCurrent ? true : undefined,
         }),
       })
@@ -136,6 +141,7 @@ export function EventWindowsPanel() {
         'success'
       )
       await loadEvents(selectedEvent.id)
+      window.dispatchEvent(new Event('dtce:event-config-updated'))
     } catch (err: any) {
       showToast(err.message || 'Save failed', 'error')
     } finally {
@@ -160,6 +166,7 @@ export function EventWindowsPanel() {
           start_date: newStart || null,
           end_date: newEnd || null,
           set_as_current: newMakeActive,
+          pre_event_needs_enabled: newPreEventEnabled,
         }),
       })
       const data = await res.json()
@@ -301,6 +308,19 @@ export function EventWindowsPanel() {
                     </label>
                   </div>
                 </div>
+                <div className="flex items-end sm:col-span-2">
+                  <div className="inline-flex items-center gap-2.5 text-xs font-medium text-foreground h-9">
+                    <Switch
+                      id="new-pre-event-enabled"
+                      checked={newPreEventEnabled}
+                      onCheckedChange={setNewPreEventEnabled}
+                      aria-label="Enable Pre-Event Needs List & Market Procurement"
+                    />
+                    <label htmlFor="new-pre-event-enabled" className="cursor-pointer select-none">
+                      Enable Pre-Event Needs List &amp; Market Procurement
+                    </label>
+                  </div>
+                </div>
                 <div className="flex items-end justify-end">
                   <Button type="submit" size="sm" disabled={creating} className="h-9 text-xs font-bold">
                     {creating ? 'Creating...' : 'Create Event'}
@@ -344,8 +364,33 @@ export function EventWindowsPanel() {
 
         {selectedEvent && draft && (
           <CardContent className="space-y-6">
+            {/* Master Pre-Event Needs Toggle */}
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border p-4 transition-colors ${draft.pre_event_needs_enabled ? 'border-emerald-500/35 bg-emerald-500/5' : 'border-border bg-muted/20'}`}>
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  Pre-Event Needs List &amp; Market Procurement
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {draft.pre_event_needs_enabled
+                    ? 'Enabled: Departments see Pre-Event Needs Lists, and Admins/Stores/Finance see the Market List & Non-Store Tracker.'
+                    : 'Hidden: Pre-Event Needs Lists, Market List, and Non-Store Tracker are hidden across the platform so users only see Live Store Requisitions.'}
+                </p>
+              </div>
+              <div className="inline-flex items-center gap-2.5 shrink-0">
+                <span className={`text-[11px] font-bold uppercase tracking-wider ${draft.pre_event_needs_enabled ? 'text-emerald-500' : 'text-muted-foreground'}`}>
+                  {draft.pre_event_needs_enabled ? 'ON' : 'OFF'}
+                </span>
+                <Switch
+                  id="toggle-pre-event-needs"
+                  checked={draft.pre_event_needs_enabled}
+                  onCheckedChange={(checked) => setDraft({ ...draft, pre_event_needs_enabled: checked })}
+                  aria-label="Enable Pre-Event Needs List & Market Procurement"
+                />
+              </div>
+            </div>
+
             {/* Live Preview Status Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className={`grid grid-cols-1 ${draft.pre_event_needs_enabled ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4`}>
               <div className="p-4 rounded-xl border border-blue-500/30 bg-blue-500/5">
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -361,6 +406,7 @@ export function EventWindowsPanel() {
                 </p>
               </div>
 
+              {draft.pre_event_needs_enabled && (
               <div className={`p-4 rounded-xl border ${preEventWindow.isOpen ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-amber-500/30 bg-amber-500/5'}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -373,11 +419,12 @@ export function EventWindowsPanel() {
                 </div>
                 <p className="text-xs text-foreground font-medium">{preEventWindow.message}</p>
               </div>
+              )}
 
               <div className={`p-4 rounded-xl border ${liveWindow.isOpen ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-slate-500/30 bg-muted/20'}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Phase 2: Live Store Requisition
+                    {draft.pre_event_needs_enabled ? 'Phase 2: Live Store Requisition' : 'Live Store Requisition'}
                   </span>
                   <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${liveWindow.isOpen ? 'bg-emerald-500/20 text-emerald-500' : 'bg-slate-500/20 text-muted-foreground'}`}>
                     {liveWindow.isOpen ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
@@ -425,6 +472,7 @@ export function EventWindowsPanel() {
             </div>
 
             {/* Phase 1 Window */}
+            {draft.pre_event_needs_enabled && (
             <div className="p-4 rounded-xl border border-border/60 bg-background/40 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
@@ -467,13 +515,14 @@ export function EventWindowsPanel() {
                 </div>
               </div>
             </div>
+            )}
 
             {/* Phase 2 Window */}
             <div className="p-4 rounded-xl border border-border/60 bg-background/40 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-amber-500" />
-                  Phase 2: Live Event Store Requisition Window (WAT / UTC+1)
+                  {draft.pre_event_needs_enabled ? 'Phase 2: Live Event Store Requisition Window (WAT / UTC+1)' : 'Live Event Store Requisition Window (WAT / UTC+1)'}
                 </h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

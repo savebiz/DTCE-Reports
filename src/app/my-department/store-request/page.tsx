@@ -14,7 +14,7 @@ import { NumberField } from '@/components/ui/number-field'
 import { Label } from '@/components/ui/label'
 import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { Truck, RefreshCw, ClipboardList, Package, Copy, ArrowRight, Lock, Unlock, ArrowLeft, Send, Check, Download } from 'lucide-react'
-import { getCurrentEvent, getDepartmentAssignment } from '@/lib/events/current-event'
+import { getCurrentEvent, getDepartmentAssignment, isPreEventNeedsEnabled } from '@/lib/events/current-event'
 import { evaluateRequisitionWindow } from '@/lib/events/requisition-windows'
 import { UnassignedDepartmentGate } from '@/components/unassigned-department-gate'
 import { ModernSelect } from '@/components/ui/modern-select'
@@ -58,7 +58,7 @@ function StoreRequestContent() {
   const [requests, setRequests] = useState<StoreRequestTicket[]>([])
 
   // Active workflow tab: 'pre_event' (Pre-Congress Needs List for Market) vs 'during_event' (Live Store Requisition)
-  const [requestType, setRequestType] = useState<'pre_event' | 'during_event'>('pre_event')
+  const [requestType, setRequestType] = useState<'pre_event' | 'during_event'>('during_event')
 
   // Shared item builder state
   const [catalogItems, setCatalogItems] = useState<any[]>([])
@@ -98,10 +98,16 @@ function StoreRequestContent() {
     const currentEvent = await getCurrentEvent(supabase)
     if (currentEvent) {
       setActiveEvent(currentEvent)
-      const preW = evaluateRequisitionWindow(currentEvent, 'pre_event')
-      const liveW = evaluateRequisitionWindow(currentEvent, 'during_event')
-      if (liveW.isOpen && !preW.isOpen) {
+      if (!isPreEventNeedsEnabled(currentEvent)) {
         setRequestType('during_event')
+      } else {
+        const preW = evaluateRequisitionWindow(currentEvent, 'pre_event')
+        const liveW = evaluateRequisitionWindow(currentEvent, 'during_event')
+        if (liveW.isOpen && !preW.isOpen) {
+          setRequestType('during_event')
+        } else {
+          setRequestType('pre_event')
+        }
       }
     }
 
@@ -554,14 +560,16 @@ function StoreRequestContent() {
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
-              {requestType === 'pre_event'
+              {isPreEventNeedsEnabled(activeEvent) && requestType === 'pre_event'
                 ? 'Pre-Event Departmental Needs List (For Market Purchase)'
                 : 'Live Event Store Requisitions (From Stores Stock)'}
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              {requestType === 'pre_event'
+              {isPreEventNeedsEnabled(activeEvent) && requestType === 'pre_event'
                 ? `${activeEvent?.name || 'Upcoming Event'}: Submit the list of items your department needs bought at the market before the event begins.`
-                : `${activeEvent?.name || 'Current Event'}: Request items directly from Central Stores warehouse after items have been purchased and stocked.`}
+                : isPreEventNeedsEnabled(activeEvent)
+                  ? `${activeEvent?.name || 'Current Event'}: Request items directly from Central Stores warehouse after items have been purchased and stocked.`
+                  : `${activeEvent?.name || 'Current Event'}: Request items directly from Central Stores stock.`}
             </p>
           </div>
           <Button
@@ -575,6 +583,7 @@ function StoreRequestContent() {
         </div>
 
         {/* Two Distinct Workflow Stage Tabs */}
+        {isPreEventNeedsEnabled(activeEvent) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="tablist" aria-label="Select process stage">
           <button
             role="tab"
@@ -636,9 +645,10 @@ function StoreRequestContent() {
             </span>
           </button>
         </div>
+        )}
 
         {/* STAGE 1: PRE-EVENT NEEDS LIST (MARKET PURCHASE) */}
-        {requestType === 'pre_event' ? (
+        {isPreEventNeedsEnabled(activeEvent) && requestType === 'pre_event' ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column: Build Pre-Event Needs List */}
             <div className="lg:col-span-1 space-y-6">
@@ -1059,7 +1069,7 @@ function StoreRequestContent() {
                   )}
                   <fieldset disabled={!liveWindow.isOpen} className="space-y-4 disabled:opacity-50 disabled:pointer-events-none">
                   {/* Seamless Link from Approved Pre-Event Needs List */}
-                  {approvedPreEventItems.length > 0 && (
+                  {isPreEventNeedsEnabled(activeEvent) && approvedPreEventItems.length > 0 && (
                     <Button
                       onClick={() => handleLoadFromPreEventList()}
                       variant="outline"

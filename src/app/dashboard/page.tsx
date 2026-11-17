@@ -18,7 +18,7 @@ import { KPIGridSkeleton, MatrixGridSkeleton, TableSkeleton } from '@/components
 import { InventoryReportsView } from '@/components/inventory/inventory-reports-view'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { RegistrationInsightPanel } from '@/components/registration/registration-insight-panel'
-import { getCurrentEventId, getEventDays } from '@/lib/events/current-event'
+import { getCurrentEvent, getEventDays, isPreEventNeedsEnabled } from '@/lib/events/current-event'
 import { isGeneralSecretary } from '@/lib/auth/titles'
 import { DtceWorkspaceLoader } from '@/components/ui/dtce-workspace-loader'
 import { ModernSelect } from '@/components/ui/modern-select'
@@ -115,6 +115,7 @@ function SecretariatDashboardContent() {
   const tabParam = searchParams?.get('tab')
 
   const [activeTab, setActiveTab] = useState('overview')
+  const [preEventNeedsEnabled, setPreEventNeedsEnabled] = useState(false)
   const [selectedFocusDays, setSelectedFocusDays] = useState<string[]>(['all'])
 
   // Pagination State for Dashboard Tables & Consoles
@@ -182,7 +183,9 @@ function SecretariatDashboardContent() {
     // Everything on this dashboard is for the current event only. Day cells
     // match by day number, so mixing events would put Convention Day 1 into
     // Congress Day 1.
-    const currentEventId = await getCurrentEventId(supabase)
+    const currentEvent = await getCurrentEvent(supabase)
+    const currentEventId = currentEvent?.id ?? null
+    setPreEventNeedsEnabled(isPreEventNeedsEnabled(currentEvent))
 
     const days = currentEventId ? await getEventDays(supabase, currentEventId) : []
     const activeDays = days.length > 0 ? days : (currentEventId ? [] : mockEventDays)
@@ -246,11 +249,14 @@ function SecretariatDashboardContent() {
   }, [loadData])
 
   const visibleStoreRequests = useMemo(() => {
+    const base = preEventNeedsEnabled
+      ? storeRequests
+      : storeRequests.filter(r => r.request_type !== 'pre_event')
     if (isCoordinatorAssistant && profile?.id) {
-      return storeRequests.filter(r => r.assigned_approver_id === profile.id)
+      return base.filter(r => r.assigned_approver_id === profile.id)
     }
-    return storeRequests
-  }, [storeRequests, isCoordinatorAssistant, profile])
+    return base
+  }, [storeRequests, preEventNeedsEnabled, isCoordinatorAssistant, profile])
 
   const handleCellClick = (dept: Department, day: any) => {
     const rep = reports.find(r => 
@@ -845,13 +851,16 @@ function SecretariatDashboardContent() {
               <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <CardTitle className="text-base font-bold text-foreground uppercase tracking-wider">
-                    Pre-Event Needs Lists &amp; Live Store Requisitions
+                    {preEventNeedsEnabled ? 'Pre-Event Needs Lists & Live Store Requisitions' : 'Store Requisitions'}
                   </CardTitle>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Review departmental Pre-Event Needs Lists (for market purchase) and Live Store Requisitions (from Central Stores stock).
+                    {preEventNeedsEnabled
+                      ? 'Review departmental Pre-Event Needs Lists (for market purchase) and Live Store Requisitions (from Central Stores stock).'
+                      : 'Review departmental store requisitions (from Central Stores stock).'}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  {preEventNeedsEnabled && (
                   <Button
                     size="sm"
                     variant="outline"
@@ -860,6 +869,7 @@ function SecretariatDashboardContent() {
                   >
                     <ShoppingCart className="h-3.5 w-3.5" /> Pre-Event Market Analytics
                   </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="outline"

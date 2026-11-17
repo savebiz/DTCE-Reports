@@ -40,6 +40,7 @@ export async function PATCH(request: Request) {
       live_requisition_opens_at,
       pre_event_override,
       live_requisition_override,
+      pre_event_needs_enabled,
       set_as_current,
     } = body
 
@@ -74,6 +75,12 @@ export async function PATCH(request: Request) {
       }
       updates.live_requisition_override = live_requisition_override
     }
+    if (pre_event_needs_enabled !== undefined) {
+      if (typeof pre_event_needs_enabled !== 'boolean') {
+        return NextResponse.json({ error: 'Invalid pre_event_needs_enabled' }, { status: 400 })
+      }
+      updates.pre_event_needs_enabled = pre_event_needs_enabled
+    }
 
     const supabaseAdmin = getAdminClient()
 
@@ -106,7 +113,7 @@ export async function POST(request: Request) {
     if (!auth.ok) return auth.response
 
     const body = await request.json()
-    const { name, event_type, start_date, end_date, set_as_current } = body
+    const { name, event_type, start_date, end_date, set_as_current, pre_event_needs_enabled } = body
 
     if (!name || !String(name).trim()) {
       return NextResponse.json({ error: 'Event name is required' }, { status: 400 })
@@ -132,6 +139,7 @@ export async function POST(request: Request) {
         end_date: end_date || null,
         status: 'planning',
         is_current: set_as_current === true,
+        pre_event_needs_enabled: pre_event_needs_enabled === true,
       })
       .select('*')
       .single()

@@ -36,6 +36,10 @@ export default function NonStoreNeedsPage() {
     setLoading(true)
     try {
       const res = await fetch('/api/needs/non-store', { cache: 'no-store' })
+      if (res.status === 403) {
+        router.replace('/dashboard')
+        return
+      }
       if (!res.ok) throw new Error('Failed to load non-store needs')
       const data = await res.json()
       setEventName(data?.event?.name || 'Current Event')

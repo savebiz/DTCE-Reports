@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
 import { getAdminClient } from '@/utils/supabase/admin'
-import { getCurrentEvent } from '@/lib/events/current-event'
+import { getCurrentEvent, isPreEventNeedsEnabled } from '@/lib/events/current-event'
 import {
   getNeedTypeMeta,
   isStoreSupply,
@@ -38,6 +38,9 @@ export async function GET() {
   const event = await getCurrentEvent(admin)
   if (!event) {
     return NextResponse.json({ event: null, items: [], canManage: false })
+  }
+  if (!isPreEventNeedsEnabled(event)) {
+    return NextResponse.json({ error: 'Pre-event needs lists are disabled for this event.', disabled: true }, { status: 403 })
   }
 
   const canManage = ADMIN_ROLES.includes(auth.ctx.role)
@@ -126,6 +129,10 @@ export async function PATCH(request: NextRequest) {
   }
 
   const admin = getAdminClient()
+  const event = await getCurrentEvent(admin)
+  if (!isPreEventNeedsEnabled(event)) {
+    return NextResponse.json({ error: 'Pre-event needs lists are disabled for this event.', disabled: true }, { status: 403 })
+  }
   const { data: reqRow, error: fetchErr } = await admin
     .from('store_requests')
     .select('id, items_json')

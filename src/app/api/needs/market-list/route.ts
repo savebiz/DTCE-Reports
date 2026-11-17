@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { requireAuth, ADMIN_ROLES } from '@/lib/auth/api-guard'
-import { getCurrentEvent } from '@/lib/events/current-event'
+import { getCurrentEvent, isPreEventNeedsEnabled } from '@/lib/events/current-event'
 import { isStoreSupply } from '@/lib/needs/need-types'
 
 /**
@@ -59,6 +59,9 @@ export async function GET(request: NextRequest) {
   const admin = getAdminClient()
   const event = await getCurrentEvent(admin)
   if (!event) return NextResponse.json({ error: 'No current event.' }, { status: 400 })
+  if (!isPreEventNeedsEnabled(event)) {
+    return NextResponse.json({ error: 'Pre-event needs lists are disabled for this event.', disabled: true }, { status: 403 })
+  }
 
   let reqQuery = admin
     .from('store_requests')
@@ -304,6 +307,9 @@ export async function POST(request: NextRequest) {
   const admin = getAdminClient()
   const event = await getCurrentEvent(admin)
   if (!event) return NextResponse.json({ error: 'No current event.' }, { status: 400 })
+  if (!isPreEventNeedsEnabled(event)) {
+    return NextResponse.json({ error: 'Pre-event needs lists are disabled for this event.', disabled: true }, { status: 403 })
+  }
 
   // Action: Seamless Link — Stock Received Market Items into Central Stores Inventory (`inventory_items`)
   if (body.action === 'stock_to_inventory') {

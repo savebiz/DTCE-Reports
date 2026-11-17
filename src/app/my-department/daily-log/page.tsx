@@ -15,7 +15,7 @@ import { CurrencyField } from '@/components/ui/currency-field'
 import { ClipboardList, Wifi, WifiOff, Clock, Globe, ArrowLeft, ArrowRight, AlertTriangle, X, CheckCircle2, Lock } from 'lucide-react'
 import { useOfflineDraft } from '@/hooks/use-offline-draft'
 import { PreEventRegistrationTotalsModal } from '@/components/registration/pre-event-totals-modal'
-import { getCurrentEvent, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
+import { getCurrentEvent, getEventDays, getDepartmentAssignment, isPreEventNeedsEnabled } from '@/lib/events/current-event'
 import { evaluateDailyReportWindow } from '@/lib/events/reporting-windows'
 import { isUsheringDept, isAttendanceDept, computeUsheringAttendance, computeDerivedOffering, summarizeCustomMetrics, totalWorkforceCount } from '@/lib/events/department-archetypes'
 import { ModernSelect } from '@/components/ui/modern-select'
@@ -1189,7 +1189,9 @@ function DailyLogContent() {
           <div className="flex items-start gap-2.5 text-amber-800 dark:text-amber-300">
             <Lock className="h-4 w-4 shrink-0 mt-0.5" />
             <div className="text-xs">
-              <span className="font-bold block">Daily Reporting Locked (Pre-Event Phase)</span>
+              <span className="font-bold block">
+                {isPreEventNeedsEnabled(currentEvent) ? 'Daily Reporting Locked (Pre-Event Phase)' : 'Daily Reporting Locked'}
+              </span>
               <span>{evaluateDailyReportWindow(activeDay, new Date(), 6, currentEvent).message}</span>
             </div>
           </div>

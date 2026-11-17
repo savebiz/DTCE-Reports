@@ -7,7 +7,7 @@ import { LayoutGrid, FileText, Users, LogOut, Menu, X, ShoppingCart, Boxes, Sett
 import { useSearchParams } from 'next/navigation'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notification-bell'
-import { getCurrentEventId, getDepartmentAssignment } from '@/lib/events/current-event'
+import { getCurrentEvent, getDepartmentAssignment, isPreEventNeedsEnabled } from '@/lib/events/current-event'
 import { isGeneralSecretary } from '@/lib/auth/titles'
 
 const NAV_ITEMS = [
@@ -66,10 +66,13 @@ export function DashboardHeader() {
   const [activeDeptName, setActiveDeptName] = useState('Secretariat')
   const [hasNoDepartment, setHasNoDepartment] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [preEventNeedsEnabled, setPreEventNeedsEnabled] = useState(false)
 
   useEffect(() => {
     const fetchUser = async () => {
       const supabase = getClient()
+      const currentEvent = await getCurrentEvent(supabase)
+      setPreEventNeedsEnabled(isPreEventNeedsEnabled(currentEvent))
       const { data } = await supabase.auth.getUser()
       if (data?.user) {
         setUser(data.user)
@@ -118,7 +121,7 @@ export function DashboardHeader() {
         } else {
           if (!deptId || deptId.startsWith('dept-')) {
             if (!isMock && activeProfile?.id) {
-              const currentEventId = await getCurrentEventId(supabase)
+              const currentEventId = currentEvent?.id ?? null
               const assignment = await getDepartmentAssignment(supabase, activeProfile.id, currentEventId)
               if (assignment?.department_id) {
                 deptId = assignment.department_id
@@ -157,6 +160,12 @@ export function DashboardHeader() {
       }
     }
     fetchUser()
+    const onConfigUpdate = async () => {
+      const ev = await getCurrentEvent(getClient())
+      setPreEventNeedsEnabled(isPreEventNeedsEnabled(ev))
+    }
+    window.addEventListener('dtce:event-config-updated', onConfigUpdate)
+    return () => window.removeEventListener('dtce:event-config-updated', onConfigUpdate)
   }, [deptIdParam])
 
   const handleSignOut = async () => {
@@ -343,6 +352,7 @@ export function DashboardHeader() {
               if (role === 'coordinator' && ['Inventory Oversight', 'Team', 'Reports', 'Manual Entry', 'YoY Analytics'].includes(label)) return null;
               if (role === 'national_coordinator' && ['Team', 'Reports', 'Manual Entry'].includes(label)) return null;
               if (role === 'assistant' && label === 'Store Requests') return null;
+              if (label === 'Market List' && !preEventNeedsEnabled) return null;
               const active = isNavItemActive(href)
 
               return (
@@ -448,6 +458,7 @@ export function DashboardHeader() {
                     if (role === 'coordinator' && ['Inventory Oversight', 'Team', 'Reports', 'Manual Entry', 'YoY Analytics'].includes(label)) return null;
                     if (role === 'national_coordinator' && ['Team', 'Reports', 'Manual Entry'].includes(label)) return null;
               if (role === 'assistant' && label === 'Store Requests') return null;
+              if (label === 'Market List' && !preEventNeedsEnabled) return null;
                     const active = isNavItemActive(href)
                     return (
                       <button
@@ -474,9 +485,10 @@ export function DashboardHeader() {
                     const isSecretariatDept = activeDeptName.toLowerCase().includes('secretariat')
                     // Hide fulfillment console and inventory catalog for non-stores departments
                     if (label === 'Fulfillment Console' && !isStoresDept) return null;
-                    if (label === 'Market List' && !isStoresDept && !isFinanceDept) return null;
+                    if (label === 'Market List' && ((!isStoresDept && !isFinanceDept) || !preEventNeedsEnabled)) return null;
                     if (label === 'Inventory Catalog' && !isStoresDept) return null;
                     if (role === 'assistant' && label === 'Store Requests') return null;
+              if (label === 'Market List' && !preEventNeedsEnabled) return null;
                     if (label === 'Manual Paper Entry' && !isSecretariatDept) return null;
                     const active = pathname === href || (href !== '/my-department' && pathname?.startsWith(href))
                     return (

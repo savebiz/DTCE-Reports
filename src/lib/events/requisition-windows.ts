@@ -1,10 +1,11 @@
-import type { PlatformEvent, WindowOverride } from './current-event'
+import { isPreEventNeedsEnabled, type PlatformEvent, type WindowOverride } from './current-event'
 
 export type RequisitionStage = 'pre_event' | 'during_event'
 
 export type WindowClosedReason =
   | 'no_event'
   | 'event_closed'
+  | 'disabled'
   | 'force_closed'
   | 'not_started'
   | 'closed'
@@ -114,6 +115,17 @@ export function evaluateRequisitionWindow(
   }
 
   if (stage === 'pre_event') {
+    if (!isPreEventNeedsEnabled(event)) {
+      return {
+        isOpen: false,
+        reason: 'disabled',
+        opensAt: null,
+        closesAt: null,
+        isOverride: false,
+        overrideMode: 'auto',
+        message: 'Pre-event needs lists are disabled for this event.',
+      }
+    }
     const override: WindowOverride = event.pre_event_override || 'auto'
     const opensAt = event.requisition_opens_at ? new Date(event.requisition_opens_at) : null
     const closesAt = event.requisition_closes_at ? new Date(event.requisition_closes_at) : null

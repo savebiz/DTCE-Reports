@@ -15,7 +15,7 @@ import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { KPIGridSkeleton, TableSkeleton } from '@/components/ui/skeleton-loader'
 import { Calendar, Layers, Package, FileEdit, Lock } from 'lucide-react'
 import { evaluateDailyReportWindow } from '@/lib/events/reporting-windows'
-import { getCurrentEvent, getEventDays, getDepartmentAssignment } from '@/lib/events/current-event'
+import { getCurrentEvent, getEventDays, getDepartmentAssignment, isPreEventNeedsEnabled } from '@/lib/events/current-event'
 import { ModernSelect } from '@/components/ui/modern-select'
 
 export default function MyDepartmentDashboard() {
@@ -487,13 +487,15 @@ export default function MyDepartmentDashboard() {
               )}
               {isStoresDept ? (
                 <>
-                  <button
+                  {isPreEventNeedsEnabled(currentEvent) && (
+<button
                     className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-700 dark:text-blue-400 hover:bg-blue-500/20 cursor-pointer shadow-xs"
                     onClick={() => router.push('/my-department/market-list')}
                   >
                     <Package className="w-3.5 h-3.5" />
                     Pre-Event Market List
                   </button>
+                  )}
                   <button
                     className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer shadow-xs"
                     onClick={() => router.push('/my-department/inventory')}
@@ -515,10 +517,10 @@ export default function MyDepartmentDashboard() {
                   onClick={() => router.push('/my-department/store-request')}
                 >
                   <Package className="w-3.5 h-3.5" />
-                  Needs List &amp; Store Request
+                  {isPreEventNeedsEnabled(currentEvent) ? 'Needs List & Store Request' : 'Store Requisitions'}
                 </button>
               )}
-              {isFinanceDept && !isStoresDept && (
+              {isFinanceDept && !isStoresDept && isPreEventNeedsEnabled(currentEvent) && (
                 <button
                   className="flex items-center gap-1.5 h-9 rounded-lg px-4 text-xs font-bold transition-all border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer shadow-xs"
                   onClick={() => router.push('/my-department/market-list')}

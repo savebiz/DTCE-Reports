@@ -60,7 +60,10 @@ export function OfflineSyncIndicator() {
                   items: item.items,
                 }),
               })
-              if (!res.ok) remaining.push(item)
+              if (!res.ok) {
+                if (res.status === 403) continue // e.g., pre-event needs disabled; drop stale queued item
+                remaining.push(item)
+              }
             } catch (_) {
               remaining.push(item)
             }

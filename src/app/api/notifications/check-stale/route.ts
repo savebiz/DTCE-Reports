@@ -5,7 +5,7 @@ import { store } from '@/utils/supabase/mockClient'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
 import { getServiceRoleKey } from '@/utils/supabase/admin'
 import { requireAuth, ADMIN_ROLES, isCronRequest } from '@/lib/auth/api-guard'
-import { getCurrentEventId } from '@/lib/events/current-event'
+import { getCurrentEvent, isPreEventNeedsEnabled } from '@/lib/events/current-event'
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,13 +46,15 @@ export async function GET(request: NextRequest) {
           cleanedSubscriptionsCount = staleSubs ? staleSubs.length : 0
         }
 
-        const currentEventId = await getCurrentEventId(supabase)
+        const currentEvent = await getCurrentEvent(supabase)
+        const currentEventId = currentEvent?.id ?? null
         let reqsQuery = supabase
           .from('store_requests')
           .select('*')
           .eq('status', 'pending_coordinator')
           .lte('created_at', cutoffTime)
         if (currentEventId) reqsQuery = reqsQuery.eq('event_id', currentEventId)
+        if (!isPreEventNeedsEnabled(currentEvent)) reqsQuery = reqsQuery.neq('request_type', 'pre_event')
         const { data: reqs } = await reqsQuery
 
         pendingReqs = reqs || []

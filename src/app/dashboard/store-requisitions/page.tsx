@@ -15,7 +15,7 @@ import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription'
 import { fetchEnhancedStoreRequests } from '@/utils/batch-queries'
 import { DataTablePagination } from '@/components/ui/data-table-pagination'
 import { AlertTriangle, X, ClipboardList, Package, CheckCircle2, Clock, AlertCircle, ShoppingBag, ArrowLeft, ArrowRight, ShoppingCart, Download, RefreshCw, Check } from 'lucide-react'
-import { getCurrentEvent } from '@/lib/events/current-event'
+import { getCurrentEvent, isPreEventNeedsEnabled } from '@/lib/events/current-event'
 import { isGeneralSecretary } from '@/lib/auth/titles'
 import { ModernSelect } from '@/components/ui/modern-select'
 
@@ -103,9 +103,7 @@ function AdminRequisitionsContent() {
   const [activeDepartments, setActiveDepartments] = useState<Array<{ id: string; name: string }>>([])
 
   // Workflow Mode: 'pre_event' (Pre-Congress Needs Lists for Market) vs 'during_event' (Live Event Store Requisitions)
-  const [workflowMode, setWorkflowMode] = useState<'pre_event' | 'during_event'>(
-    modeParam === 'during_event' ? 'during_event' : 'pre_event'
-  )
+  const [workflowMode, setWorkflowMode] = useState<'pre_event' | 'during_event'>('during_event')
   const [showMissingDepts, setShowMissingDepts] = useState(false)
 
   // Available reviewers list for delegation dropdown
@@ -195,8 +193,12 @@ function AdminRequisitionsContent() {
       const currentEvent = await getCurrentEvent(supabase)
       if (currentEvent) {
         setActiveEvent(currentEvent)
-        if (!modeParam) {
+        if (!isPreEventNeedsEnabled(currentEvent)) {
+          setWorkflowMode('during_event')
+        } else if (!modeParam) {
           setWorkflowMode(currentEvent.status === 'live' ? 'during_event' : 'pre_event')
+        } else if (modeParam === 'pre_event') {
+          setWorkflowMode('pre_event')
         }
       }
       const currentEventId = currentEvent?.id
@@ -585,21 +587,25 @@ function AdminRequisitionsContent() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              onClick={() => router.push('/dashboard/market-list')}
-              className="text-xs h-9 font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
-            >
-              <ShoppingCart className="h-3.5 w-3.5" /> Consolidated Market List ({preEventAnalytics.distinctItemsCount} Items)
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => router.push('/dashboard/non-store-needs')}
-              className="text-xs h-9 font-bold border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer flex items-center gap-1.5"
-            >
-              Non-Store Tracker
-            </Button>
+            {isPreEventNeedsEnabled(activeEvent) && (
+              <>
+                <Button
+                  size="sm"
+                  onClick={() => router.push('/dashboard/market-list')}
+                  className="text-xs h-9 font-bold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer flex items-center gap-1.5 shadow-xs"
+                >
+                  <ShoppingCart className="h-3.5 w-3.5" /> Consolidated Market List ({preEventAnalytics.distinctItemsCount} Items)
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => router.push('/dashboard/non-store-needs')}
+                  className="text-xs h-9 font-bold border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer flex items-center gap-1.5"
+                >
+                  Non-Store Tracker
+                </Button>
+              </>
+            )}
             <Button
               size="sm"
               variant="outline"
@@ -637,6 +643,7 @@ function AdminRequisitionsContent() {
         </div>
 
         {/* Two Distinct Workflow Mode Tabs */}
+        {isPreEventNeedsEnabled(activeEvent) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="tablist">
           <button
             role="tab"
@@ -686,9 +693,10 @@ function AdminRequisitionsContent() {
             </span>
           </button>
         </div>
+        )}
 
         {/* AT-A-GLANCE PRE-EVENT ANALYTICS PANEL (Shown when in Pre-Event Needs List Mode) */}
-        {workflowMode === 'pre_event' && (
+        {isPreEventNeedsEnabled(activeEvent) && workflowMode === 'pre_event' && (
           <div className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
               <div className="bg-card rounded-xl p-4 border border-border/50 shadow-xs">

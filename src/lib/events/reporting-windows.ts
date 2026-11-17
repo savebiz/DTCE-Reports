@@ -1,4 +1,5 @@
 import { formatWatDateTime, startOfDayWAT } from './requisition-windows'
+import { isPreEventNeedsEnabled, type PlatformEvent } from './current-event'
 
 export interface DailyReportWindowState {
   isOpen: boolean
@@ -19,20 +20,25 @@ export function evaluateDailyReportWindow(
   eventDay: { date?: string | null; label?: string | null; day_number?: number | null } | null | undefined,
   now: Date = new Date(),
   leadHours = 6,
-  event?: { status?: string | null; start_date?: string | null } | null
+  event?: (Pick<PlatformEvent, 'status' | 'start_date' | 'pre_event_needs_enabled'>) | null
 ): DailyReportWindowState {
   if (event) {
     const preEventStatuses = ['requisition_open', 'draft', 'planning']
     const evStart = event.start_date ? startOfDayWAT(event.start_date) : null
     const evOpensAt = evStart ? new Date(evStart.getTime() - leadHours * ONE_HOUR_MS) : null
+    const preEventEnabled = isPreEventNeedsEnabled(event as PlatformEvent)
 
     if (event.status && preEventStatuses.includes(event.status)) {
       return {
         isOpen: false,
         opensAt: evOpensAt,
         message: evOpensAt
-          ? `Daily reporting opens on ${formatWatDateTime(evOpensAt)}. Only pre-event store requests are open right now.`
-          : 'Daily reporting is locked during the pre-event requisition phase.',
+          ? preEventEnabled
+            ? `Daily reporting opens on ${formatWatDateTime(evOpensAt)}. Only pre-event store requests are open right now.`
+            : `Daily reporting opens on ${formatWatDateTime(evOpensAt)}.`
+          : preEventEnabled
+            ? 'Daily reporting is locked during the pre-event requisition phase.'
+            : 'Daily reporting is not open yet.',
       }
     }
 
