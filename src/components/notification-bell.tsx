@@ -199,9 +199,15 @@ export function NotificationBell({ userId }: { userId?: string }) {
 
       {/* Notification Dropdown Panel */}
       {isOpen && (
-        <div
-          className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl backdrop-blur-xl z-[120] overflow-hidden animate-fade-in-up"
-        >
+        <>
+          <div
+            className="sm:hidden fixed inset-0 bg-black/40 backdrop-blur-[1px] z-[115]"
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            className="fixed inset-x-3 mx-auto top-16 max-w-sm sm:inset-auto sm:mx-0 sm:top-auto sm:absolute sm:right-0 sm:mt-2 sm:w-96 rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl backdrop-blur-xl z-[120] overflow-hidden animate-fade-in-up"
+          >
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/40">
             <div className="flex items-center gap-2">
@@ -282,6 +288,7 @@ export function NotificationBell({ userId }: { userId?: string }) {
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   )
