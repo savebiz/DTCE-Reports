@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getAdminClient } from '@/utils/supabase/admin'
 import { requireAuth } from '@/lib/auth/api-guard'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const auth = await requireAuth({ roles: ['super_admin'] })

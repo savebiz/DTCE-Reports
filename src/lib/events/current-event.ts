@@ -65,6 +65,7 @@ export async function getCurrentEvent(supabase: QueryClient): Promise<PlatformEv
       .from('events')
       .select('*')
       .eq('is_current', true)
+      .order('start_date', { ascending: false, nullsFirst: false })
       .limit(1)
       .maybeSingle()
     if (!error && flagged) return flagged as PlatformEvent

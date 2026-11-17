@@ -36,6 +36,7 @@ export function EventWindowsPanel() {
   const [draft, setDraft] = useState<DraftEventState | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [togglingPreEvent, setTogglingPreEvent] = useState(false)
 
   // New event creator state
   const [showCreate, setShowCreate] = useState(false)
@@ -50,7 +51,7 @@ export function EventWindowsPanel() {
   const loadEvents = async (preferId?: string) => {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/events')
+      const res = await fetch('/api/admin/events', { cache: 'no-store' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to load events')
       const list: PlatformEvent[] = data.events || []
@@ -58,6 +59,7 @@ export function EventWindowsPanel() {
       const target =
         (preferId && list.find(e => e.id === preferId)) ||
         list.find(e => e.is_current) ||
+        list.find(e => !!e.start_date) ||
         list[0]
       if (target) {
         selectEvent(target)
@@ -146,6 +148,40 @@ export function EventWindowsPanel() {
       showToast(err.message || 'Save failed', 'error')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleTogglePreEventNeeds = async (checked: boolean) => {
+    if (!selectedEvent || !draft || togglingPreEvent) return
+    const prevValue = draft.pre_event_needs_enabled
+    setDraft(prev => (prev ? { ...prev, pre_event_needs_enabled: checked } : prev))
+    setTogglingPreEvent(true)
+    try {
+      const res = await fetch('/api/admin/events', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventId: selectedEvent.id,
+          pre_event_needs_enabled: checked,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to update Pre-Event Needs setting')
+      setEvents(prev =>
+        prev.map(ev => (ev.id === selectedEvent.id ? { ...ev, pre_event_needs_enabled: checked } : ev))
+      )
+      showToast(
+        checked
+          ? `Pre-Event Needs List enabled for ${selectedEvent.name}.`
+          : `Pre-Event Needs List hidden for ${selectedEvent.name}.`,
+        'success'
+      )
+      window.dispatchEvent(new Event('dtce:event-config-updated'))
+    } catch (err: any) {
+      setDraft(prev => (prev ? { ...prev, pre_event_needs_enabled: prevValue } : prev))
+      showToast(err.message || 'Failed to update Pre-Event Needs setting', 'error')
+    } finally {
+      setTogglingPreEvent(false)
     }
   }
 
@@ -383,7 +419,8 @@ export function EventWindowsPanel() {
                 <Switch
                   id="toggle-pre-event-needs"
                   checked={draft.pre_event_needs_enabled}
-                  onCheckedChange={(checked) => setDraft({ ...draft, pre_event_needs_enabled: checked })}
+                  disabled={togglingPreEvent}
+                  onCheckedChange={handleTogglePreEventNeeds}
                   aria-label="Enable Pre-Event Needs List & Market Procurement"
                 />
               </div>
